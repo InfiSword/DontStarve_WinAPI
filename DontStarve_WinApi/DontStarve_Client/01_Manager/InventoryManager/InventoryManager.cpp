@@ -3,7 +3,7 @@
 #include "../../02_GameObject/Player/Player.h"
 #include "../../02_GameObject/GameObject/GameObject.h"
 #include "../../02_GameObject/GameObject/Item.h"
-#include "../../00_MainGame/Inventory.h"
+#include "../../02_GameObject/UI/Inventory.h"
 #include "../../01_Manager/SceneManager/SceneManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 

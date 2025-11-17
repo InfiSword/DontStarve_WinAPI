@@ -4,14 +4,14 @@ enum DrawCommandType {
     DRAW_COMMAND_IMAGE,
     DRAW_COMMAND_TEXT,
     DRAW_COMMAND_RECTANGLE,
-    DRAW_COMMAND_FILL_RECTANGLE  // 새로운 타입 추가
+    DRAW_COMMAND_FILL_RECTANGLE  
 };
 
 // 단일 드로우 명령 정보를 담는 구조체
 struct DrawCommand {
     DrawCommandType type;             // 커맨드 타입
-    Gdiplus::Bitmap* pBitmap;         // 이미지용 (텍스트용은 nullptr)
-    Gdiplus::RectF destRect;          // 이미지 위치/크기 (텍스트용)
+    Gdiplus::Bitmap* pBitmap;         // 이미지용 (텍스트용은 무시)
+    Gdiplus::RectF destRect;          // 이미지 위치/크기 (텍스트용은 무시)
     Gdiplus::RectF sourceRect;        // 이미지용 (텍스트용은 무시)
     Gdiplus::Unit srcUnit;            // 이미지용 (텍스트용은 무시)
     Gdiplus::PointF objectScreenPos;  // 변환 중심
@@ -69,7 +69,7 @@ public:
     void AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey);
     void AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float sortKey);  // 새로운 메서드 추가
 
-    // === UI 렌더링 전용 메소드들 ===
+    // UI 렌더링 전용 메소드들
     // UI 이미지 렌더링 (화면 좌표 직접 사용)
     void RenderUIImage(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height, 
                       RenderLayer layer = LAYER_UI_BACKGROUND, float sortKey = 0.0f);
@@ -79,7 +79,7 @@ public:
                      float x, float y, float width, float height, 
                      RenderLayer layer = LAYER_UI_FOREGROUND, float sortKey = 0.0f);
 
-    // === 기존 GameObject 렌더링 메소드들 ===
+    // 기존 GameObject 렌더링 메소드들
     // GameObject 렌더링 (비트맵만 가져와서 렌더링 큐에 추가)
     void RenderGameObject(GameObject* pObject);
     

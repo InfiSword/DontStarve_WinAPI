@@ -171,7 +171,7 @@
     <ClInclude Include="02_GameObject\GameObject\Grass.h" />
     <ClInclude Include="01_Manager\RenderManager\RenderManager.h" />
     <ClInclude Include="02_GameObject\GameObject\PigHouse.h" />
-    <ClInclude Include="00_MainGame\Inventory.h" />
+    <ClInclude Include="02_GameObject\UI\Inventory.h" />
     <ClInclude Include="01_Manager\UIManager\UIManager.h" />
     <ClInclude Include="02_GameObject\GameObject\BerryBush.h" />
     <ClInclude Include="02_GameObject\GameObject\Sapling.h" />
@@ -218,7 +218,7 @@
     <ClCompile Include="02_GameObject\GameObject\Grass.cpp" />
     <ClCompile Include="01_Manager\RenderManager\RenderManager.cpp" />
     <ClCompile Include="02_GameObject\GameObject\PigHouse.cpp" />
-    <ClCompile Include="00_MainGame\Inventory.cpp" />
+    <ClCompile Include="02_GameObject\UI\Inventory.cpp" />
     <ClCompile Include="02_GameObject\GameObject\BerryBush.cpp" />
     <ClCompile Include="02_GameObject\GameObject\Sapling.cpp" />
     <ClCompile Include="02_GameObject\GameObject\Boss_Hound.cpp" />
