@@ -1,0 +1,296 @@
+#include "../99_Default/pch.h"
+#include "../01_Manager/RenderManager/RenderManager.h"
+#include "Animator.h"
+#include "AnimationClip.h" 
+#include "SpriteSheet.h"  
+
+Animator::Animator()
+    : m_currentClip(nullptr), m_currentState(-1), m_currentDirection(-1), 
+      m_elapsed(0.0f), m_isPlaying(false), m_lastTriggeredFrame(-1) {}
+
+Animator::~Animator() { 
+    m_animations.clear(); // unique_ptr들이 자동으로 정리됨
+    m_currentClip = nullptr; 
+}
+
+// 템플릿 메소드의 구체적인 구현
+template<typename StateEnum>
+void Animator::RegisterAnimation(StateEnum state, Direction dir, 
+                                const std::wstring& imagePath,
+                                UINT frameWidth, UINT frameHeight,
+                                UINT framesPerRow, UINT totalFrames,
+                                float frameDuration,
+                                float pivotX, float pivotY,
+                                bool loop,
+                                const std::map<int, std::wstring>& events) 
+{
+    OutputDebugStringW((L"Animator: RegisterAnimation 시작 - State: " + std::to_wstring(static_cast<int>(state)) + 
+                       L", Direction: " + std::to_wstring(static_cast<int>(dir)) + L"\n").c_str());
+    
+    int stateValue = static_cast<int>(state);
+    int dirValue = static_cast<int>(dir);
+    int key = GetAnimationKey(stateValue, dirValue);
+    
+    OutputDebugStringW((L"Animator: 애니메이션 키 생성 - Key: " + std::to_wstring(key) + L"\n").c_str());
+    
+    // AnimationClip 생성
+    auto clip = AnimationClip::Builder()
+        .SetName(GenerateAnimationName(stateValue, dirValue))
+        .SetImagePath(imagePath)
+        .SetFrameSize(frameWidth, frameHeight)
+        .SetFrameCount(framesPerRow, totalFrames)
+        .SetFrameDuration(frameDuration)
+        .SetPivot(pivotX, pivotY)
+        .SetLooping(loop)
+        .Build();
+    
+    if (clip) {
+        // 이벤트 추가
+        for (const auto& eventPair : events) {
+            clip->AddEventFrame(eventPair.first, eventPair.second);
+        }
+        
+        // 전역 이벤트 콜백 설정
+        if (m_globalEventCallback) {
+            clip->SetEventCallback(m_globalEventCallback);
+        }
+        
+        m_animations[key] = std::move(clip);
+        OutputDebugStringW((L"Animator: 애니메이션 등록 완료 - Key: " + std::to_wstring(key) + L"\n").c_str());
+    } else {
+        OutputDebugStringW(L"Animator: AnimationClip 생성 실패\n");
+    }
+}
+
+// SetState 템플릿 메서드 구현
+template<typename StateEnum>
+void Animator::SetState(StateEnum state, Direction direction) {
+    int newState = static_cast<int>(state);
+    int newDirection = static_cast<int>(direction);
+    
+    if (m_currentState != newState || m_currentDirection != newDirection) {
+        m_currentState = newState;
+        m_currentDirection = newDirection;
+        SelectAndPlayAnimation();
+    }
+}
+
+// 명시적 템플릿 인스턴스화 (PlayerState용)
+template void Animator::RegisterAnimation<PlayerState>(PlayerState state, Direction dir, 
+                                                      const std::wstring& imagePath,
+                                                      UINT frameWidth, UINT frameHeight,
+                                                      UINT framesPerRow, UINT totalFrames,
+                                                      float frameDuration, float pivotX, float pivotY,
+                                                      bool loop, const std::map<int, std::wstring>& events);
+
+template void Animator::SetState<PlayerState>(PlayerState state, Direction direction);
+
+// 명시적 템플릿 인스턴스화 (BuildingState용)
+template void Animator::RegisterAnimation<BuildingState>(BuildingState state, Direction dir, 
+                                                        const std::wstring& imagePath,
+                                                        UINT frameWidth, UINT frameHeight,
+                                                        UINT framesPerRow, UINT totalFrames,
+                                                        float frameDuration, float pivotX, float pivotY,
+                                                        bool loop, const std::map<int, std::wstring>& events);
+
+template void Animator::SetState<BuildingState>(BuildingState state, Direction direction);
+
+// 명시적 템플릿 인스턴스화 (MonsterState용)
+template void Animator::RegisterAnimation<MonsterState>(MonsterState state, Direction dir, 
+                                                       const std::wstring& imagePath,
+                                                       UINT frameWidth, UINT frameHeight,
+                                                       UINT framesPerRow, UINT totalFrames,
+                                                       float frameDuration, float pivotX, float pivotY,
+                                                       bool loop, const std::map<int, std::wstring>& events);
+
+template void Animator::SetState<MonsterState>(MonsterState state, Direction direction);
+
+// 명시적 템플릿 인스턴스화 (TreeState용)
+template void Animator::RegisterAnimation<TreeState>(TreeState state, Direction dir, 
+                                                    const std::wstring& imagePath,
+                                                    UINT frameWidth, UINT frameHeight,
+                                                    UINT framesPerRow, UINT totalFrames,
+                                                    float frameDuration, float pivotX, float pivotY,
+                                                    bool loop, const std::map<int, std::wstring>& events);
+
+template void Animator::SetState<TreeState>(TreeState state, Direction direction);
+
+// 명시적 템플릿 인스턴스화 (RockState용)
+template void Animator::RegisterAnimation<RockState>(RockState state, Direction dir, 
+                                                    const std::wstring& imagePath,
+                                                    UINT frameWidth, UINT frameHeight,
+                                                    UINT framesPerRow, UINT totalFrames,
+                                                    float frameDuration, float pivotX, float pivotY,
+                                                    bool loop, const std::map<int, std::wstring>& events);
+
+template void Animator::SetState<RockState>(RockState state, Direction direction);
+
+// 명시적 템플릿 인스턴스화 (GrassState용)
+template void Animator::RegisterAnimation<GrassState>(GrassState state, Direction dir, 
+                                                     const std::wstring& imagePath,
+                                                     UINT frameWidth, UINT frameHeight,
+                                                     UINT framesPerRow, UINT totalFrames,
+                                                     float frameDuration, float pivotX, float pivotY,
+                                                     bool loop, const std::map<int, std::wstring>& events);
+
+template void Animator::SetState<GrassState>(GrassState state, Direction direction);
+
+void Animator::SelectAndPlayAnimation() {
+    int key = GetAnimationKey(m_currentState, m_currentDirection);
+    OutputDebugStringW((L"Animator: SelectAndPlayAnimation - State: " + std::to_wstring(m_currentState) + 
+                       L", Direction: " + std::to_wstring(m_currentDirection) + L", Key: " + std::to_wstring(key) + L"\n").c_str());
+    
+    auto it = m_animations.find(key);
+    
+    if (it != m_animations.end()) {
+        AnimationClip* newClip = it->second.get();
+        if (m_currentClip != newClip) {
+            m_currentClip = newClip;
+            m_elapsed = 0.0f;
+            m_isPlaying = true;
+            m_lastTriggeredFrame = -1;
+            
+            OutputDebugStringW((L"Animator: 애니메이션 전환 - State: " + 
+                               std::to_wstring(m_currentState) + L", Direction: " + 
+                               std::to_wstring(m_currentDirection) + L"\n").c_str());
+        }
+    } else {
+        OutputDebugStringW((L"Animator: 애니메이션을 찾을 수 없음 - State: " + 
+                           std::to_wstring(m_currentState) + L", Direction: " + 
+                           std::to_wstring(m_currentDirection) + L", Key: " + std::to_wstring(key) + L"\n").c_str());
+        
+        // 등록된 애니메이션 목록 출력
+        OutputDebugStringW(L"Animator: 등록된 애니메이션 목록:\n");
+        for (const auto& pair : m_animations) {
+            OutputDebugStringW((L"  - Key: " + std::to_wstring(pair.first) + L"\n").c_str());
+        }
+    }
+}
+
+std::wstring Animator::GenerateAnimationName(int state, int direction) const {
+    return L"Anim_State" + std::to_wstring(state) + L"_Dir" + std::to_wstring(direction);
+}
+
+void Animator::Update(float deltaTime)
+{
+    if (m_isPlaying && m_currentClip) {
+        // 이전 프레임 인덱스 저장 (이벤트 트리거용)
+        int prevFrameIndex = GetCurrentFrameIndex();
+        
+        // 시간 업데이트
+        m_elapsed += deltaTime;
+        
+        // 논루프 애니메이션이 끝났는지 체크
+        if (!m_currentClip->IsLooping() && m_elapsed >= m_currentClip->GetTotalDuration()) {
+            m_elapsed = m_currentClip->GetTotalDuration();
+            m_isPlaying = false;
+        }
+
+        // 현재 프레임 인덱스 계산
+        int currentFrameIndex = GetCurrentFrameIndex();
+        
+        // 프레임이 변경되었고 이벤트가 있는 경우 트리거
+        if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame) {
+            auto it = m_currentClip->GetEventFrames().find(currentFrameIndex);
+            if (it != m_currentClip->GetEventFrames().end()) {
+                if (m_currentClip->GetEventCallback()) {
+                    m_currentClip->GetEventCallback()(currentFrameIndex, it->second);
+                    m_lastTriggeredFrame = currentFrameIndex;
+                }
+            }
+        }
+        
+
+    }
+}
+
+void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& characterFootCenterScreenPos, 
+                   float zoomFactor, Direction currentDir, RenderLayer layer, float sortKey)
+{
+    if (!m_currentClip) {
+        return;
+    }
+
+    const AnimationFrame& currentFrame = GetCurrentFrame();
+    const SpriteSheet* currentSheet = m_currentClip->GetSpriteSheet();
+
+    if (!currentSheet || !currentSheet->GetBitmap()) {
+        return;
+    }
+
+    float scaledWidth = currentFrame.width * zoomFactor; 
+    float scaledHeight = currentFrame.height * zoomFactor;
+
+    float finalRenderTopLeftScreenX = characterFootCenterScreenPos.X - (currentFrame.pivotX * scaledWidth);
+    float finalRenderTopLeftScreenY = characterFootCenterScreenPos.Y - (currentFrame.pivotY * scaledHeight);
+
+    Gdiplus::RectF destRect(finalRenderTopLeftScreenX, finalRenderTopLeftScreenY, scaledWidth, scaledHeight);
+    Gdiplus::RectF sourceRect(currentFrame.sourceRect.X, currentFrame.sourceRect.Y, 
+                             currentFrame.sourceRect.Width, currentFrame.sourceRect.Height); 
+
+    RenderManager::GetInstance()->AddDrawCommand(
+        currentSheet->GetBitmap(),
+        destRect,
+        sourceRect,
+        Gdiplus::UnitPixel,
+        characterFootCenterScreenPos,
+        layer,
+        sortKey,
+        currentDir
+    );
+}
+
+const AnimationFrame& Animator::GetCurrentFrame() const {
+    if (!m_currentClip || m_currentClip->GetFrames().empty()) {
+        static AnimationFrame dummyFrame;
+        return dummyFrame;
+    }
+    return m_currentClip->GetCurrentFrame(m_elapsed);
+}
+
+bool Animator::IsPlaying() const { return m_isPlaying; }
+
+const SpriteSheet* Animator::GetSpriteSheet() const {
+    if (!m_currentClip) {
+		OutputDebugStringW((L"Animator: GetSpriteSheet - m_currentClip이 null입니다. State: " + 
+						   std::to_wstring(m_currentState) + L", Direction: " + 
+						   std::to_wstring(m_currentDirection) + L"\n").c_str());
+		return nullptr;
+	}
+    return m_currentClip->GetSpriteSheet();
+}
+
+bool Animator::IsAnimationDone() const {
+    if (!m_currentClip) return true;
+    if (m_currentClip->IsLooping()) return false;
+    return m_elapsed >= m_currentClip->GetTotalDuration();
+}
+
+float Animator::GetCurrentClipTotalDuration() const {
+    if (m_currentClip) {
+        return m_currentClip->GetTotalDuration();
+    }
+    return 0.0f;
+}
+
+int Animator::GetCurrentFrameIndex() const {
+    if (!m_currentClip || m_currentClip->GetFrames().empty()) {
+        return -1;
+    }
+    
+    float t = m_currentClip->IsLooping() ? fmod(m_elapsed, m_currentClip->GetTotalDuration()) : min(m_elapsed, m_currentClip->GetTotalDuration());
+    float acc = 0.0f;
+    
+    for (size_t i = 0; i < m_currentClip->GetFrames().size(); ++i) {
+        acc += m_currentClip->GetFrames()[i].duration;
+        if (t < acc) {
+            return static_cast<int>(i);
+        }
+    }
+    
+    return static_cast<int>(m_currentClip->GetFrames().size() - 1);
+}
+
+void Animator::Play() { if (m_currentClip) { m_isPlaying = true; } }
+void Animator::Pause() { m_isPlaying = false; }
+void Animator::Stop() { m_isPlaying = false; m_elapsed = 0.0f; }

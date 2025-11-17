@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="99_Default\Client.cpp" />
+    <ClCompile Include="99_Default\pch.cpp" />
+    <ClCompile Include="00_MainGame\DontStarve_MainGame.cpp" />
+    <ClCompile Include="01_Manager\TimeManager\TimeManager.cpp" />
+    <ClCompile Include="01_Manager\InputManager\InputManager.cpp" />
+    <ClCompile Include="01_Manager\CameraManager\CameraManager.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\GameObject.cpp" />
+    <ClCompile Include="01_Manager\ObjectManager\ObjectManager.cpp" />
+    <ClCompile Include="01_Manager\ColliderManager\ColliderManager.cpp" />
+    <ClCompile Include="01_Manager\GraphicsManager\GraphicsManager.cpp" />
+    <ClCompile Include="02_GameObject\Player\Player.cpp" />
+    <ClCompile Include="02_GameObject\Tool\Axe\Axe.cpp" />
+    <ClCompile Include="02_GameObject\Tool\Tool.cpp" />
+    <ClCompile Include="03_Animation\AnimationClip.cpp" />
+    <ClCompile Include="03_Animation\Animator.cpp" />
+    <ClCompile Include="03_Animation\SpriteSheet.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Monster.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Rock.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Tree.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Ingredient.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Grass.cpp" />
+    <ClCompile Include="01_Manager\RenderManager\RenderManager.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\PigHouse.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Item.cpp" />
+    <ClCompile Include="00_MainGame\Inventory.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Building.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Entity.cpp" />
+    <ClCompile Include="01_Manager\InventoryManager\InventoryManager.cpp" />
+    <ClCompile Include="01_Manager\ResourceManager\ResourceManager.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\SceneManager.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\TitleScene.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\GameScene.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\CharacterSelectScene.cpp" />
+    <ClCompile Include="02_GameObject\UI\UIButton.cpp" />
+    <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
+    <ClCompile Include="01_Manager\UIManager\UIManager.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\BerryBush.cpp" />
+    <ClCompile Include="02_GameObject\GameObject\Sapling.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="99_Default\framework.h" />
+    <ClInclude Include="99_Default\Client.h" />
+    <ClInclude Include="99_Default\pch.h" />
+    <ClInclude Include="99_Default\Resource.h" />
+    <ClInclude Include="99_Default\targetver.h" />
+    <ClInclude Include="00_MainGame\DontStarve_MainGame.h" />
+    <ClInclude Include="01_Manager\TimeManager\TimeManager.h" />
+    <ClInclude Include="01_Manager\InputManager\InputManager.h" />
+    <ClInclude Include="01_Manager\CameraManager\CameraManager.h" />
+    <ClInclude Include="02_GameObject\GameObject\GameObject.h" />
+    <ClInclude Include="01_Manager\ObjectManager\ObjectManager.h" />
+    <ClInclude Include="01_Manager\ColliderManager\ColliderManager.h" />
+    <ClInclude Include="01_Manager\GraphicsManager\GraphicsManager.h" />
+    <ClInclude Include="02_GameObject\Player\Player.h" />
+    <ClInclude Include="02_GameObject\Tool\Axe\Axe.h" />
+    <ClInclude Include="02_GameObject\Tool\Tool.h" />
+    <ClInclude Include="03_Animation\AnimationClip.h" />
+    <ClInclude Include="03_Animation\Animator.h" />
+    <ClInclude Include="03_Animation\SpriteSheet.h" />
+    <ClInclude Include="02_GameObject\GameObject\Monster.h" />
+    <ClInclude Include="02_GameObject\GameObject\Rock.h" />
+    <ClInclude Include="02_GameObject\GameObject\Tree.h" />
+    <ClInclude Include="01_Manager\AnimationManager\AnimationManager.h" />
+    <ClInclude Include="02_GameObject\GameObject\Ingredient.h" />
+    <ClInclude Include="02_GameObject\GameObject\Grass.h" />
+    <ClInclude Include="01_Manager\RenderManager\RenderManager.h" />
+    <ClInclude Include="02_GameObject\GameObject\PigHouse.h" />
+    <ClInclude Include="02_GameObject\GameObject\Item.h" />
+    <ClInclude Include="00_MainGame\Inventory.h" />
+    <ClInclude Include="01_Manager\StageManager\StageManager.h" />
+    <ClInclude Include="02_GameObject\GameObject\Building.h" />
+    <ClInclude Include="02_GameObject\GameObject\Entity.h" />
+    <ClInclude Include="01_Manager\InventoryManager\InventoryManager.h" />
+    <ClInclude Include="01_Manager\ResourceManager\ResourceManager.h" />
+    <ClInclude Include="01_Manager\SceneManager\SceneManager.h" />
+    <ClInclude Include="01_Manager\SceneManager\TitleScene.h" />
+    <ClInclude Include="01_Manager\SceneManager\BaseScene.h" />
+    <ClInclude Include="01_Manager\SceneManager\GameScene.h" />
+    <ClInclude Include="01_Manager\SceneManager\CharacterSelectScene.h" />
+    <ClInclude Include="02_GameObject\UI\UIButton.h" />
+    <ClInclude Include="02_GameObject\UI\UIImage.h" />
+    <ClInclude Include="01_Manager\UIManager\UIManager.h" />
+    <ClInclude Include="02_GameObject\GameObject\BerryBush.h" />
+    <ClInclude Include="02_GameObject\GameObject\Sapling.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="99_Default\DontStarve_Client.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="99_Default\DontStarve_Client.ico" />
+    <Image Include="99_Default\small.ico" />
+  </ItemGroup>
+</Project>

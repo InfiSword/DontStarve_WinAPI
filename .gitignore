@@ -1,41 +1,37 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
+# --- Build Output (빌드 결과물) ---
+# 실행 파일 및 라이브러리
+*.exe
+*.dll
+*.lib
 *.pdb
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+# 빌드 중간 파일 (Object file 등)
+*.obj
+*.res
+*.idb
+*.ilk
+*.pch
+*.exp
 
-# Fortran module files
-*.mod
-*.smod
+# --- Visual Studio Build Folders (자동 생성 폴더) ---
+# Debug, Release, x64 등 빌드 폴더 무시
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+out/
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+# --- Visual Studio IDE Files (개인 설정 및 캐시) ---
+# 숨김 폴더 (.vs)
+.vs/
+# 사용자별 설정 파일 (절대 커밋 금지)
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
+# --- WinAPI Resource Files (리소스 관련) ---
+# 리소스 스크립트(.rc)는 커밋해야 하지만, 바이너리(.aps)는 제외
+*.aps

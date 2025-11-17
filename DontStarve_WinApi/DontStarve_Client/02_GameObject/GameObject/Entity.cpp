@@ -1,0 +1,54 @@
+#include "../../99_Default/pch.h"
+#include "Entity.h"
+#include "../../01_Manager/CameraManager/CameraManager.h"
+
+// 방향 관련 유틸리티 함수들
+Direction GetOppositeDirection(Direction dir)
+{
+    switch (dir)
+    {
+    case DIR_UP:    return DIR_DOWN;
+    case DIR_DOWN:  return DIR_UP;
+    case DIR_LEFT:  return DIR_RIGHT;
+    case DIR_RIGHT: return DIR_LEFT;
+    default:        return DIR_NONE;
+    }
+}
+
+// 거리 계산 유틸리티 함수들
+float CalculateDistance(float x1, float y1, float x2, float y2)
+{
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    return sqrtf(dx * dx + dy * dy);
+}
+
+Direction GetDirectionToTarget(float fromX, float fromY, float toX, float toY)
+{
+    float dx = toX - fromX;
+    float dy = toY - fromY;
+    
+    // 절대값이 더 큰 방향을 우선으로 결정
+    if (abs(dx) > abs(dy))
+    {
+        return (dx > 0) ? DIR_RIGHT : DIR_LEFT;
+    }
+    else
+    {
+        return (dy > 0) ? DIR_DOWN : DIR_UP;
+    }
+}
+
+// 화면 경계 체크 함수
+bool IsPositionInScreenBounds(float x, float y)
+{
+    // 화면 좌표로 변환해서 체크
+    Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(x, y);
+    
+    return (screenPos.X >= 0 && screenPos.X <= WINCX && 
+            screenPos.Y >= 0 && screenPos.Y <= WINCY);
+}
+
+
+
+

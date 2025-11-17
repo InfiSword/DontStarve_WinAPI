@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="99_Default">
+      <UniqueIdentifier>{0b5a0a17-c537-437f-aa4c-43d1ddae6a02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="98_Header">
+      <UniqueIdentifier>{88e0987f-6b9f-4b39-916e-c0c67db14649}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="99_Default\Client.h">
+      <Filter>99_Default</Filter>
+    </ClInclude>
+    <ClInclude Include="99_Default\framework.h">
+      <Filter>99_Default</Filter>
+    </ClInclude>
+    <ClInclude Include="99_Default\Resource.h">
+      <Filter>99_Default</Filter>
+    </ClInclude>
+    <ClInclude Include="99_Default\targetver.h">
+      <Filter>99_Default</Filter>
+    </ClInclude>
+    <ClInclude Include="99_Default\pch.h">
+      <Filter>99_Default</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="99_Default\DontStarve_Client.ico">
+      <Filter>99_Default</Filter>
+    </Image>
+    <Image Include="99_Default\small.ico">
+      <Filter>99_Default</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="99_Default\Client.cpp">
+      <Filter>99_Default</Filter>
+    </ClCompile>
+    <ClCompile Include="99_Default\pch.cpp">
+      <Filter>99_Default</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="99_Default\DontStarve_Client.rc">
+      <Filter>99_Default</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
