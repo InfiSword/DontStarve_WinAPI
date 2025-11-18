@@ -71,12 +71,7 @@ void Spider::Update(float deltaTime)
 
 void Spider::LateUpdate()
 {
-}
 
-void Spider::Render(Gdiplus::Graphics* pGraphics)
-{
-    // RenderManager::RenderGameObject()에서 UpdateAnimation()과 GetBitmap()을 호출하여 렌더링
-    // 따라서 GameObject의 Render() 함수는 더 이상 필요하지 않음
 }
 
 void Spider::Release()

@@ -23,13 +23,11 @@ void InventoryManager::Render() {
 	// Player의 인벤토리 렌더링
 	Player* player = ObjectManager::GetInstance()->GetPlayer();
 	if (!player) {
-		OutputDebugStringW(L"InventoryManager: 플레이어가 없습니다.\n");
 		return;
 	}
 	
 	Inventory* inventory = player->GetInventory();
 	if (!inventory) {
-		OutputDebugStringW(L"InventoryManager: 인벤토리가 없습니다.\n");
 		return;
 	}
 	
@@ -38,8 +36,6 @@ void InventoryManager::Render() {
 	
 	// RenderManager를 통해 인벤토리 렌더링
 	inventory->Render(equippedSlotIndex);
-	
-	OutputDebugStringW(L"InventoryManager: 인벤토리 렌더링 완료\n");
 }
 
 void InventoryManager::Release() {

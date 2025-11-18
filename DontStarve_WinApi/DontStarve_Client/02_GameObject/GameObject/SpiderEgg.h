@@ -13,7 +13,6 @@ public:
     virtual void LateInit() override;
     virtual void Update(float deltaTime) override;
     virtual void LateUpdate() override;
-    virtual void Render(Gdiplus::Graphics* pGraphics) override;
     virtual void Release() override;
 
     // Building 특화 메소드

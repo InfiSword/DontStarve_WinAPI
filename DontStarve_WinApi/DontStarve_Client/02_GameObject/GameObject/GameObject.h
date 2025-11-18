@@ -35,7 +35,6 @@ public:
 	virtual void LateInit();
 	virtual void Update(float deltaTime); // 이동 등
 	virtual void LateUpdate();
-	virtual void Render(Gdiplus::Graphics* pGraphics); // RenderManager에서 처리하므로 개별 호출 불필요
 	virtual void Release();
 
 	virtual void OnInteraction(GameObject* obj);

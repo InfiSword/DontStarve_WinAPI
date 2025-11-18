@@ -11,18 +11,13 @@ public:
     virtual void LateInit() override;
     virtual void Update(float deltaTime) override;
     virtual void LateUpdate() override;
-    virtual void Render(Gdiplus::Graphics* pGraphics) override; // RenderManager에서 처리
     virtual void Release() override;
-
-    // Unity Animator 스타일로 최적화된 애니메이션 메소드들
-    virtual void UpdateAnimation(float deltaTime) override;
-    virtual Gdiplus::Bitmap* GetBitmap() const override;
 
     virtual void OnInteraction(GameObject* obj) override;
 
-    // Entity 인터페이스 구현 (Unity Animator 스타일 - Enum + Direction 키값)
-    virtual void RegisterAllAnimations() override;
-    virtual void UpdateAnimatorState() override;
+    // Entity 인터페이스 구현 (더미 구현)
+    virtual void RegisterAllAnimations() override {}
+    virtual void UpdateAnimatorState() override {}
 
     virtual void Damaged(int damage) override;
     

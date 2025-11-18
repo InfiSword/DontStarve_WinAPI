@@ -61,12 +61,6 @@ void SpiderEgg::LateUpdate()
 {
 }
 
-void SpiderEgg::Render(Gdiplus::Graphics* pGraphics)
-{
-    // RenderManager::RenderGameObject()에서 UpdateAnimation()과 GetBitmap()을 호출하여 렌더링
-    // 개별 GameObject의 Render() 함수는 더 이상 필요하지 않음
-}
-
 void SpiderEgg::Release()
 {
     OutputDebugStringW(L"SpiderEgg: Release 호출\n");

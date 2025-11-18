@@ -9,6 +9,12 @@
 #include "../ObjectManager/ObjectManager.h"
 #include "../../../Header/Enum.h"
 
+namespace {
+	// 상호작용 중인 플레이어를 상호작용 대상보다 약간 앞에 렌더링하기 위한 작은 오프셋
+	// Y값 기반 정렬을 유지하면서 상호작용 대상보다만 앞에 보이도록 함
+	constexpr float INTERACTION_TARGET_OFFSET = 0.5f;
+}
+
 RenderManager::RenderManager() {}
 RenderManager::~RenderManager() {}
 
@@ -31,18 +37,14 @@ void RenderManager::LateUpdate()
 
 void RenderManager::Render()
 {
-	OutputDebugStringW(L"RenderManager: Render() 메서드 호출됨\n");
-	
-	// 화면에 보이는 게임 오브젝트들 렌더링
+	// 현재 카메라에 비춰지는 게임 오브젝트들만 렌더링
 	RenderVisibleGameObjects();
 	
-	// ObjectManager의 테두리 렌더링 (UI 레이어에 그리기)
+	// ObjectManager의 테두리 렌더링 (디버그용, UI 레이어에 그리기)
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (objectManager && objectManager->IsBoundsDisplayEnabled()) {
 		objectManager->RenderBounds();
 	}
-	
-	OutputDebugStringW(L"RenderManager: Render() 메서드 완료\n");
 }
 
 void RenderManager::Release()
@@ -120,36 +122,44 @@ void RenderManager::RenderUIText(const std::wstring& text, Gdiplus::Font* font, 
 void RenderManager::RenderGameObject(GameObject* pObject)
 {
 	if (!pObject || !pObject->GetActive()) {
-		OutputDebugStringW(L"RenderManager: GameObject가 null이거나 비활성화되어 있습니다.\n");
 		return;
 	}
 
-	OutputDebugStringW((L"RenderManager: GameObject 렌더링 시작 - ID: " + std::to_wstring(pObject->GetID()) + L", Type: " + std::to_wstring(static_cast<int>(pObject->GetType())) + L"\n").c_str());
-
 	// Animator가 있는 경우 애니메이션 렌더링
 	if (pObject->GetAnimator()) {
-		OutputDebugStringW(L"RenderManager: Animator를 사용하여 렌더링합니다.\n");
-		
 		// 월드 좌표를 스크린 좌표로 변환
 		Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(pObject->GetX(), pObject->GetY());
 
 		// 렌더 레이어 결정
 		RenderLayer layer = GetRenderLayerForObject(pObject);
 
-		// 정렬 키 생성 (Y축 기반)
-		float sortKey = layer + static_cast<int>(pObject->GetY());
+		// 정렬 키 생성 (Y축 기반, 소수점 포함)
+		float sortKey = static_cast<float>(layer) + pObject->GetY();
+		float originalSortKey = sortKey; // 원래 sortKey 저장
+		
+		// 플레이어가 상호작용 중이면 상호작용 대상보다만 앞에 렌더링
+		// 단, 원래 sortKey를 초과하지 않도록 제한하여 Y값이 더 작은 오브젝트는 여전히 앞에 렌더링됨
+		Player* player = dynamic_cast<Player*>(pObject);
+		if (player && player->IsInteracting()) {
+			GameObject* targetObj = player->GetInteractionTarget();
+			if (targetObj && targetObj->GetActive()) {
+				// 상호작용 대상의 sortKey 계산
+				RenderLayer interactionLayer = GetRenderLayerForObject(targetObj);
+				float interactionSortKey = static_cast<float>(interactionLayer) + targetObj->GetY();
+				// 플레이어의 sortKey를 상호작용 대상보다 약간 크게 설정하되, 원래 sortKey를 초과하지 않음
+				float adjustedSortKey = interactionSortKey + INTERACTION_TARGET_OFFSET;
+				sortKey = (adjustedSortKey < originalSortKey) ? adjustedSortKey : originalSortKey;
+			}
+		}
 
 		// Animator의 Draw 호출하여 RenderManager 큐에 추가
 		pObject->GetAnimator()->Draw(nullptr, screenPos, 1.0f, pObject->GetDir(), layer, sortKey);
 	}
 	else 
 	{
-		OutputDebugStringW(L"RenderManager: 기본 비트맵을 사용하여 렌더링합니다.\n");
-		
 		// Animator가 없는 경우 기본 비트맵 렌더링
 		Gdiplus::Bitmap* pBitmap = pObject->GetBitmap();
 		if (!pBitmap) {
-			OutputDebugStringW((L"RenderManager: GameObject의 비트맵이 null입니다. (ID: " + std::to_wstring(pObject->GetID()) + L")\n").c_str());
 			return;
 		}
 		
@@ -163,23 +173,28 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 		// 피벗 적용하여 렌더링 위치 계산
 		float renderX = screenPos.X - width * pObject->GetPivotX();
 		float renderY = screenPos.Y - height * pObject->GetPivotY();
-		
-		// 디버그 출력 (너무 자주 출력하지 않도록 제한)
-		static int renderDebugCounter = 0;
-		if (++renderDebugCounter % 50 == 0) {
-			OutputDebugStringW((L"RenderManager: 오브젝트 렌더링 - ID: " + 
-				std::to_wstring(pObject->GetID()) + L", 월드 위치: (" + 
-				std::to_wstring(pObject->GetX()) + L", " + std::to_wstring(pObject->GetY()) + 
-				L"), 화면 위치: (" + std::to_wstring(screenPos.X) + L", " + 
-				std::to_wstring(screenPos.Y) + L"), 렌더링 위치: (" + 
-				std::to_wstring(renderX) + L", " + std::to_wstring(renderY) + L")\n").c_str());
-		}
 
 		// 렌더 레이어 결정
 		RenderLayer layer = GetRenderLayerForObject(pObject);
 
-		// 정렬 키 생성 (Y축 기반)
-		float sortKey = layer + static_cast<int>(pObject->GetY());
+		// 정렬 키 생성 (Y축 기반, 소수점 포함)
+		float sortKey = static_cast<float>(layer) + pObject->GetY();
+		float originalSortKey = sortKey; // 원래 sortKey 저장
+		
+		// 플레이어가 상호작용 중이면 상호작용 대상보다만 앞에 렌더링
+		// 단, 원래 sortKey를 초과하지 않도록 제한하여 Y값이 더 작은 오브젝트는 여전히 앞에 렌더링됨
+		Player* player = dynamic_cast<Player*>(pObject);
+		if (player && player->IsInteracting()) {
+			GameObject* targetObj = player->GetInteractionTarget();
+			if (targetObj && targetObj->GetActive()) {
+				// 상호작용 대상의 sortKey 계산
+				RenderLayer interactionLayer = GetRenderLayerForObject(targetObj);
+				float interactionSortKey = static_cast<float>(interactionLayer) + targetObj->GetY();
+				// 플레이어의 sortKey를 상호작용 대상보다 약간 크게 설정하되, 원래 sortKey를 초과하지 않음
+				float adjustedSortKey = interactionSortKey + INTERACTION_TARGET_OFFSET;
+				sortKey = (adjustedSortKey < originalSortKey) ? adjustedSortKey : originalSortKey;
+			}
+		}
 
 		// RenderManager를 통해 렌더링 명령 추가
 		AddDrawCommand(
@@ -192,8 +207,6 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 			sortKey,
 			pObject->GetDir()
 		);
-		
-		OutputDebugStringW((L"RenderManager: 렌더링 명령 추가 완료 - 위치: (" + std::to_wstring(renderX) + L", " + std::to_wstring(renderY) + L"), 크기: (" + std::to_wstring(width) + L", " + std::to_wstring(height) + L")\n").c_str());
 	}
 }
 
@@ -218,71 +231,20 @@ void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float
 	AddDrawCommand(pTileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, sortKey, DIR_DOWN);
 }
 
-void RenderManager::RenderAllGameObjects(const std::vector<GameObject*>& gameObjects)
-{
-	// 모든 게임 오브젝트 렌더링 (애니메이션 업데이트는 ObjectManager::Update()에서 처리됨)
-	for (GameObject* obj : gameObjects)
-	{
-		if (obj && obj->GetActive())
-		{
-			RenderGameObject(obj);
-		}
-	}
-}
-
 void RenderManager::RenderVisibleGameObjects()
 {
-	OutputDebugStringW(L"RenderManager: RenderVisibleGameObjects() 시작\n");
-	
-	// ObjectManager에서 오브젝트 수 확인
-	ObjectManager* objectManager = ObjectManager::GetInstance();
-	if (!objectManager) {
-		OutputDebugStringW(L"RenderManager: ObjectManager가 null입니다.\n");
-		return;
-	}
-	
-	const std::vector<GameObject*>& allObjects = objectManager->GetGameObjects();
-	if (allObjects.empty()) {
-		OutputDebugStringW(L"RenderManager: ObjectManager에 오브젝트가 없습니다. (초기화 중)\n");
-		return;
-	}
-	
-	// CameraManager에서 보이는 오브젝트들 가져오기
+	// CameraManager에서 현재 카메라에 비춰지는 오브젝트만 가져오기
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (!cameraManager) {
-		OutputDebugStringW(L"RenderManager: CameraManager가 null입니다.\n");
 		return;
 	}
 
 	const std::vector<GameObject*>& visibleObjects = cameraManager->GetVisibleObjects();
 	
-	if (visibleObjects.empty()) {
-		OutputDebugStringW(L"RenderManager: CameraManager의 visibleObjects가 비어있습니다. ObjectManager에서 직접 가져옵니다.\n");
-		
-		// ObjectManager에서 모든 오브젝트 가져오기
-		ObjectManager* objectManager = ObjectManager::GetInstance();
-		if (!objectManager) {
-			OutputDebugStringW(L"RenderManager: ObjectManager가 null입니다.\n");
-			return;
-		}
-		
-		const std::vector<GameObject*>& allObjects = objectManager->GetGameObjects();
-		OutputDebugStringW((L"RenderManager: ObjectManager에서 " + std::to_wstring(allObjects.size()) + L"개의 오브젝트를 가져왔습니다.\n").c_str());
-		
-		// 모든 오브젝트 렌더링
-		for (GameObject* obj : allObjects) {
-			if (obj && obj->GetActive()) {
-				RenderGameObject(obj);
-			}
-		}
-	} else {
-		OutputDebugStringW((L"RenderManager: CameraManager에서 " + std::to_wstring(visibleObjects.size()) + L"개의 visible 오브젝트를 렌더링합니다.\n").c_str());
-		
-		// 보이는 오브젝트들만 렌더링
-		for (GameObject* obj : visibleObjects) {
-			if (obj && obj->GetActive()) {
-				RenderGameObject(obj);
-			}
+	// 보이는 오브젝트들만 렌더링 (CameraManager에서 이미 필터링됨)
+	for (GameObject* obj : visibleObjects) {
+		if (obj && obj->GetActive()) {
+			RenderGameObject(obj);
 		}
 	}
 }
@@ -290,7 +252,7 @@ void RenderManager::RenderVisibleGameObjects()
 RenderLayer RenderManager::GetRenderLayerForObject(GameObject* pObject)
 {
 	if (!pObject) 
-		return LAYER_WORLD_OBJECT;
+		return LAYER_NONE;
 
 	GameObjectType type = pObject->GetType();
 
@@ -302,9 +264,8 @@ RenderLayer RenderManager::GetRenderLayerForObject(GameObject* pObject)
 	case GOBJ_PLAYER:
 	case GOBJ_ITEM:
 		return LAYER_WORLD_OBJECT; // 모든 게임 오브젝트는 동일한 레이어
-
 	default:
-		return LAYER_WORLD_OBJECT;
+		return LAYER_NONE;
 	}
 }
 

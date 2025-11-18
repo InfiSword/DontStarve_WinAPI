@@ -38,12 +38,6 @@ void Ingredient::LateUpdate()
 {
 }
 
-void Ingredient::Render(Gdiplus::Graphics* pGraphics)
-{
-    // RenderManager::RenderGameObject에서 처리하므로 여기서는 렌더링하지 않음
-    // 중복 렌더링 방지를 위해 주석 처리
-}
-
 void Ingredient::Release()
 {
 }

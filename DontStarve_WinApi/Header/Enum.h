@@ -230,6 +230,7 @@ enum BuildingState {
 };
 
 enum RenderLayer {
+    LAYER_NONE = -1,
     LAYER_TILE_BACKGROUND = 0,   // 타일 (가장 아래)
     LAYER_WORLD_TILE,
     LAYER_WORLD_OBJECT,          // 월드 오브젝트 (모든 게임 오브젝트)

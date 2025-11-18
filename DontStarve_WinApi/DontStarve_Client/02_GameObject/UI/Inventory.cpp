@@ -165,8 +165,6 @@ void Inventory::Render(int equippedSlotIndex) {
 		return;
 	}
 
-	OutputDebugStringW(L"Inventory: 인벤토리 렌더링 시작\n");
-
 	if (m_inventoryBgBitmap) {
 		Gdiplus::Bitmap* inventoryBgBitmap = m_inventoryBgBitmap;
 		float bgWidth = (float)inventoryBgBitmap->GetWidth();
@@ -187,7 +185,6 @@ void Inventory::Render(int equippedSlotIndex) {
 			0.f,
 			DIR_DOWN
 		);
-		OutputDebugStringW(L"Inventory: 인벤토리 배경 렌더링 완료\n");
 	} else {
 		OutputDebugStringW(L"Inventory: 인벤토리 배경 비트맵이 없습니다.\n");
 	}
@@ -281,8 +278,6 @@ void Inventory::Render(int equippedSlotIndex) {
 			0.f + 3.2f  // UI 텍스트보다 살짝 뒤에
 		);
 	}
-	
-	OutputDebugStringW(L"Inventory: 인벤토리 렌더링 완료\n");
 }
 
 int Inventory::FindFirstEmptySlot() const {

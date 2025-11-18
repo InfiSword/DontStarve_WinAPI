@@ -44,6 +44,12 @@ public:
 	float GetInteractionRadius() const { return m_stopThreshold + 10.0f; }
 	std::shared_ptr<Item> GetEquippedItem() const { return m_equippedItem; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
+	
+	// 상호작용 중인지 확인 (렌더링 순서 조정용)
+	bool IsInteracting() const { return m_currentInteractionTarget != nullptr && (m_state == PlayerState::PICKUP || m_state == PlayerState::CHOP); }
+	
+	// 상호작용 대상 오브젝트 가져오기 (렌더링 순서 조정용)
+	GameObject* GetInteractionTarget() const { return m_currentInteractionTarget; }
 
 	void ToggleEquipItem(int slotIndex);
 	void OnAnimationEvent(int frameIndex, const std::wstring& eventName);

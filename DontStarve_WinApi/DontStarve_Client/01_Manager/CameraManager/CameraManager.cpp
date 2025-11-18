@@ -50,11 +50,9 @@ void CameraManager::Update(float deltaTime)
     // 뷰포트 변경 감지
     CheckViewportChanged();
     
-    // 뷰포트가 변경되었거나 처음 실행되는 경우에만 업데이트
-    if (m_viewportChanged) {
-        UpdateVisibleObjects();
-
-    }
+    // 카메라 뷰포트 내 가시 오브젝트는 매 프레임 갱신하여
+    // 오브젝트 생성/삭제/이동에도 즉시 대응
+    UpdateVisibleObjects();
 }
 
 void CameraManager::LateUpdate()
@@ -153,69 +151,74 @@ void CameraManager::SetCameraPosition(float x, float y)
     m_cameraPos.Y = y;
 }
 
-// === 화면에 보이는 오브젝트 관리 기능 (ViewportManager 통합) ===
+// === 화면에 보이는 오브젝트 관리 기능 ===
 
 void CameraManager::UpdateVisibleObjects()
 {
 	m_visibleObjects.clear();
 	m_visibleObjectSet.clear();
 	
-	// ObjectManager에서 모든 오브젝트 가져오기 (공유 포인터)
+	// ObjectManager에서 모든 오브젝트 가져오기
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!objectManager) return;
 	
 	const std::vector<GameObject*>& allObjects = objectManager->GetGameObjects();
+	if (allObjects.empty()) return;
 	
 	// 현재 뷰포트 정보 가져오기
 	Gdiplus::RectF viewportRect = GetViewportWorldRect();
 	
-	// 여유 공간을 포함한 검사 범위 (오브젝트 크기를 고려하여 여유 공간 추가)
-	const float MARGIN = 200.0f; // 충분한 여유 공간
+	// 여유 공간을 포함한 검사 범위 (오브젝트 크기와 애니메이션 범위를 고려)
+	const float MARGIN = 200.0f;
 	float startX = viewportRect.X - MARGIN;
 	float endX = viewportRect.X + viewportRect.Width + MARGIN;
 	float startY = viewportRect.Y - MARGIN;
 	float endY = viewportRect.Y + viewportRect.Height + MARGIN;
 	
-	// 활성화된 오브젝트 중에서 화면에 보이는 것만 필터링
-	
-	// 중복 체크를 위한 임시 set (문자열 키 사용)
+	// 중복 체크를 위한 임시 set (아이템 중복 방지)
 	std::unordered_set<std::wstring> addedIngredients;
 	
+	// 활성화된 오브젝트 중에서 화면에 보이는 것만 필터링
 	for (GameObject* obj : allObjects) {
-		if (obj && obj->GetActive()) {
-			// Ingredient인 경우 중복 체크
-			if (obj->GetType() == GOBJ_ITEM) {
-				std::wstring ingredientKey = std::to_wstring(obj->GetID()) + L"_" + 
-					std::to_wstring(obj->GetX()) + L"_" + std::to_wstring(obj->GetY());
-				if (addedIngredients.find(ingredientKey) != addedIngredients.end()) {
-					continue;
-				}
-				addedIngredients.insert(ingredientKey);
+		if (!obj || !obj->GetActive()) {
+			continue;
+		}
+		
+		// 렌더링 가능한 오브젝트인지 확인
+		// Player는 여전히 Animator를 사용할 수 있으므로 둘 다 확인
+		if (!obj->GetBitmap() && !obj->GetAnimator()) {
+			continue;
+		}
+		
+		// Ingredient인 경우 중복 체크
+		if (obj->GetType() == GOBJ_ITEM) {
+			std::wstring ingredientKey = std::to_wstring(obj->GetID()) + L"_" + 
+				std::to_wstring(obj->GetX()) + L"_" + std::to_wstring(obj->GetY());
+			if (addedIngredients.find(ingredientKey) != addedIngredients.end()) {
+				continue;
 			}
+			addedIngredients.insert(ingredientKey);
+		}
+		
+		// 오브젝트의 월드 바운딩 박스 계산
+		Gdiplus::RectF objBounds = obj->GetWorldBoundingBox();
+		
+		// 화면 범위와 겹치는지 확인 (AABB 충돌 검사)
+		if (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
+			objBounds.Y < endY && objBounds.Y + objBounds.Height > startY) {
 			
-			// 오브젝트의 월드 바운딩 박스 계산
-			Gdiplus::RectF objBounds = obj->GetWorldBoundingBox();
-			
-			// 화면 범위와 겹치는지 확인
-			if (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
-				objBounds.Y < endY && objBounds.Y + objBounds.Height > startY) {
-				
-				m_visibleObjects.push_back(obj);
-				m_visibleObjectSet.insert(obj);
-				
-				// 디버그 출력 (너무 자주 출력하지 않도록 제한)
-				static int debugCounter = 0;
-				if (++debugCounter % 100 == 0) {
-					OutputDebugStringW((L"CameraManager: 보이는 오브젝트 추가 - ID: " + 
-						std::to_wstring(obj->GetID()) + L", 위치: (" + 
-						std::to_wstring(obj->GetX()) + L", " + std::to_wstring(obj->GetY()) + 
-						L"), 뷰포트 내 오브젝트 수: " + std::to_wstring(m_visibleObjects.size()) + L"\n").c_str());
-				}
-			}
+			m_visibleObjects.push_back(obj);
+			m_visibleObjectSet.insert(obj);
 		}
 	}
 	
-
+	// 디버그: 가시 오브젝트 업데이트 확인 (30프레임마다 한 번씩 출력)
+	static int updateCounter = 0;
+	if (++updateCounter % 30 == 0) {
+		OutputDebugStringW((L"[CameraManager] 가시 오브젝트 업데이트: " + 
+			std::to_wstring(m_visibleObjects.size()) + L"개 (카메라: " + 
+			std::to_wstring((int)m_cameraPos.X) + L", " + std::to_wstring((int)m_cameraPos.Y) + L")\n").c_str());
+	}
 }
 
 GameObject* CameraManager::FindObjectAtPosition(float worldX, float worldY)
@@ -276,7 +279,7 @@ void CameraManager::CheckViewportChanged()
 {
 	Gdiplus::RectF currentViewport = GetViewportWorldRect();
 	
-	// 뷰포트가 변경되었는지 확인
+	// 뷰포트가 변경되었는지 확인 (카메라 위치나 크기가 변경되었을 때)
 	if (currentViewport.X != m_lastViewportRect.X || 
 		currentViewport.Y != m_lastViewportRect.Y ||
 		currentViewport.Width != m_lastViewportRect.Width || 
@@ -299,6 +302,7 @@ void CameraManager::RenderVisibleTiles(RenderManager* renderManager, const MapDa
 	// Update()에서 이미 호출되어 m_viewportChanged가 설정됨
 	if (m_viewportChanged) {
 		m_tileViewportChanged = true;
+		m_viewportChanged = false; // 타일 렌더링에 전달 후 즉시 클리어
 	}
 
 	// 뷰포트가 변경되지 않았으면 이전 범위 사용

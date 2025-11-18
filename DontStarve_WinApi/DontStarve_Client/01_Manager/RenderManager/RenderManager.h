@@ -84,10 +84,7 @@ public:
     void RenderGameObject(GameObject* pObject);
     
     // 타일 렌더링
-    void RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height);
-    
-    // 모든 게임 오브젝트 렌더링 (ObjectManager에서 호출)
-    void RenderAllGameObjects(const std::vector<GameObject*>& gameObjects);
+    void RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height);   
     
     // 화면에 보이는 오브젝트만 렌더링 (ViewportManager 사용)
     void RenderVisibleGameObjects();
