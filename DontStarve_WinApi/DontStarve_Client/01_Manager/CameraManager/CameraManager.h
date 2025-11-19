@@ -1,8 +1,4 @@
 #pragma once
-#include <vector>
-#include <unordered_set>
-#include <map>
-#include "../../02_GameObject/GameObject/GameObject.h"
 
 // 타일 캐시 데이터 구조체
 struct TileCacheData {
@@ -41,7 +37,7 @@ public:
 	// 뷰포트 범위 계산 함수
 	Gdiplus::RectF GetViewportWorldRect() const;
 	
-	Gdiplus::PointF GetCamerPos();
+	Gdiplus::PointF GetCameraPos();
 
 	// 플레이어 추적 기능
 	void SetTarget(GameObject* target);

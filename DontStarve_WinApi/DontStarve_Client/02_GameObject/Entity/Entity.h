@@ -1,5 +1,5 @@
 #pragma once
-#include "GameObject.h"
+#include "../GameObject.h"
 
 // Entity는 생명체나 상호작용 가능한 객체의 기본 클래스
 // StateEnum: 각 Entity 타입별로 정의된 상태 enum 타입

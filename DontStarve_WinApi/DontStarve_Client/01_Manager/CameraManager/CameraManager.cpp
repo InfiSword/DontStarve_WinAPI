@@ -100,7 +100,7 @@ Gdiplus::PointF CameraManager::ScreenToWorld(float screenX, float screenY)
     return Gdiplus::PointF(worldX, worldY);
 }
 
-Gdiplus::PointF CameraManager::GetCamerPos()
+Gdiplus::PointF CameraManager::GetCameraPos()
 {
     return m_cameraPos;
 }

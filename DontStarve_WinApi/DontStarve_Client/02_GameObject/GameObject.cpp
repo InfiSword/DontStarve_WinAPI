@@ -1,8 +1,6 @@
-#include "../../99_Default/pch.h"
+#include "../99_Default/pch.h"
 #include "GameObject.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-
+#include "../01_Manager/ResourceManager/ResourceManager.h"
 
 GameObject::GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath, const std::wstring& imageName)
 	:m_type(type), m_id(id), m_x(x), m_y(y), m_pivotX(pivotX), m_pivotY(pivotY), m_direction(dir), m_width(0), m_height(0), resourcePath(resourcePath), imageName(imageName), m_animator(nullptr), m_isActive(true)
@@ -46,7 +44,7 @@ Gdiplus::Bitmap* GameObject::GetBitmap() const
 	return m_bitmap;
 }
 
-// 기본 LoadBitmap 구현
+// 기본 LoadBitmap 구현 확장
 void GameObject::LoadBitmap()
 {
 	// 애니메이션이 있는 GameObject 타입들은 기본 비트맵 로드하지 않음
@@ -62,7 +60,7 @@ void GameObject::LoadBitmap()
 	}
 	
 	// ResourceManager를 사용하여 경로 구성
-	auto* pRM = ResourceManager::GetInstance();
+	ResourceManager* pRM = ResourceManager::GetInstance();
 	std::wstring fullPath = pRM->BuildObjectResourcePath(m_id, L"", imageName);
 	
 	OutputDebugStringW((L"GameObject: LoadBitmap - 전체 경로: " + fullPath + L"\n").c_str());

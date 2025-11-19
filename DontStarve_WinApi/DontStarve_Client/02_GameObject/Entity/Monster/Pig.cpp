@@ -82,7 +82,7 @@ void Pig::Release()
 void Pig::RegisterAllAnimations()
 {
 	// ResourceManager를 사용하여 리소스 로드
-	auto* pRM = ResourceManager::GetInstance();
+	ResourceManager* pRM = ResourceManager::GetInstance();
 	
 	// PIG 애니메이션 등록
 	if (m_id == GOID_MONSTER_PIG)

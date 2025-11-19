@@ -2,7 +2,7 @@
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../03_Animation/Animator.h"
-#include "../../02_GameObject/Player/Player.h"
+#include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../03_Animation/AnimationClip.h"

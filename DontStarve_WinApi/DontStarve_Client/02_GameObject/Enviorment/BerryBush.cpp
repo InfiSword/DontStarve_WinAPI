@@ -23,10 +23,10 @@ void BerryBush::Init()
 	m_dropItemID = GOID_ITEM_BERRY;
 	m_dropItemCount = 1;
 	
-	// ÀÌ¹ÌÁö ·Îµå
+	// ì´ë¯¸ì§€ ë¡œë“œ
 	LoadBitmap();
 	
-	// ºñÆ®¸Ê¿¡¼­ Å©±â °¡Á®¿À±â
+	// ë¹„íŠ¸ë§µì˜ í¬ê¸° ì„¤ì •
 	if (m_bitmap) {
 		this->m_width = static_cast<float>(m_bitmap->GetWidth());
 		this->m_height = static_cast<float>(m_bitmap->GetHeight());
@@ -39,7 +39,7 @@ void BerryBush::LateInit()
 
 void BerryBush::Update(float deltaTime)
 {
-	// ÇÊ¿äÇÑ ¾÷µ¥ÀÌÆ® ·ÎÁ÷ÀÌ ÀÖ´Ù¸é ¿©±â¿¡ Ãß°¡
+	// í•„ìš”í•œ ì»´í¬ë„ŒíŠ¸ ì—…ë°ì´íŠ¸ê°€ ìžˆë‹¤ë©´ ì—¬ê¸°ì— ì¶”ê°€
 }
 
 void BerryBush::LateUpdate()
@@ -48,18 +48,18 @@ void BerryBush::LateUpdate()
 
 void BerryBush::Release()
 {
-	// ÇÊ¿äÇÑ Á¤¸® ÀÛ¾÷
+	// í•„ìš”í•œ ì •ë¦¬ ìž‘ì—…
 }
 
 void BerryBush::OnInteraction(GameObject* obj)
 {
-	// ±âº» »óÈ£ÀÛ¿ë
+	// ê¸°ë³¸ ìƒí˜¸ìž‘ìš©
 }
 
 void BerryBush::OnPlayerInteraction(Player* player)
 {
 	if (GetActive() && CanInteract()) {
-		// ÇÃ·¹ÀÌ¾î°¡ ÀÌ BerryBush¿Í »óÈ£ÀÛ¿ëÇÏµµ·Ï ¿äÃ»
+		// í”Œë ˆì´ì–´ê°€ ì´ BerryBushì™€ ìƒí˜¸ìž‘ìš©í•˜ë„ë¡ ìš”ì²­
 		player->OnInteraction(this);
 	}
 }

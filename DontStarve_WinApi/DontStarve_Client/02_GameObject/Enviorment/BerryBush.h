@@ -15,19 +15,19 @@ public:
 
     virtual void OnInteraction(GameObject* obj) override;
 
-    // Entity ÀÎÅÍÆäÀÌ½º ±¸Çö (´õ¹Ì ±¸Çö)
+    // Entity ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„ (í•„ìˆ˜ ì˜¤ë²„ë¼ì´ë“œ)
     virtual void RegisterAllAnimations() override {}
     virtual void UpdateAnimatorState() override {}
 
     void OnPlayerInteraction(class Player* player);
     
-    // ¾ÆÀÌÅÛ Á¦°ø °ü·Ã ¸Ş¼­µå (EntityÀÇ °¡»ó ÇÔ¼ö ÀçÁ¤ÀÇ)
+    // ë“œë¡­ ì•„ì´í…œ ê´€ë ¨ í•¨ìˆ˜ë“¤ (Entityì˜ ì¶”ìƒ í•¨ìˆ˜ êµ¬í˜„)
     virtual GameObjectID GetDropItemID() const override { return m_dropItemID; }
     virtual int GetDropItemCount() const override { return m_dropItemCount; }
     virtual void SetDropItem(GameObjectID itemID, int count = 1) override;
 
 private:
-    GameObjectID m_dropItemID;  // Á¦°øÇÒ ¾ÆÀÌÅÛ ID
-    int m_dropItemCount;        // Á¦°øÇÒ ¾ÆÀÌÅÛ °³¼ö
+    GameObjectID m_dropItemID;  // ë“œë¡­ ì•„ì´í…œì˜ ID
+    int m_dropItemCount;        // ë“œë¡­ ì•„ì´í…œì˜ ê°œìˆ˜
 };
 

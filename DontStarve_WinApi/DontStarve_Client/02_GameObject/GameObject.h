@@ -2,7 +2,6 @@
 
 class Animator;
 class AnimationClip;
-class Player;
 
 class GameObject
 {
