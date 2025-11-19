@@ -1,18 +1,20 @@
 #pragma once
-#include "Spider.h"
+#include "Monster.h"
 
-class Boss_SpiderQueen : public Spider
+class Boss_SpiderQueen : public Monster
 {
 public:
     Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
     virtual ~Boss_SpiderQueen();
 
     virtual void Init() override;
+    virtual void OnInteraction(GameObject* obj) override;
+
     virtual void RegisterAllAnimations() override;
     virtual void Damaged(int damage) override;
 
 private:
-    // 보스 전용 추가 속성들
+    // Boss Phase
     int m_bossPhase;
     float m_specialAttackCooldown;
 }; 

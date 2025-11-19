@@ -1,5 +1,5 @@
 #pragma once
-#include "Entity.h"
+#include "../Entity.h"
 
 class Monster : public Entity<MonsterState>
 {
@@ -11,22 +11,20 @@ public:
     virtual void LateInit() override;
     virtual void Update(float deltaTime) override;
     virtual void LateUpdate() override;
-    virtual void Render(Gdiplus::Graphics* pGraphics) override; 
     virtual void Release() override;
 
     virtual Gdiplus::Bitmap* GetBitmap() const override;
 
     virtual void OnInteraction(GameObject* obj) override;
 
-    // Entity �������̽� ���� (Unity Animator ��Ÿ��)
-    virtual void RegisterAllAnimations() override;
+    // 각 자식 클래스에서 자신의 애니메이션을 등록하도록 순수 가상 함수로 선언
+    virtual void RegisterAllAnimations() override = 0;
     virtual void UpdateAnimatorState() override;
 
     virtual void Damaged(int damage) override;
 
-    void OnPlayerInteraction(class Player* player);
 
-private:
+protected:
     int m_hp;
     int maxHp;
     float m_hitAnimTimer;

@@ -1,51 +1,48 @@
 #pragma once
 #include "../GameObject.h"
 
-// Entity´Â »ı¸íÃ¼³ª »óÈ£ÀÛ¿ë °¡´ÉÇÑ °´Ã¼ÀÇ ±âº» Å¬·¡½º
-// StateEnum: °¢ Entity Å¸ÀÔº°·Î Á¤ÀÇµÈ »óÅÂ enum Å¸ÀÔ
+// EntityëŠ” ìƒí˜¸ì‘ìš© ê°€ëŠ¥í•œ ì˜¤ë¸Œì íŠ¸ì˜ ê¸°ë³¸ í´ë˜ìŠ¤
+// StateEnum: ê° Entity íƒ€ì…ì—ì„œ ì‚¬ìš©ë˜ëŠ” ìƒíƒœ enum íƒ€ì…
 template<typename StateEnum>
 class Entity : public GameObject
 {
 protected:
     StateEnum m_state;
-    bool m_acquired;  // È¹µæ/¼ÒÀ¯ »óÅÂ °ü¸®
+    bool m_acquired;  // íšë“/ìˆ˜ì§‘ ê°€ëŠ¥ ì—¬ë¶€ í”Œë˜ê·¸
 
 public:
     Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
            const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
     virtual ~Entity();
 
-    // ±âº» »óÅÂ °ü¸®
+    // ê¸°ë³¸ ìƒíƒœ ê´€ë¦¬
     virtual void SetState(StateEnum state);
     virtual StateEnum GetState() const;
 
-    // È¹µæ »óÅÂ °ü¸®
+    // íšë“ ìƒíƒœ ê´€ë¦¬
     virtual void SetAcquired(bool acquired);
     virtual bool IsAcquired() const;
 
-    // µ¥¹ÌÁö Ã³¸® (ÇÊ¿äÇÑ Entity¸¸ ¿À¹ö¶óÀÌµå)
+    // ë°ë¯¸ì§€ ì²˜ë¦¬ (í•„ìš”í•œ Entityì—ì„œ ì˜¤ë²„ë¼ì´ë“œ)
     virtual void Damaged(int damage) {}
 
-    // ¾ÆÀÌÅÛ µå·Ó °ü·Ã (ÀÚ¿¬ È¯°æ ¿ÀºêÁ§Æ®¸¸ ¿À¹ö¶óÀÌµå)
+    // ë“œë¡­ ì•„ì´í…œ ê´€ë ¨ í•¨ìˆ˜ (ì•„ì´í…œ ë°˜í™˜ ê²Œì„ì˜¤ë¸Œì íŠ¸ì—ì„œ ì˜¤ë²„ë¼ì´ë“œ)
     virtual GameObjectID GetDropItemID() const { return GOID_NONE; }
     virtual int GetDropItemCount() const { return 0; }
     virtual void SetDropItem(GameObjectID itemID, int count = 1) {}
 
-    // Unity Animator ½ºÅ¸ÀÏ ¾Ö´Ï¸ŞÀÌ¼Ç °ü¸® - Enum°ª°ú DirectionÀ» Å°·Î ÀÚµ¿ ¾÷µ¥ÀÌÆ®
-    virtual void RegisterAllAnimations() = 0;  // ¸ğµç ¾Ö´Ï¸ŞÀÌ¼ÇÀ» µî·Ï
-    virtual void UpdateAnimatorState() = 0;    // »óÅÂ(Enum)¿Í ¹æÇâ(Direction)À¸·Î ÀÚµ¿ ¾Ö´Ï¸ŞÀÌ¼Ç ¼±ÅÃ
-
-    // GameObjectÀÇ ¾Ö´Ï¸ŞÀÌ¼Ç ¸Ş¼Òµåµé ¿À¹ö¶óÀÌµå
-    virtual void UpdateAnimation(float deltaTime) override {}
+    // Unity Animator ìŠ¤íƒ€ì¼ ì• ë‹ˆë©”ì´ì…˜ ê´€ë¦¬ - Enumê³¼ Directionì„ í‚¤ë¡œ í•˜ëŠ” ì• ë‹ˆë©”ì´ì…˜ ì‹œìŠ¤í…œ
+    virtual void RegisterAllAnimations() = 0;  // ëª¨ë“  ì• ë‹ˆë©”ì´ì…˜ì„ ë“±ë¡
+    virtual void UpdateAnimatorState() = 0;    // ìƒíƒœ(Enum)ì™€ ë°©í–¥(Direction)ì— ë”°ë¼ ì ì ˆí•œ ì• ë‹ˆë©”ì´ì…˜ ì„¤ì •
 };
 
-// ÅÛÇÃ¸´ ±¸ÇöºÎ
+// í…œí”Œë¦¿ êµ¬í˜„
 template<typename StateEnum>
 Entity<StateEnum>::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
                           const std::wstring& resourcePath, const std::wstring& imageName)
     : GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName), m_acquired(false)
 {
-    // »óÅÂ ÃÊ±âÈ­´Â °¢ ÆÄ»ı Å¬·¡½º¿¡¼­ ÀûÀıÇÑ ±âº»°ªÀ¸·Î ¼³Á¤
+    // ìƒíƒœ ì´ˆê¸°í™”ëŠ” ê° í•˜ìœ„ í´ë˜ìŠ¤ì—ì„œ ì›í•˜ëŠ” ê¸°ë³¸ê°’ìœ¼ë¡œ ì„¤ì •
 }
 
 template<typename StateEnum>
@@ -78,16 +75,16 @@ bool Entity<StateEnum>::IsAcquired() const
 }
 
 // ========================================
-// Entity °ü·Ã À¯Æ¿¸®Æ¼ ÇÔ¼ö ¼±¾ğºÎ
+// Entity ê´€ë ¨ ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ ì„ ì–¸
 // ========================================
 
-// ¹æÇâ °ü·Ã À¯Æ¿¸®Æ¼ ÇÔ¼öµé
+// ë°©í–¥ ê´€ë ¨ ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
 Direction GetOppositeDirection(Direction dir);
 
-// °Å¸® °è»ê À¯Æ¿¸®Æ¼ ÇÔ¼öµé
+// ê±°ë¦¬ ê³„ì‚° ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
 float CalculateDistance(float x1, float y1, float x2, float y2);
 Direction GetDirectionToTarget(float fromX, float fromY, float toX, float toY);
 
-// È­¸é °æ°è Ã¼Å© ÇÔ¼ö
+// í™”ë©´ ë²”ìœ„ í™•ì¸ í•¨ìˆ˜
 bool IsPositionInScreenBounds(float x, float y);
 

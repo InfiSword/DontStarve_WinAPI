@@ -1,19 +1,21 @@
 #pragma once
-#include "Hound.h"
+#include "Monster.h"
 
-class Boss_Hound : public Hound
+class Boss_Hound : public Monster
 {
 public:
     Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
     virtual ~Boss_Hound();
 
     virtual void Init() override;
+    virtual void OnInteraction(GameObject* obj) override;
+
     virtual void RegisterAllAnimations() override;
     virtual void Damaged(int damage) override;
 
 private:
-    // 보스 전용 추가 속성들
+    // Boss Phase
     int m_bossPhase;
     float m_specialAttackCooldown;
-    std::wstring m_houndType; // "Red" 또는 "Ice"
+    std::wstring m_houndType; // "Red" or "Ice"
 }; 

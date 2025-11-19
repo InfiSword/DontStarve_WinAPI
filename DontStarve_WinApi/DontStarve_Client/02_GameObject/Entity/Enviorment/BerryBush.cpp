@@ -1,7 +1,6 @@
-#include "../../99_Default/pch.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../02_GameObject/Player/Player.h"
+#include "../../../99_Default/pch.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "BerryBush.h"
 
 BerryBush::BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
@@ -56,13 +55,6 @@ void BerryBush::OnInteraction(GameObject* obj)
 	// 기본 상호작용
 }
 
-void BerryBush::OnPlayerInteraction(Player* player)
-{
-	if (GetActive() && CanInteract()) {
-		// 플레이어가 이 BerryBush와 상호작용하도록 요청
-		player->OnInteraction(this);
-	}
-}
 
 void BerryBush::SetDropItem(GameObjectID itemID, int count)
 {

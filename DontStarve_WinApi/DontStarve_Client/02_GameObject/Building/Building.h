@@ -1,5 +1,5 @@
 #pragma once
-#include "Entity.h"
+#include "../Entity/Entity.h"
 
 // Building은 건물의 기본 클래스
 class Building : public Entity<BuildingState>

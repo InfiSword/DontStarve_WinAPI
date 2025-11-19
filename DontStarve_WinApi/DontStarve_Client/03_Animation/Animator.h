@@ -1,10 +1,11 @@
 #pragma once
 #include <map>
 #include <memory>
+#include "../02_GameObject/Component/Component.h"
 
 class GameObject;
 
-// ¾Ö´Ï¸ŞÀÌ¼Ç ¸Å°³º¯¼ö¸¦ À§ÇÑ ±¸Á¶Ã¼
+// ì• ë‹ˆë©”ì´ì…˜ íŒŒë¼ë¯¸í„° êµ¬ì¡°ì²´
 struct AnimationParameters {
     int state = 0;
     int direction = 0;
@@ -14,13 +15,13 @@ struct AnimationParameters {
     AnimationParameters(int s, int d) : state(s), direction(d) {}
 };
 
-// Unity Animator¿Í À¯»çÇÑ Animator Å¬·¡½º
-class Animator {
+// Unity Animatorë¥¼ ëª¨ë°©í•œ Animator í´ë˜ìŠ¤ (Component ìƒì†)
+class Animator : public Component {
 public:
-    Animator();
-    ~Animator();
+    Animator(GameObject* owner);
+    virtual ~Animator();
 
-    // Unity Animator ½ºÅ¸ÀÏÀÇ ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï (ÅëÇÕµÈ ¸Ş¼­µå)
+    // Unity Animator ìŠ¤íƒ€ì¼ì˜ ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ (í…œí”Œë¦¿ ë©”ì„œë“œ)
     template<typename StateEnum>
     void RegisterAnimation(StateEnum state, Direction dir, 
                           const std::wstring& imagePath,
@@ -31,21 +32,21 @@ public:
                           bool loop = true,
                           const std::map<int, std::wstring>& events = {});
 
-    // »óÅÂ ¼³Á¤ (Unity Animator ½ºÅ¸ÀÏ)
+    // ìƒíƒœ ì„¤ì • (Unity Animator ìŠ¤íƒ€ì¼)
     template<typename StateEnum>
     void SetState(StateEnum state, Direction direction);
 
-    // ÀÌº¥Æ® Äİ¹é ¼³Á¤
+    // ì´ë²¤íŠ¸ ì½œë°± ì„¤ì •
     void SetEventCallback(AnimationEventCallback callback) { m_globalEventCallback = callback; }
 
-    // ½Ã°£ ¾÷µ¥ÀÌÆ® ¹× ÇÁ·¹ÀÓ ¾÷µ¥ÀÌÆ®
-    void Update(float deltaTime);
+    // ì‹œê°„ ì—…ë°ì´íŠ¸ ë° ìƒíƒœ ì—…ë°ì´íŠ¸ (Component ì˜¤ë²„ë¼ì´ë“œ)
+    virtual void Update(float deltaTime) override;
 
-    // ÇöÀç ÇÁ·¹ÀÓÀ» ÁÖ¾îÁø À§Ä¡¿¡ ±×¸®±â
+    // í˜„ì¬ í”„ë ˆì„ì„ ì£¼ì–´ì§„ ìœ„ì¹˜ì— ê·¸ë¦¬ê¸°
     void Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& characterFootCenterScreenPos, 
               float zoomFactor, Direction currentDir, RenderLayer layer, float sortKey);
 
-    // ÇöÀç »óÅÂ Á¤º¸ ¹İÈ¯
+    // í˜„ì¬ ìƒíƒœ ì •ë³´ ë°˜í™˜
     const AnimationFrame& GetCurrentFrame() const;
     bool IsPlaying() const;
     const SpriteSheet* GetSpriteSheet() const;
@@ -54,16 +55,16 @@ public:
     float GetCurrentClipTotalDuration() const;
     int GetCurrentFrameIndex() const;
 
-    // Àç»ı Á¦¾î
+    // ì¬ìƒ ì œì–´
     void Play();
     void Pause();
     void Stop();
 
 private:
-    // ¾Ö´Ï¸ŞÀÌ¼Ç ÀúÀå¼Ò - Unity AnimatorÃ³·³ ³»ºÎ¿¡¼­ °ü¸®
+    // ì• ë‹ˆë©”ì´ì…˜ ì €ì¥ì†Œ - Unity Animatorì²˜ëŸ¼ ë™ì‘í•˜ê¸° ìœ„í•´ ì €ì¥
     std::map<int, std::unique_ptr<AnimationClip>> m_animations; // key = state * 1000 + direction
 
-    // ÇöÀç »óÅÂ
+    // í˜„ì¬ ìƒíƒœ
     AnimationClip* m_currentClip;
     int m_currentState;
     int m_currentDirection;
@@ -71,10 +72,10 @@ private:
     bool m_isPlaying;
     int m_lastTriggeredFrame;
 
-    // Àü¿ª ÀÌº¥Æ® Äİ¹é
+    // ì „ì—­ ì´ë²¤íŠ¸ ì½œë°±
     AnimationEventCallback m_globalEventCallback;
 
-    // ³»ºÎ ¸Ş¼Òµåµé
+    // ë‚´ë¶€ ë©”ì„œë“œ
     int GetAnimationKey(int state, int direction) const { return state * 1000 + direction; }
     void SelectAndPlayAnimation();
     std::wstring GenerateAnimationName(int state, int direction) const;

@@ -1,32 +1,31 @@
 #include "../../99_Default/pch.h"
 #include "ObjectManager.h"
-#include "../../02_GameObject/GameObject/GameObject.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../02_GameObject/GameObject/Tree.h"
-#include "../../02_GameObject/GameObject/Rock.h"
-#include "../../02_GameObject/GameObject/Grass.h"
-#include "../../02_GameObject/GameObject/BerryBush.h"
-#include "../../02_GameObject/GameObject/Sapling.h"
-#include "../../02_GameObject/GameObject/Monster.h"
-#include "../../02_GameObject/GameObject/Pig.h"
-#include "../../02_GameObject/GameObject/Spider.h"
-#include "../../02_GameObject/GameObject/Boss_SpiderQueen.h"
-#include "../../02_GameObject/GameObject/Hound.h"
-#include "../../02_GameObject/GameObject/Boss_Hound.h"
-#include "../../02_GameObject/GameObject/Item.h"
-#include "../../02_GameObject/GameObject/Building.h"
-#include "../../02_GameObject/GameObject/PigHouse.h"
-#include "../../02_GameObject/GameObject/SpiderEgg.h"
-#include "../../02_GameObject/GameObject/Ingredient.h"
-#include "../../02_GameObject/Tool/Axe/Axe.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../RenderManager/RenderManager.h"
 #include "../CameraManager/CameraManager.h"
 
+#include "../../02_GameObject/GameObject.h"
+#include "../../02_GameObject/Entity/Player/Player.h"
+#include "../../02_GameObject/Item/Item.h"
+#include "../../02_GameObject/Entity/Enviorment/Tree.h"
+#include "../../02_GameObject/Entity/Enviorment/Rock.h"
+#include "../../02_GameObject/Entity/Enviorment/Grass.h"
+#include "../../02_GameObject/Entity/Enviorment/BerryBush.h"
+#include "../../02_GameObject/Entity/Enviorment/Sapling.h"
+#include "../../02_GameObject/Entity/Monster/Pig.h"
+#include "../../02_GameObject/Entity/Monster/Spider.h"
+#include "../../02_GameObject/Entity/Monster/Boss_SpiderQueen.h"
+#include "../../02_GameObject/Entity/Monster/Hound.h"
+#include "../../02_GameObject/Entity/Monster/Boss_Hound.h"
+#include "../../02_GameObject/Building/PigHouse.h"
+#include "../../02_GameObject/Building/SpiderEgg.h"
+#include "../../02_GameObject/Item/Ingredient.h"
+#include "../../02_GameObject/Item/Tool/Axe/Axe.h"
+
 ObjectManager::ObjectManager()
 {
 	m_cachedPlayer = nullptr;
-	m_showBounds = true; // Å×µÎ¸® Ç¥½Ã ±âº»°ªÀº false
+	m_showBounds = true; // ë°”ìš´ë“œ í‘œì‹œ ê¸°ë³¸ê°’ì€ false
 }
 
 ObjectManager::~ObjectManager()
@@ -36,11 +35,12 @@ ObjectManager::~ObjectManager()
 
 void ObjectManager::Init()
 {
+	InitializeFactories();
 }
 
 void ObjectManager::LateInit()
 {
-	// ¸ğµç °ÔÀÓ¿ÀºêÁ§Æ®ÀÇ LateInit È£Ãâ
+	// ëª¨ë“  ê²Œì„ì˜¤ë¸Œì íŠ¸ì— LateInit í˜¸ì¶œ
 	for (GameObject* obj : m_gameObjects)
 	{
 		if (obj)
@@ -52,7 +52,7 @@ void ObjectManager::LateInit()
 
 void ObjectManager::Update(float deltaTime)
 {
-	// ¸ğµç °ÔÀÓ¿ÀºêÁ§Æ® ¾÷µ¥ÀÌÆ®
+	// ëª¨ë“  ê²Œì„ì˜¤ë¸Œì íŠ¸ ì—…ë°ì´íŠ¸
 	for (GameObject* obj : m_gameObjects)
 	{
 		if (obj && obj->GetActive())
@@ -64,7 +64,7 @@ void ObjectManager::Update(float deltaTime)
 
 void ObjectManager::LateUpdate()
 {
-	// ¸ğµç °ÔÀÓ¿ÀºêÁ§Æ®ÀÇ LateUpdate È£Ãâ
+	// ëª¨ë“  ê²Œì„ì˜¤ë¸Œì íŠ¸ì— LateUpdate í˜¸ì¶œ
 	for (GameObject* obj : m_gameObjects)
 	{
 		if (obj && obj->GetActive())
@@ -76,10 +76,10 @@ void ObjectManager::LateUpdate()
 
 void ObjectManager::Render()
 {
-	// ¸ğµç ·»´õ¸µ °¡´ÉÇÑ °ÔÀÓ¿ÀºêÁ§Æ® ·»´õ¸µ (ÇÃ·¹ÀÌ¾î ¿ì¼±)
+	// ì¹´ë©”ë¼ì— ë³´ì´ëŠ” ê²Œì„ì˜¤ë¸Œì íŠ¸ ë Œë”ë§ (í”Œë ˆì´ì–´ ìš°ì„ )
 	RenderManager::GetInstance()->RenderVisibleGameObjects();
 	
-	// Å×µÎ¸® Ç¥½Ã°¡ È°¼ºÈ­µÈ °æ¿ì ¸ğµç ¿ÀºêÁ§Æ®ÀÇ Å×µÎ¸®¸¦ ±×¸®±â
+	// ë°”ìš´ë“œ í‘œì‹œê°€ í™œì„±í™”ë˜ë©´ ëª¨ë“  ê²Œì„ì˜¤ë¸Œì íŠ¸ì˜ ë°”ìš´ë“œë¥¼ ê·¸ë¦¼
 	if (m_showBounds) {
 		RenderBounds();
 	}
@@ -99,10 +99,10 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 		Player* player = dynamic_cast<Player*>(pObj);
 		if (player) {
 			m_cachedPlayer = player;
-			OutputDebugStringW((L"ObjectManager: ÇÃ·¹ÀÌ¾î Ä³½Ã ¿Ï·á - ID: " + std::to_wstring(player->GetID()) + L"\n").c_str());
+			OutputDebugStringW((L"ObjectManager: í”Œë ˆì´ì–´ ìºì‹± ì™„ë£Œ - ID: " + std::to_wstring(player->GetID()) + L"\n").c_str());
 		}
 
-		OutputDebugStringW((L"ObjectManager: »õ·Î¿î °ÔÀÓ¿ÀºêÁ§Æ® Ãß°¡ ¿Ï·á - ID: " + std::to_wstring(pObj->GetID()) + L", ÃÑ °ÔÀÓ¿ÀºêÁ§Æ® ¼ö: " + std::to_wstring(m_gameObjects.size()) + L"\n").c_str());
+		OutputDebugStringW((L"ObjectManager: ìƒˆë¡œìš´ ê²Œì„ì˜¤ë¸Œì íŠ¸ ì¶”ê°€ ì™„ë£Œ - ID: " + std::to_wstring(pObj->GetID()) + L", ì „ì²´ ê²Œì„ì˜¤ë¸Œì íŠ¸ ìˆ˜: " + std::to_wstring(m_gameObjects.size()) + L"\n").c_str());
 	}
 }
 
@@ -113,7 +113,7 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 	auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), pObj);
 	if (it != m_gameObjects.end())
 	{
-		// ÇÃ·¹ÀÌ¾î Ä³½Ã Á¤¸®
+		// í”Œë ˆì´ì–´ ìºì‹œ í•´ì œ
 		if (pObj == m_cachedPlayer) {
 			m_cachedPlayer = nullptr;
 		}
@@ -139,7 +139,7 @@ void ObjectManager::ClearAllObjects()
 
 void ObjectManager::InitializeObjects()
 {
-	// ¸ğµç °ÔÀÓ¿ÀºêÁ§Æ® ÃÊ±âÈ­
+	// ëª¨ë“  ê²Œì„ì˜¤ë¸Œì íŠ¸ ì´ˆê¸°í™”
 	for (GameObject* obj : m_gameObjects)
 	{
 		if (obj)
@@ -151,7 +151,7 @@ void ObjectManager::InitializeObjects()
 		m_cachedPlayer->Init();
 }
 
-// ÇÃ·¹ÀÌ¾î Ä³½Ã¸¦ ÅëÇÑ ºü¸¥ Á¢±Ù
+// í”Œë ˆì´ì–´ ìºì‹œëœ í¬ì¸í„° ë°˜í™˜ í•¨ìˆ˜
 Player* ObjectManager::GetPlayer() const
 {
 	return m_cachedPlayer;
@@ -164,23 +164,23 @@ GameObject* ObjectManager::FindObjectAtPositionWithBounds(float x, float y)
 	{
 		if (obj && obj->GetActive() && obj->CanInteract())
 		{
-			// ¿ÀºêÁ§Æ®ÀÇ ÀÌ¹ÌÁö Å×µÎ¸® Å©±â °¡Á®¿À±â
+			// ì˜¤ë¸Œì íŠ¸ì˜ ì‹¤ì œ ë°”ìš´ë“œ ë°•ìŠ¤ í¬ê¸° ê³„ì‚°
 			float objWidth = obj->GetWidth();
 			float objHeight = obj->GetHeight();
 			float objX = obj->GetX();
 			float objY = obj->GetY();
 			
-			// ¿ÀºêÁ§Æ®ÀÇ ÇÇ¹ş Á¤º¸ °¡Á®¿À±â
+			// ì˜¤ë¸Œì íŠ¸ì˜ í”¼ë²— ê°’ ê°€ì ¸ì˜¤ê¸°
 			float pivotX = obj->GetPivotX();
 			float pivotY = obj->GetPivotY();
 			
-			// ÇÇ¹ş ±âÁØÀ¸·Î Å×µÎ¸® ¿µ¿ª °è»ê
+			// í”¼ë²—ì„ ê³ ë ¤í•œ ë°”ìš´ë“œ ë°•ìŠ¤ ê²½ê³„ ê³„ì‚°
 			float left = objX - (objWidth * pivotX);
 			float right = objX + (objWidth * (1.0f - pivotX));
 			float top = objY - (objHeight * pivotY);
 			float bottom = objY + (objHeight * (1.0f - pivotY));
 			
-			// Å¬¸¯ÇÑ À§Ä¡°¡ ¿ÀºêÁ§Æ®ÀÇ ÀÌ¹ÌÁö Å×µÎ¸® ¾È¿¡ ÀÖ´ÂÁö È®ÀÎ
+			// í´ë¦­í•œ ìœ„ì¹˜ê°€ ì˜¤ë¸Œì íŠ¸ì˜ ì‹¤ì œ ë°”ìš´ë“œ ë°•ìŠ¤ ì•ˆì— ìˆëŠ”ì§€ í™•ì¸
 			if (x >= left && x <= right && y >= top && y <= bottom)
 			{
 				return obj;
@@ -190,166 +190,194 @@ GameObject* ObjectManager::FindObjectAtPositionWithBounds(float x, float y)
 	return nullptr;
 }
 
-// ÆÑÅä¸® ÆĞÅÏ ÇÔ¼ö
+// ========================================
+// íŒ©í† ë¦¬ ë§µ ì´ˆê¸°í™”: GameObjectID -> ìƒì„± í•¨ìˆ˜ ë“±ë¡
+// ========================================
+// switch ë¬¸ ëŒ€ì‹  ë§µì„ ì‚¬ìš©í•˜ì—¬ í™•ì¥ì„± í–¥ìƒ
+// ìƒˆ ì˜¤ë¸Œì íŠ¸ ì¶”ê°€ ì‹œ ì—¬ê¸°ì— ë“±ë¡ë§Œ í•˜ë©´ ë¨
+// ========================================
+void ObjectManager::InitializeFactories()
+{
+	// í”Œë ˆì´ì–´ íƒ€ì…
+	m_gameObjectFactories[GOID_PLAYER_WILSON] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Player(x, y, id, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_PLAYER_WILLOW] = m_gameObjectFactories[GOID_PLAYER_WILSON];
+	m_gameObjectFactories[GOID_PLAYER_WOLFGANG] = m_gameObjectFactories[GOID_PLAYER_WILSON];
+
+	// ë‚˜ë¬´ íƒ€ì…
+	m_gameObjectFactories[GOID_NORMAL_TREE_SHORT] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Tree(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_NORMAL_TREE_NORMAL] = m_gameObjectFactories[GOID_NORMAL_TREE_SHORT];
+	m_gameObjectFactories[GOID_NORMAL_TREE_TALL] = m_gameObjectFactories[GOID_NORMAL_TREE_SHORT];
+
+	// ëŒ íƒ€ì…
+	m_gameObjectFactories[GOID_NORMAL_ROCK] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Rock(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_GOLD_ROCK] = m_gameObjectFactories[GOID_NORMAL_ROCK];
+
+	// í’€ íƒ€ì… - í™˜ê²½ ì˜¤ë¸Œì íŠ¸
+	m_gameObjectFactories[GOID_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Grass(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_NORMAL_SAPLING] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Sapling(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_BERRY_TREE] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new BerryBush(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+
+	// ëª¬ìŠ¤í„° íƒ€ì…
+	m_gameObjectFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Pig(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_MONSTER_SPIDER] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_MONSTER_WARRIOR_SPIDER] = m_gameObjectFactories[GOID_MONSTER_SPIDER];
+	m_gameObjectFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Boss_SpiderQueen(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_MONSTER_REDHOUNDDOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_MONSTER_ICEHOUNDDOG] = m_gameObjectFactories[GOID_MONSTER_REDHOUNDDOG];
+
+	// ê±´ë¬¼ íƒ€ì…
+	m_gameObjectFactories[GOID_BUILDING_PIGHOUSE] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new PigHouse(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new SpiderEgg(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_BUILDING_SPIDER_NORMALEGG] = m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG];
+	m_gameObjectFactories[GOID_BUILDING_SPIDER_TALLEGG] = m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG];
+
+	// ì¬ë£Œ íƒ€ì… - Ingredient
+	auto ingredientFactory = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Ingredient(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_gameObjectFactories[GOID_ITEM_NORMAL_ROCK] = ingredientFactory;
+	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_GRASS] = ingredientFactory;
+	m_gameObjectFactories[GOID_ITEM_NORMAL_TWIGS] = ingredientFactory;
+	m_gameObjectFactories[GOID_ITEM_GOLD_ROCK] = ingredientFactory;
+	m_gameObjectFactories[GOID_ITEM_NORMAL_TREE_LOG] = ingredientFactory;
+	m_gameObjectFactories[GOID_ITEM_ROPE] = ingredientFactory;
+	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_STONE] = ingredientFactory;
+	m_gameObjectFactories[GOID_ITEM_MEAT] = ingredientFactory;
+	m_gameObjectFactories[GOID_ITEM_BERRY] = ingredientFactory;
+
+	// ì•„ì´í…œ íŒ©í† ë¦¬ ë“±ë¡
+	m_itemFactories[GOID_ITEM_NORMAL_TREE_LOG] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Item>(GOBJ_ITEM, id, L"LOG", L"A Log.", data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_itemFactories[GOID_ITEM_NORMAL_TWIGS] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Item>(GOBJ_ITEM, id, L"Twigs", L"A common twig.", data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_itemFactories[GOID_ITEM_NORMAL_ROCK] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Item>(GOBJ_ITEM, id, L"Rock Shard", L"A small piece of rock.", data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_itemFactories[GOID_ITEM_CUT_NORMAL_GRASS] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Item>(GOBJ_ITEM, id, L"Cut Grass", L"Bundled grass, good for crafting.", data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_itemFactories[GOID_ITEM_GOLD_ROCK] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Item>(GOBJ_ITEM, id, L"Gold", L"Shiny and valuable.", data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_itemFactories[GOID_ITEM_ROPE] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Item>(GOBJ_ITEM, id, L"Rope", L"Useful for crafting.", data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_itemFactories[GOID_ITEM_MEAT] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Item>(GOBJ_ITEM, id, L"Meat", L"Fresh meat.", data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_itemFactories[GOID_ITEM_BERRY] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Item>(GOBJ_ITEM, id, L"Berry", L"Sweet and nutritious.", data->objectAssetBaseDirectory, data->assetImageName);
+	};
+	m_itemFactories[GOID_ITEM_AXE] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
+		return std::make_shared<Axe>(id, L"Axe", L"Cuts down trees.", data->objectAssetBaseDirectory + L"/" + data->assetImageName, 100.0f, 1.0f);
+	};
+}
+
+// ========================================
+// íŒ©í† ë¦¬ íŒ¨í„´: ê²Œì„ì˜¤ë¸Œì íŠ¸ ìƒì„± ë° ê´€ë¦¬
+// ========================================
+// ObjectManagerì˜ ì—­í• :
+// 1. ë¦¬ì†ŒìŠ¤ ì •ë³´ë¥¼ ë°”íƒ•ìœ¼ë¡œ êµ¬ì²´ í´ë˜ìŠ¤ ì¸ìŠ¤í„´ìŠ¤ ìƒì„± (íŒ©í† ë¦¬)
+// 2. ìƒì„±ëœ GameObjectë¥¼ ê´€ë¦¬ (ìƒëª…ì£¼ê¸°)
+// ResourceManagerëŠ” ë¦¬ì†ŒìŠ¤ ì •ë³´ë§Œ ì œê³µ (ë°ì´í„° ì €ì¥ì†Œ)
+// ========================================
 GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, const GameObjectData* resourceData)
 {
-	// ResourceManager¿¡¼­ ¸®¼Ò½º Á¤º¸ °¡Á®¿À±â
+	// ResourceManagerì—ì„œ ë¦¬ì†ŒìŠ¤ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
 	const GameObjectData* data = resourceData;
 	if (!data) {
 		data = ResourceManager::GetInstance()->GetObjectResourceInfo(id);
 	}
 
-	GameObject* newObj = nullptr;
-
-	switch (id)
-	{
-		// ÇÃ·¹ÀÌ¾î Å¸ÀÔµé - Player Å¬·¡½º·Î »ı¼º
-	case GOID_PLAYER_WILSON:
-	case GOID_PLAYER_WILLOW:
-	case GOID_PLAYER_WOLFGANG:
-		newObj = new Player(x, y, id,
-			data ? data->objectAssetBaseDirectory : L"",
-			data ? data->assetImageName : L"");
-		break;
-
-		// ³ª¹« Å¸ÀÔµé - Tree Å¬·¡½º·Î »ı¼º
-	case GOID_NORMAL_TREE_SHORT:
-	case GOID_NORMAL_TREE_NORMAL:
-	case GOID_NORMAL_TREE_TALL:
-		newObj = new Tree(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-
-		// ¹ÙÀ§ Å¸ÀÔµé - Rock Å¬·¡½º·Î »ı¼º
-	case GOID_NORMAL_ROCK:
-	case GOID_GOLD_ROCK:
-		newObj = new Rock(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-
-		// ÀÜµğ Å¸ÀÔµé - °¢°¢ÀÇ Å¬·¡½º·Î »ı¼º
-	case GOID_NORMAL_GRASS:
-		newObj = new Grass(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-	case GOID_NORMAL_SAPLING:
-		newObj = new Sapling(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-	case GOID_BERRY_TREE:
-		newObj = new BerryBush(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-
-		// ¸ó½ºÅÍ Å¸ÀÔµé - °¢°¢ÀÇ Å¬·¡½º·Î »ı¼º
-	case GOID_MONSTER_PIG:
-		newObj = new Pig(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-	case GOID_MONSTER_SPIDER:
-	case GOID_MONSTER_WARRIOR_SPIDER:
-		newObj = new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-	case GOID_MONSTER_QUEEN_SPIDER:
-		newObj = new Boss_SpiderQueen(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-	case GOID_MONSTER_HOUNDDOG:
-		newObj = new Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-	case GOID_MONSTER_REDHOUNDDOG:
-	case GOID_MONSTER_ICEHOUNDDOG:
-		newObj = new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-
-		// °Ç¹° Å¸ÀÔµé - °¢°¢ÀÇ Å¬·¡½º·Î »ı¼º
-	case GOID_BUILDING_PIGHOUSE:
-		newObj = new PigHouse(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-	case GOID_BUILDING_SPIDER_SMALLEGG:
-	case GOID_BUILDING_SPIDER_NORMALEGG:
-	case GOID_BUILDING_SPIDER_TALLEGG:
-		newObj = new SpiderEgg(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
-		break;
-
-		// ¾ÆÀÌÅÛ Å¸ÀÔµé - Ingredient Å¬·¡½º·Î »ı¼º
-	case GOID_ITEM_NORMAL_ROCK:
-	case GOID_ITEM_CUT_NORMAL_GRASS:
-	case GOID_ITEM_NORMAL_TWIGS:
-	case GOID_ITEM_GOLD_ROCK:
-	case GOID_ITEM_NORMAL_TREE_LOG:
-	case GOID_ITEM_ROPE:
-	case GOID_ITEM_CUT_NORMAL_STONE:
-	case GOID_ITEM_MEAT:
-	case GOID_ITEM_BERRY:
-	{
-		newObj = new Ingredient(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data->objectAssetBaseDirectory, data->assetImageName);
-	}
-	break;
-	}
-
-	// »ı¼ºµÈ °ÔÀÓ¿ÀºêÁ§Æ®¸¦ ¸Å´ÏÀú¿¡ Ãß°¡ (GameObject °èÃş±¸Á¶·Î °ü¸®)
-	if (newObj) {
-		AddGameObject(newObj);
-		OutputDebugStringW((L"ObjectManager: »õ·Î¿î °ÔÀÓ¿ÀºêÁ§Æ® »ı¼º ¿Ï·á - ID: " + std::to_wstring(id) + L" at (" + std::to_wstring(x) + L", " + std::to_wstring(y) + L")\n").c_str());
+	// íŒ©í† ë¦¬ ë§µì—ì„œ ìƒì„± í•¨ìˆ˜ ì°¾ê¸°
+	auto it = m_gameObjectFactories.find(id);
+	if (it != m_gameObjectFactories.end()) {
+		GameObject* newObj = it->second(id, x, y, data);
+		
+		// ìƒì„±ëœ ê²Œì„ì˜¤ë¸Œì íŠ¸ë¥¼ ì˜¤ë¸Œì íŠ¸ë§¤ë‹ˆì €ì— ì¶”ê°€ (GameObject ìƒëª…ì£¼ê¸° ê´€ë¦¬)
+		if (newObj) {
+			AddGameObject(newObj);
+			OutputDebugStringW((L"ObjectManager: ìƒˆë¡œìš´ ê²Œì„ì˜¤ë¸Œì íŠ¸ ìƒì„± ì™„ë£Œ - ID: " + std::to_wstring(id) + L" at (" + std::to_wstring(x) + L", " + std::to_wstring(y) + L")\n").c_str());
+		}
+		else {
+			OutputDebugStringW((L"ObjectManager: ìƒˆë¡œìš´ ê²Œì„ì˜¤ë¸Œì íŠ¸ ìƒì„± ì‹¤íŒ¨ - ID: " + std::to_wstring(id) + L"\n").c_str());
+		}
+		
+		return newObj;
 	}
 	else {
-		OutputDebugStringW((L"ObjectManager: »õ·Î¿î °ÔÀÓ¿ÀºêÁ§Æ® »ı¼º ½ÇÆĞ - ID: " + std::to_wstring(id) + L"\n").c_str());
+		OutputDebugStringW((L"ObjectManager: ì•Œ ìˆ˜ ì—†ëŠ” GameObjectID - ID: " + std::to_wstring(id) + L"\n").c_str());
+		return nullptr;
 	}
-
-	return newObj;
 }
 
-// === ¾ÆÀÌÅÛ »ı¼º ÇÔ¼ö ===
+// ========================================
+// íŒ©í† ë¦¬ íŒ¨í„´: ì•„ì´í…œ ìƒì„± í•¨ìˆ˜
+// ========================================
+// ObjectManagerì˜ ì—­í• :
+// 1. ë¦¬ì†ŒìŠ¤ ì •ë³´ë¥¼ ë°”íƒ•ìœ¼ë¡œ êµ¬ì²´ í´ë˜ìŠ¤ ì¸ìŠ¤í„´ìŠ¤ ìƒì„± (íŒ©í† ë¦¬)
+// 2. shared_ptrë¡œ ìë™ ë©”ëª¨ë¦¬ ê´€ë¦¬ (GameObjectì™€ ë‹¬ë¦¬ ì§ì ‘ ê´€ë¦¬ ì•ˆ í•¨)
+// ResourceManagerëŠ” ë¦¬ì†ŒìŠ¤ ì •ë³´ë§Œ ì œê³µ (ë°ì´í„° ì €ì¥ì†Œ)
+// ========================================
 std::shared_ptr<Item> ObjectManager::CreateItem(GameObjectID itemID)
 {
 	const GameObjectData* resourceData = ResourceManager::GetInstance()->GetObjectResourceInfo(itemID);
 	if (!resourceData) {
-		OutputDebugStringW(L"ObjectManager: ¾ÆÀÌÅÛ ¸®¼Ò½º Á¤º¸¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n");
+		OutputDebugStringW(L"ObjectManager: ì•„ì´í…œ ë¦¬ì†ŒìŠ¤ ì •ë³´ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n");
 		return nullptr;
 	}
 
-	// ¸®¼Ò½º Á¤º¸¿¡¼­ °æ·Î ±¸¼º
-	const std::wstring& resourcePath = resourceData->objectAssetBaseDirectory;
-	const std::wstring& imagePath = resourceData->assetImageName;
-
-	switch (itemID)
-	{
-	case GOID_ITEM_NORMAL_TREE_LOG:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"LOG", L"A Log.", resourcePath, imagePath);
-
-	case GOID_ITEM_NORMAL_TWIGS:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Twigs", L"A common twig.", resourcePath, imagePath);
-
-	case GOID_ITEM_NORMAL_ROCK:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Rock Shard", L"A small piece of rock.", resourcePath, imagePath);
-
-	case GOID_ITEM_CUT_NORMAL_GRASS:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Cut Grass", L"Bundled grass, good for crafting.", resourcePath, imagePath);
-
-	case GOID_ITEM_GOLD_ROCK:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Gold", L"Shiny and valuable.", resourcePath, imagePath);
-
-	case GOID_ITEM_ROPE:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Rope", L"Useful for crafting.", resourcePath, imagePath);
-
-	case GOID_ITEM_MEAT:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Meat", L"Fresh meat.", resourcePath, imagePath);
-
-	case GOID_ITEM_BERRY:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Berry", L"Sweet and nutritious.", resourcePath, imagePath);
-
-	case GOID_ITEM_AXE:
-		return std::make_shared<Axe>(itemID, L"Axe", L"Cuts down trees.", resourcePath + L"/" + imagePath, 100.0f, 1.0f);
-
-	default:
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Unknown Item", L"Unknown item.", resourcePath, imagePath);
+	// íŒ©í† ë¦¬ ë§µì—ì„œ ìƒì„± í•¨ìˆ˜ ì°¾ê¸°
+	auto it = m_itemFactories.find(itemID);
+	if (it != m_itemFactories.end()) {
+		return it->second(itemID, resourceData);
+	}
+	else {
+		// ê¸°ë³¸ ì•„ì´í…œìœ¼ë¡œ ìƒì„± (ì•Œ ìˆ˜ ì—†ëŠ” ì•„ì´í…œ)
+		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Unknown Item", L"Unknown item.", 
+			resourceData->objectAssetBaseDirectory, resourceData->assetImageName);
 	}
 }
 
@@ -365,27 +393,27 @@ void ObjectManager::RenderBounds()
 	{
 		if (obj && obj->GetActive() && obj->CanInteract())
 		{
-			// ¿ÀºêÁ§Æ®ÀÇ ÀÌ¹ÌÁö Å×µÎ¸® Å©±â °¡Á®¿À±â
+			// ì˜¤ë¸Œì íŠ¸ì˜ ì‹¤ì œ ë°”ìš´ë“œ ë°•ìŠ¤ í¬ê¸° ê³„ì‚°
 			float objWidth = obj->GetWidth();
 			float objHeight = obj->GetHeight();
 			float objX = obj->GetX();
 			float objY = obj->GetY();
 			
-			// ¿ÀºêÁ§Æ®ÀÇ ÇÇ¹ş Á¤º¸ °¡Á®¿À±â
+			// ì˜¤ë¸Œì íŠ¸ì˜ í”¼ë²— ê°’ ê°€ì ¸ì˜¤ê¸°
 			float pivotX = obj->GetPivotX();
 			float pivotY = obj->GetPivotY();
 			
-			// ÇÇ¹ş ±âÁØÀ¸·Î Å×µÎ¸® ¿µ¿ª °è»ê
+			// í”¼ë²—ì„ ê³ ë ¤í•œ ë°”ìš´ë“œ ë°•ìŠ¤ ê²½ê³„ ê³„ì‚°
 			float left = objX - (objWidth * pivotX);
 			float right = objX + (objWidth * (1.0f - pivotX));
 			float top = objY - (objHeight * pivotY);
 			float bottom = objY + (objHeight * (1.0f - pivotY));
 			
-			// ¿ùµå ÁÂÇ¥¸¦ ½ºÅ©¸° ÁÂÇ¥·Î º¯È¯
+			// ì›”ë“œ ì¢Œí‘œë¥¼ ìŠ¤í¬ë¦° ì¢Œí‘œë¡œ ë³€í™˜
 			Gdiplus::PointF screenLeft = cameraManager->WorldToScreen(left, top);
 			Gdiplus::PointF screenRight = cameraManager->WorldToScreen(right, bottom);
 			
-			// Å×µÎ¸® »ç°¢Çü »ı¼º
+			// ë°”ìš´ë“œ ì‚¬ê°í˜• ìƒì„±
 			Gdiplus::RectF boundsRect(
 				screenLeft.X,
 				screenLeft.Y,
@@ -393,27 +421,27 @@ void ObjectManager::RenderBounds()
 				screenRight.Y - screenLeft.Y
 			);
 			
-			// ¿ÀºêÁ§Æ® Å¸ÀÔ¿¡ µû¶ó ´Ù¸¥ »ö»ó »ç¿ë (´õ ¼±¸íÇÑ »ö»ó)
+			// ì˜¤ë¸Œì íŠ¸ íƒ€ì…ì— ë”°ë¼ ë‹¤ë¥¸ ìƒ‰ìƒ ì‚¬ìš© (ë””ë²„ê·¸ êµ¬ë¶„ìš©)
 			Gdiplus::Color boundsColor;
 			switch (obj->GetType()) {
 				case GOBJ_ITEM:
-					boundsColor = Gdiplus::Color(255, 0, 255, 0); // ¹àÀº ³ì»ö - ¾ÆÀÌÅÛ
+					boundsColor = Gdiplus::Color(255, 0, 255, 0); // ì•„ì´í…œ - ì´ˆë¡ìƒ‰
 					break;
 				case GOBJ_NATURAL_ENVIR:
-					boundsColor = Gdiplus::Color(255, 0, 150, 255); // ¹àÀº ÆÄ¶õ»ö - ÀÚ¿¬È¯°æ
+					boundsColor = Gdiplus::Color(255, 0, 150, 255); // ìì—° í™˜ê²½ - íŒŒë€ìƒ‰
 					break;
 				case GOBJ_MONSTER:
-					boundsColor = Gdiplus::Color(255, 255, 0, 0); // »¡°£»ö - ¸ó½ºÅÍ
+					boundsColor = Gdiplus::Color(255, 255, 0, 0); // ëª¬ìŠ¤í„° - ë¹¨ê°„ìƒ‰
 					break;
 				default:
-					boundsColor = Gdiplus::Color(255, 255, 255, 255); // Èò»ö - ±âÅ¸
+					boundsColor = Gdiplus::Color(255, 255, 255, 255); // ê¸°íƒ€ - í°ìƒ‰
 					break;
 			}
 			
-			// Å×µÎ¸® ±×¸®±â (´õ µÎ²®°Ô, UI ·¹ÀÌ¾î¿¡ ±×¸®±â)
+			// ë°”ìš´ë“œ ê·¸ë¦¬ê¸° (ì„  ë‘ê»˜, UI ë ˆì´ì–´ì— ê·¸ë¦¼)
 			renderManager->AddDrawCommand(boundsRect, boundsColor, 3.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
 			
-			// ¹İÅõ¸í ¹è°æµµ Ãß°¡ÇÏ¿© Å×µÎ¸®¸¦ ´õ Àß º¸ÀÌ°Ô ÇÔ
+			// ë°˜íˆ¬ëª… ë°°ê²½ ì¶”ê°€í•˜ì—¬ ë°”ìš´ë“œê°€ ë” ì˜ ë³´ì´ë„ë¡ í•¨
 			Gdiplus::Color bgColor = Gdiplus::Color(50, boundsColor.GetR(), boundsColor.GetG(), boundsColor.GetB());
 			renderManager->AddFillRectangleCommand(boundsRect, bgColor, LAYER_DEBUG_OVERLAY, 9998.0f);
 		}

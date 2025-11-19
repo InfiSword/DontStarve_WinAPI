@@ -15,7 +15,6 @@ public:
 	virtual void LateUpdate() override;
 	virtual void Release() override;
 
-	virtual void OnPlayerInteraction(Player* player);
 
 private:
 };

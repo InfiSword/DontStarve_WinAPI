@@ -10,17 +10,17 @@ SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivo
     const std::wstring& imageName, int hp)
     : Building(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, hp)
 {
-    OutputDebugStringW(L"SpiderEgg: »ı¼ºÀÚ È£Ãâ\n");
+    OutputDebugStringW(L"SpiderEgg: ìƒì„±ì í˜¸ì¶œ\n");
 }
 
 SpiderEgg::~SpiderEgg()
 {
-    OutputDebugStringW(L"SpiderEgg: ¼Ò¸êÀÚ È£Ãâ\n");
+    OutputDebugStringW(L"SpiderEgg: ì†Œë©¸ì í˜¸ì¶œ\n");
 }
 
 void SpiderEgg::Init()
 {
-    OutputDebugStringW(L"SpiderEgg: Init ½ÃÀÛ\n");
+    OutputDebugStringW(L"SpiderEgg: Init ì‹œì‘\n");
     
     SetActive(true);
     SetInteractive(true);
@@ -28,23 +28,23 @@ void SpiderEgg::Init()
     m_buildingState = BUILDING_NOON;
     m_direction = DIR_DOWN;
     
-    pAnimator = new Animator();
+    pAnimator = AddComponent<Animator>();
     RegisterAllAnimations();
     UpdateAnimatorState();
     
-    // ÃÊ±â Å©±â ¼³Á¤
+    // ì´ˆê¸° í¬ê¸° ì„¤ì •
     if (pAnimator) {
         const AnimationFrame& frame = pAnimator->GetCurrentFrame();
         this->m_width = frame.width;
         this->m_height = frame.height;
     }
     
-    OutputDebugStringW(L"SpiderEgg: Init ¿Ï·á\n");
+    OutputDebugStringW(L"SpiderEgg: Init ì™„ë£Œ\n");
 }
 
 void SpiderEgg::LateInit()
 {
-    OutputDebugStringW(L"SpiderEgg: LateInit È£Ãâ\n");
+    OutputDebugStringW(L"SpiderEgg: LateInit í˜¸ì¶œ\n");
 }
 
 void SpiderEgg::Update(float deltaTime)
@@ -54,7 +54,7 @@ void SpiderEgg::Update(float deltaTime)
         this->m_width = frame.width;
         this->m_height = frame.height;
     }
-    UpdateAnimation(deltaTime);
+    // ì• ë‹ˆë©”ì´ì…˜ ì—…ë°ì´íŠ¸ëŠ” GameObject::Update()ì—ì„œ ì»´í¬ë„ŒíŠ¸ì˜ Update()ë¥¼ í†µí•´ ìë™ìœ¼ë¡œ ì²˜ë¦¬ë¨
 }
 
 void SpiderEgg::LateUpdate()
@@ -63,8 +63,8 @@ void SpiderEgg::LateUpdate()
 
 void SpiderEgg::Release()
 {
-    OutputDebugStringW(L"SpiderEgg: Release È£Ãâ\n");
-    SafeDelete(pAnimator);
+    OutputDebugStringW(L"SpiderEgg: Release í˜¸ì¶œ\n");
+    // pAnimatorëŠ” GameObject::Release()ì—ì„œ ì»´í¬ë„ŒíŠ¸ë¡œ í•´ì œë¨
     for (auto& pair : m_animClips)
     {
         SafeDelete(pair.second);
@@ -74,7 +74,7 @@ void SpiderEgg::Release()
 
 void SpiderEgg::Damaged(int damage)
 {
-    OutputDebugStringW((L"SpiderEgg: Damaged - µ¥¹ÌÁö: " + std::to_wstring(damage) + L"\n").c_str());
+    OutputDebugStringW((L"SpiderEgg: Damaged - ë°ë¯¸ì§€: " + std::to_wstring(damage) + L"\n").c_str());
     
     m_hp -= damage;
     if (m_hp <= 0)
@@ -83,15 +83,15 @@ void SpiderEgg::Damaged(int damage)
         m_state = BUILDING_DESTROYED;
         m_buildingState = BUILDING_DESTROYED;
         UpdateAnimatorState();
-        OutputDebugStringW(L"SpiderEgg: ÆÄ±«µÊ\n");
-        // TODO: °Ç¹° ÆÄ±« Ã³¸®
+        OutputDebugStringW(L"SpiderEgg: íŒŒê´´ë¨\n");
+        // TODO: íŒŒê´´ íš¨ê³¼ ì²˜ë¦¬
     }
     else if (m_hp <= m_maxHp / 2)
     {
         m_state = BUILDING_DAMAGED;
         m_buildingState = BUILDING_DAMAGED;
         UpdateAnimatorState();
-        OutputDebugStringW(L"SpiderEgg: ¼Õ»óµÊ\n");
+        OutputDebugStringW(L"SpiderEgg: ì†ìƒë¨\n");
     }
 }
 
@@ -125,45 +125,45 @@ std::wstring SpiderEgg::GetAnimKey(BuildingState state)
     return key;
 }
 
-// Unity Animator ½ºÅ¸ÀÏ ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
+// Unity Animator ìŠ¤íƒ€ì¼ ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
 void SpiderEgg::RegisterAllAnimations()
 {
-    OutputDebugStringW((L"SpiderEgg: RegisterAllAnimations ½ÃÀÛ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+    OutputDebugStringW((L"SpiderEgg: RegisterAllAnimations ì‹œì‘ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 
-    // ResourceManager¸¦ »ç¿ëÇÏ¿© °æ·Î ±¸¼º
+    // ResourceManagerë¥¼ ì‚¬ìš©í•˜ì—¬ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
     auto* pRM = ResourceManager::GetInstance();
     
-    // °Å¹Ì ¾Ë Á¾·ù¿¡ µû¸¥ ºĞ±â
+    // ê±°ë¯¸ ì•Œ íƒ€ì…ë³„ë¡œ ë“±ë¡ í™•ì¸
     if (m_id == GOID_BUILDING_SPIDER_SMALLEGG)
     {
-        OutputDebugStringW(L"SpiderEgg: SPIDER SMALL EGG ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï\n");
+        OutputDebugStringW(L"SpiderEgg: SPIDER SMALL EGG ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡\n");
         pAnimator->RegisterAnimation(BUILDING_NOON, DIR_DOWN,
             pRM->BuildObjectResourcePath(GOID_BUILDING_SPIDER_SMALLEGG, L"", L"Egg_spider_cocoon_small_Image.png"),
             80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
     }
     else if (m_id == GOID_BUILDING_SPIDER_NORMALEGG)
     {
-        OutputDebugStringW(L"SpiderEgg: SPIDER NORMAL EGG ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï\n");
+        OutputDebugStringW(L"SpiderEgg: SPIDER NORMAL EGG ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡\n");
         pAnimator->RegisterAnimation(BUILDING_NOON, DIR_DOWN,
             pRM->BuildObjectResourcePath(GOID_BUILDING_SPIDER_NORMALEGG, L"", L"Egg_spider_cocoon_medium_Image.png"),
             80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
     }
     else if (m_id == GOID_BUILDING_SPIDER_TALLEGG)
     {
-        OutputDebugStringW(L"SpiderEgg: SPIDER TALL EGG ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï\n");
+        OutputDebugStringW(L"SpiderEgg: SPIDER TALL EGG ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡\n");
         pAnimator->RegisterAnimation(BUILDING_NOON, DIR_DOWN,
             pRM->BuildObjectResourcePath(GOID_BUILDING_SPIDER_TALLEGG, L"", L"Egg_spider_cocoon_large_Image.png"),
             80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
     }
     else
     {
-        OutputDebugStringW((L"SpiderEgg: ¾Ë ¼ö ¾ø´Â °Å¹Ì ¾Ë ID: " + std::to_wstring(m_id) + L"\n").c_str());
+        OutputDebugStringW((L"SpiderEgg: ì•Œ ìˆ˜ ì—†ëŠ” ê±°ë¯¸ ì•Œ ID: " + std::to_wstring(m_id) + L"\n").c_str());
     }
     
-    OutputDebugStringW(L"SpiderEgg: Unity Animator ½ºÅ¸ÀÏ·Î ¸ğµç ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï ¿Ï·á\n");
+    OutputDebugStringW(L"SpiderEgg: Unity Animator ìŠ¤íƒ€ì¼ë¡œ ëª¨ë“  ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ ì™„ë£Œ\n");
 }
 
-// Unity Animator ½ºÅ¸ÀÏ »óÅÂ ¾÷µ¥ÀÌÆ®
+// Unity Animator ìŠ¤íƒ€ì¼ ìƒíƒœ ì—…ë°ì´íŠ¸
 void SpiderEgg::UpdateAnimatorState()
 {
     if (pAnimator) {
@@ -171,11 +171,6 @@ void SpiderEgg::UpdateAnimatorState()
     }
 }
 
-void SpiderEgg::UpdateAnimation(float deltaTime)
-{
-    if (pAnimator)
-        pAnimator->Update(deltaTime);
-}
 
 Gdiplus::Bitmap* SpiderEgg::GetBitmap() const
 {
@@ -185,4 +180,4 @@ Gdiplus::Bitmap* SpiderEgg::GetBitmap() const
     if (!spriteSheet) return nullptr;
     
     return spriteSheet->GetBitmap();
-} 
+}

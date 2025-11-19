@@ -15,20 +15,19 @@ public:
     virtual void LateUpdate() override;
     virtual void Release() override;
 
-    // Building Æ¯È­ ¸Ş¼Òµå
+    // Building íŠ¹í™” ë©”ì„œë“œ
     virtual void Damaged(int damage) override;
     virtual void SetTimeState(BuildingState buildingState) override;
     virtual BuildingState GetTimeState() const override;
     virtual std::wstring GetAnimKey(BuildingState state) override;
 
-    // Entity ÀÎÅÍÆäÀÌ½º ±¸Çö (Unity Animator ½ºÅ¸ÀÏ - Enum + Direction Å°°ª)
+    // Entity ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„ (Unity Animator ìŠ¤íƒ€ì¼ - Enum + Direction í‚¤ë¡œ)
     virtual void RegisterAllAnimations() override;
     virtual void UpdateAnimatorState() override;
 
-    // GameObjectÀÇ ¾Ö´Ï¸ŞÀÌ¼Ç ¸Ş¼Òµåµé ¿À¹ö¶óÀÌµå
-    virtual void UpdateAnimation(float deltaTime) override;
+    // GameObjectì˜ ì• ë‹ˆë©”ì´ì…˜ ë©”ì„œë“œ ì˜¤ë²„ë¼ì´ë“œ
     virtual Gdiplus::Bitmap* GetBitmap() const override;
 
 private:
 
-}; 
+};

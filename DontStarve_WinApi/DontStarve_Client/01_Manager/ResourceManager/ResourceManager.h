@@ -1,14 +1,5 @@
 #pragma once
 
-// Àü¹æ ¼±¾ğ
-class GameObject;
-class Building;
-class Grass;
-class Monster;
-class Rock;
-class Tree;
-class Ingredient;
-
 class ResourceManager : public CSingleTon<ResourceManager>
 {
     friend class CSingleTon<ResourceManager>;
@@ -20,18 +11,18 @@ public:
     void Init();
     void Release();
     
-    // resources.txt ÆÄÀÏ ·Îµå
+    // resources.txt íŒŒì¼ ë¡œë“œ
     void LoadResourcesFromFile(const std::wstring& filePath);
     
-    // ¸®¼Ò½º Á¤º¸ °¡Á®¿À±â
+    // ë¦¬ì†ŒìŠ¤ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
     const GameObjectData* GetObjectResourceInfo(GameObjectID id) const;
     const TileData* GetTileResourceInfo(TileID id) const;
     
-    // ÀüÃ¼ ¸®¼Ò½º ¸ñ·Ï °¡Á®¿À±â
+    // ì „ì²´ ë¦¬ì†ŒìŠ¤ ë§µ ê°€ì ¸ì˜¤ê¸°
     const std::map<GameObjectID, GameObjectData>& GetAllObjectResources() const { return m_objectResources; }
     const std::map<TileID, TileData>& GetAllTileResources() const { return m_tileResources; }
     
-    // °æ·Î ±¸¼º ÇïÆÛ ÇÔ¼öµé
+    // ê²½ë¡œ ë¹Œë“œ í—¬í¼ í•¨ìˆ˜ë“¤
     std::wstring BuildResourcePath(const std::wstring& basePath, const std::wstring& subFolder, const std::wstring& filename) const;
     std::wstring BuildObjectResourcePath(GameObjectID id, const std::wstring& subFolder, const std::wstring& filename) const;
     std::wstring BuildTileResourcePath(TileID id, const std::wstring& subFolder, const std::wstring& filename) const;

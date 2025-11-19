@@ -1,12 +1,12 @@
 #pragma once
-#include "Entity.h"
+#include "../Entity.h"
 
-class Rock : public Entity<RockState>
-{
+class Tree : public Entity<TreeState> {
 public:
-    Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
-    virtual ~Rock();
+    Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    virtual ~Tree();
 
+public:
     virtual void Init() override;
     virtual void LateInit() override;
     virtual void Update(float deltaTime) override;
@@ -15,15 +15,14 @@ public:
 
     virtual void OnInteraction(GameObject* obj) override;
 
-    // Entity ÀÎÅÍÆäÀÌ½º ±¸Çö (´õ¹Ì ±¸Çö)
+    // Entity ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„ (í•„ìˆ˜ ì˜¤ë²„ë¼ì´ë“œ)
     virtual void RegisterAllAnimations() override {}
     virtual void UpdateAnimatorState() override {}
 
     virtual void Damaged(int damage) override;
     
-    void OnPlayerInteraction(class Player* player);
-
 private:
+    std::wstring tree_Grade;
     int m_hp;
     int maxHp;
     float m_hitAnimTimer;

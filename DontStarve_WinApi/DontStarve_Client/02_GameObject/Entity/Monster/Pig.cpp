@@ -1,17 +1,16 @@
-#include "../../99_Default/pch.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../03_Animation/Animator.h"
-#include "../../03_Animation/AnimationClip.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../03_Animation/SpriteSheet.h"
-#include "../../../Header/Struct.h"
+#include "../../../99_Default/pch.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../03_Animation/Animator.h"
+#include "../../../03_Animation/AnimationClip.h"
+#include "../Player/Player.h"
+#include "../../../03_Animation/SpriteSheet.h"
 #include "Pig.h"
 
 Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity<MonsterState>(GOBJ_MONSTER, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_hp(100), m_hitAnimTimer(0.0f)
+	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName)
 {
-    m_animator = nullptr;
+	m_hp = 100;
 	maxHp = m_hp;
 }
 
@@ -19,162 +18,90 @@ Pig::~Pig() {}
 
 void Pig::Init()
 {
-	SetActive(true);
-	m_direction = DIR_DOWN;
-	m_state = MONSTER_IDLE;
-	m_animator = new Animator();
+	Monster::Init();
 	
-	OutputDebugStringW((L"Pig: Init ¿Ï·á - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Pig: Init ì™„ë£Œ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 	
-	RegisterAllAnimations(); // Unity Animator ½ºÅ¸ÀÏ
-	UpdateAnimatorState(); // ÃÊ±â »óÅÂ ¼³Á¤
-	
-	// ÃÊ±â Å©±â ¼³Á¤ (¾Ö´Ï¸ŞÀÌ¼Ç ÇÁ·¹ÀÓÀÇ Ã¹ ¹øÂ° ÇÁ·¹ÀÓ¿¡¼­ Å©±â °¡Á®¿À±â)
-	if (m_animator) {
-		const AnimationFrame& frame = m_animator->GetCurrentFrame();
+	// ì´ˆê¸° í¬ê¸° ì„¤ì • (ì• ë‹ˆë©”ì´ì…˜ í´ë¦½ì—ì„œ ì²« ë²ˆì§¸ í”„ë ˆì„ìœ¼ë¡œ í¬ê¸° ì„¤ì •)
+	Animator* animator = GetComponent<Animator>();
+	if (animator) {
+		const AnimationFrame& frame = animator->GetCurrentFrame();
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 		
-		// Animator »óÅÂ È®ÀÎ
-		const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
+		// Animator ì´ˆê¸°í™” í™•ì¸
+		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
 		if (spriteSheet) {
-			OutputDebugStringW((L"Pig: Animator ÃÊ±âÈ­ ¿Ï·á - ID: " + std::to_wstring(m_id) + L", SpriteSheet ·ÎµåµÊ\n").c_str());
+			OutputDebugStringW((L"Pig: Animator ì´ˆê¸°í™” ì™„ë£Œ - ID: " + std::to_wstring(m_id) + L", SpriteSheet ë¡œë“œë¨\n").c_str());
 		} else {
-			OutputDebugStringW((L"Pig: Animator ÃÊ±âÈ­ ½ÇÆĞ - ID: " + std::to_wstring(m_id) + L", SpriteSheet ¾øÀ½\n").c_str());
+			OutputDebugStringW((L"Pig: Animator ì´ˆê¸°í™” ì‹¤íŒ¨ - ID: " + std::to_wstring(m_id) + L", SpriteSheet ì—†ìŒ\n").c_str());
 		}
 	} else {
-		OutputDebugStringW((L"Pig: Animator »ı¼º ½ÇÆĞ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+		OutputDebugStringW((L"Pig: Animator ìƒì„± ì‹¤íŒ¨ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 	}
-}
-
-void Pig::LateInit()
-{
-}
-
-void Pig::Update(float deltaTime)
-{
-	if (m_state == MONSTER_HIT) {
-		m_hitAnimTimer += deltaTime;
-		if (m_hitAnimTimer >= m_animator->GetCurrentClipTotalDuration()) {
-			m_state = MONSTER_IDLE; 
-			UpdateAnimatorState();
-			m_hitAnimTimer = 0.0f; 
-		}
-	}
-
-	if (m_animator) {
-		const AnimationFrame& frame = m_animator->GetCurrentFrame();
-		this->m_width = frame.width;
-		this->m_height = frame.height;
-	}
-}
-
-void Pig::LateUpdate()
-{
-}
-
-void Pig::Release()
-{
-	SafeDelete(m_animator);
-}
-
-// Unity Animator ½ºÅ¸ÀÏ ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
-void Pig::RegisterAllAnimations()
-{
-	// ResourceManager¸¦ »ç¿ëÇÏ¿© ¸®¼Ò½º ·Îµå
-	ResourceManager* pRM = ResourceManager::GetInstance();
-	
-	// PIG ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
-	if (m_id == GOID_MONSTER_PIG)
-	{
-		// IDLE ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-			 pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_down.png"), 
-			 120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_up.png"),
-			120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png"),
-			120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png"),
-			120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		// ATTACK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"down_pigman_atk_down.png"),
-			150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
-		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"up_pigman_atk_up.png"),
-			150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
-		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png"),
-			150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
-		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png"),
-			150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
-		
-		// HIT ¾Ö´Ï¸ŞÀÌ¼Ç
-		m_animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Hit", L"Hit_pigman_hit.png"),
-			120, 150, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
-		
-		// DEATH ¾Ö´Ï¸ŞÀÌ¼Ç
-		m_animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Death", L"Death_pigman_death.png"),
-			150, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-	}
-	
-	OutputDebugStringW(L"Pig: Unity Animator ½ºÅ¸ÀÏ·Î ¸ğµç ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï ¿Ï·á\n");
-}
-
-// Unity Animator ½ºÅ¸ÀÏ »óÅÂ ¾÷µ¥ÀÌÆ®
-void Pig::UpdateAnimatorState()
-{
-	if (m_animator) {
-		m_animator->SetState(m_state, m_direction);
-	}
-}
-
-Gdiplus::Bitmap* Pig::GetBitmap() const
-{
-    if (!m_animator) return nullptr;
-    
-    const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
-    if (!spriteSheet) return nullptr;
-    
-    return spriteSheet->GetBitmap();
 }
 
 void Pig::OnInteraction(GameObject* obj)
 {
-	// ±âº» »óÈ£ÀÛ¿ë
+	// ê¸°ë³¸ ìƒí˜¸ì‘ìš©
 }
 
-void Pig::OnPlayerInteraction(Player* player)
+// Unity Animator ìŠ¤íƒ€ì¼ ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
+void Pig::RegisterAllAnimations()
 {
-	player->OnInteraction(this);
-}
-
-void Pig::Damaged(int damage)
-{
-	m_hp -= damage;
-	m_state = MONSTER_HIT;
-	UpdateAnimatorState(); // Unity Animator°¡ ÀÚµ¿À¸·Î ¾Ö´Ï¸ŞÀÌ¼Ç ¼±ÅÃ
+	// ResourceManagerë¥¼ ì‚¬ìš©í•˜ì—¬ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
+	ResourceManager* pRM = ResourceManager::GetInstance();
 	
-	if (m_hp <= 0) {
-		m_state = MONSTER_DEATH;
-		UpdateAnimatorState();
+	Animator* animator = GetComponent<Animator>();
+	if (!animator) return;
+	
+	// PIG ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
+	if (m_id == GOID_MONSTER_PIG)
+	{
+		// IDLE ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+			 pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_down.png"), 
+			 120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// ¸ó½ºÅÍ°¡ Á×¾úÀ» ¶§ Ã³¸®
-		// ¾ÆÀÌÅÛ µå·ÓÀÌ³ª °æÇèÄ¡ È¹µæ µîÀÇ ·ÎÁ÷ Ãß°¡
-		OutputDebugStringW(L"Pig: ¸ó½ºÅÍ°¡ Á×¾ú½À´Ï´Ù!\n");
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_up.png"),
+			120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+		
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png"),
+			120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+		
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png"),
+			120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+		
+		// ATTACK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"down_pigman_atk_down.png"),
+			150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
+		
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"up_pigman_atk_up.png"),
+			150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
+		
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png"),
+			150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
+		
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png"),
+			150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
+		
+		// HIT ì• ë‹ˆë©”ì´ì…˜
+		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Hit", L"Hit_pigman_hit.png"),
+			120, 150, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
+		
+		// DEATH ì• ë‹ˆë©”ì´ì…˜
+		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
+			pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Death", L"Death_pigman_death.png"),
+			150, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 	}
-} 
+	
+	OutputDebugStringW(L"Pig: Unity Animator ìŠ¤íƒ€ì¼ë¡œ ëª¨ë“  ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ ì™„ë£Œ\n");
+}

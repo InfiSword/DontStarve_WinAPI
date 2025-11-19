@@ -2,7 +2,7 @@
 #include "Entity.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 
-// ¹æÇâ °ü·Ã À¯Æ¿¸®Æ¼ ÇÔ¼öµé
+// ë°©í–¥ ê´€ë ¨ ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
 Direction GetOppositeDirection(Direction dir)
 {
     switch (dir)
@@ -15,7 +15,7 @@ Direction GetOppositeDirection(Direction dir)
     }
 }
 
-// °Å¸® °è»ê À¯Æ¿¸®Æ¼ ÇÔ¼öµé
+// ê±°ë¦¬ ê³„ì‚° ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
 float CalculateDistance(float x1, float y1, float x2, float y2)
 {
     float dx = x2 - x1;
@@ -28,7 +28,7 @@ Direction GetDirectionToTarget(float fromX, float fromY, float toX, float toY)
     float dx = toX - fromX;
     float dy = toY - fromY;
     
-    // Àý´ë°ªÀÌ ´õ Å« ¹æÇâÀ» ¿ì¼±À¸·Î °áÁ¤
+    // ì ˆëŒ“ê°’ì´ ë” í° ë°©í–¥ì„ ìš°ì„ ì ìœ¼ë¡œ ì„ íƒ
     if (abs(dx) > abs(dy))
     {
         return (dx > 0) ? DIR_RIGHT : DIR_LEFT;
@@ -39,16 +39,15 @@ Direction GetDirectionToTarget(float fromX, float fromY, float toX, float toY)
     }
 }
 
-// È­¸é °æ°è Ã¼Å© ÇÔ¼ö
+// í™”ë©´ ë²”ìœ„ í™•ì¸ í•¨ìˆ˜
 bool IsPositionInScreenBounds(float x, float y)
 {
-    // È­¸é ÁÂÇ¥·Î º¯È¯ÇØ¼­ Ã¼Å©
+    // í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜í•˜ì—¬ í™•ì¸
     Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(x, y);
     
     return (screenPos.X >= 0 && screenPos.X <= WINCX && 
             screenPos.Y >= 0 && screenPos.Y <= WINCY);
 }
-
 
 
 

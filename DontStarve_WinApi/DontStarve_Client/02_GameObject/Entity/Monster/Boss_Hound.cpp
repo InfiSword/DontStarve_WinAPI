@@ -1,21 +1,20 @@
-#include "../../99_Default/pch.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../03_Animation/Animator.h"
-#include "../../03_Animation/AnimationClip.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../03_Animation/SpriteSheet.h"
-#include "../../../Header/Struct.h"
+#include "../../../99_Default/pch.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../03_Animation/Animator.h"
+#include "../../../03_Animation/AnimationClip.h"
+#include "../Player/Player.h"
+#include "../../../03_Animation/SpriteSheet.h"
 #include "Boss_Hound.h"
 
 Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Hound(id, x, y, pivotX, pivotY, resourcePath, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
+	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
 {
-	// º¸½º Àü¿ë ÃÊ±âÈ­
-	m_hp = 150; // º¸½º´Â ´õ ¸¹Àº Ã¼·Â
+	// ë³´ìŠ¤ íŠ¹ì„± ì´ˆê¸°í™”
+	m_hp = 150; // ì¼ë°˜ í•˜ìš´ë“œë³´ë‹¤ ë†’ì€ ì²´ë ¥
 	maxHp = m_hp;
 	
-	// Hound Å¸ÀÔ ¼³Á¤
+	// Hound íƒ€ì… ì„¤ì •
 	if (id == GOID_MONSTER_REDHOUNDDOG) {
 		m_houndType = L"Red";
 	} else if (id == GOID_MONSTER_ICEHOUNDDOG) {
@@ -27,97 +26,105 @@ Boss_Hound::~Boss_Hound() {}
 
 void Boss_Hound::Init()
 {
-	Hound::Init(); // ºÎ¸ğ Å¬·¡½º ÃÊ±âÈ­
+	Monster::Init(); // ë¶€ëª¨ í´ë˜ìŠ¤ ì´ˆê¸°í™”
 	
-	// º¸½º Àü¿ë ÃÊ±âÈ­
+	// ë³´ìŠ¤ íŠ¹ì„± ì´ˆê¸°í™”
 	m_bossPhase = 1;
 	m_specialAttackCooldown = 0.0f;
 	
-	OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" º¸½º ÃÊ±âÈ­ ¿Ï·á - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" ë³´ìŠ¤ ì´ˆê¸°í™” ì™„ë£Œ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+}
+
+void Boss_Hound::OnInteraction(GameObject* obj)
+{
+    // ë³´ìŠ¤ ìƒí˜¸ì‘ìš©
 }
 
 void Boss_Hound::RegisterAllAnimations()
 {
-	// ResourceManager¸¦ »ç¿ëÇÏ¿© ¸®¼Ò½º ·Îµå
+	// ResourceManagerë¥¼ ì‚¬ìš©í•˜ì—¬ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
 	auto* pRM = ResourceManager::GetInstance();
 	
-	// BOSS HOUND ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
+	// BOSS HOUND ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
+	Animator* animator = GetComponent<Animator>();
+	if (!animator) return;
+	
 	if (m_id == GOID_MONSTER_REDHOUNDDOG)
 	{
-		// RED HOUND º¸½º ¾Ö´Ï¸ŞÀÌ¼Çµé
-		// IDLE ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+		// RED HOUND ë³´ìŠ¤ ì• ë‹ˆë©”ì´ì…˜ë“¤
+		// IDLE ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_down.png"),
 			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_up.png"),
 			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
 			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
 			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// ATTACK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+		// ATTACK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_down.png"),
 			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_up.png"),
 			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
 			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
 			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 	}
 	else if (m_id == GOID_MONSTER_ICEHOUNDDOG)
 	{
-		// ICE HOUND º¸½º ¾Ö´Ï¸ŞÀÌ¼Çµé
-		// IDLE ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+		// ICE HOUND ë³´ìŠ¤ ì• ë‹ˆë©”ì´ì…˜ë“¤
+		// IDLE ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_down.png"),
 			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_up.png"),
 			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
 			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
 			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// ATTACK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+		// ATTACK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_down.png"),
 			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_up.png"),
 			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
 			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
 			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 	}
 	
-	OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" º¸½º ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï ¿Ï·á\n").c_str());
+	OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" ë³´ìŠ¤ ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ ì™„ë£Œ\n").c_str());
 }
 
 void Boss_Hound::Damaged(int damage)
@@ -126,17 +133,17 @@ void Boss_Hound::Damaged(int damage)
 	m_state = MONSTER_HIT;
 	UpdateAnimatorState();
 	
-	// º¸½º ÆäÀÌÁî Ã¼Å©
+	// ë³´ìŠ¤ í˜ì´ì¦ˆ ì²´í¬
 	if (m_hp <= maxHp * 0.5f && m_bossPhase == 1) {
 		m_bossPhase = 2;
-		OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" º¸½º ÆäÀÌÁî 2 ½ÃÀÛ!\n").c_str());
+		OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" ë³´ìŠ¤ í˜ì´ì¦ˆê°€ 2 ë‹¨ê³„ë¡œ ì „í™˜!\n").c_str());
 	}
 	
 	if (m_hp <= 0) {
 		m_state = MONSTER_DEATH;
 		UpdateAnimatorState();
 		
-		// º¸½º Ã³Ä¡ ½Ã Æ¯º°ÇÑ º¸»ó
-		OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" º¸½º°¡ Ã³Ä¡µÇ¾ú½À´Ï´Ù!\n").c_str());
+		// ë³´ìŠ¤ ì²˜ì¹˜ ì‹œ íŠ¹ë³„í•œ ë³´ìƒ
+		OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" ë³´ìŠ¤ê°€ ì²˜ì¹˜ë˜ì—ˆìŠµë‹ˆë‹¤!\n").c_str());
 	}
-} 
+}

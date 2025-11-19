@@ -1,24 +1,26 @@
 #pragma once
 
-class Animator;
-class AnimationClip;
+#include "Component/Component.h"
 
 class GameObject
 {
 protected:
     float m_x, m_y;
-    float m_width, m_height;	    // ºñÆ®¸Ê(½ºÇÁ¶óÀÌÆ®) Å©±â
+    float m_width, m_height;	    // ë¹„íŠ¸ë§µ(ìŠ¤í”„ë¼ì´íŠ¸ì‹œíŠ¸) í¬ê¸°
 	GameObjectID m_id;
 	GameObjectType m_type;
+	RenderLayer m_layer;
 	Direction m_direction;
 
-	std::wstring m_name;		// ¼ø¼öÇÑ °ÔÀÓ ¿ÀºêÁ§Æ® ÀÌ¸§
-    std::wstring resourcePath;	// ÇØ´ç ¸®¼Ò½º °æ·Î
+	std::wstring m_name;		// í•´ë‹¹ ê²Œì„ ì˜¤ë¸Œì íŠ¸ ì´ë¦„
+    std::wstring resourcePath;	// í•´ë‹¹ ë¦¬ì†ŒìŠ¤ ê²½ë¡œ
     std::wstring imageName;		// ~~~.png
-	std::wstring m_description;	// ÇØ´ç ¿ÀºêÁ§Æ® ¼³¸í (ÇÊ¿äÇÏ¸é)
+	std::wstring m_description;	// í•´ë‹¹ ì˜¤ë¸Œì íŠ¸ ì„¤ëª… (í•„ìš”ì‹œ)
 	Gdiplus::Bitmap* m_bitmap;
 
-    Animator* m_animator;
+    // ì»´í¬ë„ŒíŠ¸ ê´€ë¦¬
+    std::vector<Component*> m_components;
+
 	float m_pivotX;
 	float m_pivotY;
 
@@ -32,46 +34,65 @@ public:
 
 	virtual void Init();
 	virtual void LateInit();
-	virtual void Update(float deltaTime); // ÀÌµ¿ µî
+	virtual void Update(float deltaTime); // ì´ë™ ë“±
 	virtual void LateUpdate();
 	virtual void Release();
 
 	virtual void OnInteraction(GameObject* obj);
-	virtual Gdiplus::RectF GetWorldBoundingBox();
 	
-	// ºñÆ®¸Ê ¹İÈ¯ - ¾Ö´Ï¸ŞÀÌ¼Ç ÀÖ´Â Å¬·¡½º´Â Animator¿¡¼­, Á¤Àû ÀÌ¹ÌÁö´Â Á÷Á¢ ÀÎµ¦
-	virtual Gdiplus::Bitmap* GetBitmap() const;
-	
-	// ºñÆ®¸Ê ·Îµå - ÇÏÀ§ Å¬·¡½º¿¡¼­ override °¡´É
+	// ë¹„íŠ¸ë§µ ë¡œë“œ - í•˜ìœ„ í´ë˜ìŠ¤ì—ì„œ override ê°€ëŠ¥
 	virtual void LoadBitmap();
-
-	// Unity Animator ½ºÅ¸ÀÏ ¾Ö´Ï¸ŞÀÌ¼Ç °ü·Ã virtual ¸Ş¼Òµåµé (ÇÊ¿äÇÑ Å¬·¡½º¿¡¼­ ±¸Çö)
-	virtual void UpdateAnimation(float deltaTime) {}
 	
-	// Animator Á¢±ÙÀÚ
-	Animator* GetAnimator() const { return m_animator; }
+    template <typename T>
+    T* AddComponent() {
+        // Unity ìŠ¤íƒ€ì¼: ì»´í¬ë„ŒíŠ¸ë¥¼ ë™ì ìœ¼ë¡œ ì¶”ê°€
+        // ì¤‘ë³µ í—ˆìš© (Unityì™€ ë™ì¼í•œ ë°©ì‹)
+        T* newComponent = new T(this);
+        m_components.push_back(newComponent);
+        newComponent->Init();
+        return newComponent;
+    }
+
+    template <typename T>
+    T* GetComponent() const {
+        for (Component* component : m_components) {
+            T* target = dynamic_cast<T*>(component);
+            if (target) {
+                return target;
+            }
+        }
+        return nullptr;
+    }
 
 	// Getters
-	std::wstring GetImageName() const;
-	GameObjectID GetID() const;  
-	GameObjectType GetType() const;
-	const std::wstring& GetName() const;
-	const std::wstring& GetDescription() const;
-	bool GetActive() const;
-	float GetX() const;
-	float GetY() const;
-	float GetWidth() const ;
-	float GetHeight() const ;
-	float GetPivotX() const;
-	float GetPivotY() const;
-	Direction GetDir() const;
+	Gdiplus::Bitmap* GetBitmap() const { return m_bitmap; }
+
+	virtual Gdiplus::RectF GetWorldBoundingBox() const { return Gdiplus::RectF(m_x - m_width * m_pivotX, m_y - m_height * m_pivotY, m_width, m_height); }
+
+	RenderLayer GetRenderLayer() const { return m_layer; }
+
+	virtual float GetSortKey(RenderLayer layer) const { return static_cast<float>(layer) + m_y; }
+
+	std::wstring GetImageName() const { return imageName; }
+	GameObjectID GetID() const { return m_id; }
+	GameObjectType GetType() const { return m_type; }
+	const std::wstring& GetName() const { return m_name; }
+	const std::wstring& GetDescription() const { return m_description; }
+	bool GetActive() const { return m_isActive; }
+	float GetX() const { return m_x; }
+	float GetY() const { return m_y; }
+	float GetWidth() const { return m_width; }
+	float GetHeight() const { return m_height; }
+	float GetPivotX() const { return m_pivotX; }
+	float GetPivotY() const { return m_pivotY; }
+	Direction GetDir() const { return m_direction; }
 
 	// Setters
-	void SetPivot(float pivotX, float pivotY);
-	void SetActive(bool active);
-	void SetPosition(float x, float y);
+	void SetPivot(float pivotX, float pivotY) { m_pivotX = pivotX; m_pivotY = pivotY; }
+	void SetActive(bool active) { m_isActive = active; }
+	void SetPosition(float x, float y) { m_x = x; m_y = y; }
 	
-	// »óÈ£ÀÛ¿ë °ü·Ã ¸Ş¼­µåµé
+	// ìƒí˜¸ì‘ìš© ê´€ë ¨ ë©”ì„œë“œë“¤
 	void SetInteractive(bool interactive) { m_isInteractive = interactive; }
 	bool IsInteractive() const { return m_isInteractive; }
 	virtual bool CanInteract() const { return m_isActive && m_isInteractive; }

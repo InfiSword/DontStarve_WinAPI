@@ -1,11 +1,11 @@
 #pragma once
-#include "Entity.h"
+#include "../Entity.h" 
 
-class Sapling : public Entity<GrassState>
+class BerryBush : public Entity<GrassState>
 {
 public:
-    Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
-    virtual ~Sapling();
+    BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    virtual ~BerryBush();
 
     virtual void Init() override;
     virtual void LateInit() override;
@@ -15,18 +15,15 @@ public:
 
     virtual void OnInteraction(GameObject* obj) override;
 
-    // Entity ÀÎÅÍÆäÀÌ½º ±¸Çö (´õ¹Ì ±¸Çö)
     virtual void RegisterAllAnimations() override {}
     virtual void UpdateAnimatorState() override {}
 
-    void OnPlayerInteraction(class Player* player);
-    
-    // ¾ÆÀÌÅÛ Á¦°ø °ü·Ã ¸Ş¼­µå (EntityÀÇ °¡»ó ÇÔ¼ö ÀçÁ¤ÀÇ)
     virtual GameObjectID GetDropItemID() const override { return m_dropItemID; }
     virtual int GetDropItemCount() const override { return m_dropItemCount; }
     virtual void SetDropItem(GameObjectID itemID, int count = 1) override;
 
 private:
-    GameObjectID m_dropItemID;  // Á¦°øÇÒ ¾ÆÀÌÅÛ ID
-    int m_dropItemCount;        // Á¦°øÇÒ ¾ÆÀÌÅÛ °³¼ö
+    GameObjectID m_dropItemID;  // ë“œë¡­ ì•„ì´í…œì˜ ID
+    int m_dropItemCount;        // ë“œë¡­ ì•„ì´í…œì˜ ê°œìˆ˜
 };
+

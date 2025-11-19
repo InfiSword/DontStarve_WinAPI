@@ -1,8 +1,6 @@
-#include "../../99_Default/pch.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../../Header/Struct.h"
+#include "../../../99_Default/pch.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "Rock.h"
 
 Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
@@ -20,10 +18,10 @@ void Rock::Init()
 	m_direction = DIR_DOWN;
 	m_state = ROCK_INTACT;
 	
-	// ÀÌ¹ÌÁö ·Îµå
+	// ì´ë¯¸ì§€ ë¡œë“œ
 	LoadBitmap();
 	
-	// ºñÆ®¸Ê¿¡¼­ Å©±â °¡Á®¿À±â
+	// ë¹„íŠ¸ë§µì˜ í¬ê¸° ì„¤ì •
 	if (m_bitmap) {
 		this->m_width = static_cast<float>(m_bitmap->GetWidth());
 		this->m_height = static_cast<float>(m_bitmap->GetHeight());
@@ -36,7 +34,7 @@ void Rock::LateInit()
 
 void Rock::Update(float deltaTime)
 {
-	// ÇÊ¿äÇÑ ¾÷µ¥ÀÌÆ® ·ÎÁ÷
+	// í•„ìš”í•œ ì»´í¬ë„ŒíŠ¸ ì—…ë°ì´íŠ¸
 }
 
 void Rock::LateUpdate()
@@ -45,18 +43,14 @@ void Rock::LateUpdate()
 
 void Rock::Release()
 {
-	// ÇÊ¿äÇÑ Á¤¸® ÀÛ¾÷
+	// í•„ìš”í•œ ì •ë¦¬ ìž‘ì—…
 }
 
 void Rock::OnInteraction(GameObject* obj)
 {
-	// ±âº» ±¸Çö
+	// ê¸°ë³¸ ìƒí˜¸ìž‘ìš©
 }
 
-void Rock::OnPlayerInteraction(Player* player)
-{
-	player->OnInteraction(this);
-}
 
 void Rock::Damaged(int damage)
 {
@@ -64,7 +58,7 @@ void Rock::Damaged(int damage)
 	
 	if (m_hp <= 0) {
 		m_state = ROCK_BROKEN;
-		OutputDebugStringW(L"Rock: ¹ÙÀ§°¡ ºÎ¼­Á³½À´Ï´Ù!\n");
+		OutputDebugStringW(L"Rock: ë°”ìœ„ê°€ ë¶€ì„œì¡ŒìŠµë‹ˆë‹¤!\n");
 	}
 	else if (m_hp <= maxHp / 2) {
 		m_state = ROCK_CRACKED;

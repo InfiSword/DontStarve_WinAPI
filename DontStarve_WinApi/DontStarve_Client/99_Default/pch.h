@@ -8,6 +8,8 @@
 #include <list>
 #include <vector>    
 #include <map>      
+#include <functional>
+#include <memory>
 #include <unordered_set>
 #include <string>    
 #include <fstream>   

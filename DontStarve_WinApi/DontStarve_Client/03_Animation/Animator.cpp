@@ -4,16 +4,16 @@
 #include "AnimationClip.h" 
 #include "SpriteSheet.h"  
 
-Animator::Animator()
-    : m_currentClip(nullptr), m_currentState(-1), m_currentDirection(-1), 
+Animator::Animator(GameObject* owner)
+    : Component(owner), m_currentClip(nullptr), m_currentState(-1), m_currentDirection(-1), 
       m_elapsed(0.0f), m_isPlaying(false), m_lastTriggeredFrame(-1) {}
 
 Animator::~Animator() { 
-    m_animations.clear(); // unique_ptrµéÀÌ ÀÚµ¿À¸·Î Á¤¸®µÊ
+    m_animations.clear(); // unique_ptrì—ì„œ ìë™ìœ¼ë¡œ í•´ì œë¨
     m_currentClip = nullptr; 
 }
 
-// ÅÛÇÃ¸´ ¸Ş¼ÒµåÀÇ ±¸Ã¼ÀûÀÎ ±¸Çö
+// í…œí”Œë¦¿ ë©”ì„œë“œë“¤ êµ¬ì²´í™” êµ¬í˜„
 template<typename StateEnum>
 void Animator::RegisterAnimation(StateEnum state, Direction dir, 
                                 const std::wstring& imagePath,
@@ -24,16 +24,16 @@ void Animator::RegisterAnimation(StateEnum state, Direction dir,
                                 bool loop,
                                 const std::map<int, std::wstring>& events) 
 {
-    OutputDebugStringW((L"Animator: RegisterAnimation ½ÃÀÛ - State: " + std::to_wstring(static_cast<int>(state)) + 
+    OutputDebugStringW((L"Animator: RegisterAnimation í˜¸ì¶œ - State: " + std::to_wstring(static_cast<int>(state)) + 
                        L", Direction: " + std::to_wstring(static_cast<int>(dir)) + L"\n").c_str());
     
     int stateValue = static_cast<int>(state);
     int dirValue = static_cast<int>(dir);
     int key = GetAnimationKey(stateValue, dirValue);
     
-    OutputDebugStringW((L"Animator: ¾Ö´Ï¸ŞÀÌ¼Ç Å° »ı¼º - Key: " + std::to_wstring(key) + L"\n").c_str());
+    OutputDebugStringW((L"Animator: ì• ë‹ˆë©”ì´ì…˜ í‚¤ ìƒì„± - Key: " + std::to_wstring(key) + L"\n").c_str());
     
-    // AnimationClip »ı¼º
+    // AnimationClip ìƒì„±
     auto clip = AnimationClip::Builder()
         .SetName(GenerateAnimationName(stateValue, dirValue))
         .SetImagePath(imagePath)
@@ -45,24 +45,24 @@ void Animator::RegisterAnimation(StateEnum state, Direction dir,
         .Build();
     
     if (clip) {
-        // ÀÌº¥Æ® Ãß°¡
+        // ì´ë²¤íŠ¸ ì¶”ê°€
         for (const auto& eventPair : events) {
             clip->AddEventFrame(eventPair.first, eventPair.second);
         }
         
-        // Àü¿ª ÀÌº¥Æ® Äİ¹é ¼³Á¤
+        // ì „ì—­ ì´ë²¤íŠ¸ ì½œë°± ì„¤ì •
         if (m_globalEventCallback) {
             clip->SetEventCallback(m_globalEventCallback);
         }
         
         m_animations[key] = std::move(clip);
-        OutputDebugStringW((L"Animator: ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï ¿Ï·á - Key: " + std::to_wstring(key) + L"\n").c_str());
+        OutputDebugStringW((L"Animator: ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ ì™„ë£Œ - Key: " + std::to_wstring(key) + L"\n").c_str());
     } else {
-        OutputDebugStringW(L"Animator: AnimationClip »ı¼º ½ÇÆĞ\n");
+        OutputDebugStringW(L"Animator: AnimationClip ìƒì„± ì‹¤íŒ¨\n");
     }
 }
 
-// SetState ÅÛÇÃ¸´ ¸Ş¼­µå ±¸Çö
+// SetState í…œí”Œë¦¿ ë©”ì„œë“œ êµ¬í˜„
 template<typename StateEnum>
 void Animator::SetState(StateEnum state, Direction direction) {
     int newState = static_cast<int>(state);
@@ -75,7 +75,7 @@ void Animator::SetState(StateEnum state, Direction direction) {
     }
 }
 
-// ¸í½ÃÀû ÅÛÇÃ¸´ ÀÎ½ºÅÏ½ºÈ­ (PlayerState¿ë)
+// ëª…ì‹œì  í…œí”Œë¦¿ ì¸ìŠ¤í„´ìŠ¤í™” (PlayerStateìš©)
 template void Animator::RegisterAnimation<PlayerState>(PlayerState state, Direction dir, 
                                                       const std::wstring& imagePath,
                                                       UINT frameWidth, UINT frameHeight,
@@ -85,7 +85,7 @@ template void Animator::RegisterAnimation<PlayerState>(PlayerState state, Direct
 
 template void Animator::SetState<PlayerState>(PlayerState state, Direction direction);
 
-// ¸í½ÃÀû ÅÛÇÃ¸´ ÀÎ½ºÅÏ½ºÈ­ (BuildingState¿ë)
+// ëª…ì‹œì  í…œí”Œë¦¿ ì¸ìŠ¤í„´ìŠ¤í™” (BuildingStateìš©)
 template void Animator::RegisterAnimation<BuildingState>(BuildingState state, Direction dir, 
                                                         const std::wstring& imagePath,
                                                         UINT frameWidth, UINT frameHeight,
@@ -95,7 +95,7 @@ template void Animator::RegisterAnimation<BuildingState>(BuildingState state, Di
 
 template void Animator::SetState<BuildingState>(BuildingState state, Direction direction);
 
-// ¸í½ÃÀû ÅÛÇÃ¸´ ÀÎ½ºÅÏ½ºÈ­ (MonsterState¿ë)
+// ëª…ì‹œì  í…œí”Œë¦¿ ì¸ìŠ¤í„´ìŠ¤í™” (MonsterStateìš©)
 template void Animator::RegisterAnimation<MonsterState>(MonsterState state, Direction dir, 
                                                        const std::wstring& imagePath,
                                                        UINT frameWidth, UINT frameHeight,
@@ -105,7 +105,7 @@ template void Animator::RegisterAnimation<MonsterState>(MonsterState state, Dire
 
 template void Animator::SetState<MonsterState>(MonsterState state, Direction direction);
 
-// ¸í½ÃÀû ÅÛÇÃ¸´ ÀÎ½ºÅÏ½ºÈ­ (TreeState¿ë)
+// ëª…ì‹œì  í…œí”Œë¦¿ ì¸ìŠ¤í„´ìŠ¤í™” (TreeStateìš©)
 template void Animator::RegisterAnimation<TreeState>(TreeState state, Direction dir, 
                                                     const std::wstring& imagePath,
                                                     UINT frameWidth, UINT frameHeight,
@@ -115,7 +115,7 @@ template void Animator::RegisterAnimation<TreeState>(TreeState state, Direction 
 
 template void Animator::SetState<TreeState>(TreeState state, Direction direction);
 
-// ¸í½ÃÀû ÅÛÇÃ¸´ ÀÎ½ºÅÏ½ºÈ­ (RockState¿ë)
+// ëª…ì‹œì  í…œí”Œë¦¿ ì¸ìŠ¤í„´ìŠ¤í™” (RockStateìš©)
 template void Animator::RegisterAnimation<RockState>(RockState state, Direction dir, 
                                                     const std::wstring& imagePath,
                                                     UINT frameWidth, UINT frameHeight,
@@ -125,7 +125,7 @@ template void Animator::RegisterAnimation<RockState>(RockState state, Direction 
 
 template void Animator::SetState<RockState>(RockState state, Direction direction);
 
-// ¸í½ÃÀû ÅÛÇÃ¸´ ÀÎ½ºÅÏ½ºÈ­ (GrassState¿ë)
+// ëª…ì‹œì  í…œí”Œë¦¿ ì¸ìŠ¤í„´ìŠ¤í™” (GrassStateìš©)
 template void Animator::RegisterAnimation<GrassState>(GrassState state, Direction dir, 
                                                      const std::wstring& imagePath,
                                                      UINT frameWidth, UINT frameHeight,
@@ -150,17 +150,17 @@ void Animator::SelectAndPlayAnimation() {
             m_isPlaying = true;
             m_lastTriggeredFrame = -1;
             
-            OutputDebugStringW((L"Animator: ¾Ö´Ï¸ŞÀÌ¼Ç ÀüÈ¯ - State: " + 
+            OutputDebugStringW((L"Animator: ì• ë‹ˆë©”ì´ì…˜ ì „í™˜ - State: " + 
                                std::to_wstring(m_currentState) + L", Direction: " + 
                                std::to_wstring(m_currentDirection) + L"\n").c_str());
         }
     } else {
-        OutputDebugStringW((L"Animator: ¾Ö´Ï¸ŞÀÌ¼ÇÀ» Ã£À» ¼ö ¾øÀ½ - State: " + 
+        OutputDebugStringW((L"Animator: ì• ë‹ˆë©”ì´ì…˜ì„ ì°¾ì„ ìˆ˜ ì—†ìŒ - State: " + 
                            std::to_wstring(m_currentState) + L", Direction: " + 
                            std::to_wstring(m_currentDirection) + L", Key: " + std::to_wstring(key) + L"\n").c_str());
         
-        // µî·ÏµÈ ¾Ö´Ï¸ŞÀÌ¼Ç ¸ñ·Ï Ãâ·Â
-        OutputDebugStringW(L"Animator: µî·ÏµÈ ¾Ö´Ï¸ŞÀÌ¼Ç ¸ñ·Ï:\n");
+        // ë“±ë¡ëœ ì• ë‹ˆë©”ì´ì…˜ ëª©ë¡ ì¶œë ¥
+        OutputDebugStringW(L"Animator: ë“±ë¡ëœ ì• ë‹ˆë©”ì´ì…˜ ëª©ë¡:\n");
         for (const auto& pair : m_animations) {
             OutputDebugStringW((L"  - Key: " + std::to_wstring(pair.first) + L"\n").c_str());
         }
@@ -174,22 +174,22 @@ std::wstring Animator::GenerateAnimationName(int state, int direction) const {
 void Animator::Update(float deltaTime)
 {
     if (m_isPlaying && m_currentClip) {
-        // ÀÌÀü ÇÁ·¹ÀÓ ÀÎµ¦½º ÀúÀå (ÀÌº¥Æ® Æ®¸®°Å¿ë)
+        // ì´ì „ í”„ë ˆì„ ì¸ë±ìŠ¤ ì €ì¥ (ì´ë²¤íŠ¸ íŠ¸ë¦¬ê±°ìš©)
         int prevFrameIndex = GetCurrentFrameIndex();
         
-        // ½Ã°£ ¾÷µ¥ÀÌÆ®
+        // ì‹œê°„ ì—…ë°ì´íŠ¸
         m_elapsed += deltaTime;
         
-        // ³í·çÇÁ ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ ³¡³µ´ÂÁö Ã¼Å©
+        // ë£¨í”„ê°€ ì•„ë‹Œ ì• ë‹ˆë©”ì´ì…˜ì˜ ì¢…ë£Œ ì²´í¬
         if (!m_currentClip->IsLooping() && m_elapsed >= m_currentClip->GetTotalDuration()) {
             m_elapsed = m_currentClip->GetTotalDuration();
             m_isPlaying = false;
         }
 
-        // ÇöÀç ÇÁ·¹ÀÓ ÀÎµ¦½º °è»ê
+        // í˜„ì¬ í”„ë ˆì„ ì¸ë±ìŠ¤ ê³„ì‚°
         int currentFrameIndex = GetCurrentFrameIndex();
         
-        // ÇÁ·¹ÀÓÀÌ º¯°æµÇ¾ú°í ÀÌº¥Æ®°¡ ÀÖ´Â °æ¿ì Æ®¸®°Å
+        // í”„ë ˆì„ì´ ë³€ê²½ë˜ì—ˆê³  ì´ë²¤íŠ¸ê°€ ìˆëŠ” ê²½ìš° íŠ¸ë¦¬ê±°
         if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame) {
             auto it = m_currentClip->GetEventFrames().find(currentFrameIndex);
             if (it != m_currentClip->GetEventFrames().end()) {
@@ -252,7 +252,7 @@ bool Animator::IsPlaying() const { return m_isPlaying; }
 
 const SpriteSheet* Animator::GetSpriteSheet() const {
     if (!m_currentClip) {
-		OutputDebugStringW((L"Animator: GetSpriteSheet - m_currentClipÀÌ nullÀÔ´Ï´Ù. State: " + 
+		OutputDebugStringW((L"Animator: GetSpriteSheet - m_currentClipì´ nullì…ë‹ˆë‹¤. State: " + 
 						   std::to_wstring(m_currentState) + L", Direction: " + 
 						   std::to_wstring(m_currentDirection) + L"\n").c_str());
 		return nullptr;

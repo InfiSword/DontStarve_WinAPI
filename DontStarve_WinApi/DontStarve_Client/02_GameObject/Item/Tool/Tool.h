@@ -1,5 +1,5 @@
 #pragma once
-#include "../GameObject/Item.h"
+#include "../Item.h"
 
 class Tool : public Item {
 protected: 

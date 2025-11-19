@@ -1,17 +1,16 @@
-#include "../../99_Default/pch.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../03_Animation/Animator.h"
-#include "../../03_Animation/AnimationClip.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../03_Animation/SpriteSheet.h"
-#include "../../../Header/Struct.h"
+#include "../../../99_Default/pch.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../03_Animation/Animator.h"
+#include "../../../03_Animation/AnimationClip.h"
+#include "../Player/Player.h"
+#include "../../../03_Animation/SpriteSheet.h"
 #include "Spider.h"
 
 Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity<MonsterState>(GOBJ_MONSTER, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_hp(80), m_hitAnimTimer(0.0f)
+	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName)
 {
-    m_animator = nullptr;
+	m_hp = 80;
 	maxHp = m_hp;
 }
 
@@ -19,244 +18,171 @@ Spider::~Spider() {}
 
 void Spider::Init()
 {
-	SetActive(true);
-	m_direction = DIR_DOWN;
-	m_state = MONSTER_IDLE;
-	m_animator = new Animator();
+	Monster::Init();
 	
-	OutputDebugStringW((L"Spider: Init ¿Ï·á - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Spider: Init ì™„ë£Œ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 	
-	RegisterAllAnimations(); // Unity Animator ½ºÅ¸ÀÏ
-	UpdateAnimatorState(); // ÃÊ±â »óÅÂ ¼³Á¤
-	
-	// ÃÊ±â Å©±â ¼³Á¤ (¾Ö´Ï¸ŞÀÌ¼Ç ÇÁ·¹ÀÓÀÇ Ã¹ ¹øÂ° ÇÁ·¹ÀÓ¿¡¼­ Å©±â °¡Á®¿À±â)
-	if (m_animator) {
-		const AnimationFrame& frame = m_animator->GetCurrentFrame();
+	// ì´ˆê¸° í¬ê¸° ì„¤ì • (ì• ë‹ˆë©”ì´ì…˜ í´ë¦½ì—ì„œ ì²« ë²ˆì§¸ í”„ë ˆì„ìœ¼ë¡œ í¬ê¸° ì„¤ì •)
+	Animator* animator = GetComponent<Animator>();
+	if (animator) {
+		const AnimationFrame& frame = animator->GetCurrentFrame();
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 		
-		// Animator »óÅÂ È®ÀÎ
-		const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
+		// Animator ì´ˆê¸°í™” í™•ì¸
+		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
 		if (spriteSheet) {
-			OutputDebugStringW((L"Spider: Animator ÃÊ±âÈ­ ¿Ï·á - ID: " + std::to_wstring(m_id) + L", SpriteSheet ·ÎµåµÊ\n").c_str());
+			OutputDebugStringW((L"Spider: Animator ì´ˆê¸°í™” ì™„ë£Œ - ID: " + std::to_wstring(m_id) + L", SpriteSheet ë¡œë“œë¨\n").c_str());
 		} else {
-			OutputDebugStringW((L"Spider: Animator ÃÊ±âÈ­ ½ÇÆĞ - ID: " + std::to_wstring(m_id) + L", SpriteSheet ¾øÀ½\n").c_str());
+			OutputDebugStringW((L"Spider: Animator ì´ˆê¸°í™” ì‹¤íŒ¨ - ID: " + std::to_wstring(m_id) + L", SpriteSheet ì—†ìŒ\n").c_str());
 		}
 	} else {
-		OutputDebugStringW((L"Spider: Animator »ı¼º ½ÇÆĞ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+		OutputDebugStringW((L"Spider: Animator ìƒì„± ì‹¤íŒ¨ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 	}
 }
 
-void Spider::LateInit()
+void Spider::OnInteraction(GameObject* obj)
 {
+	// ê¸°ë³¸ ìƒí˜¸ì‘ìš©
 }
 
-void Spider::Update(float deltaTime)
-{
-	if (m_state == MONSTER_HIT) {
-		m_hitAnimTimer += deltaTime;
-		if (m_hitAnimTimer >= m_animator->GetCurrentClipTotalDuration()) {
-			m_state = MONSTER_IDLE; 
-			UpdateAnimatorState();
-			m_hitAnimTimer = 0.0f; 
-		}
-	}
-
-	if (m_animator) {
-		const AnimationFrame& frame = m_animator->GetCurrentFrame();
-		this->m_width = frame.width;
-		this->m_height = frame.height;
-	}
-}
-
-void Spider::LateUpdate()
-{
-
-}
-
-void Spider::Release()
-{
-	SafeDelete(m_animator);
-}
-
-// Unity Animator ½ºÅ¸ÀÏ ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
+// Unity Animator ìŠ¤íƒ€ì¼ ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
 void Spider::RegisterAllAnimations()
 {
-	// ResourceManager¸¦ »ç¿ëÇÏ¿© ¸®¼Ò½º ·Îµå
+	// ResourceManagerë¥¼ ì‚¬ìš©í•˜ì—¬ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
 	auto* pRM = ResourceManager::GetInstance();
 	
-	// SPIDER ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
+	// SPIDER ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
+	Animator* animator = GetComponent<Animator>();
+	if (!animator) return;
+	
 	if (m_id == GOID_MONSTER_SPIDER)
 	{
-		// IDLE ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+		// IDLE ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
 			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
 			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
 			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
 			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// WALK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
+		// WALK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_down.png"),
 			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_up.png"),
 			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png"),
 			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png"),
 			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// ATTACK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+		// ATTACK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_down.png"),
 			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_up.png"),
 			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png"),
 			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png"),
 			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		// HIT ¾Ö´Ï¸ŞÀÌ¼Ç
-		m_animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
+		// HIT ì• ë‹ˆë©”ì´ì…˜
+		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_hit.png"),
 			80, 80, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
 		
-		// DEATH ¾Ö´Ï¸ŞÀÌ¼Ç
-		m_animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
+		// DEATH ì• ë‹ˆë©”ì´ì…˜
+		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_death.png"),
 			80, 80, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 	}
 	else if (m_id == GOID_MONSTER_WARRIOR_SPIDER)
 	{
-		// WARRIOR SPIDER ¾Ö´Ï¸ŞÀÌ¼Çµé
-		// IDLE ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+		// WARRIOR SPIDER ì• ë‹ˆë©”ì´ì…˜ë“¤
+		// IDLE ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
 			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
 			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
 			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
 			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// WALK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
+		// WALK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_down.png"),
 			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_up.png"),
 			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png"),
 			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png"),
 			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// ATTACK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+		// ATTACK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_down.png"),
 			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_up.png"),
 			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png"),
 			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png"),
 			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		// HIT ¾Ö´Ï¸ŞÀÌ¼Ç
-		m_animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
+		// HIT ì• ë‹ˆë©”ì´ì…˜
+		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_hit.png"),
 			80, 80, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
 		
-		// DEATH ¾Ö´Ï¸ŞÀÌ¼Ç
-		m_animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
+		// DEATH ì• ë‹ˆë©”ì´ì…˜
+		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_death.png"),
 			80, 80, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 	}
 	
-	OutputDebugStringW(L"Spider: Unity Animator ½ºÅ¸ÀÏ·Î ¸ğµç ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï ¿Ï·á\n");
+	OutputDebugStringW(L"Spider: Unity Animator ìŠ¤íƒ€ì¼ë¡œ ëª¨ë“  ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ ì™„ë£Œ\n");
 }
-
-// Unity Animator ½ºÅ¸ÀÏ »óÅÂ ¾÷µ¥ÀÌÆ®
-void Spider::UpdateAnimatorState()
-{
-	if (m_animator) {
-		m_animator->SetState(m_state, m_direction);
-	}
-}
-
-Gdiplus::Bitmap* Spider::GetBitmap() const
-{
-    if (!m_animator) return nullptr;
-    
-    const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
-    if (!spriteSheet) return nullptr;
-    
-    return spriteSheet->GetBitmap();
-}
-
-void Spider::OnInteraction(GameObject* obj)
-{
-	// ±âº» »óÈ£ÀÛ¿ë
-}
-
-void Spider::OnPlayerInteraction(Player* player)
-{
-	player->OnInteraction(this);
-}
-
-void Spider::Damaged(int damage)
-{
-	m_hp -= damage;
-	m_state = MONSTER_HIT;
-	UpdateAnimatorState(); // Unity Animator°¡ ÀÚµ¿À¸·Î ¾Ö´Ï¸ŞÀÌ¼Ç ¼±ÅÃ
-	
-	if (m_hp <= 0) {
-		m_state = MONSTER_DEATH;
-		UpdateAnimatorState();
-		
-		// ¸ó½ºÅÍ°¡ Á×¾úÀ» ¶§ Ã³¸®
-		// ¾ÆÀÌÅÛ µå·ÓÀÌ³ª °æÇèÄ¡ È¹µæ µîÀÇ ·ÎÁ÷ Ãß°¡
-		OutputDebugStringW(L"Spider: ¸ó½ºÅÍ°¡ Á×¾ú½À´Ï´Ù!\n");
-	}
-} 

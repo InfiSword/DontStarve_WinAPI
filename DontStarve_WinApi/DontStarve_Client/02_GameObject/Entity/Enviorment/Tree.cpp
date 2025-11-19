@@ -1,8 +1,6 @@
-#include "../../99_Default/pch.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../../Header/Struct.h"
+#include "../../../99_Default/pch.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "Tree.h"
 
 Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
@@ -20,10 +18,10 @@ void Tree::Init()
 	m_direction = DIR_DOWN;
 	m_state = TREE_IDLE;
 	
-	// ÀÌ¹ÌÁö ·Îµå
+	// ì´ë¯¸ì§€ ë¡œë“œ
 	LoadBitmap();
 	
-	// ºñÆ®¸Ê¿¡¼­ Å©±â °¡Á®¿À±â
+	// ë¹„íŠ¸ë§µì˜ í¬ê¸° ì„¤ì •
 	if (m_bitmap) {
 		this->m_width = static_cast<float>(m_bitmap->GetWidth());
 		this->m_height = static_cast<float>(m_bitmap->GetHeight());
@@ -38,7 +36,7 @@ void Tree::Update(float deltaTime)
 {
 	if (m_state == TREE_CHOP) {
 		m_hitAnimTimer += deltaTime;
-		if (m_hitAnimTimer >= 0.6f) { // ¾Ö´Ï¸ÞÀÌ¼Ç ¾øÀ¸¹Ç·Î °£´ÜÇÑ Å¸ÀÌ¸Ó·Î
+		if (m_hitAnimTimer >= 0.6f) { // ì• ë‹ˆë©”ì´ì…˜ ì§€ì†ì‹œê°„ìœ¼ë¡œ ìƒíƒœ íƒ€ì´ë¨¸
 			m_state = TREE_IDLE; 
 			m_hitAnimTimer = 0.0f; 
 		}
@@ -51,18 +49,14 @@ void Tree::LateUpdate()
 
 void Tree::Release()
 {
-	// ÇÊ¿äÇÑ Á¤¸® ÀÛ¾÷
+	// í•„ìš”í•œ ì •ë¦¬ ìž‘ì—…
 }
 
 void Tree::OnInteraction(GameObject* obj)
 {
-	// ±âº» ±¸Çö
+	// ê¸°ë³¸ ìƒí˜¸ìž‘ìš©
 }
 
-void Tree::OnPlayerInteraction(Player* player)
-{
-	player->OnInteraction(this);
-}
 
 void Tree::Damaged(int damage)
 {
@@ -71,6 +65,6 @@ void Tree::Damaged(int damage)
 	
 	if (m_hp <= 0) {
 		m_state = TREE_FALL;
-		OutputDebugStringW(L"Tree: ³ª¹«°¡ ¾²·¯Á³½À´Ï´Ù!\n");
+		OutputDebugStringW(L"Tree: ë‚˜ë¬´ê°€ ì“°ëŸ¬ì¡ŒìŠµë‹ˆë‹¤!\n");
 	}
 }

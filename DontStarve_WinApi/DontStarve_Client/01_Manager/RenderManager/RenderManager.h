@@ -1,48 +1,48 @@
 #pragma once
 
 enum DrawCommandType {
-    DRAW_COMMAND_IMAGE,
-    DRAW_COMMAND_TEXT,
-    DRAW_COMMAND_RECTANGLE,
-    DRAW_COMMAND_FILL_RECTANGLE  
+	DRAW_COMMAND_IMAGE,
+	DRAW_COMMAND_TEXT,
+	DRAW_COMMAND_RECTANGLE,
+	DRAW_COMMAND_FILL_RECTANGLE
 };
 
-// ´ÜÀÏ µå·Î¿ì ¸í·É Á¤º¸¸¦ ´ã´Â ±¸Á¶Ã¼
+// í™”ë©´ì— ê·¸ë¦´ ëª¨ë“  ì •ë³´ë¥¼ ì €ì¥í•˜ëŠ” ëª…ë ¹ êµ¬ì¡°ì²´
 struct DrawCommand {
-    DrawCommandType type;             // Ä¿¸Çµå Å¸ÀÔ
-    Gdiplus::Bitmap* pBitmap;         // ÀÌ¹ÌÁö¿ë (ÅØ½ºÆ®¿ëÀº ¹«½Ã)
-    Gdiplus::RectF destRect;          // ÀÌ¹ÌÁö À§Ä¡/Å©±â (ÅØ½ºÆ®¿ëÀº ¹«½Ã)
-    Gdiplus::RectF sourceRect;        // ÀÌ¹ÌÁö¿ë (ÅØ½ºÆ®¿ëÀº ¹«½Ã)
-    Gdiplus::Unit srcUnit;            // ÀÌ¹ÌÁö¿ë (ÅØ½ºÆ®¿ëÀº ¹«½Ã)
-    Gdiplus::PointF objectScreenPos;  // º¯È¯ Áß½É
-    RenderLayer layer;                // ·»´õ¸µ ·¹ÀÌ¾î
-    float sortKey;                    // Z-Á¤·Ä Å°
-    Direction direction;              // ¹æÇâ 
+	DrawCommandType type;             // ëª…ë ¹ ì¢…ë¥˜
+	Gdiplus::Bitmap* pBitmap;         // ë Œë”ë§í•  ë¹„íŠ¸ë§µ
+	Gdiplus::RectF destRect;          // í™”ë©´ ê¸°ì¤€ ëª©ì  ì˜ì—­
+	Gdiplus::RectF sourceRect;        // ì†ŒìŠ¤ ì˜ì—­
+	Gdiplus::Unit srcUnit;            // ì†ŒìŠ¤ ë‹¨ìœ„
+	Gdiplus::PointF objectScreenPos;  // ê°ì²´ì˜ í™”ë©´ìƒ ì¤‘ì‹¬ ì¢Œí‘œ
+	RenderLayer layer;                // ë Œë” ë ˆì´ì–´
+	float sortKey;                    // Z ì •ë ¬ìš© í‚¤
+	Direction direction;              // ë°©í–¥
 
-    // ÅØ½ºÆ® Ä¿¸Çµå¿ë ÇÊµåµé
-    std::wstring text;                // Ç¥½ÃÇÒ ÅØ½ºÆ® ³»¿ë
-    Gdiplus::Font* pFont;             // »ç¿ëÇÒ ÆùÆ®
-    Gdiplus::Brush* pBrush;           // »ç¿ëÇÒ ºê·¯½Ã 
-    Gdiplus::StringFormat* pStringFormat; //  ÅØ½ºÆ® Æ÷¸Ë
+	// í…ìŠ¤íŠ¸ ëª…ë ¹ì—ë§Œ ì‚¬ìš©í•˜ëŠ” í•„ë“œ
+	std::wstring text;                // ì¶œë ¥í•  ë¬¸ìì—´
+	Gdiplus::Font* pFont;             // ê¸€ê¼´
+	Gdiplus::Brush* pBrush;           // ë¸ŒëŸ¬ì‹œ
+	Gdiplus::StringFormat* pStringFormat; // í…ìŠ¤íŠ¸ ì •ë ¬ ì •ë³´
 
-    Gdiplus::Color color;             // »ö»ó
-    float thickness;                  // µÎ²²
+	Gdiplus::Color color;             // ìƒ‰ìƒ
+	float thickness;                  // ì„  ë‘ê»˜
 
-    DrawCommand(Gdiplus::Bitmap* bmp, const Gdiplus::RectF& dest, const Gdiplus::RectF& src, Gdiplus::Unit unit, const Gdiplus::PointF& screenPos, RenderLayer l, float sk, Direction dir)
-        : type(DRAW_COMMAND_IMAGE), pBitmap(bmp), destRect(dest), sourceRect(src), srcUnit(unit), objectScreenPos(screenPos), layer(l), sortKey(sk), direction(dir),
-        text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr) {} 
+	DrawCommand(Gdiplus::Bitmap* bmp, const Gdiplus::RectF& dest, const Gdiplus::RectF& src, Gdiplus::Unit unit, const Gdiplus::PointF& screenPos, RenderLayer l, float sk, Direction dir)
+		: type(DRAW_COMMAND_IMAGE), pBitmap(bmp), destRect(dest), sourceRect(src), srcUnit(unit), objectScreenPos(screenPos), layer(l), sortKey(sk), direction(dir),
+		text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr) {}
 
-    DrawCommand(const std::wstring& t, Gdiplus::Font* f, Gdiplus::Brush* b, Gdiplus::StringFormat* sf, const Gdiplus::RectF& dest, RenderLayer l, float sk)
-        : type(DRAW_COMMAND_TEXT), pBitmap(nullptr), destRect(dest), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(dest.X, dest.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
-        text(t), pFont(f), pBrush(b), pStringFormat(sf) {}
+	DrawCommand(const std::wstring& t, Gdiplus::Font* f, Gdiplus::Brush* b, Gdiplus::StringFormat* sf, const Gdiplus::RectF& dest, RenderLayer l, float sk)
+		: type(DRAW_COMMAND_TEXT), pBitmap(nullptr), destRect(dest), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(dest.X, dest.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
+		text(t), pFont(f), pBrush(b), pStringFormat(sf) {}
 
-    DrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& c, float t, RenderLayer l, float sk)
-        : type(DRAW_COMMAND_RECTANGLE), pBitmap(nullptr), destRect(rect), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(rect.X, rect.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
-        text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr), color(c), thickness(t) {}
+	DrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& c, float t, RenderLayer l, float sk)
+		: type(DRAW_COMMAND_RECTANGLE), pBitmap(nullptr), destRect(rect), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(rect.X, rect.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
+		text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr), color(c), thickness(t) {}
 
-    DrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& c, RenderLayer l, float sk, bool isFill = true)
-        : type(DRAW_COMMAND_FILL_RECTANGLE), pBitmap(nullptr), destRect(rect), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(rect.X, rect.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
-        text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr), color(c), thickness(0.0f) {}
+	DrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& c, RenderLayer l, float sk, bool isFill = true)
+		: type(DRAW_COMMAND_FILL_RECTANGLE), pBitmap(nullptr), destRect(rect), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(rect.X, rect.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
+		text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr), color(c), thickness(0.0f) {}
 };
 
 // Forward declarations
@@ -51,67 +51,59 @@ class Player;
 
 class RenderManager : public CSingleTon<RenderManager>
 {
-    friend class CSingleTon<RenderManager>;
+	friend class CSingleTon<RenderManager>;
 public:
-    RenderManager();
-    ~RenderManager();
+	RenderManager();
+	~RenderManager();
 
-    void Init();
-    void LateInit();
-    void Update(float deltaTime);
-    void LateUpdate();
-    void Render();
-    void Release();
+	void Init();
+	void LateInit();
+	void Update(float deltaTime);
+	void LateUpdate();
+	void Render();
+	void Release();
 
-    // ±âº» µå·Î¿ì Ä¿¸Çµå Ãß°¡
-    void AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction);
-    void AddTextCommand(const std::wstring& text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey);
-    void AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey);
-    void AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float sortKey);  // »õ·Î¿î ¸Ş¼­µå Ãß°¡
+	// ê¸°ë³¸ ë Œë” ëª…ë ¹ ë“±ë¡
+	void AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction);
+	void AddTextCommand(const std::wstring& text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey);
+	void AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey);
+	void AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float sortKey);  // ì±„ì›Œì§„ ì‚¬ê°í˜• ëª…ë ¹
 
-    // UI ·»´õ¸µ Àü¿ë ¸Ş¼Òµåµé
-    // UI ÀÌ¹ÌÁö ·»´õ¸µ (È­¸é ÁÂÇ¥ Á÷Á¢ »ç¿ë)
-    void RenderUIImage(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height, 
-                      RenderLayer layer = LAYER_UI_BACKGROUND, float sortKey = 0.0f);
-    
-    // UI ÅØ½ºÆ® ·»´õ¸µ
-    void RenderUIText(const std::wstring& text, Gdiplus::Font* font, Gdiplus::Brush* brush, 
-                     float x, float y, float width, float height, 
-                     RenderLayer layer = LAYER_UI_FOREGROUND, float sortKey = 0.0f);
+	// UI ì „ìš© ë Œë”ë§ í—¬í¼
+	// UI ì´ë¯¸ì§€ë¥¼ í™”ë©´ ì¢Œí‘œë¡œ ë°”ë¡œ ë Œë”ë§
+	void RenderUIImage(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height,
+		RenderLayer layer = LAYER_UI_BACKGROUND, float sortKey = 0.0f);
 
-    // ±âÁ¸ GameObject ·»´õ¸µ ¸Ş¼Òµåµé
-    // GameObject ·»´õ¸µ (ºñÆ®¸Ê¸¸ °¡Á®¿Í¼­ ·»´õ¸µ Å¥¿¡ Ãß°¡)
-    void RenderGameObject(GameObject* pObject);
-    
-    // Å¸ÀÏ ·»´õ¸µ
-    void RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height);   
-    
-    // È­¸é¿¡ º¸ÀÌ´Â ¿ÀºêÁ§Æ®¸¸ ·»´õ¸µ (ViewportManager »ç¿ë)
-    void RenderVisibleGameObjects();
+	// UI í…ìŠ¤íŠ¸ ë Œë”ë§
+	void RenderUIText(const std::wstring& text, Gdiplus::Font* font, Gdiplus::Brush* brush,
+		float x, float y, float width, float height,
+		RenderLayer layer = LAYER_UI_FOREGROUND, float sortKey = 0.0f);
 
-    void Clear();
+	// ì¼ë°˜ GameObject ë Œë”ë§
+	// GameObject ì •ë³´ë¥¼ ë°”íƒ•ìœ¼ë¡œ ë Œë” ëª…ë ¹ íì— ì¶”ê°€
+	void RenderGameObject(GameObject* pObject);
 
-    void ApplyGdiTransform(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight);
+	// íƒ€ì¼ ë Œë”ë§
+	void RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height);
 
-    void Flush(Gdiplus::Graphics* pGraphics);
+	// ì¹´ë©”ë¼ì— ë³´ì´ëŠ” ê°ì²´ë§Œ ë Œë” (ViewportManager í™œìš©)
+	void RenderVisibleGameObjects();
+
+	void Clear();
+
+	void ApplyGdiTransform(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight);
+
+	void Flush(Gdiplus::Graphics* pGraphics);
 
 private:
-    std::vector<DrawCommand> m_drawCommands;
-    
-    // GameObject Å¸ÀÔº° ·»´õ ·¹ÀÌ¾î °áÁ¤
-    RenderLayer GetRenderLayerForObject(GameObject* pObject);
+	std::vector<DrawCommand> m_drawCommands;
 
-    // CompareDrawCommands ½Ã±×´ÏÃ³ ¹× ·ÎÁ÷ º¯°æ (RenderLayer¸¦ 1¼øÀ§·Î)
-    static bool CompareDrawCommands(const DrawCommand& a, const DrawCommand& b)
-    {
-      
-        if (a.layer != b.layer) {
-            return a.layer < b.layer;
-        }
-
-        if (a.sortKey != b.sortKey) {
-            return a.sortKey < b.sortKey;
-        }
-        return reinterpret_cast<uintptr_t>(a.pBitmap) < reinterpret_cast<uintptr_t>(b.pBitmap);
-    }
+	// ì •ë ¬ì—ì„œ ë ˆì´ì–´ë¥¼ ìš°ì„  ë¹„êµí•˜ê³  ê·¸ ë‹¤ìŒ sortKey ë¹„êµ
+	static bool CompareDrawCommands(const DrawCommand& a, const DrawCommand& b)
+	{
+		if (a.layer != b.layer) {
+			return a.layer < b.layer;
+		}
+		return a.sortKey < b.sortKey;
+	}
 };

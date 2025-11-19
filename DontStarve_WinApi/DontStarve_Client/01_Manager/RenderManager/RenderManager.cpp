@@ -1,26 +1,16 @@
 #include "../../99_Default/pch.h"
 #include "RenderManager.h"
-#include "../../02_GameObject/GameObject/GameObject.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../02_GameObject/GameObject/Tree.h"
-#include "../../02_GameObject/GameObject/Rock.h"
+#include "../../02_GameObject/GameObject.h"
 #include "../../03_Animation/Animator.h"
 #include "../CameraManager/CameraManager.h"
 #include "../ObjectManager/ObjectManager.h"
-#include "../../../Header/Enum.h"
-
-namespace {
-	// »óÈ£ÀÛ¿ë ÁßÀÎ ÇÃ·¹ÀÌ¾î¸¦ »óÈ£ÀÛ¿ë ´ë»óº¸´Ù ¾à°£ ¾Õ¿¡ ·»´õ¸µÇÏ±â À§ÇÑ ÀÛÀº ¿ÀÇÁ¼Â
-	// Y°ª ±â¹İ Á¤·ÄÀ» À¯ÁöÇÏ¸é¼­ »óÈ£ÀÛ¿ë ´ë»óº¸´Ù¸¸ ¾Õ¿¡ º¸ÀÌµµ·Ï ÇÔ
-	constexpr float INTERACTION_TARGET_OFFSET = 0.5f;
-}
 
 RenderManager::RenderManager() {}
 RenderManager::~RenderManager() {}
 
 void RenderManager::Init()
 {
-	m_drawCommands.reserve(1000); // ¼º´É ÃÖÀûÈ­¸¦ À§ÇÑ »çÀü ÇÒ´ç
+	m_drawCommands.reserve(1000); // ëŒ€ê·œëª¨ ë Œë”ë§ì„ ëŒ€ë¹„í•œ ì´ˆê¸° ë©”ëª¨ë¦¬ í™•ë³´
 }
 
 void RenderManager::LateInit()
@@ -37,10 +27,10 @@ void RenderManager::LateUpdate()
 
 void RenderManager::Render()
 {
-	// ÇöÀç Ä«¸Ş¶ó¿¡ ºñÃçÁö´Â °ÔÀÓ ¿ÀºêÁ§Æ®µé¸¸ ·»´õ¸µ
+	// ì¹´ë©”ë¼ì— ë³´ì´ëŠ” ê°ì²´ë§Œ ë Œë”
 	RenderVisibleGameObjects();
 	
-	// ObjectManagerÀÇ Å×µÎ¸® ·»´õ¸µ (µğ¹ö±×¿ë, UI ·¹ÀÌ¾î¿¡ ±×¸®±â)
+	// ObjectManagerê°€ ìš”ì²­í•œ ë””ë²„ê·¸ ë°”ìš´ë”© ë°•ìŠ¤ë¥¼ í•¨ê»˜ ê·¸ë¦¼
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (objectManager && objectManager->IsBoundsDisplayEnabled()) {
 		objectManager->RenderBounds();
@@ -54,7 +44,7 @@ void RenderManager::Release()
 
 void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction)
 {
-	// ºñÆ®¸Ê À¯È¿¼º °Ë»ç
+	// ë¹„íŠ¸ë§µ ìœ íš¨ì„± ê²€ì‚¬
 	if (!pBitmap) {
 		return;
 	}
@@ -71,7 +61,7 @@ void RenderManager::AddTextCommand(const std::wstring& text, Gdiplus::Font* pFon
 	m_drawCommands.emplace_back(DrawCommand(text, pFont, pBrush, pStringFormat, destRect, layer, sortKey));
 }
 
-//ÇÏÀÌ¶óÀÌÆ® ¿ë
+// ì‚¬ê°í˜• ì™¸ê³½ì„  ë Œë”ë§
 void RenderManager::AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey) {
 	m_drawCommands.emplace_back(DrawCommand(rect, color, thickness, layer, sortKey));
 }
@@ -80,7 +70,7 @@ void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gd
 	m_drawCommands.emplace_back(DrawCommand(rect, color, layer, sortKey, true));
 }
 
-// === UI ·»´õ¸µ Àü¿ë ¸Ş¼Òµåµé ±¸Çö ===
+// === UI ì „ìš© ë Œë”ë§ í—¬í¼ ===
 
 void RenderManager::RenderUIImage(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height,
 	RenderLayer layer, float sortKey)
@@ -98,10 +88,10 @@ void RenderManager::RenderUIText(const std::wstring& text, Gdiplus::Font* font, 
 	float x, float y, float width, float height,
 	RenderLayer layer, float sortKey)
 {
-	// ¸ğµç Æ÷ÀÎÅÍ°¡ À¯È¿ÇÑÁö È®ÀÎ
+	// ì „ë‹¬ ì¸ìì˜ ìœ íš¨ì„±ì„ í™•ì¸
 	if (!font || !brush || text.empty()) return;
 
-	// ÆùÆ®¿Í ºê·¯½ÃÀÇ »óÅÂ È®ÀÎ
+	// í°íŠ¸ íŒ¨ë°€ë¦¬ë¥¼ ì–»ì„ ìˆ˜ ìˆëŠ”ì§€ í™•ì¸
 	Gdiplus::FontFamily fontFamily;
 	if (font->GetFamily(&fontFamily) != Gdiplus::Ok) return;
 
@@ -114,10 +104,10 @@ void RenderManager::RenderUIText(const std::wstring& text, Gdiplus::Font* font, 
 	Gdiplus::RectF textRect(x, y, width, height);
 	AddTextCommand(text, font, brush, stringFormat, textRect, layer, sortKey);
 
-	// StringFormatÀº DrawCommand ³»ºÎ¿¡¼­ °ü¸®µÇ¹Ç·Î ¿©±â¼­´Â ÇØÁ¦ÇÏÁö ¾ÊÀ½
+	// StringFormatì€ DrawCommand ë‚´ë¶€ì—ì„œ ê´€ë¦¬ë˜ë¯€ë¡œ í•´ì œí•˜ì§€ ì•ŠëŠ”ë‹¤
 }
 
-// === ±âÁ¸ GameObject ·»´õ¸µ ¸Ş¼Òµåµé ===
+// === GameObject ë Œë”ë§ ===
 
 void RenderManager::RenderGameObject(GameObject* pObject)
 {
@@ -125,78 +115,43 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 		return;
 	}
 
-	// Animator°¡ ÀÖ´Â °æ¿ì ¾Ö´Ï¸ŞÀÌ¼Ç ·»´õ¸µ
-	if (pObject->GetAnimator()) {
-		// ¿ùµå ÁÂÇ¥¸¦ ½ºÅ©¸° ÁÂÇ¥·Î º¯È¯
+	Animator* anim = pObject->GetComponent<Animator>();
+
+	if (anim != nullptr) {
+		// ì›”ë“œ ì¢Œí‘œë¥¼ ìŠ¤í¬ë¦° ì¢Œí‘œë¡œ ë³€í™˜
 		Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(pObject->GetX(), pObject->GetY());
 
-		// ·»´õ ·¹ÀÌ¾î °áÁ¤
-		RenderLayer layer = GetRenderLayerForObject(pObject);
+		// ë Œë” ë ˆì´ì–´ ë° ì •ë ¬ í‚¤ ê³„ì‚°
+		RenderLayer layer = pObject->GetRenderLayer();
+		float sortKey = pObject->GetSortKey(layer);
 
-		// Á¤·Ä Å° »ı¼º (YÃà ±â¹İ, ¼Ò¼öÁ¡ Æ÷ÇÔ)
-		float sortKey = static_cast<float>(layer) + pObject->GetY();
-		float originalSortKey = sortKey; // ¿ø·¡ sortKey ÀúÀå
-		
-		// ÇÃ·¹ÀÌ¾î°¡ »óÈ£ÀÛ¿ë ÁßÀÌ¸é »óÈ£ÀÛ¿ë ´ë»óº¸´Ù¸¸ ¾Õ¿¡ ·»´õ¸µ
-		// ´Ü, ¿ø·¡ sortKey¸¦ ÃÊ°úÇÏÁö ¾Êµµ·Ï Á¦ÇÑÇÏ¿© Y°ªÀÌ ´õ ÀÛÀº ¿ÀºêÁ§Æ®´Â ¿©ÀüÈ÷ ¾Õ¿¡ ·»´õ¸µµÊ
-		Player* player = dynamic_cast<Player*>(pObject);
-		if (player && player->IsInteracting()) {
-			GameObject* targetObj = player->GetInteractionTarget();
-			if (targetObj && targetObj->GetActive()) {
-				// »óÈ£ÀÛ¿ë ´ë»óÀÇ sortKey °è»ê
-				RenderLayer interactionLayer = GetRenderLayerForObject(targetObj);
-				float interactionSortKey = static_cast<float>(interactionLayer) + targetObj->GetY();
-				// ÇÃ·¹ÀÌ¾îÀÇ sortKey¸¦ »óÈ£ÀÛ¿ë ´ë»óº¸´Ù ¾à°£ Å©°Ô ¼³Á¤ÇÏµÇ, ¿ø·¡ sortKey¸¦ ÃÊ°úÇÏÁö ¾ÊÀ½
-				float adjustedSortKey = interactionSortKey + INTERACTION_TARGET_OFFSET;
-				sortKey = (adjustedSortKey < originalSortKey) ? adjustedSortKey : originalSortKey;
-			}
-		}
-
-		// AnimatorÀÇ Draw È£ÃâÇÏ¿© RenderManager Å¥¿¡ Ãß°¡
-		pObject->GetAnimator()->Draw(nullptr, screenPos, 1.0f, pObject->GetDir(), layer, sortKey);
+		// Animatorê°€ ë Œë” ëª…ë ¹ì„ ìƒì„±í•˜ë„ë¡ ìœ„ì„
+		anim->Draw(nullptr, screenPos, 1.0f, pObject->GetDir(), layer, sortKey);
 	}
 	else 
 	{
-		// Animator°¡ ¾ø´Â °æ¿ì ±âº» ºñÆ®¸Ê ·»´õ¸µ
+		// Animatorê°€ ì—†ìœ¼ë©´ ë¹„íŠ¸ë§µì„ ì§ì ‘ ë Œë”
 		Gdiplus::Bitmap* pBitmap = pObject->GetBitmap();
 		if (!pBitmap) {
 			return;
 		}
 		
-		// ¿ùµå ÁÂÇ¥¸¦ ½ºÅ©¸° ÁÂÇ¥·Î º¯È¯
+		// ì›”ë“œ ì¢Œí‘œ â†’ ìŠ¤í¬ë¦° ì¢Œí‘œ
 		Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(pObject->GetX(), pObject->GetY());
 
-		// ¿ÀºêÁ§Æ® Å©±â °è»ê
+		// ë¹„íŠ¸ë§µ í¬ê¸°
 		float width = static_cast<float>(pBitmap->GetWidth());
 		float height = static_cast<float>(pBitmap->GetHeight());
 
-		// ÇÇ¹ş Àû¿ëÇÏ¿© ·»´õ¸µ À§Ä¡ °è»ê
+		// í”¼ë²—ì„ ê³ ë ¤í•œ ë Œë” ìœ„ì¹˜
 		float renderX = screenPos.X - width * pObject->GetPivotX();
 		float renderY = screenPos.Y - height * pObject->GetPivotY();
 
-		// ·»´õ ·¹ÀÌ¾î °áÁ¤
-		RenderLayer layer = GetRenderLayerForObject(pObject);
+		// ë ˆì´ì–´ ë° ì •ë ¬ í‚¤ ê³„ì‚°
+		RenderLayer layer = pObject->GetRenderLayer();
+		float sortKey = pObject->GetSortKey(layer);
 
-		// Á¤·Ä Å° »ı¼º (YÃà ±â¹İ, ¼Ò¼öÁ¡ Æ÷ÇÔ)
-		float sortKey = static_cast<float>(layer) + pObject->GetY();
-		float originalSortKey = sortKey; // ¿ø·¡ sortKey ÀúÀå
-		
-		// ÇÃ·¹ÀÌ¾î°¡ »óÈ£ÀÛ¿ë ÁßÀÌ¸é »óÈ£ÀÛ¿ë ´ë»óº¸´Ù¸¸ ¾Õ¿¡ ·»´õ¸µ
-		// ´Ü, ¿ø·¡ sortKey¸¦ ÃÊ°úÇÏÁö ¾Êµµ·Ï Á¦ÇÑÇÏ¿© Y°ªÀÌ ´õ ÀÛÀº ¿ÀºêÁ§Æ®´Â ¿©ÀüÈ÷ ¾Õ¿¡ ·»´õ¸µµÊ
-		Player* player = dynamic_cast<Player*>(pObject);
-		if (player && player->IsInteracting()) {
-			GameObject* targetObj = player->GetInteractionTarget();
-			if (targetObj && targetObj->GetActive()) {
-				// »óÈ£ÀÛ¿ë ´ë»óÀÇ sortKey °è»ê
-				RenderLayer interactionLayer = GetRenderLayerForObject(targetObj);
-				float interactionSortKey = static_cast<float>(interactionLayer) + targetObj->GetY();
-				// ÇÃ·¹ÀÌ¾îÀÇ sortKey¸¦ »óÈ£ÀÛ¿ë ´ë»óº¸´Ù ¾à°£ Å©°Ô ¼³Á¤ÇÏµÇ, ¿ø·¡ sortKey¸¦ ÃÊ°úÇÏÁö ¾ÊÀ½
-				float adjustedSortKey = interactionSortKey + INTERACTION_TARGET_OFFSET;
-				sortKey = (adjustedSortKey < originalSortKey) ? adjustedSortKey : originalSortKey;
-			}
-		}
-
-		// RenderManager¸¦ ÅëÇØ ·»´õ¸µ ¸í·É Ãß°¡
+		// RenderManager íì— ì§ì ‘ ëª…ë ¹ ì¶”ê°€
 		AddDrawCommand(
 			pBitmap,
 			Gdiplus::RectF(renderX, renderY, width, height),
@@ -214,17 +169,17 @@ void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float
 {
 	if (!pTileBitmap) return;
 
-	// ¿ùµå ÁÂÇ¥¸¦ ½ºÅ©¸° ÁÂÇ¥·Î º¯È¯ (Å¸ÀÏÀÇ Áß½ÉÁ¡)
+	// ì›”ë“œ ì¢Œí‘œ(íƒ€ì¼ ì¤‘ì‹¬)ë¥¼ ìŠ¤í¬ë¦° ì¢Œí‘œë¡œ ë³€í™˜
 	Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(worldX, worldY);
 
-	// Å¸ÀÏ ·»´õ¸µ ½ºÅ©¸° À§Ä¡ °è»ê 
-	float renderX = screenPos.X - width * 0.5f; // Áß½ÉÁ¡ X - ÀÌ¹ÌÁö ³ÊºñÀÇ Àı¹İ = ÁÂ»ó´Ü X
-	float renderY = screenPos.Y - height * 0.5f; // Áß½ÉÁ¡ Y - ÀÌ¹ÌÁö ³ôÀÌÀÇ Àı¹İ = ÁÂ»ó´Ü Y
+	// íƒ€ì¼ ì¤‘ì‹¬ ê¸°ì¤€ í™”ë©´ ìœ„ì¹˜ ê³„ì‚°
+	float renderX = screenPos.X - width * 0.5f; // ì¤‘ì‹¬ X - ì ˆë°˜ ë„ˆë¹„
+	float renderY = screenPos.Y - height * 0.5f; // ì¤‘ì‹¬ Y - ì ˆë°˜ ë†’ì´
 
-	// Å¸ÀÏÀº Ç×»ó °¡Àå ¾Æ·¡ ·¹ÀÌ¾î
+	// íƒ€ì¼ì€ í•­ìƒ ë°”ë‹¥ ë ˆì´ì–´ì— ìœ„ì¹˜
 	float sortKey = LAYER_WORLD_TILE;
 
-	// µå·Î¿ì Ä¿¸Çµå Ãß°¡
+	// ë Œë” ëª…ë ¹ ì¶”ê°€
 	Gdiplus::RectF destRect(renderX, renderY, width, height); 
 	Gdiplus::RectF sourceRect(0, 0, static_cast<float>(pTileBitmap->GetWidth()), static_cast<float>(pTileBitmap->GetHeight()));
 
@@ -233,7 +188,7 @@ void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float
 
 void RenderManager::RenderVisibleGameObjects()
 {
-	// CameraManager¿¡¼­ ÇöÀç Ä«¸Ş¶ó¿¡ ºñÃçÁö´Â ¿ÀºêÁ§Æ®¸¸ °¡Á®¿À±â
+	// CameraManagerì—ì„œ ê°€ì‹œ ê°ì²´ ëª©ë¡ì„ ê°€ì ¸ì˜¨ë‹¤
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (!cameraManager) {
 		return;
@@ -241,7 +196,7 @@ void RenderManager::RenderVisibleGameObjects()
 
 	const std::vector<GameObject*>& visibleObjects = cameraManager->GetVisibleObjects();
 	
-	// º¸ÀÌ´Â ¿ÀºêÁ§Æ®µé¸¸ ·»´õ¸µ (CameraManager¿¡¼­ ÀÌ¹Ì ÇÊÅÍ¸µµÊ)
+	// ì´ë¯¸ í´ë¦¬í•‘ëœ ê°ì²´ë§Œ ìˆœíšŒí•˜ë©´ì„œ ë Œë”
 	for (GameObject* obj : visibleObjects) {
 		if (obj && obj->GetActive()) {
 			RenderGameObject(obj);
@@ -249,33 +204,13 @@ void RenderManager::RenderVisibleGameObjects()
 	}
 }
 
-RenderLayer RenderManager::GetRenderLayerForObject(GameObject* pObject)
-{
-	if (!pObject) 
-		return LAYER_NONE;
-
-	GameObjectType type = pObject->GetType();
-
-	switch (type)
-	{
-	case GOBJ_NATURAL_ENVIR:
-	case GOBJ_BUILDING:
-	case GOBJ_MONSTER:
-	case GOBJ_PLAYER:
-	case GOBJ_ITEM:
-		return LAYER_WORLD_OBJECT; // ¸ğµç °ÔÀÓ ¿ÀºêÁ§Æ®´Â µ¿ÀÏÇÑ ·¹ÀÌ¾î
-	default:
-		return LAYER_NONE;
-	}
-}
-
 void RenderManager::Clear() {
 	m_drawCommands.clear();
 }
 
-// ÀÌ ÇÔ¼ö´Â Animator::Draw¿¡¼­ °¡Á®¿Â º¯È¯ ·ÎÁ÷À» ±×´ë·Î À¯ÁöÇÕ´Ï´Ù.
-void RenderManager::ApplyGdiTransform(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight) {
-
+// Animator::Drawì—ì„œ ì‚¬ìš©í•˜ëŠ” ë³€í™˜ ë¡œì§ê³¼ ë™ì¼í•˜ê²Œ ìœ ì§€í•œë‹¤.
+void RenderManager::ApplyGdiTransform(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight)
+{
 	if (command.layer >= LAYER_UI_BACKGROUND || command.type == DRAW_COMMAND_TEXT)
 	{
 		return;
@@ -290,7 +225,7 @@ void RenderManager::ApplyGdiTransform(Gdiplus::Graphics* pGraphics, const DrawCo
 		break;
 	case DIR_LEFT:
 		pGraphics->TranslateTransform(transformCenterX, transformCenterY);
-		pGraphics->ScaleTransform(-1.0f, 1.0f); // XÃà ¹İÀü
+		pGraphics->ScaleTransform(-1.0f, 1.0f); // Xì¶• ë°˜ì „
 		pGraphics->TranslateTransform(-transformCenterX, -transformCenterY);
 		break;
 	case DIR_RIGHT:
@@ -301,35 +236,35 @@ void RenderManager::ApplyGdiTransform(Gdiplus::Graphics* pGraphics, const DrawCo
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics || m_drawCommands.empty()) return;
 
-	// 1. ·¹ÀÌ¾î ¿ì¼±¼øÀ§ Á¤·Ä (Z-ordering & ¹èÄ¡ ÃÖÀûÈ­)
+	// 1. ë ˆì´ì–´ â†’ sortKey ìˆœìœ¼ë¡œ ì •ë ¬í•´ Z-orderë¥¼ ë³´ì¥
 	std::sort(m_drawCommands.begin(), m_drawCommands.end(), CompareDrawCommands);
 
 	Gdiplus::Bitmap* currentBitmap = nullptr;
-	Gdiplus::GraphicsState originalGraphicsState; // Flush ½ÃÀÛ½Ã ±×·¡ÇÈ »óÅÂ
+	Gdiplus::GraphicsState originalGraphicsState; // Flush ì‹œì‘ ì‹œì ì˜ ê·¸ë˜í”½ ìƒíƒœ
 
 	int commandIndex = 0;
 	for (const auto& cmd : m_drawCommands) {
-		Gdiplus::GraphicsState commandSpecificState = pGraphics->Save(); // °¢ Ä¿¸Çµå¸¶´Ù ±×·¡ÇÈ »óÅÂ ÀúÀå
+		Gdiplus::GraphicsState commandSpecificState = pGraphics->Save(); // ëª…ë ¹ ë‹¨ìœ„ë¡œ ìƒíƒœ ì €ì¥
 
 		float currentScaledWidth = cmd.destRect.Width;
 		float currentScaledHeight = cmd.destRect.Height;
 
 		if (cmd.type == DRAW_COMMAND_IMAGE) {
-			// ºñÆ®¸Ê À¯È¿¼º °Ë»ç Ãß°¡
+			// ë¹„íŠ¸ë§µ ìœ íš¨ì„± ì¬ê²€ì‚¬
 			if (!cmd.pBitmap) {
 				pGraphics->Restore(commandSpecificState);
 				commandIndex++;
 				continue;
 			}
 
-			// ºñÆ®¸Ê »óÅÂ °Ë»ç
+			// ë¹„íŠ¸ë§µ ìƒíƒœ í™•ì¸
 			if (cmd.pBitmap->GetLastStatus() != Gdiplus::Ok) {
 				pGraphics->Restore(commandSpecificState);
 				commandIndex++;
 				continue;
 			}
 
-			// ¼Ò½º/¸ñÀûÁö »ç°¢Çü À¯È¿¼º °Ë»ç
+			// ì†ŒìŠ¤/ëª©ì  ì‚¬ê°í˜• ê²€ì¦
 			if (cmd.sourceRect.Width <= 0 || cmd.sourceRect.Height <= 0) {
 				pGraphics->Restore(commandSpecificState);
 				commandIndex++;
@@ -367,5 +302,5 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 		pGraphics->Restore(commandSpecificState);
 		commandIndex++;
 	}
-	Clear(); // ¸ğµç Ä¿¸Çµå¸¦ ±×¸° ÈÄ Å¥ Á¤¸®
+	Clear(); // ëª¨ë“  ëª…ë ¹ì„ ì²˜ë¦¬í•œ ë’¤ íë¥¼ ì´ˆê¸°í™”
 }

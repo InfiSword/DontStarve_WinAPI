@@ -1,6 +1,6 @@
 #pragma once
-#include "../GameObject/Entity.h"
-#include "../GameObject/Item.h"
+#include  "../Entity.h"
+#include "../../Item/Item.h"
 
 class Inventory;
 
@@ -14,23 +14,22 @@ public:
 	virtual void LateInit() override;
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
-	virtual void Render(Gdiplus::Graphics* pGraphics) override; // RenderManager¿¡¼­ Ã³¸®
 	virtual void Release() override;
 
-	// Unity Animator ½ºÅ¸ÀÏ·Î ÃÖÀûÈ­µÈ ¾Ö´Ï¸ŞÀÌ¼Ç ¸Ş¼Òµåµé
-	virtual void UpdateAnimation(float deltaTime) override;
+	// Unity Animator ìŠ¤íƒ€ì¼ë¡œ ì• ë‹ˆë©”ì´ì…˜ ê´€ë¦¬ ë©”ì„œë“œ
 	virtual Gdiplus::Bitmap* GetBitmap() const override;
+	virtual float GetSortKey(RenderLayer layer) const override;
 
 	void SetTargetPosition(float worldX, float worldY);
-	void SetInteractionTarget(GameObject* obj); // »óÈ£ÀÛ¿ë ´ë»ó ¼³Á¤
+	void SetInteractionTarget(GameObject* obj); // ìƒí˜¸ì‘ìš© ëŒ€ìƒ ì„¤ì •
 	
-	// Å¬¸¯ À§Ä¡¿¡¼­ »óÈ£ÀÛ¿ë °¡´ÉÇÑ ¿ÀºêÁ§Æ® Ã£±â ¹× »óÈ£ÀÛ¿ë ½ÃÀÛ
+	// í´ë¦­ ìœ„ì¹˜ì—ì„œ ìƒí˜¸ì‘ìš© ê°€ëŠ¥í•œ ì˜¤ë¸Œì íŠ¸ ì°¾ì•„ì„œ ìƒí˜¸ì‘ìš© ì‹œì‘
 	void HandleClickInteraction(float worldX, float worldY);
 	
-	// ¿ìÅ¬¸¯ Ã³¸® (ÀÌµ¿ Ãë¼Ò ¶Ç´Â Ä«¸Ş¶ó ÀÌµ¿)
+	// ìš°í´ë¦­ ì²˜ë¦¬ (ì´ë™ ì²˜ë¦¬ ë˜ëŠ” ì•„ì´í…œ ì´ë™)
 	void HandleRightClick(float worldX, float worldY);
 	
-	// ÀÔ·Â Ã³¸® ¹× ÀÌµ¿ °ü¸®
+	// ì…ë ¥ ì²˜ë¦¬ ë° ì´ë™ ì²˜ë¦¬
 	void HandleMovement();
 	virtual void OnInteraction(GameObject* obj) override;
 	void FinalizeInteraction();
@@ -45,23 +44,23 @@ public:
 	std::shared_ptr<Item> GetEquippedItem() const { return m_equippedItem; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
 	
-	// »óÈ£ÀÛ¿ë ÁßÀÎÁö È®ÀÎ (·»´õ¸µ ¼ø¼­ Á¶Á¤¿ë)
+	// ìƒí˜¸ì‘ìš© ì¤‘ì¸ì§€ í™•ì¸ (ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ ì¤‘ì¸ì§€)
 	bool IsInteracting() const { return m_currentInteractionTarget != nullptr && (m_state == PlayerState::PICKUP || m_state == PlayerState::CHOP); }
 	
-	// »óÈ£ÀÛ¿ë ´ë»ó ¿ÀºêÁ§Æ® °¡Á®¿À±â (·»´õ¸µ ¼ø¼­ Á¶Á¤¿ë)
+	// ìƒí˜¸ì‘ìš© ëŒ€ìƒ ì˜¤ë¸Œì íŠ¸ ë°˜í™˜ (ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ ì¤‘ì¸ì§€)
 	GameObject* GetInteractionTarget() const { return m_currentInteractionTarget; }
 
 	void ToggleEquipItem(int slotIndex);
 	void OnAnimationEvent(int frameIndex, const std::wstring& eventName);
 
 private:
-	// Unity Animator ½ºÅ¸ÀÏ·Î º¯°æ - ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
+	// Unity Animator ìŠ¤íƒ€ì¼ë¡œ ë“±ë¡ - ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
 	void RegisterAllAnimations();
 
-	// Unity Animator ½ºÅ¸ÀÏ - »óÅÂ¸¸ ¼³Á¤ÇÏ¸é ÀÚµ¿À¸·Î ¾Ö´Ï¸ŞÀÌ¼Ç ¼±ÅÃ
+	// Unity Animator ìŠ¤íƒ€ì¼ - ìƒíƒœë§Œ ë³€ê²½í•˜ë©´ ìë™ìœ¼ë¡œ ì• ë‹ˆë©”ì´ì…˜ ì „í™˜
 	void UpdateAnimatorState();
 	
-	// Ä³¸¯ÅÍ ID¿¡ µû¸¥ ½ºÇÁ¶óÀÌÆ® °æ·Î ¼³Á¤
+	// ìºë¦­í„° IDì— ë”°ë¼ ìŠ¤í”„ë¼ì´íŠ¸ ê²½ë¡œ ì„¤ì •
 	void SetCharacterSpritePath(GameObjectID characterID);
 
 	Inventory* m_inventory;

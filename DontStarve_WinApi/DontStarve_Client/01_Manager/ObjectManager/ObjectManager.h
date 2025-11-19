@@ -1,14 +1,9 @@
 #pragma once
 
+// í•„ìˆ˜ ì „ë°© ì„ ì–¸ë§Œ ìœ ì§€ (ì‹¤ì œë¡œ í—¤ë”ì—ì„œ ì‚¬ìš©í•˜ëŠ” íƒ€ì…ë§Œ)
 class GameObject;
 class Player;
-class Tree;
-class Rock;
-class Grass;
-class Monster;
 class Item;
-class Building;
-class Ingredient;
 
 class ObjectManager : public CSingleTon<ObjectManager>
 {
@@ -24,39 +19,59 @@ public:
 	void Render();
 	void Release();
 
-	// °ÔÀÓ¿ÀºêÁ§Æ® °ü¸®
+	// ê²Œì„ì˜¤ë¸Œì íŠ¸ ê´€ë¦¬
 	void AddGameObject(GameObject* pObj);
 	void RemoveGameObject(GameObject* pObj);
 	void ClearAllObjects();
 
-	// °ÔÀÓ¿ÀºêÁ§Æ® ÃÊ±âÈ­
+	// ê²Œì„ì˜¤ë¸Œì íŠ¸ ì´ˆê¸°í™”
 	void InitializeObjects();
 
-	// ÇÃ·¹ÀÌ¾î¿Í »óÈ£ÀÛ¿ë °¡´ÉÇÑ ¿ÀºêÁ§Æ®¸¦ Ã£¾Æ¼­ Ã³¸®
+	// í”Œë ˆì´ì–´ ìºì‹œëœ í¬ì¸í„° ë°˜í™˜ í•¨ìˆ˜
 	Player* GetPlayer() const;
 
-	// °ÔÀÓ¿ÀºêÁ§Æ® ¹İÈ¯
+	// ê²Œì„ì˜¤ë¸Œì íŠ¸ ë°˜í™˜
 	const std::vector<GameObject*>& GetGameObjects() const { return m_gameObjects; }
 	std::vector<GameObject*>& GetGameObjects() { return m_gameObjects; }
 	
-	// ÀÌ¹ÌÁö Å×µÎ¸® ±â¹İÀ¸·Î Á¤È®ÇÑ Ãæµ¹ °Ë»ç
+	// ì‹¤ì œ ë°”ìš´ë“œ ë°•ìŠ¤ë¥¼ ì´ìš©í•œ ì •í™•í•œ ì¶©ëŒ ê²€ì‚¬
 	GameObject* FindObjectAtPositionWithBounds(float x, float y);
 
-	// === ÆÑÅä¸® ÆĞÅÏ ÇÔ¼öµé ===
-	// °ÔÀÓ¿ÀºêÁ§Æ® »ı¼º (ResourceManager ¿¬µ¿)
+	// ========================================
+	// íŒ©í† ë¦¬ íŒ¨í„´: ê°ì²´ ìƒì„±
+	// ========================================
+	// í—¤ë”ì—ì„œëŠ” êµ¬ì²´ì ì¸ í´ë˜ìŠ¤(Tree, Rock ë“±)ë¥¼ ëª°ë¼ë„ ë¨
+	// ëª¨ë“  ìƒì„± ë¡œì§ì€ cpp íŒŒì¼ì— ìº¡ìŠí™”ë¨
+	// ========================================
+	
+	// ê²Œì„ì˜¤ë¸Œì íŠ¸ ìƒì„± (ResourceManager í™œìš©)
 	GameObject* CreateGameObject(GameObjectID id, float x, float y, const GameObjectData* resourceData = nullptr);
 	
-	// ¾ÆÀÌÅÛ »ı¼º (ResourceManager ¿¬µ¿)
+	// ì•„ì´í…œ ìƒì„± (ResourceManager í™œìš©, shared_ptrë¡œ ìë™ ë©”ëª¨ë¦¬ ê´€ë¦¬)
 	std::shared_ptr<Item> CreateItem(GameObjectID itemID);
 
-	// Å×µÎ¸® Ç¥½Ã ±â´É
+	// ë°”ìš´ë“œ í‘œì‹œ í† ê¸€
 	void ToggleBoundsDisplay() { m_showBounds = !m_showBounds; }
 	bool IsBoundsDisplayEnabled() const { return m_showBounds; }
 	void RenderBounds();
+
 private:
-	std::vector<GameObject*> m_gameObjects;
-	Player* m_cachedPlayer; // ÇÃ·¹ÀÌ¾î Ä³½Ã
-	bool m_showBounds; // Å×µÎ¸® Ç¥½Ã ¿©ºÎ
+	// ========================================
+	// íŒ©í† ë¦¬ ë§µ íŒ¨í„´: GameObjectID -> ìƒì„± í•¨ìˆ˜
+	// ========================================
+	// switch ë¬¸ ëŒ€ì‹  ë§µì„ ì‚¬ìš©í•˜ì—¬ í™•ì¥ì„± í–¥ìƒ
+	// ìƒˆ ì˜¤ë¸Œì íŠ¸ ì¶”ê°€ ì‹œ ë§µì— ë“±ë¡ë§Œ í•˜ë©´ ë¨
+	// ========================================
+	using GameObjectFactoryFunc = std::function<GameObject*(GameObjectID id, float x, float y, const GameObjectData* data)>;
+	using ItemFactoryFunc = std::function<std::shared_ptr<Item>(GameObjectID id, const GameObjectData* data)>;
 	
-	// Å×µÎ¸® ·»´õ¸µ ÇÔ¼ö
+	std::map<GameObjectID, GameObjectFactoryFunc> m_gameObjectFactories;
+	std::map<GameObjectID, ItemFactoryFunc> m_itemFactories;
+	
+	// íŒ©í† ë¦¬ ë§µ ì´ˆê¸°í™” (Init()ì—ì„œ í˜¸ì¶œ)
+	void InitializeFactories();
+	
+	std::vector<GameObject*> m_gameObjects;
+	Player* m_cachedPlayer; // í”Œë ˆì´ì–´ ìºì‹œ
+	bool m_showBounds; // ë°”ìš´ë“œ í‘œì‹œ ì—¬ë¶€
 };

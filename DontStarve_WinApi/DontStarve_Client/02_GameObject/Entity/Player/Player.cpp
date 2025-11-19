@@ -21,12 +21,15 @@
 #include "../../02_GameObject/Tool/Axe/Axe.h"
 #include "../../02_GameObject/Tool/Tool.h"
 
+namespace {
+	constexpr float PLAYER_INTERACTION_SORT_OFFSET = 0.5f;
+}
+
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, resourcePath, imageName), 
 	  hp(100), maxHp(100), m_playerSpeed(300.f), m_stopThreshold(10), 
 	  m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr), m_currentInteractionTarget(nullptr)
 {
-	m_animator = nullptr;
 }
 
 Player::~Player() { Release(); }
@@ -34,40 +37,43 @@ Player::~Player() { Release(); }
 void Player::Init()
 {
 	SetActive(true);
-	SetInteractive(true); // PlayerÀÇ »óÈ£ÀÛ¿ë È°¼ºÈ­
+	SetInteractive(true); // PlayerëŠ” ìƒí˜¸ì‘ìš© í™œì„±í™”
 	m_direction = DIR_DOWN;
 	m_state = PlayerState::IDLE;
 	isMoveToGoal = false;		
 
-	m_animator = new Animator();
+	// Unity ìŠ¤íƒ€ì¼: Animator ì»´í¬ë„ŒíŠ¸ ì¶”ê°€
+	Animator* animator = AddComponent<Animator>();
 	m_inventory = new Inventory();
 
-	// Unity Animator ½ºÅ¸ÀÏ - ÀÌº¥Æ® Äİ¹é ¼³Á¤
-	m_animator->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-		this->OnAnimationEvent(frameIndex, eventName);
+	// Unity Animator ìŠ¤íƒ€ì¼ - ì´ë²¤íŠ¸ ì½œë°± ì„¤ì •
+	if (animator) {
+		animator->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+			this->OnAnimationEvent(frameIndex, eventName);
 		});
+	}
 	
-	RegisterAllAnimations(); // Unity Animator ½ºÅ¸ÀÏ ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
-	UpdateAnimatorState(); // ÃÊ±â »óÅÂ ¼³Á¤
+	RegisterAllAnimations(); // Unity Animator ìŠ¤íƒ€ì¼ ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
+	UpdateAnimatorState(); // ì´ˆê¸° ìƒíƒœ ì„¤ì •
 	
-	// ÃÊ±â Å©±â ¼³Á¤ (¾Ö´Ï¸ŞÀÌ¼Ç ÇÁ·¹ÀÓÀÇ Ã¹ ¹øÂ° ÇÁ·¹ÀÓ¿¡¼­ Å©±â °¡Á®¿À±â)
-	if (m_animator) {
-		const AnimationFrame& frame = m_animator->GetCurrentFrame();
+	// ì´ˆê¸° í¬ê¸° ì„¤ì • (ì• ë‹ˆë©”ì´ì…˜ í´ë¦½ì—ì„œ ì²« ë²ˆì§¸ í”„ë ˆì„ìœ¼ë¡œ í¬ê¸° ì„¤ì •)
+	if (animator) {
+		const AnimationFrame& frame = animator->GetCurrentFrame();
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 		
-		// Animator »óÅÂ È®ÀÎ
-		const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
+		// Animator ì´ˆê¸°í™” í™•ì¸
+		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
 		if (spriteSheet) {
-			OutputDebugStringW(L"Player: Animator ÃÊ±âÈ­ ¿Ï·á - SpriteSheet ·ÎµåµÊ\n");
+			OutputDebugStringW(L"Player: Animator ì´ˆê¸°í™” ì™„ë£Œ - SpriteSheet ë¡œë“œë¨\n");
 		} else {
-			OutputDebugStringW(L"Player: Animator ÃÊ±âÈ­ ½ÇÆĞ - SpriteSheet ¾øÀ½\n");
+			OutputDebugStringW(L"Player: Animator ì´ˆê¸°í™” ì‹¤íŒ¨ - SpriteSheet ì—†ìŒ\n");
 		}
 	} else {
-		OutputDebugStringW(L"Player: Animator »ı¼º ½ÇÆĞ\n");
+		OutputDebugStringW(L"Player: Animator ìƒì„± ì‹¤íŒ¨\n");
 	}
 	
-	// ÀÎº¥Åä¸® ÃÊ±âÈ­ Ãß°¡
+	// ì¸ë²¤í† ë¦¬ ì´ˆê¸°í™” ì¶”ê°€
 	if (m_inventory) 
 	{
 		std::vector<Gdiplus::RectF> slotRects(INVENTORY_SLOT_COUNT);
@@ -89,30 +95,30 @@ void Player::ToggleEquipItem(int slotIndex)
 		return;
 	}
 
-	// µµ±¸(Tool) Å¸ÀÔ¸¸ ÀåÂø °¡´É
+	// ë„êµ¬(Tool) íƒ€ì…ë§Œ ì¥ì°© ê°€ëŠ¥
 	std::shared_ptr<Tool> toolItem = std::dynamic_pointer_cast<Tool>(targetSlot.item);
 	if (!toolItem) {
 		OutputDebugStringW(L"Player: Cannot equip non-tool item.\n");
 		return;
 	}
 
-	// ÀÌ¹Ì ÀåÂøµÈ ¾ÆÀÌÅÛÀÌ ÀÖ´Â °æ¿ì
+	// ì´ë¯¸ ì¥ì°©ëœ ì•„ì´í…œì´ ìˆëŠ” ê²½ìš°
 	if (m_equippedSlotIndex != -1) {
 		if (m_equippedSlotIndex == slotIndex) { 
-			// °°Àº ½½·ÔÀ» ´Ù½Ã Å¬¸¯ -> ÀåÂø ÇØÁ¦
+			// ê°™ì€ ì•„ì´í…œì„ ë‹¤ì‹œ í´ë¦­ -> ì¥ì°© í•´ì œ
 			m_equippedSlotIndex = -1;
 			m_equippedItem = nullptr;
 			OutputDebugStringW(L"Player: Item unequipped.\n");
 		}
 		else {
-			// ´Ù¸¥ ½½·Ô Å¬¸¯ -> »õ·Î¿î ¾ÆÀÌÅÛ ÀåÂø
+			// ë‹¤ë¥¸ ì•„ì´í…œ í´ë¦­ -> ìƒˆë¡œìš´ ì•„ì´í…œ ì¥ì°©
 			m_equippedSlotIndex = slotIndex; 
 			m_equippedItem = targetSlot.item; 
 			OutputDebugStringW((L"Player: Equipped new item from slot " + std::to_wstring(slotIndex) + L"\n").c_str());
 		}
 	}
 	else {
-		// ÀåÂøµÈ ¾ÆÀÌÅÛÀÌ ¾ø´Â °æ¿ì -> »õ·Î ÀåÂø
+		// ì¥ì°©ëœ ì•„ì´í…œì´ ì—†ëŠ” ê²½ìš° -> ì¥ì°© ì‹œì‘
 		m_equippedSlotIndex = slotIndex; 
 		m_equippedItem = targetSlot.item; 
 		OutputDebugStringW((L"Player: Equipped item from slot " + std::to_wstring(slotIndex) + L"\n").c_str());
@@ -123,16 +129,16 @@ void Player::OnAnimationEvent(int frameIndex, const std::wstring& eventName)
 {
 	if (eventName == L"chop_hit") {
 		if (m_state == PlayerState::CHOP && m_currentInteractionTarget) {
-			// ³ª¹« Å¸ÀÔÀÎÁö ID·Î È®ÀÎ
+			// ë‚˜ë¬´ íƒ€ì…ì˜ ì˜¤ë¸Œì íŠ¸ IDë¥¼ í™•ì¸
 			GameObjectID objID = m_currentInteractionTarget->GetID();
 			if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
-				// ÀåÂøµÈ µµ³¢ °¡Á®¿Í¼­ ³ª¹« º£±â
+				// ë„êµ¬ë¥¼ ì¥ì°©í–ˆê³  íŒŒì†ë˜ì§€ ì•Šì•˜ìœ¼ë©´ ì‚¬ìš©
 				std::shared_ptr<Axe> equippedAxe = dynamic_pointer_cast<Axe>(m_equippedItem);
 				if (equippedAxe && !equippedAxe->IsBroken()) {
-					// TreeÀÇ »óÅÂ¸¦ º¯°æÇÏ±â À§ÇØ ´ÙÀÌ³ª¹Í Ä³½ºÆÃ ÇÊ¿ä (ÇÑ ¹ø¸¸)
+					// Treeì˜ ìƒíƒœë¥¼ ë³€ê²½í•˜ê¸° ìœ„í•´ì„œëŠ” ìºë¦­í„°ê°€ í•„ìš” (ë‚˜ì¤‘ êµ¬í˜„)
 					Tree* tree = dynamic_cast<Tree*>(m_currentInteractionTarget);
 					if (tree) {
-						equippedAxe->ChopTree(tree); // Axe::ChopTree°¡ Tree::TakeDamage È£Ãâ
+						equippedAxe->ChopTree(tree); // Axe::ChopTreeê°€ Tree::TakeDamage í˜¸ì¶œ
 					}
 				}
 			}
@@ -141,106 +147,112 @@ void Player::OnAnimationEvent(int frameIndex, const std::wstring& eventName)
 }
 
 void Player::RegisterAllAnimations() {
-    OutputDebugStringW(L"Player: RegisterAllAnimations ½ÃÀÛ\n");
+    OutputDebugStringW(L"Player: RegisterAllAnimations ì‹œì‘\n");
     
-    // Unity Animator ½ºÅ¸ÀÏ - Animator¿¡ ¸ğµç ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
+    // Unity Animator ìŠ¤íƒ€ì¼ - Animatorì— ëª¨ë“  ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
     
-    // ResourceManager¸¦ »ç¿ëÇÏ¿© °æ·Î ±¸¼º
+    // ResourceManagerë¥¼ ì‚¬ìš©í•˜ì—¬ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
 	ResourceManager* pRM = ResourceManager::GetInstance();
     
-    // IDLE ¾Ö´Ï¸ŞÀÌ¼Çµé
+    // IDLE ì• ë‹ˆë©”ì´ì…˜ë“¤
     std::wstring idleDownPath = pRM->BuildResourcePath(resourcePath, L"Idle", L"Wilson_Idle_Down.png");
 
-    m_animator->RegisterAnimation(PlayerState::IDLE, DIR_DOWN,
+    Animator* animator = GetComponent<Animator>();
+    if (!animator) return;
+    
+    animator->RegisterAnimation(PlayerState::IDLE, DIR_DOWN,
         idleDownPath,
         126, 189, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
         
-    OutputDebugStringW(L"Player: IDLE_DOWN ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï ¿Ï·á\n");
+    OutputDebugStringW(L"Player: IDLE_DOWN ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ ì™„ë£Œ\n");
         
-    m_animator->RegisterAnimation(PlayerState::IDLE, DIR_UP,
+    animator->RegisterAnimation(PlayerState::IDLE, DIR_UP,
         pRM->BuildResourcePath(resourcePath, L"Idle", L"Wilson_Idle_Up.png"),
         128, 193, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
         
-    m_animator->RegisterAnimation(PlayerState::IDLE, DIR_LEFT,
+    animator->RegisterAnimation(PlayerState::IDLE, DIR_LEFT,
         pRM->BuildResourcePath(resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
 		135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
         
-    m_animator->RegisterAnimation(PlayerState::IDLE, DIR_RIGHT,
+    animator->RegisterAnimation(PlayerState::IDLE, DIR_RIGHT,
         pRM->BuildResourcePath(resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
         135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
 
-    // WALK ¾Ö´Ï¸ŞÀÌ¼Çµé
-    m_animator->RegisterAnimation(PlayerState::WALK, DIR_DOWN,
+    // WALK ì• ë‹ˆë©”ì´ì…˜ë“¤
+    animator->RegisterAnimation(PlayerState::WALK, DIR_DOWN,
         pRM->BuildResourcePath(resourcePath, L"Run", L"Wilson_Run_Down.png"),
         139, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
         
-    m_animator->RegisterAnimation(PlayerState::WALK, DIR_UP,
+    animator->RegisterAnimation(PlayerState::WALK, DIR_UP,
         pRM->BuildResourcePath(resourcePath, L"Run", L"Wilson_Run_Up.png"),
         133, 231, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
         
-    m_animator->RegisterAnimation(PlayerState::WALK, DIR_LEFT,
+    animator->RegisterAnimation(PlayerState::WALK, DIR_LEFT,
         pRM->BuildResourcePath(resourcePath, L"Run", L"Wilson_Run_Side.png"),
         141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
         
-    m_animator->RegisterAnimation(PlayerState::WALK, DIR_RIGHT,
+    animator->RegisterAnimation(PlayerState::WALK, DIR_RIGHT,
         pRM->BuildResourcePath(resourcePath, L"Run", L"Wilson_Run_Side.png"),
         141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
 
-    // PICKUP ¾Ö´Ï¸ŞÀÌ¼Çµé (¸ğµç ¹æÇâ¿¡ ´ëÇØ µî·Ï)
-    m_animator->RegisterAnimation(PlayerState::PICKUP, DIR_DOWN,
+    // PICKUP ì• ë‹ˆë©”ì´ì…˜ë“¤ (ëª¨ë“  ë°©í–¥ì—ì„œ ë™ì¼í•œ ì´ë¯¸ì§€ ì‚¬ìš©)
+    animator->RegisterAnimation(PlayerState::PICKUP, DIR_DOWN,
         pRM->BuildResourcePath(resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
         127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
         
-    m_animator->RegisterAnimation(PlayerState::PICKUP, DIR_UP,
+    animator->RegisterAnimation(PlayerState::PICKUP, DIR_UP,
         pRM->BuildResourcePath(resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
         127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
         
-    m_animator->RegisterAnimation(PlayerState::PICKUP, DIR_LEFT,
+    animator->RegisterAnimation(PlayerState::PICKUP, DIR_LEFT,
         pRM->BuildResourcePath(resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
         127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
         
-    m_animator->RegisterAnimation(PlayerState::PICKUP, DIR_RIGHT,
+    animator->RegisterAnimation(PlayerState::PICKUP, DIR_RIGHT,
         pRM->BuildResourcePath(resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
         127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
 
-    // CHOP ¾Ö´Ï¸ŞÀÌ¼Ç (ÀÌº¥Æ® Æ÷ÇÔ)
+    // CHOP ì• ë‹ˆë©”ì´ì…˜ (ì´ë²¤íŠ¸ í¬í•¨)
     std::map<int, std::wstring> chopEvents = {{4, L"chop_hit"}};
-    m_animator->RegisterAnimation(PlayerState::CHOP, DIR_DOWN,
+    animator->RegisterAnimation(PlayerState::CHOP, DIR_DOWN,
         pRM->BuildResourcePath(resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
         284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
         
-    m_animator->RegisterAnimation(PlayerState::CHOP, DIR_UP,
+    animator->RegisterAnimation(PlayerState::CHOP, DIR_UP,
         pRM->BuildResourcePath(resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
         284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
         
-    m_animator->RegisterAnimation(PlayerState::CHOP, DIR_LEFT,
+    animator->RegisterAnimation(PlayerState::CHOP, DIR_LEFT,
         pRM->BuildResourcePath(resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
         284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
         
-    m_animator->RegisterAnimation(PlayerState::CHOP, DIR_RIGHT,
+    animator->RegisterAnimation(PlayerState::CHOP, DIR_RIGHT,
         pRM->BuildResourcePath(resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
         284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
 }
 
 void Player::UpdateAnimatorState() {
-    // Unity Animator ½ºÅ¸ÀÏ - »óÅÂ¿Í ¹æÇâ¸¸ ¼³Á¤ÇÏ¸é ÀÚµ¿À¸·Î ¾Ö´Ï¸ŞÀÌ¼Ç ¼±ÅÃ
-	if (m_animator) {
-		m_animator->SetState(m_state, m_direction);	
+    // Unity Animator ìŠ¤íƒ€ì¼ - ìƒíƒœì™€ ë°©í–¥ë§Œ ì„¤ì •í•˜ë©´ ìë™ìœ¼ë¡œ ì• ë‹ˆë©”ì´ì…˜ ì „í™˜
+	Animator* animator = GetComponent<Animator>();
+	if (animator) {
+		animator->SetState(m_state, m_direction);	
 	}
 
-	const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
-	if(spriteSheet != nullptr)
-		m_bitmap = spriteSheet->GetBitmap();
+	if (animator) {
+		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
+		if(spriteSheet != nullptr)
+			m_bitmap = spriteSheet->GetBitmap();
+	}
 }
 
 
 
 void Player::SetTargetPosition(float worldX, float worldY) {
 	m_targetWorldPos = Gdiplus::PointF(worldX, worldY);
-	m_state = PlayerState::WALK; // MOVING_TO_TARGET ´ë½Å WALK·Î ¼³Á¤ÇÏ¿© Áï½Ã WALK ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ
-	isMoveToGoal = true; // ÀÌµ¿ ½ÃÀÛ ÇÃ·¡±× ¼³Á¤
+	m_state = PlayerState::WALK; // MOVING_TO_TARGET ëŒ€ì‹  WALKë¡œ ì„¤ì •í•˜ì—¬ ê¸°ë³¸ WALK ì• ë‹ˆë©”ì´ì…˜ ì¬ìƒ
+	isMoveToGoal = true; // ì´ë™ ëª©í‘œ í”Œë˜ê·¸ ì„¤ì •
 	
-	// ¸¶¿ì½º Å¬¸¯ ½ÃÁ¡¿¡ Áï½Ã ¹æÇâ ¼³Á¤
+	// ë§ˆìš°ìŠ¤ í´ë¦­ ìœ„ì¹˜ì—ì„œ ë°©í–¥ ê³„ì‚°
 	float dx = worldX - this->m_x;
 	float dy = worldY - this->m_y;
 	
@@ -252,7 +264,7 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 		newDirection = (dy > 0) ? DIR_DOWN : DIR_UP;
 	}
 	
-	// ¹æÇâÀÌ ¹Ù²î¾úÀ» ¶§¸¸ ¾÷µ¥ÀÌÆ®
+	// ë°©í–¥ì´ ë³€ê²½ë˜ì—ˆìœ¼ë©´ ì• ë‹ˆë©”ì´ì…˜ ì—…ë°ì´íŠ¸
 	if (m_direction != newDirection) {
 		m_direction = newDirection;
 		UpdateAnimatorState();
@@ -274,11 +286,11 @@ void Player::Update(float deltaTime)
 		if (distance <= m_stopThreshold) { 
 			this->m_x = m_targetWorldPos.X;
 			this->m_y = m_targetWorldPos.Y;
-			isMoveToGoal = false; // ¸ñÇ¥ À§Ä¡ µµÂø ½Ã Áï½Ã false·Î ¼³Á¤
+			isMoveToGoal = false; // ëª©í‘œ ìœ„ì¹˜ ë„ë‹¬ ì‹œ í”Œë˜ê·¸ falseë¡œ ì„¤ì •
 			
-			// ¸ñÇ¥ À§Ä¡¿¡ µµÂøÇßÀ» ¶§ »óÈ£ÀÛ¿ë ´ë»óÀÌ ÀÖÀ¸¸é »óÈ£ÀÛ¿ë ½ÃÀÛ
+			// ëª©í‘œ ìœ„ì¹˜ì— ìƒí˜¸ì‘ìš© ê°€ëŠ¥í•œ ì˜¤ë¸Œì íŠ¸ê°€ ìˆìœ¼ë©´ ìƒí˜¸ì‘ìš© ì‹œì‘
 			if (m_currentInteractionTarget && m_currentInteractionTarget->CanInteract()) {
-				// »óÈ£ÀÛ¿ë ´ë»ó°úÀÇ ¹æÇâ ¼³Á¤
+				// ìƒí˜¸ì‘ìš© ë°©í–¥ ê³„ì‚°
 				float objDx = m_currentInteractionTarget->GetX() - this->m_x;
 				float objDy = m_currentInteractionTarget->GetY() - this->m_y;
 				
@@ -293,12 +305,12 @@ void Player::Update(float deltaTime)
 				m_direction = interactionDirection;
 				UpdateAnimatorState();
 				
-				// »óÈ£ÀÛ¿ë ½ÃÀÛ
+				// ìƒí˜¸ì‘ìš© ì‹œì‘
 				OnInteraction(m_currentInteractionTarget);
 			}
 			else {
 				m_state = PlayerState::IDLE; 
-				UpdateAnimatorState(); // IDLE ¾Ö´Ï¸ŞÀÌ¼ÇÀ¸·Î ÀüÈ¯
+				UpdateAnimatorState(); // IDLE ì• ë‹ˆë©”ì´ì…˜ìœ¼ë¡œ ì „í™˜
 			}
 		}
 		else { 
@@ -307,29 +319,30 @@ void Player::Update(float deltaTime)
 			this->m_x += moveX;
 			this->m_y += moveY;
 			m_state = PlayerState::WALK; 
-			UpdateAnimatorState(); // WALK ¾Ö´Ï¸ŞÀÌ¼ÇÀ¸·Î ÀüÈ¯
+			UpdateAnimatorState(); // WALK ì• ë‹ˆë©”ì´ì…˜ìœ¼ë¡œ ì „í™˜
 
-			// ÀÌµ¿ Áß¿¡µµ ¹æÇâ À¯Áö (SetTargetPosition¿¡¼­ ¼³Á¤µÈ ¹æÇâ »ç¿ë)
-			// ¹æÇâ ¼³Á¤Àº SetTargetPosition¿¡¼­ ÀÌ¹Ì Ã³¸®µÊ
-			// ¿©±â¼­´Â ¾Ö´Ï¸ŞÀÌ¼Ç »óÅÂ¸¸ ¾÷µ¥ÀÌÆ®
+			// ì´ë™ ì¤‘ì— ë°©í–¥ ë³€ê²½ (SetTargetPositionì—ì„œ ì´ë¯¸ ì²˜ë¦¬í•œ ê²½ìš°)
+			// ë°©í–¥ ë³€ê²½ì€ SetTargetPositionì—ì„œ ì´ë¯¸ ì²˜ë¦¬ë¨
+			// ì—¬ê¸°ì„œëŠ” ì• ë‹ˆë©”ì´ì…˜ ìƒíƒœë§Œ ì—…ë°ì´íŠ¸
 		}
 	}
 	else if (m_state == PlayerState::CHOP || m_state == PlayerState::PICKUP) { 
-		// PICKUP ¾Ö´Ï¸ŞÀÌ¼Ç ¿Ï·á °¨Áö (¾Ö´Ï¸ŞÀÌ¼ÇÀÌ ¿ÏÀüÈ÷ ³¡³µÀ» ¶§)
-		if (m_state == PlayerState::PICKUP && m_animator && m_animator->IsAnimationDone()) {
+		// PICKUP ì• ë‹ˆë©”ì´ì…˜ ì™„ë£Œ ëŒ€ê¸° (ì• ë‹ˆë©”ì´ì…˜ì´ ëë‚˜ë©´ ìƒí˜¸ì‘ìš© ì™„ë£Œ)
+		Animator* animator = GetComponent<Animator>();
+		if (m_state == PlayerState::PICKUP && animator && animator->IsAnimationDone()) {
 			FinalizeInteraction();
 			m_state = PlayerState::IDLE;
 			UpdateAnimatorState(); 
 		}
-		// CHOP »óÅÂ´Â ¾Ö´Ï¸ŞÀÌ¼Ç ÀÌº¥Æ®·Î Ã³¸®µÇ¹Ç·Î ¿©±â¼­´Â »óÅÂ¸¸ À¯Áö
+		// CHOP ê°™ì€ ì• ë‹ˆë©”ì´ì…˜ì€ ì´ë²¤íŠ¸ë¡œ ì²˜ë¦¬ë˜ê¸° ë•Œë¬¸ì— ì—¬ê¸°ì„œ ìƒíƒœë§Œ ìœ ì§€
 	}
 
-	// µµ³¢ Á¦ÀÛ ÄÚµå ¿¹½Ã
+	// ê±´ë¬¼ ì œì‘ ì½”ë“œ ì£¼ì„
 	//if (InputManager::GetInstance()->IsKeyPressed('Q')) {
 
 	//		std::map<UINT, UINT> requiredMaterials;
-	//requiredMaterials[GOID_ITEM_NORMAL_TWIGS] = 2; // ³ª¹µ°¡Áö 2°³
-	//requiredMaterials[GOID_ITEM_NORMAL_ROCK] = 2;  // µ¹ 2°³
+	//requiredMaterials[GOID_ITEM_NORMAL_TWIGS] = 2; // ë‚˜ë­‡ê°€ì§€ 2ê°œ
+	//requiredMaterials[GOID_ITEM_NORMAL_ROCK] = 2;  // ëŒ 2ê°œ
 
 	//std::shared_ptr<Item> axeItemDef = ObjectManager::GetInstance()->CreateItem(GOID_ITEM_AXE);
 
@@ -337,14 +350,14 @@ void Player::Update(float deltaTime)
 	//		return;
 	//	}
 
-	//	// ÇÃ·¹ÀÌ¾î ÀÎº¥Åä¸®¿¡ Àç·á°¡ ÃæºĞÇÑÁö È®ÀÎ
+	//	// í”Œë ˆì´ì–´ ì¸ë²¤í† ë¦¬ì— ì¬ë£Œê°€ ì¶©ë¶„í•œì§€ í™•ì¸
 	//	if (GetInventory()->CheckHasEnoughItems(requiredMaterials)) {
 	//	
-	//		//Àç·á ¼Ò¸ğ 
+	//		//ì¬ë£Œ ì†Œëª¨ 
 	//		if (GetInventory()->ConsumeItems(requiredMaterials)) {
 
-	//			// Á¦ÀÛµÈ µµ³¢ ¾ÆÀÌÅÛ ÀÎº¥Åä¸®¿¡ Ãß°¡) -> ¿¹ºñ
-	//			if (GetInventory()->AddItem(axeItemDef, 1)) { // µµ³¢ 1°³ Ãß°¡				
+	//			// ì œì‘ëœ ì•„ì´í…œì„ ì¸ë²¤í† ë¦¬ì— ì¶”ê°€) -> ì™„ë£Œ
+	//			if (GetInventory()->AddItem(axeItemDef, 1)) { // ë„êµ¬ 1ê°œ ì¶”ê°€				
 
 	//			}
 	//		}
@@ -352,12 +365,13 @@ void Player::Update(float deltaTime)
 	//
 	//}
 
-	// ¾Ö´Ï¸ŞÀÌ¼Ç ¾÷µ¥ÀÌÆ® (ÇÁ·¹ÀÓ °è»ê)
-	UpdateAnimation(deltaTime);
+	// ì• ë‹ˆë©”ì´ì…˜ ì—…ë°ì´íŠ¸ (ì»´í¬ë„ŒíŠ¸ ë°©ì‹)
+	// ì• ë‹ˆë©”ì´ì…˜ ì—…ë°ì´íŠ¸ëŠ” GameObject::Update()ì—ì„œ ì»´í¬ë„ŒíŠ¸ì˜ Update()ë¥¼ í†µí•´ ìë™ìœ¼ë¡œ ì²˜ë¦¬ë¨
 	
-	// ÇöÀç ÇÁ·¹ÀÓ Á¤º¸·Î Å©±â ¾÷µ¥ÀÌÆ®
-	if (m_animator) {
-		const AnimationFrame& frame = m_animator->GetCurrentFrame();
+	// í˜„ì¬ í”„ë ˆì„ì˜ í¬ê¸°ë¡œ í¬ê¸° ì—…ë°ì´íŠ¸
+	Animator* animator = GetComponent<Animator>();
+	if (animator) {
+		const AnimationFrame& frame = animator->GetCurrentFrame();
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 	}
@@ -365,7 +379,7 @@ void Player::Update(float deltaTime)
 	GameObject::Update(deltaTime);
 }
 
-// »óÈ£ÀÛ¿ë ¾Ö´Ï¸ŞÀÌ¼Ç ¿Ï·á ÈÄ ½ÇÁ¦ ¾ÆÀÌÅÛ È¹µæ/Á¦°Å ·ÎÁ÷
+// ìƒí˜¸ì‘ìš© ì• ë‹ˆë©”ì´ì…˜ ì™„ë£Œ í›„ ì•„ì´í…œì„ íšë“/ìˆ˜ì§‘ ì²˜ë¦¬
 void Player::FinalizeInteraction() {
 	if (!m_currentInteractionTarget || !m_currentInteractionTarget->CanInteract()) {
 		m_currentInteractionTarget = nullptr;
@@ -376,9 +390,9 @@ void Player::FinalizeInteraction() {
 	GameObjectID objID = m_currentInteractionTarget->GetID();
 	GameObjectType objType = m_currentInteractionTarget->GetType();
 	
-	// ¿ÀºêÁ§Æ® Å¸ÀÔ°ú ID¿¡ µû¸¥ »óÈ£ÀÛ¿ë ºĞ±â ·ÎÁ÷
+	// ì˜¤ë¸Œì íŠ¸ íƒ€ì…ê³¼ IDì— ë”°ë¼ ìƒí˜¸ì‘ìš© ì²˜ë¦¬ ë°©ë²•
 	if (objType == GOBJ_ITEM) {
-		// ±âÁ¸ Ingredient ¾ÆÀÌÅÛ Ã³¸®
+		// ì¼ë°˜ Ingredient ì•„ì´í…œ ì²˜ë¦¬
 		std::shared_ptr<Item> itemObj = ObjectManager::GetInstance()->CreateItem(objID);
 		if (itemObj && m_inventory->AddItem(itemObj, 1)) 
 		{
@@ -387,16 +401,16 @@ void Player::FinalizeInteraction() {
 		}
 	}
 	else if (objType == GOBJ_NATURAL_ENVIR) {
-		// ÀÚ¿¬ È¯°æ ¿ÀºêÁ§Æ® Ã³¸® (BerryBush, Grass, Sapling)
-		// EntityÀÇ °¡»ó ÇÔ¼ö¸¦ »ç¿ëÇÏ¿© ¾ÆÀÌÅÛ Á¤º¸ °¡Á®¿À±â
+		// ìì—° í™˜ê²½ ì˜¤ë¸Œì íŠ¸ ì²˜ë¦¬ (BerryBush, Grass, Sapling)
+		// Entityì˜ ê°€ìƒ í•¨ìˆ˜ë¥¼ ì‚¬ìš©í•˜ì—¬ ë“œë¡­ ì•„ì´í…œ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
 		Entity<GrassState>* entity = dynamic_cast<Entity<GrassState>*>(m_currentInteractionTarget);
 		if (entity) {
 			GameObjectID itemID = entity->GetDropItemID();
 			int itemCount = entity->GetDropItemCount();
 			
-			// ¾ÆÀÌÅÛÀÌ ¼³Á¤µÇ¾î ÀÖ´Â °æ¿ì¿¡¸¸ Ã³¸®
+			// ë“œë¡­ ì•„ì´í…œì´ ì„¤ì •ë˜ì–´ ìˆëŠ” ê²½ìš°ì—ë§Œ ì²˜ë¦¬
 			if (itemID != GOID_NONE && itemCount > 0) {
-				// ÇØ´ç ¾ÆÀÌÅÛ »ı¼º ¹× ÀÎº¥Åä¸®¿¡ Ãß°¡
+				// í•´ë‹¹ ì•„ì´í…œì„ ìƒì„±í•˜ì—¬ ì¸ë²¤í† ë¦¬ì— ì¶”ê°€
 				std::shared_ptr<Item> itemObj = ObjectManager::GetInstance()->CreateItem(itemID);
 				if (itemObj && m_inventory->AddItem(itemObj, itemCount)) 
 				{
@@ -407,9 +421,9 @@ void Player::FinalizeInteraction() {
 		}
 	}
 
-	m_currentInteractionTarget = nullptr; // »óÈ£ÀÛ¿ë ´ë»ó ÃÊ±âÈ­
+	m_currentInteractionTarget = nullptr; // ìƒí˜¸ì‘ìš© ëŒ€ìƒ ì´ˆê¸°í™”
 	
-	// pickup ¿Ï·á ½Ã DirectionÀ» DIR_DOWNÀ¸·Î ¼³Á¤
+	// pickup ì™„ë£Œ í›„ Directionì„ DIR_DOWNìœ¼ë¡œ ì„¤ì •
 	m_direction = DIR_DOWN;
 	UpdateAnimatorState();
 }
@@ -432,30 +446,30 @@ void Player::OnInteraction(GameObject* obj)
 		return;
 	}
 
-	// m_currentInteractionTargetÀº ÀÌ¹Ì SetInteractionTarget¿¡¼­ ¼³Á¤µÊ
-	// ¿©±â¼­´Â ´Ù½Ã ¼³Á¤ÇÏÁö ¾ÊÀ½
+	// m_currentInteractionTargetëŠ” ì´ë¯¸ SetInteractionTargetì—ì„œ ì„¤ì •ë¨
+	// ì—¬ê¸°ì„œ ë‹¤ì‹œ ì„¤ì •í•˜ì§€ ì•ŠìŒ
 
-	// ¿ÀºêÁ§Æ® Å¸ÀÔ¿¡ µû¸¥ »óÈ£ÀÛ¿ë Ã³¸®
+	// ì˜¤ë¸Œì íŠ¸ íƒ€ì…ì— ë”°ë¼ ìƒí˜¸ì‘ìš© ì²˜ë¦¬
 	GameObjectID objID = obj->GetID();
 	GameObjectType objType = obj->GetType();
 	
-	// ³ª¹« Å¸ÀÔÀÎÁö È®ÀÎ (ID ±â¹İÀ¸·Î ºü¸¥ Ã¼Å©)
+	// ë‚˜ë¬´ íƒ€ì…ì¸ì§€ í™•ì¸ (ID ê¸°ë°˜ìœ¼ë¡œ ì •í™•íˆ ì²´í¬)
 	if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) { 
-		m_state = PlayerState::CHOP; // »óÅÂ¸¸ ¼³Á¤
+		m_state = PlayerState::CHOP; // ìƒíƒœ ë³€ê²½
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator°¡ ÀÚµ¿À¸·Î ¾Ö´Ï¸ŞÀÌ¼Ç ¼±ÅÃ
+		UpdateAnimatorState(); // Unity Animatorì—ì„œ ìë™ìœ¼ë¡œ ì• ë‹ˆë©”ì´ì…˜ ì „í™˜
 	}
 	else if (objType == GOBJ_NATURAL_ENVIR) {
-		// ÀÚ¿¬ È¯°æ ¿ÀºêÁ§Æ®µé (BerryBush, Grass, Sapling)Àº PICKUP
-		m_state = PlayerState::PICKUP; // »óÅÂ¸¸ ¼³Á¤  
+		// ìì—° í™˜ê²½ ì˜¤ë¸Œì íŠ¸ëŠ” (BerryBush, Grass, Sapling)ì€ PICKUP
+		m_state = PlayerState::PICKUP; // ìƒíƒœ ë³€ê²½  
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator°¡ ÀÚµ¿À¸·Î ¾Ö´Ï¸ŞÀÌ¼Ç ¼±ÅÃ
+		UpdateAnimatorState(); // Unity Animatorì—ì„œ ìë™ìœ¼ë¡œ ì• ë‹ˆë©”ì´ì…˜ ì „í™˜
 	}
 	else {
-		// ±× ¿ÜÀÇ »óÈ£ÀÛ¿ë °¡´ÉÇÑ ¿ÀºêÁ§Æ®µéÀº PICKUP
-		m_state = PlayerState::PICKUP; // »óÅÂ¸¸ ¼³Á¤  
+		// ê¸°íƒ€ ìƒí˜¸ì‘ìš© ê°€ëŠ¥í•œ ì˜¤ë¸Œì íŠ¸ëŠ” PICKUP
+		m_state = PlayerState::PICKUP; // ìƒíƒœ ë³€ê²½  
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator°¡ ÀÚµ¿À¸·Î ¾Ö´Ï¸ŞÀÌ¼Ç ¼±ÅÃ
+		UpdateAnimatorState(); // Unity Animatorì—ì„œ ìë™ìœ¼ë¡œ ì• ë‹ˆë©”ì´ì…˜ ì „í™˜
 	}
 }
 
@@ -466,61 +480,47 @@ void Player::LateUpdate()
 void Player::LateInit() {
 }
 
-void Player::Render(Gdiplus::Graphics* pGraphics) {
-    
-}
-
 void Player::Release() {
 	if (m_inventory) {
 		delete m_inventory;
 		m_inventory = nullptr;
-	}
-
-	if (m_animator) { delete m_animator; m_animator = nullptr; }
-}
-
-
-
-void Player::UpdateAnimation(float deltaTime) {
-	if (m_animator) {
-		m_animator->Update(deltaTime);
 	}
 }
 
 Gdiplus::Bitmap* Player::GetBitmap() const
 {
     if (!m_bitmap) {
-		OutputDebugStringW(L"Player: GetBitmap - m_bitmapÀÌ nullÀÔ´Ï´Ù.\n");
+		OutputDebugStringW(L"Player: GetBitmap - m_bitmapì´ nullì…ë‹ˆë‹¤.\n");
 		return nullptr;
 	}
     
-    OutputDebugStringW(L"Player: GetBitmap - ÀúÀåµÈ ºñÆ®¸Ê ¹İÈ¯ ¼º°ø\n");
+    OutputDebugStringW(L"Player: GetBitmap - í˜„ì¬ ë¹„íŠ¸ë§µ ë°˜í™˜ ì™„ë£Œ\n");
     return m_bitmap;
 }
 
 void Player::HandleClickInteraction(float worldX, float worldY)
 {
-	// ObjectManager¸¦ ÅëÇØ Å¬¸¯ÇÑ À§Ä¡ÀÇ ¿ÀºêÁ§Æ® Ã£±â
+	// ObjectManagerì—ì„œ í´ë¦­í•œ ìœ„ì¹˜ì˜ ì˜¤ë¸Œì íŠ¸ ì°¾ê¸°
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!objectManager) return;
 	
-	// ÀÌ¹ÌÁö Å×µÎ¸® ±â¹İÀ¸·Î Á¤È®ÇÑ ¿ÀºêÁ§Æ® Ã£±â
+	// ë²”ìœ„ ë‚´ì—ì„œ ê°€ì¥ ê°€ê¹Œìš´ ì˜¤ë¸Œì íŠ¸ ì°¾ê¸°
 	GameObject* targetItem = objectManager->FindObjectAtPositionWithBounds(worldX, worldY);
 	
 	if (targetItem) {
-		// Item Å¸ÀÔÀÇ ¿ÀºêÁ§Æ®ÀÎÁö È®ÀÎ
+		// Item íƒ€ì…ì˜ ì˜¤ë¸Œì íŠ¸ì¸ì§€ í™•ì¸
 		if (targetItem->GetType() == GOBJ_ITEM) {
 			SetTargetPosition(targetItem->GetX(), targetItem->GetY());
 			SetInteractionTarget(targetItem);
-			OutputDebugStringW((L"Player: Item ¹ß°ß - ID: " + std::to_wstring(targetItem->GetID()) + L"\n").c_str());
+			OutputDebugStringW((L"Player: Item ì¶”ê°€ - ID: " + std::to_wstring(targetItem->GetID()) + L"\n").c_str());
 		}
-		// ÀÚ¿¬ È¯°æ ¿ÀºêÁ§Æ®ÀÎÁö È®ÀÎ (BerryBush, Grass, Sapling)
+		// ìì—° í™˜ê²½ ì˜¤ë¸Œì íŠ¸ì¸ì§€ í™•ì¸ (BerryBush, Grass, Sapling)
 		else if (targetItem->GetType() == GOBJ_NATURAL_ENVIR) {
 			GameObjectID objID = targetItem->GetID();
 			if (objID == GOID_BERRY_TREE || objID == GOID_NORMAL_GRASS || objID == GOID_NORMAL_SAPLING) {
 				SetTargetPosition(targetItem->GetX(), targetItem->GetY());
 				SetInteractionTarget(targetItem);
-				OutputDebugStringW((L"Player: ÀÚ¿¬ È¯°æ ¿ÀºêÁ§Æ® ¹ß°ß - ID: " + std::to_wstring(targetItem->GetID()) + L"\n").c_str());
+				OutputDebugStringW((L"Player: ìì—° í™˜ê²½ ì˜¤ë¸Œì íŠ¸ ì¶”ê°€ - ID: " + std::to_wstring(targetItem->GetID()) + L"\n").c_str());
 			}
 		}
 	}
@@ -528,7 +528,7 @@ void Player::HandleClickInteraction(float worldX, float worldY)
 
 void Player::HandleRightClick(float worldX, float worldY)
 {
-	// ¿ìÅ¬¸¯À¸·Î ÇØ´ç À§Ä¡·Î ÀÌµ¿ (¿ÀºêÁ§Æ® À¯¹«¿Í °ü°è¾øÀÌ)
+	// ìš°í´ë¦­ìœ¼ë¡œ í•´ë‹¹ ìœ„ì¹˜ë¡œ ì´ë™ (ì˜¤ë¸Œì íŠ¸ ìƒí˜¸ì‘ìš© ì—†ì´)
 	SetTargetPosition(worldX, worldY);
 }
 
@@ -537,35 +537,55 @@ void Player::HandleMovement()
 	InputManager* inputManager = InputManager::GetInstance();
 	if (!inputManager) return;
 	
-	// ÁÂÅ¬¸¯À¸·Î Item ¹× ÀÚ¿¬ È¯°æ ¿ÀºêÁ§Æ® »óÈ£ÀÛ¿ë
+	// ì¢Œí´ë¦­ìœ¼ë¡œ Item ë˜ëŠ” ìì—° í™˜ê²½ ì˜¤ë¸Œì íŠ¸ ìƒí˜¸ì‘ìš©
 	if (inputManager->IsLButtonClicked()) {
 		POINT mousePos = inputManager->GetMousePos();
 		float mouseX = static_cast<float>(mousePos.x);
 		float mouseY = static_cast<float>(mousePos.y);
 		
-		// ½ºÅ©¸° ÁÂÇ¥¸¦ ¿ùµå ÁÂÇ¥·Î º¯È¯
+		// í™”ë©´ ì¢Œí‘œë¥¼ ì›”ë“œ ì¢Œí‘œë¡œ ë³€í™˜
 		CameraManager* cameraManager = CameraManager::GetInstance();
 		if (cameraManager) {
 			Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(mouseX, mouseY);
 			
-			// Å¬¸¯ »óÈ£ÀÛ¿ë Ã³¸®
+			// í´ë¦­ ìƒí˜¸ì‘ìš© ì²˜ë¦¬
 			HandleClickInteraction(worldPos.X, worldPos.Y);
 		}
 	}
 	
-	// ¿ìÅ¬¸¯À¸·Î ÀÌµ¿ Ãë¼Ò ¶Ç´Â Ä«¸Ş¶ó ÀÌµ¿
+	// ìš°í´ë¦­ìœ¼ë¡œ ì´ë™ ì²˜ë¦¬ ë˜ëŠ” ì•„ì´í…œ ì´ë™
 	if (inputManager->IsRButtonClicked()) {
 		POINT mousePos = inputManager->GetMousePos();
 		float mouseX = static_cast<float>(mousePos.x);
 		float mouseY = static_cast<float>(mousePos.y);
 		
-		// ½ºÅ©¸° ÁÂÇ¥¸¦ ¿ùµå ÁÂÇ¥·Î º¯È¯
+		// í™”ë©´ ì¢Œí‘œë¥¼ ì›”ë“œ ì¢Œí‘œë¡œ ë³€í™˜
 		CameraManager* cameraManager = CameraManager::GetInstance();
 		if (cameraManager) {
 			Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(mouseX, mouseY);
 			
-			// ¿ìÅ¬¸¯ Ã³¸®
+			// ìš°í´ë¦­ ì²˜ë¦¬
 			HandleRightClick(worldPos.X, worldPos.Y);
 		}
 	}
+}
+
+float Player::GetSortKey(RenderLayer layer) const
+{
+	float baseKey = GameObject::GetSortKey(layer);
+
+	if (!IsInteracting()) {
+		return baseKey;
+	}
+
+	GameObject* target = GetInteractionTarget();
+	if (!target || !target->GetActive()) {
+		return baseKey;
+	}
+
+	RenderLayer interactionLayer = target->GetRenderLayer();
+	float interactionKey = static_cast<float>(interactionLayer) + target->GetY();
+	float adjustedKey = interactionKey + PLAYER_INTERACTION_SORT_OFFSET;
+
+	return (adjustedKey < baseKey) ? adjustedKey : baseKey;
 }

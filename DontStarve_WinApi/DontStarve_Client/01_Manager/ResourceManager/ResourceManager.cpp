@@ -1,7 +1,6 @@
 #include "../../99_Default/pch.h"
 #include "ResourceManager.h"
 
-
 ResourceManager::ResourceManager()
 {
 }
@@ -13,7 +12,7 @@ ResourceManager::~ResourceManager()
 
 void ResourceManager::Init()
 {
-	// ±âº» ¸®¼Ò½º ·Îµå
+	// ê¸°ë³¸ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
 	LoadResourcesFromFile(L"../Resource/resources.txt");
 }
 
@@ -23,7 +22,7 @@ void ResourceManager::Release()
 	m_tileResources.clear();
 }
 
-// ±âÁ¸ ÇÔ¼öµé (±âº» ±¸Çö)
+// íŒŒì¼ ë¡œë“œ í•¨ìˆ˜ (ê¸°ë³¸ êµ¬í˜„)
 void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
 {
 	std::wifstream file(filePath);
@@ -43,10 +42,10 @@ void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
 			std::getline(ss, id, L',') &&
 			std::getline(ss, resourcePath, L',')) {
 
-			// ÀÌ¹ÌÁö ÆÄÀÏ¸íÀº ¼±ÅÃÀûÀ¸·Î ÀĞ±â (ÇÃ·¹ÀÌ¾îÀÇ °æ¿ì ºñ¾îÀÖÀ» ¼ö ÀÖÀ½)
+			// ì´ë¯¸ì§€ íŒŒì¼ëª…ì„ ì„ íƒì ìœ¼ë¡œ ì½ê¸° (í”Œë ˆì´ì–´ì™€ ê°™ì€ ê²½ìš°ì—ëŠ” ì—†ì„ ìˆ˜ ìˆìŒ)
 			std::getline(ss, imageName, L',');
 
-			// °ø¹é Á¦°Å
+			// ê³µë°± ì œê±°
 			type.erase(0, type.find_first_not_of(L" \t"));
 			type.erase(type.find_last_not_of(L" \t") + 1);
 			id.erase(0, id.find_first_not_of(L" \t"));
@@ -57,7 +56,7 @@ void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
 			imageName.erase(imageName.find_last_not_of(L" \t") + 1);
 
 			if (type.find(L"TILE_") == 0) {
-				// Å¸ÀÏ ¸®¼Ò½º
+				// íƒ€ì¼ ë¦¬ì†ŒìŠ¤
 				TileID tileID = EnumUtils::GetEnumValue<TileID>(id.c_str(), TILEID_NONE);
 				if (tileID != TILEID_NONE) {
 					TileData tileData;
@@ -68,7 +67,7 @@ void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
 				}
 			}
 			else {
-				// °ÔÀÓ¿ÀºêÁ§Æ® ¸®¼Ò½º
+				// ê²Œì„ì˜¤ë¸Œì íŠ¸ ë¦¬ì†ŒìŠ¤
 				GameObjectID objID = EnumUtils::GetEnumValue<GameObjectID>(id.c_str(), GOID_NONE);
 				GameObjectData objData;
 				objData.id = objID;
@@ -116,25 +115,25 @@ std::wstring ResourceManager::BuildResourcePath(const std::wstring& basePath, co
 
 	std::wstring relativePath = L"../" + path;
 
-	// °æ·Î ±¸ºĞÀÚ¸¦ ÅëÀÏ (Windows¿¡¼­´Â ¹é½½·¡½Ã »ç¿ë)
+	// ê²½ë¡œ êµ¬ë¶„ìë¥¼ ë°±ìŠ¬ë˜ì‹œë¡œ ë³€í™˜ (Windows í‘œì¤€, íŒŒì¼ ì‹œìŠ¤í…œ í˜¸í™˜)
 	for (size_t i = 0; i < relativePath.length(); ++i) {
 		if (relativePath[i] == L'/') {
 			relativePath[i] = L'\\';
 		}
 	}
 
-	// ÆÄÀÏ Á¸Àç ¿©ºÎ È®ÀÎ
+	// ìƒëŒ€ ê²½ë¡œ íŒŒì¼ ì¡´ì¬ í™•ì¸
 	DWORD fileAttributes = GetFileAttributesW(relativePath.c_str());
 	if (fileAttributes != INVALID_FILE_ATTRIBUTES) {
 		return relativePath;
 	}
 
-	// ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾ÊÀ¸¸é Àı´ë °æ·Î·Î º¯È¯ ½Ãµµ
+	// ìƒëŒ€ê²½ë¡œê°€ ì‹¤íŒ¨í•˜ë©´ ì ˆëŒ€ ê²½ë¡œ ë³€í™˜ ì‹œë„
 	wchar_t fullPath[MAX_PATH];
 	if (GetFullPathNameW(relativePath.c_str(), MAX_PATH, fullPath, nullptr) > 0) {
 		std::wstring absolutePath = std::wstring(fullPath);
 
-		// Àı´ë °æ·Î·Îµµ ÆÄÀÏ Á¸Àç ¿©ºÎ È®ÀÎ
+		// ì ˆëŒ€ ê²½ë¡œë„ íŒŒì¼ ì¡´ì¬ ì—¬ë¶€ í™•ì¸
 		fileAttributes = GetFileAttributesW(absolutePath.c_str());
 		if (fileAttributes != INVALID_FILE_ATTRIBUTES) {
 			return absolutePath;

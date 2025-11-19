@@ -1,18 +1,17 @@
-#include "../../99_Default/pch.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../03_Animation/Animator.h"
-#include "../../03_Animation/AnimationClip.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../03_Animation/SpriteSheet.h"
-#include "../../../Header/Struct.h"
+#include "../../../99_Default/pch.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../03_Animation/Animator.h"
+#include "../../../03_Animation/AnimationClip.h"
+#include "../Player/Player.h"
+#include "../../../03_Animation/SpriteSheet.h"
 #include "Boss_SpiderQueen.h"
 
 Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Spider(id, x, y, pivotX, pivotY, resourcePath, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
+	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
 {
-	// º¸½º Àü¿ë ÃÊ±âÈ­
-	m_hp = 200; // º¸½º´Â ´õ ¸¹Àº Ã¼·Â
+	// ë³´ìŠ¤ íŠ¹ì„± ì´ˆê¸°í™”
+	m_hp = 200; // ì¼ë°˜ ìŠ¤íŒŒì´ë”ë³´ë‹¤ ë†’ì€ ì²´ë ¥
 	maxHp = m_hp;
 }
 
@@ -20,86 +19,94 @@ Boss_SpiderQueen::~Boss_SpiderQueen() {}
 
 void Boss_SpiderQueen::Init()
 {
-	Spider::Init(); // ºÎ¸ğ Å¬·¡½º ÃÊ±âÈ­
+	Monster::Init(); // ë¶€ëª¨ í´ë˜ìŠ¤ ì´ˆê¸°í™”
 	
-	// º¸½º Àü¿ë ÃÊ±âÈ­
+	// ë³´ìŠ¤ íŠ¹ì„± ì´ˆê¸°í™”
 	m_bossPhase = 1;
 	m_specialAttackCooldown = 0.0f;
 	
-	OutputDebugStringW((L"Boss_SpiderQueen: º¸½º ÃÊ±âÈ­ ¿Ï·á - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Boss_SpiderQueen: ë³´ìŠ¤ ì´ˆê¸°í™” ì™„ë£Œ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+}
+
+void Boss_SpiderQueen::OnInteraction(GameObject* obj)
+{
+    // ë³´ìŠ¤ ìƒí˜¸ì‘ìš©
 }
 
 void Boss_SpiderQueen::RegisterAllAnimations()
 {
-	// ResourceManager¸¦ »ç¿ëÇÏ¿© ¸®¼Ò½º ·Îµå
+	// ResourceManagerë¥¼ ì‚¬ìš©í•˜ì—¬ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
 	auto* pRM = ResourceManager::GetInstance();
 	
-	// QUEEN SPIDER º¸½º ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï
+	// QUEEN SPIDER ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
+	Animator* animator = GetComponent<Animator>();
+	if (!animator) return;
+	
 	if (m_id == GOID_MONSTER_QUEEN_SPIDER)
 	{
-		// IDLE ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+		// IDLE ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
 			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
 			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
 			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
 			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// WALK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
+		// WALK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
 			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
 			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
 			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		m_animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
 			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
 		
-		// ATTACK ¾Ö´Ï¸ŞÀÌ¼Çµé
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+		// ATTACK ì• ë‹ˆë©”ì´ì…˜ë“¤
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
 			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
 			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
 			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		m_animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
 			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 		
-		// HIT ¾Ö´Ï¸ŞÀÌ¼Ç
-		m_animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
+		// HIT ì• ë‹ˆë©”ì´ì…˜
+		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_hit_side.png"),
 			120, 120, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
 		
-		// DEATH ¾Ö´Ï¸ŞÀÌ¼Ç
-		m_animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
+		// DEATH ì• ë‹ˆë©”ì´ì…˜
+		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
 			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_death.png"),
 			120, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
 	}
 	
-	OutputDebugStringW(L"Boss_SpiderQueen: º¸½º ¾Ö´Ï¸ŞÀÌ¼Ç µî·Ï ¿Ï·á\n");
+	OutputDebugStringW(L"Boss_SpiderQueen: ë³´ìŠ¤ ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ ì™„ë£Œ\n");
 }
 
 void Boss_SpiderQueen::Damaged(int damage)
@@ -108,17 +115,17 @@ void Boss_SpiderQueen::Damaged(int damage)
 	m_state = MONSTER_HIT;
 	UpdateAnimatorState();
 	
-	// º¸½º ÆäÀÌÁî Ã¼Å©
+	// ë³´ìŠ¤ í˜ì´ì¦ˆ ì²´í¬
 	if (m_hp <= maxHp * 0.5f && m_bossPhase == 1) {
 		m_bossPhase = 2;
-		OutputDebugStringW(L"Boss_SpiderQueen: º¸½º ÆäÀÌÁî 2 ½ÃÀÛ!\n");
+		OutputDebugStringW(L"Boss_SpiderQueen: ë³´ìŠ¤ í˜ì´ì¦ˆê°€ 2 ë‹¨ê³„ë¡œ ì „í™˜!\n");
 	}
 	
 	if (m_hp <= 0) {
 		m_state = MONSTER_DEATH;
 		UpdateAnimatorState();
 		
-		// º¸½º Ã³Ä¡ ½Ã Æ¯º°ÇÑ º¸»ó
-		OutputDebugStringW(L"Boss_SpiderQueen: º¸½º°¡ Ã³Ä¡µÇ¾ú½À´Ï´Ù!\n");
+		// ë³´ìŠ¤ ì²˜ì¹˜ ì‹œ íŠ¹ë³„í•œ ë³´ìƒ
+		OutputDebugStringW(L"Boss_SpiderQueen: ë³´ìŠ¤ê°€ ì²˜ì¹˜ë˜ì—ˆìŠµë‹ˆë‹¤!\n");
 	}
-} 
+}

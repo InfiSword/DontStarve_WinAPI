@@ -3,12 +3,12 @@
 #include "../01_Manager/ResourceManager/ResourceManager.h"
 
 GameObject::GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath, const std::wstring& imageName)
-	:m_type(type), m_id(id), m_x(x), m_y(y), m_pivotX(pivotX), m_pivotY(pivotY), m_direction(dir), m_width(0), m_height(0), resourcePath(resourcePath), imageName(imageName), m_animator(nullptr), m_isActive(true)
+	:m_type(type), m_id(id), m_x(x), m_y(y), m_pivotX(pivotX), m_pivotY(pivotY), m_direction(dir), m_width(0), m_height(0), resourcePath(resourcePath), imageName(imageName), m_isActive(true), m_layer(LAYER_WORLD_OBJECT)
 {
-	// ´ÜÀÏ ÀÌ¹ÌÁö GameObjectµéÀ» À§ÇÑ ±âº» ºñÆ®¸Ê ·Îµå
+	// ê¸°ë³¸ ì´ë¯¸ì§€ GameObjectì—ì„œë§Œ ê¸°ë³¸ ë¹„íŠ¸ë§µ ë¡œë“œ
 	LoadBitmap();
 	
-	// ºñÆ®¸Ê Å©±â ¼³Á¤
+	// ë¹„íŠ¸ë§µ í¬ê¸° ì„¤ì •
 	if (m_bitmap) {
 		m_width = (float)m_bitmap->GetWidth();
 		m_height = (float)m_bitmap->GetHeight();
@@ -17,14 +17,43 @@ GameObject::GameObject(GameObjectType type, GameObjectID id, float x, float y, f
 
 GameObject::~GameObject() { Release(); }
 
-void GameObject::Init() {}
-void GameObject::LateInit() {}
-void GameObject::Update(float deltaTime) {}
-void GameObject::LateUpdate() {}
+void GameObject::Init() {
+	for (auto& component : m_components) {
+		component->Init();
+	}
+}
+
+void GameObject::LateInit() {
+	for (auto& component : m_components) {
+		component->LateInit();
+	}
+}
+
+void GameObject::Update(float deltaTime) {
+	for (auto& component : m_components) {
+		if (component->IsEnabled()) {
+			component->Update(deltaTime);
+		}
+	}
+}
+
+void GameObject::LateUpdate() {
+	for (auto& component : m_components) {
+		if (component->IsEnabled()) {
+			component->LateUpdate();
+		}
+	}
+}
 
 void GameObject::Release() 
 { 
-	SafeDelete(m_animator); 
+	// ì»´í¬ë„ŒíŠ¸ í•´ì œ
+	for (auto& component : m_components) {
+		component->Release();
+		SafeDelete(component);
+	}
+	m_components.clear();
+
 	SafeDelete(m_bitmap);
 }
 
@@ -32,84 +61,35 @@ void GameObject::OnInteraction(GameObject* obj)
 {
 }
 
-
-Gdiplus::RectF GameObject::GetWorldBoundingBox()
-{
-	return Gdiplus::RectF(m_x - m_width * m_pivotX, m_y - m_height * m_pivotY, m_width, m_height);
-}
-
-// ±âº» ±¸Çö: Ç×»ó m_bitmap ¹İÈ¯ (¾Ö´Ï¸ŞÀÌ¼Ç º¯°æ ½Ã ¾÷µ¥ÀÌÆ®µÊ)
-Gdiplus::Bitmap* GameObject::GetBitmap() const
-{
-	return m_bitmap;
-}
-
-// ±âº» LoadBitmap ±¸Çö È®Àå
+// ê¸°ë³¸ LoadBitmap êµ¬í˜„ í™•ì¸
 void GameObject::LoadBitmap()
 {
-	// ¾Ö´Ï¸ŞÀÌ¼ÇÀÌ ÀÖ´Â GameObject Å¸ÀÔµéÀº ±âº» ºñÆ®¸Ê ·ÎµåÇÏÁö ¾ÊÀ½
+	// ì• ë‹ˆë©”ì´ì…˜ì„ ì‚¬ìš©í•˜ëŠ” GameObject íƒ€ì…ì—ì„œëŠ” ê¸°ë³¸ ë¹„íŠ¸ë§µ ë¡œë“œë¥¼ ê±´ë„ˆëœ€
 	if (m_type == GOBJ_PLAYER || m_type == GOBJ_NATURAL_ENVIR) {
-		OutputDebugStringW((L"GameObject: LoadBitmap ½ºÅµ - ¾Ö´Ï¸ŞÀÌ¼Ç »ç¿ë ¿¹Á¤ (ID: " + std::to_wstring(m_id) + L", Type: " + std::to_wstring(m_type) + L")\n").c_str());
+		OutputDebugStringW((L"GameObject: LoadBitmap ê±´ë„ˆëœ€ - ì• ë‹ˆë©”ì´ì…˜ ì‚¬ìš© ê°ì²´ (ID: " + std::to_wstring(m_id) + L", Type: " + std::to_wstring(m_type) + L")\n").c_str());
 		return;
 	}
 	
 	if (resourcePath.empty() || imageName.empty()) {
-		OutputDebugStringW((L"GameObject: LoadBitmap ½ÇÆĞ - °æ·Î³ª ÀÌ¹ÌÁö¸íÀÌ ºñ¾îÀÖÀ½ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+		OutputDebugStringW((L"GameObject: LoadBitmap ì‹¤íŒ¨ - ê²½ë¡œë‚˜ ì´ë¯¸ì§€ëª…ì´ ë¹„ì–´ìˆìŒ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
 		m_bitmap = nullptr;
 		return;
 	}
 	
-	// ResourceManager¸¦ »ç¿ëÇÏ¿© °æ·Î ±¸¼º
-	ResourceManager* pRM = ResourceManager::GetInstance();
-	std::wstring fullPath = pRM->BuildObjectResourcePath(m_id, L"", imageName);
+	std::wstring fullPath = ResourceManager::GetInstance()->BuildObjectResourcePath(m_id, L"", imageName);
 	
-	OutputDebugStringW((L"GameObject: LoadBitmap - ÀüÃ¼ °æ·Î: " + fullPath + L"\n").c_str());
+	OutputDebugStringW((L"GameObject: LoadBitmap - ì „ì²´ ê²½ë¡œ: " + fullPath + L"\n").c_str());
 	
-	// ºñÆ®¸Ê ·Îµå
+	// ë¹„íŠ¸ë§µ ë¡œë“œ
 	m_bitmap = new Gdiplus::Bitmap(fullPath.c_str());
 	if (m_bitmap && m_bitmap->GetLastStatus() != Gdiplus::Ok) {
-		OutputDebugStringW((L"GameObject: LoadBitmap ½ÇÆĞ - ºñÆ®¸Ê »óÅÂ ¿À·ù (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+		OutputDebugStringW((L"GameObject: LoadBitmap ì‹¤íŒ¨ - ë¹„íŠ¸ë§µ íŒŒì¼ ë¡œë“œ ì‹¤íŒ¨ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
 		delete m_bitmap;
 		m_bitmap = nullptr;
 	} else if (m_bitmap) {
-		OutputDebugStringW((L"GameObject: LoadBitmap ¼º°ø - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+		OutputDebugStringW((L"GameObject: LoadBitmap ì„±ê³µ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 	} else {
-		OutputDebugStringW((L"GameObject: LoadBitmap ½ÇÆĞ - ºñÆ®¸Ê »ı¼º ½ÇÆĞ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+		OutputDebugStringW((L"GameObject: LoadBitmap ì‹¤íŒ¨ - ë¹„íŠ¸ë§µ ìƒì„± ì‹¤íŒ¨ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
 	}
-}
-
-bool GameObject::GetActive() const 
-{ 
-	return m_isActive; 
-}
-
-float GameObject::GetX() const { return m_x; }
-float GameObject::GetY() const { return m_y; }
-float GameObject::GetWidth() const {  return m_width;}
-float GameObject::GetHeight() const {  return m_height; }
-float GameObject::GetPivotX() const { return m_pivotX; }
-float GameObject::GetPivotY() const { return m_pivotY; }
-std::wstring GameObject::GetImageName() const { return imageName; }
-
-GameObjectID GameObject::GetID() const { return m_id; }
-GameObjectType GameObject::GetType() const { return m_type; }
-const std::wstring& GameObject::GetName() const { return m_name; }
-const std::wstring& GameObject::GetDescription() const { return m_description; }
-
-Direction GameObject::GetDir() const { return m_direction; }
-
-// »õ·Î Ãß°¡µÈ ¸Ş¼­µåµé
-void GameObject::SetPivot(float pivotX, float pivotY) {
-	m_pivotX = pivotX;
-	m_pivotY = pivotY;
-}
-
-void GameObject::SetActive(bool active) {
-	m_isActive = active;
-}
-
-void GameObject::SetPosition(float x, float y) {
-	m_x = x;
-	m_y = y;
 }
 
