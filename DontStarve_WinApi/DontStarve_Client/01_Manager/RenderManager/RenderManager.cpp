@@ -44,7 +44,6 @@ void RenderManager::Release()
 
 void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction)
 {
-	// 비트맵 유효성 검사
 	if (!pBitmap) {
 		return;
 	}
@@ -136,7 +135,7 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 			return;
 		}
 		
-		// 월드 좌표 → 스크린 좌표
+		// 월드 좌표 -> 스크린 좌표
 		Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(pObject->GetX(), pObject->GetY());
 
 		// 비트맵 크기

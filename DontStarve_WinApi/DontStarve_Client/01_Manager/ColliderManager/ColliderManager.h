@@ -7,7 +7,7 @@ public:
     enum Type { RECTANGLE, CIRCLE };
     Type m_type;
     GameObject* m_pOwner; // 이 콜라이더를 소유한 GameObject
-    RECT m_boundingBox;  // AABB 
+    RECT m_boundingBox;   // AABB 
 
     Collider(GameObject* owner, RECT boundingBox) : m_pOwner(owner), m_boundingBox(boundingBox), m_type(RECTANGLE) {}
     virtual ~Collider() = default;
@@ -25,13 +25,13 @@ public:
     ColliderManager();
     ~ColliderManager();
 
-    void Init(); // CameraManager 참조
+    void Init();
     void LateInit();                     
     void Update(float deltaTime);         // 동적 오브젝트 콜라이더 위치 갱신
     void LateUpdate();                    // 충돌 검사 수행 
     void Render(Gdiplus::Graphics* pGraphics); 
     // 디버그용 콜라이더 영역 그리기
-    void Release();                       // 모든 콜라이더 인스턴스 해제
+    void Release();                    
 
     void AddCollider(Collider* pCollider);
     void RemoveCollider(Collider* pCollider);

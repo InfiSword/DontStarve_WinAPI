@@ -20,11 +20,8 @@ public:
     virtual void Damaged(int damage) override;
     virtual void SetTimeState(BuildingState buildingState) override;
     virtual BuildingState GetTimeState() const override;
-    virtual std::wstring GetAnimKey(BuildingState state) override;
-
-    // Entity 인터페이스 구현 (더미 구현)
-    virtual void RegisterAllAnimations() override {}
-    virtual void UpdateAnimatorState() override {}
+   
+    // virtual std::wstring GetAnimKey(BuildingState state) override;
 
 private:
 

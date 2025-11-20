@@ -6,9 +6,10 @@
 Building::Building(GameObjectID id, float x, float y, float pivotX, float pivotY, 
     Direction _dir, const std::wstring& resourcePath,
                    const std::wstring& imageName, int hp)
-    : Entity<BuildingState>(GOBJ_BUILDING, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName),
-      m_hp(hp), m_maxHp(hp), m_buildingState(BUILDING_NOON), pAnimator(nullptr)
+    : Entity(GOBJ_BUILDING, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName),
+      m_hp(hp), m_maxHp(hp), m_buildingState(BUILDING_NOON)
 {
+
 }
 
 Building::~Building()
@@ -17,8 +18,7 @@ Building::~Building()
 
 void Building::Init()
 {
-    SetActive(true);
-    m_state = BUILDING_NOON;
+    SetActive(true);  
     m_buildingState = BUILDING_NOON;
     m_direction = DIR_DOWN;
     
@@ -47,11 +47,7 @@ void Building::LateUpdate()
 
 void Building::Release()
 {
-    for (auto& pair : m_animClips)
-    {
-        SafeDelete(pair.second);
-    }
-    m_animClips.clear();
+   
 }
 
 void Building::Damaged(int damage)
@@ -60,19 +56,19 @@ void Building::Damaged(int damage)
     if (m_hp <= 0)
     {
         m_hp = 0;
-        m_state = BUILDING_DESTROYED;
+       
         m_buildingState = BUILDING_DESTROYED;
     }
     else if (m_hp <= m_maxHp / 2)
     {
-        m_state = BUILDING_DAMAGED;
+
         m_buildingState = BUILDING_DAMAGED;
     }
 }
 
 void Building::SetTimeState(BuildingState buildingState)
 {
-    m_state = buildingState;
+    
     m_buildingState = buildingState;
 }
 
@@ -81,20 +77,20 @@ BuildingState Building::GetTimeState() const
     return m_buildingState;
 }
 
-std::wstring Building::GetAnimKey(BuildingState state)
-{
-    std::wstring key;
-    if (state == BUILDING_NOON) {
-        key = L"Building_Noon";
-    }
-    else if (state == BUILDING_NIGHT) {
-        key = L"Building_Night";
-    }
-    else if (state == BUILDING_DAMAGED) {
-        key = L"Building_Damaged";
-    }
-    else {
-        key = L"Building_Destroyed";
-    }
-    return key;
-}
+//std::wstring Building::GetAnimKey(BuildingState state)
+//{
+//    std::wstring key;
+//    if (state == BUILDING_NOON) {
+//        key = L"Building_Noon";
+//    }
+//    else if (state == BUILDING_NIGHT) {
+//        key = L"Building_Night";
+//    }
+//    else if (state == BUILDING_DAMAGED) {
+//        key = L"Building_Damaged";
+//    }
+//    else {
+//        key = L"Building_Destroyed";
+//    }
+//    return key;
+//}

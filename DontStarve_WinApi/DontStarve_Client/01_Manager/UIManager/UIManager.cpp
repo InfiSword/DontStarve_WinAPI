@@ -53,7 +53,7 @@ void UIManager::Render()
 	for (auto* image : m_uiImages) {
 		if (image && image->GetActive()) {
 			OutputDebugStringW((L"UIManager: UI ÀÌ¹ÌÁö ·»´õ¸µ - ID: " + std::to_wstring(image->GetID()) + L"\n").c_str());
-			image->Render(nullptr);
+			image->Render();
 		}
 	}
 
@@ -61,7 +61,7 @@ void UIManager::Render()
 	for (auto* button : m_uiButtons) {
 		if (button && button->GetActive()) {
 			OutputDebugStringW((L"UIManager: UI ¹öÆ° ·»´õ¸µ - ID: " + std::to_wstring(button->GetID()) + L"\n").c_str());
-			button->Render(nullptr);
+			button->Render();
 		}
 	}
 }

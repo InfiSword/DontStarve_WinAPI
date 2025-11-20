@@ -4,7 +4,7 @@
 #include "Grass.h"
 
 Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity<GrassState>(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName)
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_state(GrassState::GRASS_IDLE)
 {
 	m_dropItemID = GOID_ITEM_CUT_NORMAL_GRASS;
 	m_dropItemCount = 1;
@@ -16,11 +16,6 @@ void Grass::Init()
 {
 	SetActive(true);
 	SetInteractive(true);
-	m_direction = DIR_DOWN;
-	m_state = GRASS_IDLE;
-	
-	m_dropItemID = GOID_ITEM_CUT_NORMAL_GRASS;
-	m_dropItemCount = 1;
 	
 	// 이미지 로드
 	LoadBitmap();
@@ -55,16 +50,12 @@ void Grass::OnInteraction(GameObject* obj)
 	// 기본 상호작용
 }
 
-void Grass::OnPlayerInteraction(Player* player)
-{
-	if (GetActive() && CanInteract()) {
-		// 플레이어가 이 Grass와 상호작용하도록 요청
-		player->OnInteraction(this);
-	}
-}
-
 void Grass::SetDropItem(GameObjectID itemID, int count)
 {
 	m_dropItemID = itemID;
 	m_dropItemCount = count;
+}
+
+void Grass::Damaged(int damage)
+{
 }

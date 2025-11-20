@@ -4,8 +4,8 @@
 #include "../ObjectManager/ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../RenderManager/RenderManager.h"
-#include "../../02_GameObject/GameObject/GameObject.h"
-#include "../../02_GameObject/Player/Player.h"
+#include "../../03_Animation/Animator.h"
+#include "../../02_GameObject/GameObject.h"
 
 CameraManager::CameraManager()
     : m_cameraPos({ 0,0 }), m_zoomFactor(1.0f), m_target(nullptr),
@@ -186,7 +186,7 @@ void CameraManager::UpdateVisibleObjects()
 		
 		// 렌더링 가능한 오브젝트인지 확인
 		// Player는 여전히 Animator를 사용할 수 있으므로 둘 다 확인
-		if (!obj->GetBitmap() && !obj->GetAnimator()) {
+		if (!obj->GetBitmap() && !obj->GetComponent<Animator>()) {
 			continue;
 		}
 		

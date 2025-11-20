@@ -1,5 +1,5 @@
 #pragma once
-#include "../GameObject/GameObject.h"
+#include "../GameObject.h"
 
 class UIImage : public GameObject
 {
@@ -13,7 +13,7 @@ public:
     virtual void LateInit() override {}
     virtual void Update(float deltaTime) override;
     virtual void LateUpdate() override {}
-    virtual void Render(Gdiplus::Graphics* pGraphics) override;
+    virtual void Render();
     virtual void Release() override;
 
     // UIImage 특화 메소드

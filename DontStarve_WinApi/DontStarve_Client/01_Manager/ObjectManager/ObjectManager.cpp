@@ -175,7 +175,7 @@ GameObject* ObjectManager::FindObjectAtPositionWithBounds(float x, float y)
 			float pivotY = obj->GetPivotY();
 			
 			// 피벗을 고려한 바운드 박스 경계 계산
-			float left = objX - (objWidth * pivotX);
+			float left = objX - (objWidth * pivotX);                                                 
 			float right = objX + (objWidth * (1.0f - pivotX));
 			float top = objY - (objHeight * pivotY);
 			float bottom = objY + (objHeight * (1.0f - pivotY));
@@ -190,12 +190,7 @@ GameObject* ObjectManager::FindObjectAtPositionWithBounds(float x, float y)
 	return nullptr;
 }
 
-// ========================================
 // 팩토리 맵 초기화: GameObjectID -> 생성 함수 등록
-// ========================================
-// switch 문 대신 맵을 사용하여 확장성 향상
-// 새 오브젝트 추가 시 여기에 등록만 하면 됨
-// ========================================
 void ObjectManager::InitializeFactories()
 {
 	// 플레이어 타입

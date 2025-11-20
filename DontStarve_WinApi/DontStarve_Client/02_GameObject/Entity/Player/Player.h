@@ -4,7 +4,7 @@
 
 class Inventory;
 
-class Player : public Entity<PlayerState>
+class Player : public Entity
 {
 public:
 	Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
@@ -15,10 +15,6 @@ public:
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
 	virtual void Release() override;
-
-	// Unity Animator 스타일로 애니메이션 관리 메서드
-	virtual Gdiplus::Bitmap* GetBitmap() const override;
-	virtual float GetSortKey(RenderLayer layer) const override;
 
 	void SetTargetPosition(float worldX, float worldY);
 	void SetInteractionTarget(GameObject* obj); // 상호작용 대상 설정
@@ -37,7 +33,7 @@ public:
 	Inventory* GetInventory() { return m_inventory; }
 	void SetInventory(std::vector<Gdiplus::RectF> rectSize);
 
-	PlayerState GetPlayerState() const { return m_state; }
+	PlayerState GetPlayerState() const { return (PlayerState)m_state; }
 	void SetPlayerState(PlayerState newState) { m_state = newState; }
 
 	float GetInteractionRadius() const { return m_stopThreshold + 10.0f; }
@@ -51,17 +47,17 @@ public:
 	GameObject* GetInteractionTarget() const { return m_currentInteractionTarget; }
 
 	void ToggleEquipItem(int slotIndex);
-	void OnAnimationEvent(int frameIndex, const std::wstring& eventName);
+	//void OnAnimationEvent(int frameIndex, const std::wstring& eventName);
+
+	virtual void Damaged(int damage) override;
 
 private:
-	// Unity Animator 스타일로 등록 - 애니메이션 등록
 	void RegisterAllAnimations();
-
-	// Unity Animator 스타일 - 상태만 변경하면 자동으로 애니메이션 전환
 	void UpdateAnimatorState();
-	
-	// 캐릭터 ID에 따라 스프라이트 경로 설정
-	void SetCharacterSpritePath(GameObjectID characterID);
+
+	// TODO:
+	// 나중에 플레이어가 많아지면, 클래스로 따로 관리해야 함
+	//void SetCharacterSpritePath(GameObjectID characterID);
 
 	Inventory* m_inventory;
 	GameObject* m_currentInteractionTarget;

@@ -8,7 +8,6 @@ UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 	const std::wstring& normalImagePath, const std::wstring& hoverImagePath, const std::wstring buttonText)
 	: GameObject(GOBJ_UI, id, x, y, 0.5f, 0.5f, DIR_DOWN, L"", L""),
 	m_buttonState(ButtonState::NORMAL),
-	m_normalBitmap(nullptr),
 	m_hoverBitmap(nullptr),
 	m_isMouseOver(false),
 	m_wasClicked(false),
@@ -33,10 +32,10 @@ void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstri
 {
 	// Normal 비트맵 로드
 	if (!normalImagePath.empty()) {
-		m_normalBitmap = new Gdiplus::Bitmap(normalImagePath.c_str());
-		if (m_normalBitmap && m_normalBitmap->GetLastStatus() != Gdiplus::Ok) {
-			delete m_normalBitmap;
-			m_normalBitmap = nullptr;
+		m_bitmap = new Gdiplus::Bitmap(normalImagePath.c_str());
+		if (m_bitmap && m_bitmap->GetLastStatus() != Gdiplus::Ok) {
+			delete m_bitmap;
+			m_bitmap = nullptr;
 		}
 	}
 
@@ -138,13 +137,13 @@ bool UIButton::IsPointInside(float x, float y) const
 	return (x >= left && x <= right && y >= top && y <= bottom);
 }
 
-void UIButton::Render(Gdiplus::Graphics* pGraphics)
+void UIButton::Render()
 {
 	if (!GetActive()) return;
 
 	// 비활성화된 버튼은 검은색으로 렌더링
 	if (m_isDisabled) {
-		RenderDisabled(pGraphics);
+		RenderDisabled();
 		return;
 	}
 
@@ -189,11 +188,11 @@ Gdiplus::Bitmap* UIButton::GetBitmap() const
 	switch (m_buttonState) {
 	case ButtonState::HOVER:
 	case ButtonState::CLICKED:
-		return (m_hoverBitmap) ? m_hoverBitmap : m_normalBitmap;
+		return (m_hoverBitmap) ? m_hoverBitmap : m_bitmap;
 	case ButtonState::DISABLED:
 	case ButtonState::NORMAL:
 	default:
-		return m_normalBitmap;
+		return m_bitmap;
 	}
 }
 
@@ -209,9 +208,9 @@ ButtonState UIButton::GetButtonState() const
 
 void UIButton::Release()
 {
-	if (m_normalBitmap) {
-		delete m_normalBitmap;
-		m_normalBitmap = nullptr;
+	if (m_bitmap) {
+		delete m_bitmap;
+		m_bitmap = nullptr;
 	}
 	if (m_hoverBitmap) {
 		delete m_hoverBitmap;
@@ -244,9 +243,9 @@ void UIButton::SetDisabled(bool disabled)
     }
 }
 
-void UIButton::RenderDisabled(Gdiplus::Graphics* pGraphics)
+void UIButton::RenderDisabled()
 {
-    if (!pGraphics || !m_normalBitmap) return;
+    if (!m_bitmap) return;
     
     // 비활성화된 버튼을 어둡게 렌더링 (완전히 검은색이 아닌 어두운 회색)
     Gdiplus::ColorMatrix colorMatrix = {
@@ -261,8 +260,19 @@ void UIButton::RenderDisabled(Gdiplus::Graphics* pGraphics)
     imgAttr.SetColorMatrix(&colorMatrix, Gdiplus::ColorMatrixFlagsDefault, Gdiplus::ColorAdjustTypeBitmap);
     
     Gdiplus::RectF destRect(GetX() - GetWidth() / 2.0f, GetY() - GetHeight() / 2.0f, GetWidth(), GetHeight());
-    pGraphics->DrawImage(m_normalBitmap, destRect, 0, 0, 
+
+	RenderManager::GetInstance()->RenderUIImage(
+		m_bitmap,
+		m_x - (m_pivotX * m_width),  // destLeft
+		m_y - (m_pivotY * m_height), // destTop
+		m_width,
+		m_height,
+		LAYER_UI_FOREGROUND,
+		static_cast<float>(m_buttonState)  // 버튼 상태를 sortKey로 사용
+	);
+
+   /* pGraphics->DrawImage(m_normalBitmap, destRect, 0, 0, 
                         static_cast<float>(m_normalBitmap->GetWidth()), 
                         static_cast<float>(m_normalBitmap->GetHeight()), 
-                        Gdiplus::UnitPixel, &imgAttr);
+                        Gdiplus::UnitPixel, &imgAttr);*/
 }

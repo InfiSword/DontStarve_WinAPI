@@ -4,7 +4,7 @@
 #include "Rock.h"
 
 Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity<RockState>(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_hp(100), m_hitAnimTimer(0.0f)
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_hp(100), m_hitAnimTimer(0.0f), m_state(RockState::ROCK_INTACT)
 {
 	maxHp = m_hp;
 }
@@ -15,8 +15,6 @@ void Rock::Init()
 {
 	SetActive(true);
 	SetInteractive(true);
-	m_direction = DIR_DOWN;
-	m_state = ROCK_INTACT;
 	
 	// 이미지 로드
 	LoadBitmap();

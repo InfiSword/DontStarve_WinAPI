@@ -40,98 +40,98 @@ void Boss_Hound::OnInteraction(GameObject* obj)
     // 보스 상호작용
 }
 
-void Boss_Hound::RegisterAllAnimations()
-{
-	// ResourceManager를 사용하여 리소스 로드
-	auto* pRM = ResourceManager::GetInstance();
-	
-	// BOSS HOUND 애니메이션 등록
-	Animator* animator = GetComponent<Animator>();
-	if (!animator) return;
-	
-	if (m_id == GOID_MONSTER_REDHOUNDDOG)
-	{
-		// RED HOUND 보스 애니메이션들
-		// IDLE 애니메이션들
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_down.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_up.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		// ATTACK 애니메이션들
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_down.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_up.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-	}
-	else if (m_id == GOID_MONSTER_ICEHOUNDDOG)
-	{
-		// ICE HOUND 보스 애니메이션들
-		// IDLE 애니메이션들
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_down.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_up.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		// ATTACK 애니메이션들
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_down.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_up.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-	}
-	
-	OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" 보스 애니메이션 등록 완료\n").c_str());
-}
+//void Boss_Hound::RegisterAllAnimations()
+//{
+//	// ResourceManager를 사용하여 리소스 로드
+//	auto* pRM = ResourceManager::GetInstance();
+//	
+//	// BOSS HOUND 애니메이션 등록
+//	Animator* animator = GetComponent<Animator>();
+//	if (!animator) return;
+//	
+//	if (m_id == GOID_MONSTER_REDHOUNDDOG)
+//	{
+//		// RED HOUND 보스 애니메이션들
+//		// IDLE 애니메이션들
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_down.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_up.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		// ATTACK 애니메이션들
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_down.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_up.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//	}
+//	else if (m_id == GOID_MONSTER_ICEHOUNDDOG)
+//	{
+//		// ICE HOUND 보스 애니메이션들
+//		// IDLE 애니메이션들
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_down.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_up.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		// ATTACK 애니메이션들
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_down.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_up.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//	}
+//	
+//	OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" 보스 애니메이션 등록 완료\n").c_str());
+//}
 
 void Boss_Hound::Damaged(int damage)
 {
 	m_hp -= damage;
 	m_state = MONSTER_HIT;
-	UpdateAnimatorState();
+	// UpdateAnimatorState();
 	
 	// 보스 페이즈 체크
 	if (m_hp <= maxHp * 0.5f && m_bossPhase == 1) {
@@ -141,7 +141,7 @@ void Boss_Hound::Damaged(int damage)
 	
 	if (m_hp <= 0) {
 		m_state = MONSTER_DEATH;
-		UpdateAnimatorState();
+		// UpdateAnimatorState();
 		
 		// 보스 처치 시 특별한 보상
 		OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" 보스가 처치되었습니다!\n").c_str());

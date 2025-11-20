@@ -1,7 +1,7 @@
 #include "../../99_Default/pch.h"
 #include "ColliderManager.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../02_GameObject/GameObject/GameObject.h"
+#include "../../02_GameObject/GameObject.h"
 
 ColliderManager::ColliderManager()
 {

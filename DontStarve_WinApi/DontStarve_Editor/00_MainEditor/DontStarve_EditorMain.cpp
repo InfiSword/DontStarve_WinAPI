@@ -1712,7 +1712,7 @@ void DontStarve_EditorMain::ReleaseResources()
 	m_objectAtlasBitmapOwner.reset();
 }
 
-// 팔레트 초기화 (GameObjectType 및 ObjectVariant 반영)
+// 팔레트 초기화
 void DontStarve_EditorMain::InitPalette()
 {
 	RECT clientRect;
@@ -1741,7 +1741,6 @@ void DontStarve_EditorMain::InitPalette()
 
 	int currentY = m_paletteRect.top + padding;
 
-	// 1. Add Tile Categories to Main Palette (indexed by TileType)
 	for (int i = 0; i < TILE_COUNT; ++i) {
 		TileType type = (TileType)i;
 		if (type == TILE_NONE || type == TILE_COUNT) continue;
@@ -1758,7 +1757,6 @@ void DontStarve_EditorMain::InitPalette()
 		}
 	}
 
-	// 2. Add Object Categories to Main Palette (indexed by GameObjectType)
 	for (int i = 0; i < GOBJ_COUNT; ++i) {
 		GameObjectType type = (GameObjectType)i;
 		if (type == GOBJ_NONE || type == GOBJ_COUNT) continue;
@@ -1775,7 +1773,6 @@ void DontStarve_EditorMain::InitPalette()
 		}
 	}
 
-	// Set initial selected item if any palette items were added
 	if (!m_paletteItems.empty()) {
 		m_selectedPaletteIndex = 0;
 	}
@@ -1783,7 +1780,7 @@ void DontStarve_EditorMain::InitPalette()
 	m_paletteLayerDirty = true; // 팔레트 아이템이 채워졌으므로 레이어 다시 그리기
 }
 
-// 뷰포트 기반 그리드 렌더링 (성능 최적화)
+// 뷰포트 기반 그리드 렌더링
 void DontStarve_EditorMain::DrawGrid(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics) return;
 
@@ -1795,9 +1792,9 @@ void DontStarve_EditorMain::DrawGrid(Gdiplus::Graphics* pGraphics) {
 	// 줌 팩터가 적용된 화면상 타일 크기
 	float screenTileSize = (float)TILE_SIZE * m_zoomFactor;
 
-	// 그리드 선이 너무 작을 때는 건너뛰기 (성능 최적화)
+	// 그리드 선이 너무 작을 때는 건너뛰기
 	if (screenTileSize < 6.0f) {
-		return; // 매우 작은 그리드는 그리지 않음
+		return; 
 	}
 
 	// 레이어 비트맵 크기 (현재 뷰포트 크기)
@@ -1818,7 +1815,7 @@ void DontStarve_EditorMain::DrawGrid(Gdiplus::Graphics* pGraphics) {
 
 	// 화면에 그려질 그리드 개수 계산
 	int maxGridLines = max(layerWidth / max(8, (int)screenTileSize), layerHeight / max(8, (int)screenTileSize));
-	maxGridLines = min(maxGridLines, 100); // 최대 100개로 제한
+	maxGridLines = min(maxGridLines, 100); 
 
 	// 세로선 그리기
 	for (int i = 0; i <= maxGridLines; ++i) {
@@ -1852,7 +1849,7 @@ void DontStarve_EditorMain::DrawGrid(Gdiplus::Graphics* pGraphics) {
 		}
 	}
 
-	// 맵 경계선 그리기 (뷰포트에 보이는 경우에만)
+	// 맵 경계선 그리기
 	float mapLeftScreen = (0 - viewTopLeft.X) * m_zoomFactor;
 	float mapTopScreen = (0 - viewTopLeft.Y) * m_zoomFactor;
 	float mapWidthScreen = (MAP_WIDTH * TILE_SIZE) * m_zoomFactor;
@@ -1877,7 +1874,7 @@ void DontStarve_EditorMain::DrawTileMap(Gdiplus::Graphics* pGraphics) {
 	Gdiplus::PointF viewTopLeft = ScreenToWorld(Gdiplus::PointF(0, 0));
 	Gdiplus::PointF viewBottomRight = ScreenToWorld(Gdiplus::PointF((float)layerWidth, (float)layerHeight));
 
-	// 타일 인덱스 범위 계산 (뷰포트에 보이는 타일만)
+	// 타일 인덱스 범위 계산
 	int startX = max(0, (int)floor(viewTopLeft.X / TILE_SIZE));
 	int endX = min(MAP_WIDTH, (int)ceil(viewBottomRight.X / TILE_SIZE));
 	int startY = max(0, (int)floor(viewTopLeft.Y / TILE_SIZE));
@@ -1916,7 +1913,6 @@ void DontStarve_EditorMain::DrawTileMap(Gdiplus::Graphics* pGraphics) {
 void DontStarve_EditorMain::DrawObjects(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics) return;
 
-	// Perform Y-sorting for rendering depth (only if data changed)
 	if (m_objectsDirty) {
 		m_sortedObjects.clear();
 		for (const auto& obj : m_gameObjects) {
@@ -1924,7 +1920,7 @@ void DontStarve_EditorMain::DrawObjects(Gdiplus::Graphics* pGraphics) {
 		}
 		std::sort(m_sortedObjects.begin(), m_sortedObjects.end(),
 			[](const GameObjectData* a, const GameObjectData* b) {
-				return a->y < b->y; // Y-sort based on bottom-center Y position
+				return a->y < b->y;
 			});
 		m_objectsDirty = false;
 	}
@@ -1937,7 +1933,7 @@ void DontStarve_EditorMain::DrawObjects(Gdiplus::Graphics* pGraphics) {
 	Gdiplus::PointF viewTopLeft = ScreenToWorld(Gdiplus::PointF(0, 0));
 	Gdiplus::PointF viewBottomRight = ScreenToWorld(Gdiplus::PointF((float)layerWidth, (float)layerHeight));
 
-	// 뷰포트 컬링을 위한 월드 영역 (여유 공간 포함)
+	// 뷰포트 컬링을 위한 월드 영역
 	const float CULL_MARGIN = 100.0f;
 	Gdiplus::RectF viewWorldRect(
 		viewTopLeft.X - CULL_MARGIN, viewTopLeft.Y - CULL_MARGIN,
@@ -2808,10 +2804,7 @@ void DontStarve_EditorMain::UpdateObjectPosition(GameObjectData* obj, int newX, 
 	}
 }
 
-// ===== 성능 모니터링 함수 =====
-
-
-
+// 성능 모니터링 함수
 // 레이어 메모리 사용량 반환 (MB)
 float DontStarve_EditorMain::GetLayerMemoryUsageMB() const {
 	if (!m_tileLayerBitmap) return 0.0f;

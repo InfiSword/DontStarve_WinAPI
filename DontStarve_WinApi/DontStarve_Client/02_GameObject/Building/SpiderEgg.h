@@ -19,14 +19,6 @@ public:
     virtual void Damaged(int damage) override;
     virtual void SetTimeState(BuildingState buildingState) override;
     virtual BuildingState GetTimeState() const override;
-    virtual std::wstring GetAnimKey(BuildingState state) override;
-
-    // Entity 인터페이스 구현 (Unity Animator 스타일 - Enum + Direction 키로)
-    virtual void RegisterAllAnimations() override;
-    virtual void UpdateAnimatorState() override;
-
-    // GameObject의 애니메이션 메서드 오버라이드
-    virtual Gdiplus::Bitmap* GetBitmap() const override;
 
 private:
 

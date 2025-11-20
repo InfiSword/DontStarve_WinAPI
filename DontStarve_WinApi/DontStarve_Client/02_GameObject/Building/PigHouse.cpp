@@ -18,7 +18,6 @@ void PigHouse::Init()
 {
     SetActive(true);
     SetInteractive(true);
-    m_state = BUILDING_NOON;
     m_buildingState = BUILDING_NOON;
     m_direction = DIR_DOWN;
     
@@ -47,11 +46,7 @@ void PigHouse::LateUpdate()
 
 void PigHouse::Release()
 {
-    for (auto& pair : m_animClips)
-    {
-        SafeDelete(pair.second);
-    }
-    m_animClips.clear();
+
 }
 
 void PigHouse::Damaged(int damage)
@@ -60,13 +55,11 @@ void PigHouse::Damaged(int damage)
     if (m_hp <= 0)
     {
         m_hp = 0;
-        m_state = BUILDING_DESTROYED;
         m_buildingState = BUILDING_DESTROYED;
         OutputDebugStringW(L"PigHouse: ÆÄ±«µÊ\n");
     }
     else if (m_hp <= m_maxHp / 2)
     {
-        m_state = BUILDING_DAMAGED;
         m_buildingState = BUILDING_DAMAGED;
         OutputDebugStringW(L"PigHouse: ¼Õ»óµÊ\n");
     }
@@ -74,7 +67,6 @@ void PigHouse::Damaged(int damage)
 
 void PigHouse::SetTimeState(BuildingState buildingState)
 {
-    m_state = buildingState;
     m_buildingState = buildingState;
 }
 
@@ -83,20 +75,20 @@ BuildingState PigHouse::GetTimeState() const
     return m_buildingState;
 }
 
-std::wstring PigHouse::GetAnimKey(BuildingState state)
-{
-    std::wstring key;
-    if (state == BUILDING_NOON) {
-        key = L"PigHouse_Noon";
-    }
-    else if (state == BUILDING_NIGHT) {
-        key = L"PigHouse_Night";
-    }
-    else if (state == BUILDING_DAMAGED) {
-        key = L"PigHouse_Damaged";
-    }
-    else {
-        key = L"PigHouse_Destroyed";
-    }
-    return key;
-}
+//std::wstring PigHouse::GetAnimKey(BuildingState state)
+//{
+//    std::wstring key;
+//    if (state == BUILDING_NOON) {
+//        key = L"PigHouse_Noon";
+//    }
+//    else if (state == BUILDING_NIGHT) {
+//        key = L"PigHouse_Night";
+//    }
+//    else if (state == BUILDING_DAMAGED) {
+//        key = L"PigHouse_Damaged";
+//    }
+//    else {
+//        key = L"PigHouse_Destroyed";
+//    }
+//    return key;
+//}

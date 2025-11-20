@@ -4,7 +4,7 @@
 #include "Tree.h"
 
 Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity<TreeState>(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_hp(100), m_hitAnimTimer(0.0f)
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_hp(100), m_hitAnimTimer(0.0f), m_state(TreeState::TREE_IDLE)
 {
 	maxHp = m_hp;
 }
@@ -15,8 +15,6 @@ void Tree::Init()
 {
 	SetActive(true);
 	SetInteractive(true);
-	m_direction = DIR_DOWN;
-	m_state = TREE_IDLE;
 	
 	// 이미지 로드
 	LoadBitmap();
@@ -34,10 +32,10 @@ void Tree::LateInit()
 
 void Tree::Update(float deltaTime)
 {
-	if (m_state == TREE_CHOP) {
+	if (m_state == TreeState::TREE_CHOP) {
 		m_hitAnimTimer += deltaTime;
 		if (m_hitAnimTimer >= 0.6f) { // 애니메이션 지속시간으로 상태 타이머
-			m_state = TREE_IDLE; 
+			m_state = TreeState::TREE_IDLE;
 			m_hitAnimTimer = 0.0f; 
 		}
 	}
@@ -61,10 +59,10 @@ void Tree::OnInteraction(GameObject* obj)
 void Tree::Damaged(int damage)
 {
 	m_hp -= damage;
-	m_state = TREE_CHOP;
+	m_state = TreeState::TREE_CHOP;
 	
 	if (m_hp <= 0) {
-		m_state = TREE_FALL;
+		m_state = TreeState::TREE_FALL;
 		OutputDebugStringW(L"Tree: 나무가 쓰러졌습니다!\n");
 	}
 }

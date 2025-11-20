@@ -10,12 +10,11 @@ public:
     virtual void Init() override;
     virtual void OnInteraction(GameObject* obj) override;
 
-    virtual void RegisterAllAnimations() override;
     virtual void Damaged(int damage) override;
 
 private:
     // Boss Phase
     int m_bossPhase;
     float m_specialAttackCooldown;
-    std::wstring m_houndType; // "Red" or "Ice"
+    std::wstring m_houndType; 
 }; 

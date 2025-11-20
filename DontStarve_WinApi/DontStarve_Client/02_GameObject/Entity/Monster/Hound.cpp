@@ -3,8 +3,8 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
-#include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
+#include "../Player/Player.h"
 #include "Hound.h"
 
 Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
@@ -47,51 +47,51 @@ void Hound::OnInteraction(GameObject* obj)
 }
 
 // Unity Animator 스타일 애니메이션 등록
-void Hound::RegisterAllAnimations()
-{
-	// ResourceManager를 사용하여 리소스 로드
-	auto* pRM = ResourceManager::GetInstance();
-	
-	Animator* animator = GetComponent<Animator>();
-	if (!animator) return;
-	
-	// HOUND 애니메이션 등록
-	if (m_id == GOID_MONSTER_HOUNDDOG)
-	{
-		// IDLE 애니메이션들
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_down.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_up.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png"),
-			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		// ATTACK 애니메이션들
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_down.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_up.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png"),
-			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-	}
-	
-	OutputDebugStringW(L"Hound: Unity Animator 스타일로 모든 애니메이션 등록 완료\n");
-}
+//void Hound::RegisterAllAnimations()
+//{
+//	// ResourceManager를 사용하여 리소스 로드
+//	auto* pRM = ResourceManager::GetInstance();
+//	
+//	Animator* animator = GetComponent<Animator>();
+//	if (!animator) return;
+//	
+//	// HOUND 애니메이션 등록
+//	if (m_id == GOID_MONSTER_HOUNDDOG)
+//	{
+//		// IDLE 애니메이션들
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_down.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_up.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png"),
+//			120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		// ATTACK 애니메이션들
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_down.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_up.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png"),
+//			140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//	}
+//	
+//	OutputDebugStringW(L"Hound: Unity Animator 스타일로 모든 애니메이션 등록 완료\n");
+//}

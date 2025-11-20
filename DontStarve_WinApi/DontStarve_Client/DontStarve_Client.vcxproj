@@ -43,7 +43,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -144,6 +144,7 @@
     <ClInclude Include="01_Manager\SceneManager\TitleScene.h" />
     <ClInclude Include="01_Manager\StageManager\StageManager.h" />
     <ClInclude Include="02_GameObject\Building\Building.h" />
+    <ClInclude Include="02_GameObject\Component\Component.h" />
     <ClInclude Include="02_GameObject\Entity\Entity.h" />
     <ClInclude Include="02_GameObject\Item\Item.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Monster.h" />
@@ -194,6 +195,7 @@
     <ClCompile Include="01_Manager\SceneManager\SceneManager.cpp" />
     <ClCompile Include="01_Manager\SceneManager\TitleScene.cpp" />
     <ClCompile Include="02_GameObject\Building\Building.cpp" />
+    <ClCompile Include="02_GameObject\Component\Component.cpp" />
     <ClCompile Include="02_GameObject\Entity\Entity.cpp" />
     <ClCompile Include="02_GameObject\Item\Item.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Monster.cpp" />

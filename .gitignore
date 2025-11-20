@@ -19,7 +19,6 @@
 [Rr]elease/
 x64/
 x86/
-build/
 out/
 
 # --- Visual Studio IDE Files (개인 설정 및 캐시) ---

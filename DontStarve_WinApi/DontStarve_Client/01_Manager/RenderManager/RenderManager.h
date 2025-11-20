@@ -29,25 +29,24 @@ struct DrawCommand {
 	float thickness;                  // 선 두께
 
 	DrawCommand(Gdiplus::Bitmap* bmp, const Gdiplus::RectF& dest, const Gdiplus::RectF& src, Gdiplus::Unit unit, const Gdiplus::PointF& screenPos, RenderLayer l, float sk, Direction dir)
-		: type(DRAW_COMMAND_IMAGE), pBitmap(bmp), destRect(dest), sourceRect(src), srcUnit(unit), objectScreenPos(screenPos), layer(l), sortKey(sk), direction(dir),
+		: type(DrawCommandType::DRAW_COMMAND_IMAGE), pBitmap(bmp), destRect(dest), sourceRect(src), srcUnit(unit), objectScreenPos(screenPos), layer(l), sortKey(sk), direction(dir),
 		text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr) {}
 
 	DrawCommand(const std::wstring& t, Gdiplus::Font* f, Gdiplus::Brush* b, Gdiplus::StringFormat* sf, const Gdiplus::RectF& dest, RenderLayer l, float sk)
-		: type(DRAW_COMMAND_TEXT), pBitmap(nullptr), destRect(dest), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(dest.X, dest.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
+		: type(DrawCommandType::DRAW_COMMAND_TEXT), pBitmap(nullptr), destRect(dest), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(dest.X, dest.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
 		text(t), pFont(f), pBrush(b), pStringFormat(sf) {}
 
 	DrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& c, float t, RenderLayer l, float sk)
-		: type(DRAW_COMMAND_RECTANGLE), pBitmap(nullptr), destRect(rect), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(rect.X, rect.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
+		: type(DrawCommandType::DRAW_COMMAND_RECTANGLE), pBitmap(nullptr), destRect(rect), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(rect.X, rect.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
 		text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr), color(c), thickness(t) {}
 
 	DrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& c, RenderLayer l, float sk, bool isFill = true)
-		: type(DRAW_COMMAND_FILL_RECTANGLE), pBitmap(nullptr), destRect(rect), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(rect.X, rect.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
+		: type(DrawCommandType::DRAW_COMMAND_FILL_RECTANGLE), pBitmap(nullptr), destRect(rect), sourceRect(0, 0, 0, 0), srcUnit(Gdiplus::UnitPixel), objectScreenPos(rect.X, rect.Y), layer(l), sortKey(sk), direction(DIR_DOWN),
 		text(L""), pFont(nullptr), pBrush(nullptr), pStringFormat(nullptr), color(c), thickness(0.0f) {}
 };
 
 // Forward declarations
 class GameObject;
-class Player;
 
 class RenderManager : public CSingleTon<RenderManager>
 {
@@ -86,7 +85,7 @@ public:
 	// 타일 렌더링
 	void RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height);
 
-	// 카메라에 보이는 객체만 렌더 (ViewportManager 활용)
+	// 카메라에 보이는 객체만 렌더
 	void RenderVisibleGameObjects();
 
 	void Clear();

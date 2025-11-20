@@ -23,7 +23,7 @@ Ingredient::~Ingredient()
 
 void Ingredient::Init()
 {
-	SetInteractive(true); // Ingredient는 상호작용 가능
+	SetInteractive(true);
 }
 
 void Ingredient::LateInit()
@@ -43,10 +43,9 @@ void Ingredient::Release()
 }
 
 
-void Ingredient::OnPlayerInteraction(Player* player) 
+void Ingredient::OnInteraction(GameObject* obj)
 {
     if (GetActive()) {
-        player->OnInteraction(this); 
-        // 플레이어가 이 Ingredient를 인벤토리에서하도록 요청
+        obj->OnInteraction(this);
     }
 }

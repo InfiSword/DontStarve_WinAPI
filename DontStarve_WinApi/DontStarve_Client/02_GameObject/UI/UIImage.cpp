@@ -32,7 +32,7 @@ void UIImage::Update(float deltaTime)
 	// UIImage는 정적이므로 특별한 업데이트 없음
 }
 
-void UIImage::Render(Gdiplus::Graphics* pGraphics)
+void UIImage::Render()
 {
     if (!GetActive() || !m_bitmap) return;
 

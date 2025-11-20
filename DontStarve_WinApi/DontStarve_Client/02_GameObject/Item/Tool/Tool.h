@@ -1,7 +1,8 @@
 #pragma once
 #include "../Item.h"
 
-class Tool : public Item {
+class Tool : public Item 
+{
 protected: 
     float m_durability; 
     float m_maxDurability; 
@@ -11,7 +12,6 @@ public:
 
     Tool(UINT id, const std::wstring& name, const std::wstring& desc, const std::wstring& imagePath, float maxDurability = 100.0f, float effectiveness = 1.0f);
     virtual ~Tool();
-
 
     float GetDurability() const { return m_durability; }
     float GetMaxDurability() const { return m_maxDurability; }

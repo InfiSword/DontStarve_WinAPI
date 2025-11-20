@@ -1,7 +1,7 @@
 #pragma once
 #include "../Entity.h"
 
-class Sapling : public Entity<GrassState>
+class Sapling : public Entity
 {
 public:
     Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
@@ -14,9 +14,7 @@ public:
     virtual void Release() override;
 
     virtual void OnInteraction(GameObject* obj) override;
-
-    virtual void RegisterAllAnimations() override {}
-    virtual void UpdateAnimatorState() override {}
+    virtual void Damaged(int damage) override;
 
     virtual GameObjectID GetDropItemID() const override { return m_dropItemID; }
     virtual int GetDropItemCount() const override { return m_dropItemCount; }
@@ -24,5 +22,6 @@ public:
 
 private:
     GameObjectID m_dropItemID;  
-    int m_dropItemCount;        
+    int m_dropItemCount;   
+    GrassState m_state;
 };

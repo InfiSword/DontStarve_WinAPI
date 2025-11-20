@@ -7,19 +7,13 @@
 #include "../../01_Manager/ColliderManager/ColliderManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
-
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
+
 #include "../../03_Animation/AnimationClip.h"
 #include "../../03_Animation/SpriteSheet.h"
 #include "../../02_GameObject/UI/Inventory.h"
-#include "../../02_GameObject/GameObject/Ingredient.h"
-#include "../../02_GameObject/GameObject/Grass.h"
-#include "../../02_GameObject/GameObject/BerryBush.h"
-#include "../../02_GameObject/GameObject/Sapling.h"
-#include "../../02_GameObject/GameObject/Tree.h"
-#include "../../02_GameObject/GameObject/Rock.h"
-#include "../../02_GameObject/Tool/Axe/Axe.h"
-#include "../../02_GameObject/Tool/Tool.h"
+#include "../../Item/Ingredient.h"
+#include "../../Item/Tool/Tool.h"
 
 namespace {
 	constexpr float PLAYER_INTERACTION_SORT_OFFSET = 0.5f;
@@ -28,7 +22,7 @@ namespace {
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, resourcePath, imageName), 
 	  hp(100), maxHp(100), m_playerSpeed(300.f), m_stopThreshold(10), 
-	  m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr), m_currentInteractionTarget(nullptr)
+	  m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr), m_currentInteractionTarget(nullptr), m_state(PlayerState::IDLE), isMoveToGoal(false)
 {
 }
 
@@ -38,20 +32,17 @@ void Player::Init()
 {
 	SetActive(true);
 	SetInteractive(true); // Player는 상호작용 활성화
-	m_direction = DIR_DOWN;
-	m_state = PlayerState::IDLE;
-	isMoveToGoal = false;		
 
 	// Unity 스타일: Animator 컴포넌트 추가
 	Animator* animator = AddComponent<Animator>();
 	m_inventory = new Inventory();
 
 	// Unity Animator 스타일 - 이벤트 콜백 설정
-	if (animator) {
+	/*if (animator) {
 		animator->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 			this->OnAnimationEvent(frameIndex, eventName);
 		});
-	}
+	}*/
 	
 	RegisterAllAnimations(); // Unity Animator 스타일 애니메이션 등록
 	UpdateAnimatorState(); // 초기 상태 설정
@@ -125,26 +116,32 @@ void Player::ToggleEquipItem(int slotIndex)
 	}
 }
 
-void Player::OnAnimationEvent(int frameIndex, const std::wstring& eventName)
+void Player::Damaged(int damage)
 {
-	if (eventName == L"chop_hit") {
-		if (m_state == PlayerState::CHOP && m_currentInteractionTarget) {
-			// 나무 타입의 오브젝트 ID를 확인
-			GameObjectID objID = m_currentInteractionTarget->GetID();
-			if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
-				// 도구를 장착했고 파손되지 않았으면 사용
-				std::shared_ptr<Axe> equippedAxe = dynamic_pointer_cast<Axe>(m_equippedItem);
-				if (equippedAxe && !equippedAxe->IsBroken()) {
-					// Tree의 상태를 변경하기 위해서는 캐릭터가 필요 (나중 구현)
-					Tree* tree = dynamic_cast<Tree*>(m_currentInteractionTarget);
-					if (tree) {
-						equippedAxe->ChopTree(tree); // Axe::ChopTree가 Tree::TakeDamage 호출
-					}
-				}
-			}
-		}
-	}
 }
+
+// TODO:
+// 애니메이션 시트 단위로 이벤트 설정
+//void Player::OnAnimationEvent(int frameIndex, const std::wstring& eventName)
+//{
+//	if (eventName == L"chop_hit") {
+//		if (m_state == PlayerState::CHOP && m_currentInteractionTarget) {
+//			// 나무 타입의 오브젝트 ID를 확인
+//			GameObjectID objID = m_currentInteractionTarget->GetID();
+//			if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
+//				// 도구를 장착했고 파손되지 않았으면 사용
+//				std::shared_ptr<Axe> equippedAxe = dynamic_pointer_cast<Axe>(m_equippedItem);
+//				if (equippedAxe && !equippedAxe->IsBroken()) {
+//					// Tree의 상태를 변경하기 위해서는 캐릭터가 필요 (나중 구현)
+//					Tree* tree = dynamic_cast<Tree*>(m_currentInteractionTarget);
+//					if (tree) {
+//						equippedAxe->ChopTree(tree); // Axe::ChopTree가 Tree::TakeDamage 호출
+//					}
+//				}
+//			}
+//		}
+//	}
+//}
 
 void Player::RegisterAllAnimations() {
     OutputDebugStringW(L"Player: RegisterAllAnimations 시작\n");
@@ -403,7 +400,7 @@ void Player::FinalizeInteraction() {
 	else if (objType == GOBJ_NATURAL_ENVIR) {
 		// 자연 환경 오브젝트 처리 (BerryBush, Grass, Sapling)
 		// Entity의 가상 함수를 사용하여 드롭 아이템 정보 가져오기
-		Entity<GrassState>* entity = dynamic_cast<Entity<GrassState>*>(m_currentInteractionTarget);
+		Entity* entity = dynamic_cast<Entity*>(m_currentInteractionTarget);
 		if (entity) {
 			GameObjectID itemID = entity->GetDropItemID();
 			int itemCount = entity->GetDropItemCount();
@@ -487,17 +484,6 @@ void Player::Release() {
 	}
 }
 
-Gdiplus::Bitmap* Player::GetBitmap() const
-{
-    if (!m_bitmap) {
-		OutputDebugStringW(L"Player: GetBitmap - m_bitmap이 null입니다.\n");
-		return nullptr;
-	}
-    
-    OutputDebugStringW(L"Player: GetBitmap - 현재 비트맵 반환 완료\n");
-    return m_bitmap;
-}
-
 void Player::HandleClickInteraction(float worldX, float worldY)
 {
 	// ObjectManager에서 클릭한 위치의 오브젝트 찾기
@@ -570,22 +556,23 @@ void Player::HandleMovement()
 	}
 }
 
-float Player::GetSortKey(RenderLayer layer) const
-{
-	float baseKey = GameObject::GetSortKey(layer);
 
-	if (!IsInteracting()) {
-		return baseKey;
-	}
-
-	GameObject* target = GetInteractionTarget();
-	if (!target || !target->GetActive()) {
-		return baseKey;
-	}
-
-	RenderLayer interactionLayer = target->GetRenderLayer();
-	float interactionKey = static_cast<float>(interactionLayer) + target->GetY();
-	float adjustedKey = interactionKey + PLAYER_INTERACTION_SORT_OFFSET;
-
-	return (adjustedKey < baseKey) ? adjustedKey : baseKey;
-}
+//float Player::GetSortKey(RenderLayer layer) const
+//{
+//	float baseKey = GameObject::GetSortKey(layer);
+//
+//	if (!IsInteracting()) {
+//		return baseKey;
+//	}
+//
+//	GameObject* target = GetInteractionTarget();
+//	if (!target || !target->GetActive()) {
+//		return baseKey;
+//	}
+//
+//	RenderLayer interactionLayer = target->GetRenderLayer();
+//	float interactionKey = static_cast<float>(interactionLayer) + target->GetY();
+//	float adjustedKey = interactionKey + PLAYER_INTERACTION_SORT_OFFSET;
+//
+//	return (adjustedKey < baseKey) ? adjustedKey : baseKey;
+//}

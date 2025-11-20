@@ -7,10 +7,10 @@ class GameObject
 protected:
     float m_x, m_y;
     float m_width, m_height;	    // 비트맵(스프라이트시트) 크기
-	GameObjectID m_id;
-	GameObjectType m_type;
-	RenderLayer m_layer;
-	Direction m_direction;
+	GameObjectID m_id;				// 오브젝트 아이디
+	GameObjectType m_type;			// 오브젝트 타입
+	RenderLayer m_layer;			// 레이어
+	Direction m_direction;			// 오브젝트 방향
 
 	std::wstring m_name;		// 해당 게임 오브젝트 이름
     std::wstring resourcePath;	// 해당 리소스 경로
@@ -28,25 +28,24 @@ protected:
 	bool m_isInteractive;
 
 public:
-    GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    
+	GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
  
 	virtual ~GameObject();
 
 	virtual void Init();
 	virtual void LateInit();
-	virtual void Update(float deltaTime); // 이동 등
+	virtual void Update(float deltaTime); 
 	virtual void LateUpdate();
 	virtual void Release();
 
 	virtual void OnInteraction(GameObject* obj);
 	
-	// 비트맵 로드 - 하위 클래스에서 override 가능
+	// 비트맵 로드
 	virtual void LoadBitmap();
 	
     template <typename T>
     T* AddComponent() {
-        // Unity 스타일: 컴포넌트를 동적으로 추가
-        // 중복 허용 (Unity와 동일한 방식)
         T* newComponent = new T(this);
         m_components.push_back(newComponent);
         newComponent->Init();
@@ -65,14 +64,11 @@ public:
     }
 
 	// Getters
-	Gdiplus::Bitmap* GetBitmap() const { return m_bitmap; }
-
 	virtual Gdiplus::RectF GetWorldBoundingBox() const { return Gdiplus::RectF(m_x - m_width * m_pivotX, m_y - m_height * m_pivotY, m_width, m_height); }
-
-	RenderLayer GetRenderLayer() const { return m_layer; }
-
 	virtual float GetSortKey(RenderLayer layer) const { return static_cast<float>(layer) + m_y; }
-
+	
+	Gdiplus::Bitmap* GetBitmap() const { return m_bitmap; }
+	RenderLayer GetRenderLayer() const { return m_layer; }
 	std::wstring GetImageName() const { return imageName; }
 	GameObjectID GetID() const { return m_id; }
 	GameObjectType GetType() const { return m_type; }

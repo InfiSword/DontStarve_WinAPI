@@ -7,18 +7,7 @@
 #include "../RenderManager/RenderManager.h"
 #include "../InventoryManager/InventoryManager.h"
 #include "../ResourceManager/ResourceManager.h"
-#include "../../02_GameObject/Player/Player.h"
-#include "../../02_GameObject/GameObject/GameObject.h"
-#include "../../02_GameObject/GameObject/Item.h"
-#include "../../02_GameObject/GameObject/Building.h"
-#include "../../02_GameObject/GameObject/Monster.h"
-#include "../../02_GameObject/GameObject/Tree.h"
-#include "../../02_GameObject/GameObject/Rock.h"
-#include "../../02_GameObject/GameObject/Grass.h"
-//#include "../../02_GameObject/GameObject/Sapling.h"
-//#include "../../02_GameObject/GameObject/BerryBush.h"
-//#include "../../02_GameObject/GameObject/SpiderEgg.h"
-#include "../../02_GameObject/GameObject/PigHouse.h"
+#include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
 
@@ -331,26 +320,12 @@ void GameScene::LoadGameProgress()
 void GameScene::InitializeManagers()
 {
 	// GameScene에서는 게임에 필요한 모든 매니저들을 초기화
-	// 단, 이미 초기화된 매니저들은 건너뛰고 필요한 것만 초기화
-	// UIManager는 ClearAllUI()를 호출하므로 게임 씬에 맞는 UI만 남기도록 조정
 	UIManager::GetInstance()->Init();
-	
-	// InputManager는 이미 초기화되어 있을 수 있으므로 상태 확인 후 초기화
 	InputManager::GetInstance()->Init();
-	
-	// ObjectManager는 게임 오브젝트 관리를 위해 초기화
 	ObjectManager::GetInstance()->Init();
-	
-	// CameraManager는 게임 씬에서 카메라 제어를 위해 초기화
 	CameraManager::GetInstance()->Init();
-	
-	// RenderManager는 이미 초기화되어 있을 수 있으므로 상태 확인
 	RenderManager::GetInstance()->Init();
-	
-	// InventoryManager는 게임 씬에서 인벤토리 관리를 위해 초기화
 	InventoryManager::GetInstance()->Init();
-	
-	// ResourceManager는 리소스 로딩을 위해 초기화
 	ResourceManager::GetInstance()->Init();
 }
 

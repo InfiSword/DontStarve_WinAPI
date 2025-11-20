@@ -14,7 +14,8 @@ void Tool::Use(float durabilityCost)
 {
     ReduceDurability(durabilityCost); 
 
-    if (IsBroken()) {      
+    if (IsBroken()) {   
+
     }
 }
 

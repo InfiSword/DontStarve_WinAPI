@@ -1,7 +1,7 @@
 #pragma once
 #include "../Entity.h"
 
-class Tree : public Entity<TreeState> {
+class Tree : public Entity {
 public:
     Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
     virtual ~Tree();
@@ -15,14 +15,11 @@ public:
 
     virtual void OnInteraction(GameObject* obj) override;
 
-    // Entity 인터페이스 구현 (필수 오버라이드)
-    virtual void RegisterAllAnimations() override {}
-    virtual void UpdateAnimatorState() override {}
-
     virtual void Damaged(int damage) override;
     
-private:
+protected:
     std::wstring tree_Grade;
+    TreeState m_state;
     int m_hp;
     int maxHp;
     float m_hitAnimTimer;

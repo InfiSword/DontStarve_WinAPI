@@ -1,10 +1,10 @@
 #include "../../99_Default/pch.h"
 #include "Inventory.h"
-#include "../../02_GameObject/Player/Player.h"
+#include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../02_GameObject/GameObject/Item.h"
+#include "../../02_GameObject/Item/Item.h"
 
 Inventory::Inventory() : m_slots(INVENTORY_SLOT_COUNT) {
 	m_inventoryBgBitmap = nullptr;

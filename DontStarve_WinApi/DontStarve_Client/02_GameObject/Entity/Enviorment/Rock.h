@@ -1,7 +1,7 @@
 #pragma once
 #include "../Entity.h"
 
-class Rock : public Entity<RockState>
+class Rock : public Entity
 {
 public:
     Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
@@ -15,15 +15,12 @@ public:
 
     virtual void OnInteraction(GameObject* obj) override;
 
-    // Entity 인터페이스 구현 (필수 오버라이드)
-    virtual void RegisterAllAnimations() override {}
-    virtual void UpdateAnimatorState() override {}
-
     virtual void Damaged(int damage) override;
 
 private:
     int m_hp;
     int maxHp;
     float m_hitAnimTimer;
+    RockState m_state;
     
 }; 

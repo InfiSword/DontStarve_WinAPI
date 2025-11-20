@@ -46,143 +46,147 @@ void Spider::OnInteraction(GameObject* obj)
 	// 기본 상호작용
 }
 
-// Unity Animator 스타일 애니메이션 등록
-void Spider::RegisterAllAnimations()
+void Spider::Damaged(int damage)
 {
-	// ResourceManager를 사용하여 리소스 로드
-	auto* pRM = ResourceManager::GetInstance();
-	
-	// SPIDER 애니메이션 등록
-	Animator* animator = GetComponent<Animator>();
-	if (!animator) return;
-	
-	if (m_id == GOID_MONSTER_SPIDER)
-	{
-		// IDLE 애니메이션들
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
-			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
-			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
-			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
-			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-		
-		// WALK 애니메이션들
-		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_down.png"),
-			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_up.png"),
-			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png"),
-			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png"),
-			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		// ATTACK 애니메이션들
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_down.png"),
-			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_up.png"),
-			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png"),
-			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png"),
-			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		// HIT 애니메이션
-		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_hit.png"),
-			80, 80, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
-		
-		// DEATH 애니메이션
-		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_death.png"),
-			80, 80, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-	}
-	else if (m_id == GOID_MONSTER_WARRIOR_SPIDER)
-	{
-		// WARRIOR SPIDER 애니메이션들
-		// IDLE 애니메이션들
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
-			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
-			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
-			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
-			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-		
-		// WALK 애니메이션들
-		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_down.png"),
-			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_up.png"),
-			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png"),
-			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png"),
-			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-		
-		// ATTACK 애니메이션들
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_down.png"),
-			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_up.png"),
-			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png"),
-			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png"),
-			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-		
-		// HIT 애니메이션
-		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_hit.png"),
-			80, 80, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
-		
-		// DEATH 애니메이션
-		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
-			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_death.png"),
-			80, 80, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-	}
-	
-	OutputDebugStringW(L"Spider: Unity Animator 스타일로 모든 애니메이션 등록 완료\n");
 }
+
+// Unity Animator 스타일 애니메이션 등록
+//void Spider::RegisterAllAnimations()
+//{
+//	// ResourceManager를 사용하여 리소스 로드
+//	auto* pRM = ResourceManager::GetInstance();
+//	
+//	// SPIDER 애니메이션 등록
+//	Animator* animator = GetComponent<Animator>();
+//	if (!animator) return;
+//	
+//	if (m_id == GOID_MONSTER_SPIDER)
+//	{
+//		// IDLE 애니메이션들
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
+//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
+//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
+//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
+//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		// WALK 애니메이션들
+//		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_down.png"),
+//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_up.png"),
+//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png"),
+//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png"),
+//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		// ATTACK 애니메이션들
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_down.png"),
+//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_up.png"),
+//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png"),
+//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png"),
+//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		// HIT 애니메이션
+//		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_hit.png"),
+//			80, 80, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		// DEATH 애니메이션
+//		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_death.png"),
+//			80, 80, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//	}
+//	else if (m_id == GOID_MONSTER_WARRIOR_SPIDER)
+//	{
+//		// WARRIOR SPIDER 애니메이션들
+//		// IDLE 애니메이션들
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
+//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
+//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
+//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
+//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		// WALK 애니메이션들
+//		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_down.png"),
+//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_up.png"),
+//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png"),
+//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png"),
+//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+//		
+//		// ATTACK 애니메이션들
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_down.png"),
+//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_up.png"),
+//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png"),
+//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png"),
+//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		// HIT 애니메이션
+//		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_hit.png"),
+//			80, 80, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
+//		
+//		// DEATH 애니메이션
+//		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
+//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_death.png"),
+//			80, 80, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+//	}
+//	
+//	OutputDebugStringW(L"Spider: Unity Animator 스타일로 모든 애니메이션 등록 완료\n");
+//}

@@ -2,8 +2,18 @@
 #include "Entity.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 
+Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir, const std::wstring& resourcePath, const std::wstring& imageName)
+    :GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName)
+{
+
+}
+
+Entity::~Entity()
+{
+}
+
 // 방향 관련 유틸리티 함수들
-Direction GetOppositeDirection(Direction dir)
+Direction Entity::GetOppositeDirection(Direction dir)
 {
     switch (dir)
     {
@@ -16,14 +26,14 @@ Direction GetOppositeDirection(Direction dir)
 }
 
 // 거리 계산 유틸리티 함수들
-float CalculateDistance(float x1, float y1, float x2, float y2)
+float Entity::CalculateDistance(float x1, float y1, float x2, float y2)
 {
     float dx = x2 - x1;
     float dy = y2 - y1;
     return sqrtf(dx * dx + dy * dy);
 }
 
-Direction GetDirectionToTarget(float fromX, float fromY, float toX, float toY)
+Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, float toY)
 {
     float dx = toX - fromX;
     float dy = toY - fromY;
@@ -40,7 +50,7 @@ Direction GetDirectionToTarget(float fromX, float fromY, float toX, float toY)
 }
 
 // 화면 범위 확인 함수
-bool IsPositionInScreenBounds(float x, float y)
+bool Entity::IsPositionInScreenBounds(float x, float y)
 {
     // 화면 좌표로 변환하여 확인
     Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(x, y);
@@ -48,6 +58,3 @@ bool IsPositionInScreenBounds(float x, float y)
     return (screenPos.X >= 0 && screenPos.X <= WINCX && 
             screenPos.Y >= 0 && screenPos.Y <= WINCY);
 }
-
-
-

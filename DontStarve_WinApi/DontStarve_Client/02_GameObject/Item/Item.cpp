@@ -9,6 +9,7 @@ Item::Item(GameObjectType type, GameObjectID id, const std::wstring& name, const
     m_name = name;
     m_description = desc;
     m_bitmap=nullptr;
+
     LoadBitmap();
 
     Gdiplus::Bitmap* itemBmp = GetBitmap();

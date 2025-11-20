@@ -1,20 +1,10 @@
 #pragma once
-#include "../GameObject/GameObject.h"
-#include <functional>
-
-enum class ButtonState
-{
-    NORMAL,
-    HOVER,
-    CLICKED,
-    DISABLED
-};
+#include "../GameObject.h"
 
 class UIButton : public GameObject
 {
 private:
     ButtonState m_buttonState;
-    Gdiplus::Bitmap* m_normalBitmap;
     Gdiplus::Bitmap* m_hoverBitmap;
     bool m_isMouseOver;
     bool m_wasClicked;
@@ -32,26 +22,28 @@ public:
              const std::wstring& normalImagePath, const std::wstring& hoverImagePath, 
              const std::wstring buttonText = L"");
     virtual ~UIButton();
-
-    // GameObject 인터페이스 구현
+    
     virtual void Init() override {}
     virtual void LateInit() override {}
     virtual void Update(float deltaTime) override;
     virtual void LateUpdate() override {}
-    virtual void Render(Gdiplus::Graphics* pGraphics) override;
+    virtual void Render();
     virtual void Release() override;
+
+    Gdiplus::Bitmap* GetBitmap() const;
 
     // UIButton 전용 메소드
     void LoadBitmaps(const std::wstring& normalImagePath, const std::wstring& hoverImagePath);
     void InitializeText();
     void CheckMouseInteraction();
     bool IsPointInside(float x, float y) const;
-    Gdiplus::Bitmap* GetBitmap() const;
+    ButtonState GetButtonState() const;    
+
+    // 버튼 이벤트
     void SetOnClickCallback(std::function<void()> callback);
-    ButtonState GetButtonState() const;
     
     // 비활성화 관련 메소드
     void SetDisabled(bool disabled);
     bool IsDisabled() const { return m_isDisabled; }
-    void RenderDisabled(Gdiplus::Graphics* pGraphics);
+    void RenderDisabled();
 }; 
