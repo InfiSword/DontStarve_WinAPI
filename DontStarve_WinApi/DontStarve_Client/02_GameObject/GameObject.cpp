@@ -2,8 +2,11 @@
 #include "GameObject.h"
 #include "../01_Manager/ResourceManager/ResourceManager.h"
 
-GameObject::GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath, const std::wstring& imageName)
-	:m_type(type), m_id(id), m_x(x), m_y(y), m_pivotX(pivotX), m_pivotY(pivotY), m_direction(dir), m_width(0), m_height(0), resourcePath(resourcePath), imageName(imageName), m_isActive(true), m_layer(LAYER_WORLD_OBJECT)
+GameObject::GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+	const std::wstring& resourcePath, const std::wstring& imageName, bool isActive, bool isInteractive)
+	:m_type(type), m_id(id), m_x(x), m_y(y), m_pivotX(pivotX), m_pivotY(pivotY), m_direction(dir),
+	m_width(0), m_height(0), resourcePath(resourcePath), imageName(imageName),
+	m_isActive(isActive), m_layer(LAYER_WORLD_OBJECT), m_isInteractive(isInteractive)
 {
 	// 기본 이미지 GameObject에서만 기본 비트맵 로드
 	LoadBitmap();
@@ -64,9 +67,8 @@ void GameObject::OnInteraction(GameObject* obj)
 // 기본 LoadBitmap 구현 확인
 void GameObject::LoadBitmap()
 {
-	// 애니메이션을 사용하는 GameObject 타입에서는 기본 비트맵 로드를 건너뜀
-	if (m_type == GOBJ_PLAYER || m_type == GOBJ_NATURAL_ENVIR) {
-		OutputDebugStringW((L"GameObject: LoadBitmap 건너뜀 - 애니메이션 사용 객체 (ID: " + std::to_wstring(m_id) + L", Type: " + std::to_wstring(m_type) + L")\n").c_str());
+	if (m_type == GOBJ_PLAYER) {
+		OutputDebugStringW((L"GameObject: LoadBitmap 건너뜀 - 플레이어는 Animator 사용 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
 		return;
 	}
 	

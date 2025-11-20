@@ -3,8 +3,10 @@
 #include "../../01_Manager/InventoryManager/InventoryManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
-Item::Item(GameObjectType type, GameObjectID id, const std::wstring& name, const std::wstring& desc, const std::wstring resourcePath, const std::wstring& imagePath)
-    : GameObject(type, id, 0, 0, 0.5f, 0.5f, DIR_DOWN, resourcePath, imagePath)
+Item::Item(GameObjectType type, GameObjectID id, const std::wstring& name, const std::wstring& desc,
+	const std::wstring resourcePath, const std::wstring& imagePath,
+	float x, float y, float pivotX, float pivotY, Direction dir, bool isActive, bool isInteractive)
+    : GameObject(type, id, x, y, pivotX, pivotY, dir, resourcePath, imagePath, isActive, isInteractive)
 {
     m_name = name;
     m_description = desc;
@@ -28,28 +30,28 @@ void Item::LoadBitmap()
 {
 
     if (resourcePath.empty() || imageName.empty()) {
-        OutputDebugStringW((L"Item: LoadBitmap ½ÇÆÐ - °æ·Î³ª ÀÌ¹ÌÁö¸íÀÌ ºñ¾îÀÖÀ½ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+        OutputDebugStringW((L"Item: LoadBitmap ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Î³ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
         m_bitmap = nullptr;
         return;
     }
     
-    // ResourceManager¸¦ »ç¿ëÇÏ¿© °æ·Î ±¸¼º
+    // ResourceManagerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     auto* pRM = ResourceManager::GetInstance();
     std::wstring fullPath = pRM->BuildObjectResourcePath(m_id, L"", imageName);
     
-    OutputDebugStringW((L"Item: LoadBitmap - ÀüÃ¼ °æ·Î: " + fullPath + L"\n").c_str());
+    OutputDebugStringW((L"Item: LoadBitmap - ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½: " + fullPath + L"\n").c_str());
     
-    // ºñÆ®¸Ê ·Îµå
+    // ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Îµï¿½
     m_bitmap = new Gdiplus::Bitmap(fullPath.c_str());
     if (m_bitmap && m_bitmap->GetLastStatus() != Gdiplus::Ok) {
-        OutputDebugStringW((L"Item: LoadBitmap ½ÇÆÐ - ºñÆ®¸Ê »óÅÂ ¿À·ù (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+        OutputDebugStringW((L"Item: LoadBitmap ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
         delete m_bitmap;
         m_bitmap = nullptr;
     } else if (m_bitmap)
     {
-        OutputDebugStringW((L"Item: LoadBitmap ¼º°ø - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+        OutputDebugStringW((L"Item: LoadBitmap ï¿½ï¿½ï¿½ï¿½ - ID: " + std::to_wstring(m_id) + L"\n").c_str());
     } else {
-        OutputDebugStringW((L"Item: LoadBitmap ½ÇÆÐ - ºñÆ®¸Ê »ý¼º ½ÇÆÐ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+        OutputDebugStringW((L"Item: LoadBitmap ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ID: " + std::to_wstring(m_id) + L")\n").c_str());
     }
 }
 

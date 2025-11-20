@@ -4,9 +4,12 @@
 class Item : public GameObject
 {
 public:
-    Item(GameObjectType type, GameObjectID id, const std::wstring& name, const std::wstring& desc, const std::wstring resourcePath, const std::wstring& imagePath);
+    Item(GameObjectType type, GameObjectID id, const std::wstring& name, const std::wstring& desc,
+        const std::wstring resourcePath, const std::wstring& imagePath,
+        float x = 0.0f, float y = 0.0f, float pivotX = 0.5f, float pivotY = 0.5f,
+        Direction dir = DIR_DOWN, bool isActive = true, bool isInteractive = false);
     virtual ~Item(); 
 
 private:
-    void LoadBitmap();  // ºñÆ®¸Ê ·Îµå ÇÔ¼ö
+    void LoadBitmap();  // ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Îµï¿½ ï¿½Ô¼ï¿½
 };

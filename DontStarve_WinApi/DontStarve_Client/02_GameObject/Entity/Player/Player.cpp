@@ -1,17 +1,19 @@
-#include "../../99_Default/pch.h"
+#include "../../../99_Default/pch.h"
 #include "Player.h"
-#include "../../03_Animation/Animator.h"
-#include "../../01_Manager/InputManager/InputManager.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ObjectManager/ObjectManager.h"
-#include "../../01_Manager/ColliderManager/ColliderManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../01_Manager/RenderManager/RenderManager.h"
-#include "../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../../03_Animation/Animator.h"
+#include "../../../01_Manager/InputManager/InputManager.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../../01_Manager/ColliderManager/ColliderManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../01_Manager/RenderManager/RenderManager.h"
+#include "../../../01_Manager/ObjectManager/ObjectManager.h"
 
-#include "../../03_Animation/AnimationClip.h"
-#include "../../03_Animation/SpriteSheet.h"
-#include "../../02_GameObject/UI/Inventory.h"
+#include "../../../02_GameObject/UI/Inventory.h"
+
+#include "../../../03_Animation/AnimationClip.h"
+#include "../../../03_Animation/SpriteSheet.h"
+
 #include "../../Item/Ingredient.h"
 #include "../../Item/Tool/Tool.h"
 
@@ -20,7 +22,7 @@ namespace {
 }
 
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, resourcePath, imageName), 
+	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, resourcePath, imageName, true, true), 
 	  hp(100), maxHp(100), m_playerSpeed(300.f), m_stopThreshold(10), 
 	  m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr), m_currentInteractionTarget(nullptr), m_state(PlayerState::IDLE), isMoveToGoal(false)
 {
@@ -30,9 +32,6 @@ Player::~Player() { Release(); }
 
 void Player::Init()
 {
-	SetActive(true);
-	SetInteractive(true); // Player는 상호작용 활성화
-
 	// Unity 스타일: Animator 컴포넌트 추가
 	Animator* animator = AddComponent<Animator>();
 	m_inventory = new Inventory();

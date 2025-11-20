@@ -2,8 +2,9 @@
 #include "Entity.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 
-Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir, const std::wstring& resourcePath, const std::wstring& imageName)
-    :GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName)
+Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
+	const std::wstring& resourcePath, const std::wstring& imageName, bool isActive, bool isInteractive)
+    :GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, isActive, isInteractive)
 {
 
 }

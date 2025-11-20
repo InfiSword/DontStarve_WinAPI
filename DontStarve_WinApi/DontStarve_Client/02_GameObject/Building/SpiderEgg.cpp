@@ -21,9 +21,6 @@ SpiderEgg::~SpiderEgg()
 void SpiderEgg::Init()
 {
     OutputDebugStringW(L"SpiderEgg: Init 시작\n");
-    
-    SetActive(true);
-    SetInteractive(true);
     m_buildingState = BUILDING_NOON;
     m_direction = DIR_DOWN;
     

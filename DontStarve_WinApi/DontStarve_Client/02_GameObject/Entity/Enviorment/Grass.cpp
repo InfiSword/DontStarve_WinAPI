@@ -4,7 +4,7 @@
 #include "Grass.h"
 
 Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_state(GrassState::GRASS_IDLE)
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true), m_state(GrassState::GRASS_IDLE)
 {
 	m_dropItemID = GOID_ITEM_CUT_NORMAL_GRASS;
 	m_dropItemCount = 1;
@@ -14,13 +14,8 @@ Grass::~Grass() {}
 
 void Grass::Init()
 {
-	SetActive(true);
-	SetInteractive(true);
-	
-	// ÀÌ¹ÌÁö ·Îµå
-	LoadBitmap();
-	
-	// ºñÆ®¸Ê¿¡¼­ Å©±â °¡Á®¿À±â
+	// ë¹„íŠ¸ë§µì€ ìƒì„±ìì—ì„œ ì´ë¯¸ ë¡œë“œë¨
+	// ë¹„íŠ¸ë§µì˜ í¬ê¸° ì„¤ì • (ìƒì„±ìì—ì„œ ì„¤ì •í–ˆì§€ë§Œ, í˜¹ì‹œ ëª¨ë¥¼ ê²½ìš°ë¥¼ ëŒ€ë¹„í•´ ì¬ì„¤ì •)
 	if (m_bitmap) {
 		this->m_width = static_cast<float>(m_bitmap->GetWidth());
 		this->m_height = static_cast<float>(m_bitmap->GetHeight());
@@ -33,7 +28,7 @@ void Grass::LateInit()
 
 void Grass::Update(float deltaTime)
 {
-	// ÇÊ¿äÇÑ ¾÷µ¥ÀÌÆ® ·ÎÁ÷ÀÌ ÀÖ´Ù¸é ¿©±â¿¡ Ãß°¡
+	// í•„ìš” ì‹œ ì»´í¬ë„ŒíŠ¸ ì—…ë°ì´íŠ¸ ë¡œì§ì„ ì—¬ê¸°ì— ì¶”ê°€
 }
 
 void Grass::LateUpdate()
@@ -42,12 +37,12 @@ void Grass::LateUpdate()
 
 void Grass::Release()
 {
-	// ÇÊ¿äÇÑ Á¤¸® ÀÛ¾÷
+	// í•„ìš”í•œ ì •ë¦¬ ì‘ì—… ìˆ˜í–‰
 }
 
 void Grass::OnInteraction(GameObject* obj)
 {
-	// ±âº» »óÈ£ÀÛ¿ë
+	// ê¸°ë³¸ ìƒí˜¸ì‘ìš© ì²˜ë¦¬
 }
 
 void Grass::SetDropItem(GameObjectID itemID, int count)

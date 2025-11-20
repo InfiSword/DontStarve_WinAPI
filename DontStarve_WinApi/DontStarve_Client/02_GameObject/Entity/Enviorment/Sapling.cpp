@@ -4,7 +4,7 @@
 #include "Sapling.h"
 
 Sapling::Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_state(GrassState::GRASS_IDLE)
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true), m_state(GrassState::GRASS_IDLE)
 {
 	m_dropItemID = GOID_ITEM_NORMAL_TWIGS;
 	m_dropItemCount = 1;
@@ -14,13 +14,10 @@ Sapling::~Sapling() {}
 
 void Sapling::Init()
 {
-	SetActive(true);
-	SetInteractive(true);
-
-	// ÀÌ¹ÌÁö ·Îµå
+	// ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½Îµï¿½
 	LoadBitmap();
 	
-	// ºñÆ®¸Ê¿¡¼­ Å©±â °¡Á®¿À±â
+	// ï¿½ï¿½Æ®ï¿½Ê¿ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (m_bitmap) {
 		this->m_width = static_cast<float>(m_bitmap->GetWidth());
 		this->m_height = static_cast<float>(m_bitmap->GetHeight());
@@ -33,7 +30,7 @@ void Sapling::LateInit()
 
 void Sapling::Update(float deltaTime)
 {
-	// ÇÊ¿äÇÑ ¾÷µ¥ÀÌÆ® ·ÎÁ÷ÀÌ ÀÖ´Ù¸é ¿©±â¿¡ Ãß°¡
+	// ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½ß°ï¿½
 }
 
 void Sapling::LateUpdate()
@@ -42,7 +39,7 @@ void Sapling::LateUpdate()
 
 void Sapling::Release()
 {
-	// ÇÊ¿äÇÑ Á¤¸® ÀÛ¾÷
+	// ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½
 }
 
 void Sapling::OnInteraction(GameObject* obj)

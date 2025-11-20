@@ -1,131 +1,69 @@
-﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(499,5): warning MSB8004: Output 디렉터리가 슬래시로 끝나지 않습니다. Output 디렉터리의 적절한 평가를 허용하는 데 필요하므로 이 빌드 인스턴스에서 슬래시를 추가합니다.
-  DontStarve_MainGame.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ResourceManager\ResourceManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-  CameraManager.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ResourceManager\ResourceManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(517,5): warning MSB8004: Output 디렉터리가 슬래시로 끝나지 않습니다. Output 디렉터리의 적절한 평가를 허용하는 데 필요하므로 이 빌드 인스턴스에서 슬래시를 추가합니다.
+  UIManager.cpp
   InventoryManager.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-  ObjectManager.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ResourceManager\ResourceManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Building\SpiderEgg.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(269,32): error C2440: '초기화 중': 'ObjectManager::InitializeFactories::<lambda_dfe005476c98d11a5033d65e5f4fc7ab>'에서 'GameObject *'(으)로 변환할 수 없습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(269,32): message : 이 변환을 수행할 수 있는 사용 가능한 사용자 정의 변환 연산자가 없거나 연산자를 호출할 수 없습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(273,66): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(273,66): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(274,71): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(274,71): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(275,67): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(275,67): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(276,64): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(276,64): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(277,70): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(277,70): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(278,59): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(278,59): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(279,71): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(279,71): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(280,59): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(280,59): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(281,60): error C2679: 이항 '=': 오른쪽 피연산자로 'GameObject *' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1108,15): message : 'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::nullptr_t) noexcept'일 수 있습니다.
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1083,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &&) noexcept'
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\functional(1067,15): message : 또는       'std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>::operator =(const std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)> &)'
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(281,60): message : 인수 목록 '(std::function<GameObject *(GameObjectID,float,float,const GameObjectData *)>, GameObject *)'을(를) 일치시키는 동안
-  RenderManager.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(242,25): warning C4101: 'originalGraphicsState' :참조되지 않은 지역 변수입니다.
+  ResourceManager.cpp
+  CharacterSelectScene.cpp
   GameScene.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ResourceManager\ResourceManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
   SceneManager.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ResourceManager\ResourceManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-  Player.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ResourceManager\ResourceManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(53,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(54,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(372,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(373,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  Ingredient.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ResourceManager\ResourceManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-  Inventory.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\GameObject.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Component.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ResourceManager\ResourceManager.h(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+  TitleScene.cpp
+  Building.cpp
+  Component.cpp
+  Entity.cpp
+  Item.cpp
+  Monster.cpp
+  Rock.cpp
+  Tree.cpp
+  Axe.cpp
+  Tool.cpp
+  UIButton.cpp
+  UIImage.cpp
+  AnimationClip.cpp
+  Animator.cpp
   코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
+  SpriteSheet.cpp
+  Client.cpp
+  pch.cpp
+  DontStarve_MainGame.cpp
+  TimeManager.cpp
+  InputManager.cpp
+  CameraManager.cpp
+  GameObject.cpp
+  ObjectManager.cpp
+  ColliderManager.cpp
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(44,144): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(44,113): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(45,149): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(45,117): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(82,98): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(82,85): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  GraphicsManager.cpp
+  Player.cpp
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(52,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(53,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(371,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(372,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Ingredient.cpp
+  Grass.cpp
+  RenderManager.cpp
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(242,25): warning C4101: 'originalGraphicsState' :참조되지 않은 지역 변수입니다.
+  PigHouse.cpp
+  Inventory.cpp
+  BerryBush.cpp
+  Sapling.cpp
+  Boss_Hound.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
+  Boss_SpiderQueen.cpp
+  Hound.cpp
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Hound.cpp(29,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Hound.cpp(30,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Pig.cpp
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Pig.cpp(29,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Pig.cpp(30,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Spider.cpp
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Spider.cpp(29,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Spider.cpp(30,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  SpiderEgg.cpp
+  코드를 생성하고 있습니다...
+  DontStarve_Client.vcxproj -> E:\Project\DontStarve_WinAPI\DontStarve_WinApi\Build\DontStarve_Client.exe

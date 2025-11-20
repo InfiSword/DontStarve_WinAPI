@@ -10,11 +10,8 @@
 #include "Ingredient.h"
 
 Ingredient::Ingredient(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-    : Item(GOBJ_ITEM, id, L"Ingredient", L"An ingredient item", resourcePath, imageName)
+    : Item(GOBJ_ITEM, id, L"Ingredient", L"An ingredient item", resourcePath, imageName, x, y, pivotX, pivotY, DIR_DOWN, true, true)
 {
-    SetPosition(x, y);
-    SetPivot(pivotX, pivotY);
-    SetActive(true);
 }
 
 Ingredient::~Ingredient()
@@ -23,7 +20,6 @@ Ingredient::~Ingredient()
 
 void Ingredient::Init()
 {
-	SetInteractive(true);
 }
 
 void Ingredient::LateInit()

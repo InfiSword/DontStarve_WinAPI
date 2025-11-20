@@ -4,7 +4,7 @@
 #include "BerryBush.h"
 
 BerryBush::BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_state(GrassState::GRASS_IDLE)
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true), m_state(GrassState::GRASS_IDLE)
 {
 	m_dropItemID = GOID_ITEM_BERRY;
 	m_dropItemCount = 1;
@@ -14,9 +14,6 @@ BerryBush::~BerryBush() {}
 
 void BerryBush::Init()
 {
-	SetActive(true);
-	SetInteractive(true);
-	
 	// 이미지 로드
 	LoadBitmap();
 	

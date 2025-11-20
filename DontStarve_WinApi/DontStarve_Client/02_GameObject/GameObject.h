@@ -29,7 +29,8 @@ protected:
 
 public:
     
-	GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+	GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+		const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", bool isActive = true, bool isInteractive = false);
  
 	virtual ~GameObject();
 
@@ -83,13 +84,10 @@ public:
 	float GetPivotY() const { return m_pivotY; }
 	Direction GetDir() const { return m_direction; }
 
-	// Setters
-	void SetPivot(float pivotX, float pivotY) { m_pivotX = pivotX; m_pivotY = pivotY; }
+	// 상태 제어
 	void SetActive(bool active) { m_isActive = active; }
-	void SetPosition(float x, float y) { m_x = x; m_y = y; }
 	
 	// 상호작용 관련 메서드들
-	void SetInteractive(bool interactive) { m_isInteractive = interactive; }
 	bool IsInteractive() const { return m_isInteractive; }
 	virtual bool CanInteract() const { return m_isActive && m_isInteractive; }
 };

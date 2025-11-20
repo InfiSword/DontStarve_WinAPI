@@ -6,7 +6,7 @@
 Building::Building(GameObjectID id, float x, float y, float pivotX, float pivotY, 
     Direction _dir, const std::wstring& resourcePath,
                    const std::wstring& imageName, int hp)
-    : Entity(GOBJ_BUILDING, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName),
+    : Entity(GOBJ_BUILDING, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, true, true),
       m_hp(hp), m_maxHp(hp), m_buildingState(BUILDING_NOON)
 {
 
@@ -18,14 +18,13 @@ Building::~Building()
 
 void Building::Init()
 {
-    SetActive(true);  
     m_buildingState = BUILDING_NOON;
     m_direction = DIR_DOWN;
     
-    // ÀÌ¹ÌÁö ·Îµå
+    // ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½Îµï¿½
     LoadBitmap();
     
-    // ºñÆ®¸Ê¿¡¼­ Å©±â °¡Á®¿À±â
+    // ï¿½ï¿½Æ®ï¿½Ê¿ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     if (m_bitmap) {
         this->m_width = static_cast<float>(m_bitmap->GetWidth());
         this->m_height = static_cast<float>(m_bitmap->GetHeight());
@@ -38,7 +37,7 @@ void Building::LateInit()
 
 void Building::Update(float deltaTime)
 {
-    // ÇÊ¿äÇÑ ¾÷µ¥ÀÌÆ® ·ÎÁ÷
+    // ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
 }
 
 void Building::LateUpdate()

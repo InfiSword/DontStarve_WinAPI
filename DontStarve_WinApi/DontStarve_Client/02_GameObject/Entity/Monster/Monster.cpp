@@ -1,10 +1,9 @@
-#include "../../99_Default/pch.h"
-#include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../03_Animation/Animator.h"
-#include "../../03_Animation/AnimationClip.h"
-#include "../../03_Animation/SpriteSheet.h"
-#include "../../../Header/Struct.h"
+#include "../../../99_Default/pch.h"
+#include  "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../03_Animation/Animator.h"
+#include "../../../03_Animation/AnimationClip.h"
+#include "../../../03_Animation/SpriteSheet.h"
 #include "Monster.h"
 
 Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
@@ -17,7 +16,6 @@ Monster::~Monster() {}
 
 void Monster::Init()
 {
-	//SetActive(true);
 	//AddComponent<Animator>();
 	//RegisterAllAnimations(); // Unity Animator 스타일
 	//UpdateAnimatorState(); // 초기 상태 설정

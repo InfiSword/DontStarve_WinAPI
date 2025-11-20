@@ -18,7 +18,6 @@ public:
 	virtual void LateUpdate() {}
 	virtual void Release() {}
 
-	// Getters / Setters
 	GameObject* GetOwner() const { return m_owner; }
 	
 	void SetEnable(bool enable) { m_enabled = enable; }

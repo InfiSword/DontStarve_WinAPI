@@ -9,7 +9,8 @@ protected:
 
 public:
     Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
-           const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+           const std::wstring& resourcePath = L"", const std::wstring& imageName = L"",
+           bool isActive = true, bool isInteractive = false);
     virtual ~Entity();
 
     // 데미지 처리
