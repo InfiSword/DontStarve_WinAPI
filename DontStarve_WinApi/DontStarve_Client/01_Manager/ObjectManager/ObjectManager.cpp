@@ -313,11 +313,6 @@ void ObjectManager::InitializeFactories()
 // ========================================
 // 팩토리 패턴: 게임오브젝트 생성 및 관리
 // ========================================
-// ObjectManager의 역할:
-// 1. 리소스 정보를 바탕으로 구체 클래스 인스턴스 생성 (팩토리)
-// 2. 생성된 GameObject를 관리 (생명주기)
-// ResourceManager는 리소스 정보만 제공 (데이터 저장소)
-// ========================================
 GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, const GameObjectData* resourceData)
 {
 	// ResourceManager에서 리소스 정보 가져오기
@@ -350,11 +345,6 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 
 // ========================================
 // 팩토리 패턴: 아이템 생성 함수
-// ========================================
-// ObjectManager의 역할:
-// 1. 리소스 정보를 바탕으로 구체 클래스 인스턴스 생성 (팩토리)
-// 2. shared_ptr로 자동 메모리 관리 (GameObject와 달리 직접 관리 안 함)
-// ResourceManager는 리소스 정보만 제공 (데이터 저장소)
 // ========================================
 std::shared_ptr<Item> ObjectManager::CreateItem(GameObjectID itemID)
 {

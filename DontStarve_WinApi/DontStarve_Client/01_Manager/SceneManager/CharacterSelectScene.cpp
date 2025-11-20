@@ -63,11 +63,11 @@ void CharacterSelectScene::InitializeCharacters()
 		L"Wilson",
 		L"../Resource/UI/wilson.png",
 		L"../Resource/UI/Willson_Character.png",
-		L"기본 캐릭터입니다.\n모든 상황에서 안정적으로 생존할 수 있는 균형잡힌 캐릭터입니다.",
+		L"기본 캐릭터입니다.\n모든 상황에서 안정적으로 생존할 수 있는\n 균형잡힌 캐릭터입니다.",
 		startX,
 		characterY,
 		GOID_PLAYER_WILSON,
-		true  // Wilson은 항상 해금됨
+		true  
 	);
 	
 	// Willow 캐릭터 추가 (불씨와 나무 클리어 시 해금)
@@ -171,9 +171,12 @@ void CharacterSelectScene::CreateUI()
 		L"선택"
 	);
 	
-	selectButton->SetOnClickCallback([this]() {
+	selectButton->SetOnClickCallback([this, selectButton]()
+	{
+		selectButton->SetDisabled(true);
 		this->OnSelectButtonClicked();
 	});
+
 	selectButton->SetActive(false);  // 초기에는 비활성화
 	UIManager::GetInstance()->AddUIButton(selectButton);
 
