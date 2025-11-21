@@ -151,7 +151,7 @@ void Player::RegisterAllAnimations() {
 	ResourceManager* pRM = ResourceManager::GetInstance();
     
     // IDLE 애니메이션들
-    std::wstring idleDownPath = pRM->BuildResourcePath(resourcePath, L"Idle", L"Wilson_Idle_Down.png");
+    std::wstring idleDownPath = pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Down.png");
 
     Animator* animator = GetComponent<Animator>();
     if (!animator) return;
@@ -163,67 +163,67 @@ void Player::RegisterAllAnimations() {
     OutputDebugStringW(L"Player: IDLE_DOWN 애니메이션 등록 완료\n");
         
     animator->RegisterAnimation(PlayerState::IDLE, DIR_UP,
-        pRM->BuildResourcePath(resourcePath, L"Idle", L"Wilson_Idle_Up.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Up.png"),
         128, 193, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
         
     animator->RegisterAnimation(PlayerState::IDLE, DIR_LEFT,
-        pRM->BuildResourcePath(resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
 		135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
         
     animator->RegisterAnimation(PlayerState::IDLE, DIR_RIGHT,
-        pRM->BuildResourcePath(resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
         135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
 
     // WALK 애니메이션들
     animator->RegisterAnimation(PlayerState::WALK, DIR_DOWN,
-        pRM->BuildResourcePath(resourcePath, L"Run", L"Wilson_Run_Down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Down.png"),
         139, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
         
     animator->RegisterAnimation(PlayerState::WALK, DIR_UP,
-        pRM->BuildResourcePath(resourcePath, L"Run", L"Wilson_Run_Up.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Up.png"),
         133, 231, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
         
     animator->RegisterAnimation(PlayerState::WALK, DIR_LEFT,
-        pRM->BuildResourcePath(resourcePath, L"Run", L"Wilson_Run_Side.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
         141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
         
     animator->RegisterAnimation(PlayerState::WALK, DIR_RIGHT,
-        pRM->BuildResourcePath(resourcePath, L"Run", L"Wilson_Run_Side.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
         141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
 
     // PICKUP 애니메이션들 (모든 방향에서 동일한 이미지 사용)
     animator->RegisterAnimation(PlayerState::PICKUP, DIR_DOWN,
-        pRM->BuildResourcePath(resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
         127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
         
     animator->RegisterAnimation(PlayerState::PICKUP, DIR_UP,
-        pRM->BuildResourcePath(resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
         127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
         
     animator->RegisterAnimation(PlayerState::PICKUP, DIR_LEFT,
-        pRM->BuildResourcePath(resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
         127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
         
     animator->RegisterAnimation(PlayerState::PICKUP, DIR_RIGHT,
-        pRM->BuildResourcePath(resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
         127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
 
     // CHOP 애니메이션 (이벤트 포함)
     std::map<int, std::wstring> chopEvents = {{4, L"chop_hit"}};
     animator->RegisterAnimation(PlayerState::CHOP, DIR_DOWN,
-        pRM->BuildResourcePath(resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
         284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
         
     animator->RegisterAnimation(PlayerState::CHOP, DIR_UP,
-        pRM->BuildResourcePath(resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
         284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
         
     animator->RegisterAnimation(PlayerState::CHOP, DIR_LEFT,
-        pRM->BuildResourcePath(resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
         284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
         
     animator->RegisterAnimation(PlayerState::CHOP, DIR_RIGHT,
-        pRM->BuildResourcePath(resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
+        pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
         284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
 }
 
@@ -237,7 +237,7 @@ void Player::UpdateAnimatorState() {
 	if (animator) {
 		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
 		if(spriteSheet != nullptr)
-			m_bitmap = spriteSheet->GetBitmap();
+			m_orignalBitmap = spriteSheet->GetBitmap();
 	}
 }
 

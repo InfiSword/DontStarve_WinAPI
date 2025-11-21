@@ -23,9 +23,9 @@ void PigHouse::Init()
     LoadBitmap();
     
     // ��Ʈ�ʿ��� ũ�� ��������
-    if (m_bitmap) {
-        this->m_width = static_cast<float>(m_bitmap->GetWidth());
-        this->m_height = static_cast<float>(m_bitmap->GetHeight());
+    if (m_orignalBitmap) {
+        this->m_width = static_cast<float>(m_orignalBitmap->GetWidth());
+        this->m_height = static_cast<float>(m_orignalBitmap->GetHeight());
     }
 }
 

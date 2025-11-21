@@ -195,7 +195,7 @@ void ObjectManager::InitializeFactories()
 {
 	// 플레이어 타입
 	m_gameObjectFactories[GOID_PLAYER_WILSON] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Player(x, y, id, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Player(x, y, id, data->objectAssetBaseDirectory, data->assetImageName);
 	};
 	m_gameObjectFactories[GOID_PLAYER_WILLOW] = m_gameObjectFactories[GOID_PLAYER_WILSON];
 	m_gameObjectFactories[GOID_PLAYER_WOLFGANG] = m_gameObjectFactories[GOID_PLAYER_WILSON];
@@ -218,15 +218,15 @@ void ObjectManager::InitializeFactories()
 	// 풀 타입 - 환경 오브젝트
 	m_gameObjectFactories[GOID_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new Grass(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+			data->objectAssetBaseDirectory, data->assetImageName);
 	};
 	m_gameObjectFactories[GOID_NORMAL_SAPLING] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new Sapling(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+			data->objectAssetBaseDirectory, data->assetImageName);
 	};
 	m_gameObjectFactories[GOID_BERRY_TREE] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new BerryBush(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+			data->objectAssetBaseDirectory, data->assetImageName);
 	};
 
 	// 몬스터 타입

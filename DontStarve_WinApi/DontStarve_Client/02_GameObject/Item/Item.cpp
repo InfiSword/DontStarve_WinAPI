@@ -10,7 +10,7 @@ Item::Item(GameObjectType type, GameObjectID id, const std::wstring& name, const
 {
     m_name = name;
     m_description = desc;
-    m_bitmap=nullptr;
+    m_orignalBitmap=nullptr;
 
     LoadBitmap();
 
@@ -29,25 +29,25 @@ Item::~Item()
 void Item::LoadBitmap()
 {
 
-    if (resourcePath.empty() || imageName.empty()) {
+    if (m_resourcePath.empty() || m_imageName.empty()) {
         OutputDebugStringW((L"Item: LoadBitmap ���� - ��γ� �̹������� ������� (ID: " + std::to_wstring(m_id) + L")\n").c_str());
-        m_bitmap = nullptr;
+        m_orignalBitmap = nullptr;
         return;
     }
     
     // ResourceManager�� ����Ͽ� ��� ����
     auto* pRM = ResourceManager::GetInstance();
-    std::wstring fullPath = pRM->BuildObjectResourcePath(m_id, L"", imageName);
+    std::wstring fullPath = pRM->BuildObjectResourcePath(m_id, L"", m_imageName);
     
     OutputDebugStringW((L"Item: LoadBitmap - ��ü ���: " + fullPath + L"\n").c_str());
     
     // ��Ʈ�� �ε�
-    m_bitmap = new Gdiplus::Bitmap(fullPath.c_str());
-    if (m_bitmap && m_bitmap->GetLastStatus() != Gdiplus::Ok) {
+    m_orignalBitmap = new Gdiplus::Bitmap(fullPath.c_str());
+    if (m_orignalBitmap && m_orignalBitmap->GetLastStatus() != Gdiplus::Ok) {
         OutputDebugStringW((L"Item: LoadBitmap ���� - ��Ʈ�� ���� ���� (ID: " + std::to_wstring(m_id) + L")\n").c_str());
-        delete m_bitmap;
-        m_bitmap = nullptr;
-    } else if (m_bitmap)
+        delete m_orignalBitmap;
+        m_orignalBitmap = nullptr;
+    } else if (m_orignalBitmap)
     {
         OutputDebugStringW((L"Item: LoadBitmap ���� - ID: " + std::to_wstring(m_id) + L"\n").c_str());
     } else {

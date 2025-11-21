@@ -12,7 +12,7 @@
 
 namespace EnumUtils {
 
-	// EnumNamePair ±¸Á¶Ã¼´Â ÀÌÀü°ú µ¿ÀÏ
+	// EnumNamePair : ì—´ê±°í˜•ê³¼ ë¬¸ìì—´ ì´ë¦„ì„ ë¬¶ëŠ” êµ¬ì¡°ì²´
 	template<typename EnumType>
 	struct EnumNamePair
 	{
@@ -20,14 +20,14 @@ namespace EnumUtils {
 		const WCHAR* name;
 	};
 
-	// EnumTraits ±âº» ÅÛÇÃ¸´ ¼±¾ğ
+	// EnumTraits ê¸°ë³¸ í…œí”Œë¦¿ ì„ ì–¸
 	template<typename T>
 	struct EnumTraits;
 
-	// EnumTraits Æ¯¼öÈ­ 
-	// ¹è¿­ Á¤ÀÇ´Â °¢ GetPairsArray() ÇÔ¼ö ³»ºÎ·Î ÀÌµ¿ÇÕ´Ï´Ù.
+	// EnumTraits íŠ¹ìˆ˜í™”
+	// ë°°ì—´ ëŒ€ì‹  std::vector ì‚¬ìš© â†’ GetPairsArray()ëŠ” vectorì˜ raw data ë°˜í™˜
 
-	// TileType Æ¯¼öÈ­
+	// TileType íŠ¹ìˆ˜í™”
 	template<> struct EnumTraits<TileType>
 	{
 		static const std::vector<EnumNamePair<TileType>>& GetPairsVector() {
@@ -41,10 +41,10 @@ namespace EnumUtils {
 			return pairs;
 		}
 		static size_t GetPairsSize() { return GetPairsVector().size(); }
-		static const EnumNamePair<TileType>* GetPairsArray() { return GetPairsVector().data(); } // vectorÀÇ raw data Æ÷ÀÎÅÍ ¹İÈ¯
+		static const EnumNamePair<TileType>* GetPairsArray() { return GetPairsVector().data(); }
 	};
 
-	// TileID Æ¯¼öÈ­
+	// TileID íŠ¹ìˆ˜í™”
 	template<> struct EnumTraits<TileID>
 	{
 		static const std::vector<EnumNamePair<TileID>>& GetPairsVector() {
@@ -69,18 +69,18 @@ namespace EnumUtils {
 		static const EnumNamePair<TileID>* GetPairsArray() { return GetPairsVector().data(); }
 	};
 
-	// GameObjectType Æ¯¼öÈ­
+	// GameObjectType íŠ¹ìˆ˜í™”
 	template<> struct EnumTraits<GameObjectType>
 	{
 		static const std::vector<EnumNamePair<GameObjectType>>& GetPairsVector() {
 			static const std::vector<EnumNamePair<GameObjectType>> pairs = {
-						{ GOBJ_NONE,        L"GOBJ_NONE" },
-		{ GOBJ_ITEM,        L"GOBJ_ITEM" },
-		{ GOBJ_NATURAL_ENVIR, L"GOBJ_NATURAL_ENVIR" },
-		{ GOBJ_MONSTER,     L"GOBJ_MONSTER" },
-		{ GOBJ_BUILDING,    L"GOBJ_BUILDING" },
-		{ GOBJ_UI,          L"GOBJ_UI" },
-		{ GOBJ_COUNT,       L"GOBJ_COUNT" }
+				{ GOBJ_NONE,        L"GOBJ_NONE" },
+				{ GOBJ_ITEM,        L"GOBJ_ITEM" },
+				{ GOBJ_NATURAL_ENVIR, L"GOBJ_NATURAL_ENVIR" },
+				{ GOBJ_MONSTER,     L"GOBJ_MONSTER" },
+				{ GOBJ_BUILDING,    L"GOBJ_BUILDING" },
+				{ GOBJ_UI,          L"GOBJ_UI" },
+				{ GOBJ_COUNT,       L"GOBJ_COUNT" }
 			};
 			return pairs;
 		}
@@ -88,7 +88,7 @@ namespace EnumUtils {
 		static const EnumNamePair<GameObjectType>* GetPairsArray() { return GetPairsVector().data(); }
 	};
 
-	// GameObjectID Æ¯¼öÈ­
+	// GameObjectID íŠ¹ìˆ˜í™”
 	template<> struct EnumTraits<GameObjectID>
 	{
 		static const std::vector<EnumNamePair<GameObjectID>>& GetPairsVector() {
@@ -127,8 +127,8 @@ namespace EnumUtils {
 				{ GOID_PLAYER_WILSON,            L"GOID_PLAYER_WILSON" },
 				{ GOID_PLAYER_WILLOW,            L"GOID_PLAYER_WILLOW" },
 				{ GOID_PLAYER_WOLFGANG,          L"GOID_PLAYER_WOLFGANG" },
-				{ GOID_PLAYER_INFO,				 L"GOID_PLAYER_INFO" },
-				{ GOID_PLAYER_PORTRAIT,			 L"GOID_PLAYER_PORTRAIT" },
+				{ GOID_PLAYER_INFO,              L"GOID_PLAYER_INFO" },
+				{ GOID_PLAYER_PORTRAIT,          L"GOID_PLAYER_PORTRAIT" },
 				{ GOID_MAIN_BG,                  L"GOID_MAIN_BG" },
 				{ GOID_GAME_LOGO,                L"GOID_GAME_LOGO" },
 				{ GOID_BUTTON1,                  L"GOID_BUTTON1" },
@@ -160,7 +160,8 @@ namespace EnumUtils {
 		const EnumNamePair<EnumType>* pairs = EnumTraits<EnumType>::GetPairsArray();
 		size_t size = EnumTraits<EnumType>::GetPairsSize();
 		for (size_t i = 0; i < size; ++i) {
-			if (std::wcscmp(pairs[i].name, name) == 0) { // wstring ºñ±³
+			// wstring ë¹„êµ
+			if (std::wcscmp(pairs[i].name, name) == 0) {
 				return pairs[i].value;
 			}
 		}
@@ -169,13 +170,15 @@ namespace EnumUtils {
 }
 
 
+// ====================== ìë£Œ êµ¬ì¡° =======================
+
 struct PaletteItem {
-	ItemCategory category;  // CATEGORY_TILE, CATEGORY_OBJECT
-	int typeId;             // TileType ¶Ç´Â GameObjectType 
-	UINT resourceId;        // ½ÇÁ¦ ¸®¼Ò½ºÀÇ ID (TileID ¶Ç´Â GameObjectID)
+	ItemCategory category;     // CATEGORY_TILE, CATEGORY_OBJECT
+	int typeId;                // TileType ë˜ëŠ” GameObjectType
+	UINT resourceId;           // ë¦¬ì†ŒìŠ¤ ID (TileID ë˜ëŠ” GameObjectID)
 
 	RECT displayRect;
-	Gdiplus::Bitmap* hBitmap; // ÆÈ·¹Æ® ¾ÆÀÌÄÜ ÀÌ¹ÌÁö
+	Gdiplus::Bitmap* hBitmap;  // ì•„ì´ì½˜ í‘œì‹œìš© ë¹„íŠ¸ë§µ
 	Gdiplus::RectF iconSourceRect;
 };
 
@@ -193,10 +196,9 @@ struct TileData
 		: type(TILE_NONE), id(TILEID_NONE), pAtlasBitmap(nullptr), sourceRect({ 0.0f, 0.0f, 0.0f, 0.0f })
 	{}
 
-	TileData(TileType _type, TileID _id, Gdiplus::Bitmap* _bitMap, Gdiplus::RectF _rect) : type(_type), id(_id), pAtlasBitmap(_bitMap), sourceRect(_rect)
-	{
-
-	}
+	TileData(TileType _type, TileID _id, Gdiplus::Bitmap* _bitMap, Gdiplus::RectF _rect)
+		: type(_type), id(_id), pAtlasBitmap(_bitMap), sourceRect(_rect)
+	{}
 };
 
 struct GameObjectData {
@@ -209,21 +211,23 @@ struct GameObjectData {
 
 	float pivotX;
 	float pivotY;
-	// ÇÇ¹ş ¼³Á¤
+	// í‘œì‹œ ê¸°ì¤€ì 
 
-	bool hasCollider = false; // Äİ¶óÀÌ´õ´Â ¿ÀºêÁ§Æ®ÀÇ ·ÎÄÃ ÁÂÇ¥°è ±âÁØ 
-	int colliderOffsetX = 0;  // Äİ¶óÀÌ´õÀÇ ¿ÀºêÁ§Æ® ±âÁØ X ¿ÀÇÁ¼Â
-	int colliderOffsetY = 0;  // Äİ¶óÀÌ´õÀÇ ¿ÀºêÁ§Æ® ±âÁØ Y ¿ÀÇÁ¼Â
-	int colliderWidth = 0;    // Äİ¶óÀÌ´õÀÇ ³Êºñ
-	int colliderHeight = 0;   // Äİ¶óÀÌ´õÀÇ ³ôÀÌ
+	bool hasCollider = false; // ì½œë¼ì´ë” ì‚¬ìš© ì—¬ë¶€
+	int colliderOffsetX = 0;  // ì½œë¼ì´ë” ì˜¤í”„ì…‹ X
+	int colliderOffsetY = 0;  // ì½œë¼ì´ë” ì˜¤í”„ì…‹ Y
+	int colliderWidth = 0;    // ì½œë¼ì´ë” ë„ˆë¹„
+	int colliderHeight = 0;   // ì½œë¼ì´ë” ë†’ì´
 
-	GameObjectData() : type(GOBJ_NONE), id(GOID_NONE), x(0), y(0), pivotX(0.5f), pivotY(1.0f) {}
+	GameObjectData()
+		: type(GOBJ_NONE), id(GOID_NONE), x(0), y(0), pivotX(0.5f), pivotY(1.0f)
+	{}
 
 	GameObjectData(GameObjectType type_val, GameObjectID id_val, float x_val, float y_val,
 		const std::wstring& objectAssetBaseDirectory_val, float pivotX_val, float pivotY_val,
 		bool hasCollider_val = false, int colliderOffsetX_val = 0, int colliderOffsetY_val = 0,
-		int colliderWidth_val = 0, int colliderHeight_val = 0
-	) : type(type_val), id(id_val), x(x_val), y(y_val), objectAssetBaseDirectory(objectAssetBaseDirectory_val),
+		int colliderWidth_val = 0, int colliderHeight_val = 0)
+		: type(type_val), id(id_val), x(x_val), y(y_val), objectAssetBaseDirectory(objectAssetBaseDirectory_val),
 		pivotX(pivotX_val), pivotY(pivotY_val), hasCollider(hasCollider_val), colliderOffsetX(colliderOffsetX_val),
 		colliderOffsetY(colliderOffsetY_val), colliderWidth(colliderWidth_val), colliderHeight(colliderHeight_val)
 	{}
@@ -237,8 +241,7 @@ struct ResourceVariant {
 
 	ResourceVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect)
 		: pAtlasBitmap(atlasBmp), sourceRect(srcRect)
-	{
-	}
+	{}
 };
 
 struct TileVariant : public ResourceVariant {
@@ -248,9 +251,11 @@ struct TileVariant : public ResourceVariant {
 	std::wstring baseDirectory;
 	std::wstring imageFileName;
 
-	TileVariant() : ResourceVariant(), type(TILE_NONE), id(TILEID_NONE), baseDirectory(L""), imageFileName(L"") {}
+	TileVariant()
+		: ResourceVariant(), type(TILE_NONE), id(TILEID_NONE), baseDirectory(L""), imageFileName(L"") {}
 
-	TileVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect, TileType type_val, TileID id_val,
+	TileVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect,
+		TileType type_val, TileID id_val,
 		const std::wstring& baseDir, const std::wstring& fileName)
 		: ResourceVariant(atlasBmp, srcRect), type(type_val), id(id_val),
 		baseDirectory(baseDir), imageFileName(fileName) {}
@@ -266,22 +271,27 @@ struct ObjectVariant : public ResourceVariant
 	float pivotX;
 	float pivotY;
 
-	ObjectVariant() : ResourceVariant(), type(GOBJ_NONE), id(GOID_NONE), objectAssetBaseDirectory(L""), editorDisplayFileName(L""), pivotX(0.5f), pivotY(1.0f) {}
+	ObjectVariant()
+		: ResourceVariant(), type(GOBJ_NONE), id(GOID_NONE), objectAssetBaseDirectory(L""), editorDisplayFileName(L""), pivotX(0.5f), pivotY(1.0f) {}
 
-	// resources.txt¿¡ pivotX,Y°¡ ¾ø´Â °æ¿ì (±âº» ÇÇ¹ş »ç¿ë)
-	ObjectVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect, GameObjectType type_val, GameObjectID id_val,
+	// resources.txtì— pivotX,Yê°€ ì—†ëŠ” ê²½ìš° (ê¸°ë³¸ ê¸°ì¤€ì )
+	ObjectVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect,
+		GameObjectType type_val, GameObjectID id_val,
 		const std::wstring& baseDir, const std::wstring& fileName)
 		: ResourceVariant(atlasBmp, srcRect), type(type_val), id(id_val),
 		objectAssetBaseDirectory(baseDir), editorDisplayFileName(fileName), pivotX(0.5f), pivotY(1.0f) {}
 
-	// resources.txt¿¡ pivotX,Y°¡ ÀÖ´Â °æ¿ì
-	ObjectVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect, GameObjectType type_val, GameObjectID id_val,
-		const std::wstring& baseDir, const std::wstring& fileName, float px, float py)
+	// resources.txtì— pivotX,Yê°€ ìˆëŠ” ê²½ìš°
+	ObjectVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect,
+		GameObjectType type_val, GameObjectID id_val,
+		const std::wstring& baseDir, const std::wstring& fileName,
+		float px, float py)
 		: ResourceVariant(atlasBmp, srcRect), type(type_val), id(id_val),
-		objectAssetBaseDirectory(baseDir), editorDisplayFileName(fileName), pivotX(px), pivotY(py) {}
+		objectAssetBaseDirectory(baseDir), editorDisplayFileName(fileName),
+		pivotX(px), pivotY(py) {}
 };
 
-// ÇÃ·¹ÀÌ¾î ½ºÆù À§Ä¡ Á¤º¸
+// í”Œë ˆì´ì–´ ìŠ¤í° ìœ„ì¹˜ ì •ë³´
 struct PlayerSpawnData {
 	float x, y;
 
@@ -289,154 +299,152 @@ struct PlayerSpawnData {
 	PlayerSpawnData(float _x, float _y) : x(_x), y(_y) {}
 };
 
-// °³º° ¸Ê µ¥ÀÌÅÍ ±¸Á¶Ã¼ (½ºÅ×ÀÌÁöº° ¸Ê Á¤º¸)
+// ë§µ ì „ì²´ ë°ì´í„°ë¥¼ ë‹´ëŠ” êµ¬ì¡°ì²´ (ì—ë””í„° ë˜ëŠ” ê²Œì„)
 struct MapData {
-	std::wstring mapName;        // ¸Ê ÀÌ¸§ (¿¹: "Stage1", "Forest")
-	std::wstring mapFilePath;    // .dsm ÆÄÀÏ °æ·Î
+	std::wstring mapName;        // ë§µ ì´ë¦„ (ì˜ˆ: "Stage1", "Forest")
+	std::wstring mapFilePath;    // .dsm íŒŒì¼ ê²½ë¡œ
 
 	int mapWidth;
 	int mapHeight;
-	PlayerSpawnData playerSpawn; // ÇÃ·¹ÀÌ¾î ½ºÆù À§Ä¡
+	PlayerSpawnData playerSpawn; // í”Œë ˆì´ì–´ ì‹œì‘ ìœ„ì¹˜
 
-	TileData tiles[MAP_WIDTH][MAP_HEIGHT];        // Å¸ÀÏ µ¥ÀÌÅÍ (TileData »ç¿ë)
-	std::vector<GameObjectData> gameObjects;      // °ÔÀÓ ¿ÀºêÁ§Æ® µ¥ÀÌÅÍ
-	bool walkableAreas[MAP_WIDTH][MAP_HEIGHT];    // ÀÌµ¿ °¡´É ¿µ¿ª
+	TileData tiles[MAP_WIDTH][MAP_HEIGHT];        // íƒ€ì¼ ë°ì´í„°
+	std::vector<GameObjectData> gameObjects;      // ê²Œì„ ì˜¤ë¸Œì íŠ¸ ëª©ë¡
+	bool walkableAreas[MAP_WIDTH][MAP_HEIGHT];    // ì´ë™ ê°€ëŠ¥ ì˜ì—­
 
-	MapData() : mapName(L""), mapFilePath(L""), mapWidth(MAP_WIDTH), mapHeight(MAP_HEIGHT) {
-		// Å¸ÀÏ°ú ÀÌµ¿ °¡´É ¿µ¿ª ÃÊ±âÈ­
-		for (int y = 0; y < MAP_HEIGHT; ++y) {
+	MapData()
+		: mapName(L""), mapFilePath(L""), mapWidth(MAP_WIDTH), mapHeight(MAP_HEIGHT)
+	{
+		for (int y = 0; y < MAP_HEIGHT; ++y)
 			for (int x = 0; x < MAP_WIDTH; ++x) {
 				tiles[x][y] = TileData();
 				walkableAreas[x][y] = true;
 			}
-		}
 	}
 
 	MapData(const std::wstring& name, const std::wstring& filePath)
-		: mapName(name), mapFilePath(filePath), mapWidth(MAP_WIDTH), mapHeight(MAP_HEIGHT) {
-		// Å¸ÀÏ°ú ÀÌµ¿ °¡´É ¿µ¿ª ÃÊ±âÈ­
-		for (int y = 0; y < MAP_HEIGHT; ++y) {
+		: mapName(name), mapFilePath(filePath), mapWidth(MAP_WIDTH), mapHeight(MAP_HEIGHT)
+	{
+		for (int y = 0; y < MAP_HEIGHT; ++y)
 			for (int x = 0; x < MAP_WIDTH; ++x) {
 				tiles[x][y] = TileData();
 				walkableAreas[x][y] = true;
 			}
-		}
 	}
 };
 
-// ¾À Å¬¸®¾î Á¤º¸ ±¸Á¶Ã¼ (SceneType ±â¹İ)
+// ì¥ë©´(ë§µ) í´ë¦¬ì–´ ì •ë³´ êµ¬ì¡°ì²´
 struct SceneClearInfo
 {
 	SceneType sceneType;
 	bool isCleared;
-	std::wstring clearDate;  // Å¬¸®¾î ³¯Â¥ (¼±ÅÃ»çÇ×)
+	std::wstring clearDate;  // í´ë¦¬ì–´ ë‚ ì§œ(ë¬¸ìì—´)
 
 	SceneClearInfo(SceneType type, bool cleared = false, const std::wstring& date = L"")
 		: sceneType(type), isCleared(cleared), clearDate(date) {}
 };
 
-// ¾À Å¬¸®¾î Á¶°Ç ±¸Á¶Ã¼
+// ì¥ë©´ í´ë¦¬ì–´ ì¡°ê±´ ì •ë³´ êµ¬ì¡°ì²´
 struct SceneClearCondition
 {
 	SceneType sceneType;
-	std::wstring conditionDescription;  // Å¬¸®¾î Á¶°Ç ¼³¸í
-	std::vector<GameObjectID> requiredKills;  // Ã³Ä¡ÇØ¾ß ÇÒ ¸ó½ºÅÍµé
-	std::vector<GameObjectID> requiredItems;  // ¼öÁıÇØ¾ß ÇÒ ¾ÆÀÌÅÛµé
-	int requiredItemCount;  // ÇÊ¿äÇÑ ¾ÆÀÌÅÛ °³¼ö
+	std::wstring conditionDescription;  // í´ë¦¬ì–´ ì¡°ê±´ ì„¤ëª…
+	std::vector<GameObjectID> requiredKills;   // ì²˜ì¹˜í•´ì•¼ í•˜ëŠ” ì˜¤ë¸Œì íŠ¸ ID
+	std::vector<GameObjectID> requiredItems;   // ëª¨ì•„ì•¼ í•˜ëŠ” ì•„ì´í…œ ID
+	int requiredItemCount;      // í•„ìš” ì•„ì´í…œ ìˆ˜ëŸ‰
 
 	SceneClearCondition(SceneType type, const std::wstring& desc,
 		const std::vector<GameObjectID>& kills = {},
 		const std::vector<GameObjectID>& items = {}, int count = 0)
-		: sceneType(type), conditionDescription(desc), requiredKills(kills),
-		requiredItems(items), requiredItemCount(count) {}
+		: sceneType(type), conditionDescription(desc),
+		requiredKills(kills), requiredItems(items), requiredItemCount(count) {}
 };
 
-// Ä³¸¯ÅÍ ÇØ±İ Á¤º¸ ±¸Á¶Ã¼ (SceneType ±â¹İ)
+// ìºë¦­í„° í•´ê¸ˆ ì •ë³´ êµ¬ì¡°ì²´
 struct CharacterUnlockInfo
 {
 	GameObjectID characterID;
 	bool isUnlocked;
-	SceneType requiredScene;  // ÇØ±İ¿¡ ÇÊ¿äÇÑ ¾À Å¸ÀÔ
+	SceneType requiredScene;  // í•´ê¸ˆì— í•„ìš”í•œ ì¥ë©´
 
 	CharacterUnlockInfo(GameObjectID id, bool unlocked = false, SceneType scene = SCENE_NONE)
 		: characterID(id), isUnlocked(unlocked), requiredScene(scene) {}
 };
 
-// °ÔÀÓ ÁøÇà Á¤º¸ ±¸Á¶Ã¼
+// ê²Œì„ ì „ì²´ ì§„í–‰ë„ ì €ì¥ êµ¬ì¡°ì²´
 struct GameProgress
 {
 	std::vector<SceneClearInfo> sceneClearInfos;
 	std::vector<CharacterUnlockInfo> characterUnlockInfos;
-	std::vector<SceneClearCondition> sceneClearConditions;  // ¾À Å¬¸®¾î Á¶°Çµé
+	std::vector<SceneClearCondition> sceneClearConditions;
 
 	GameProgress()
 	{
-		// ±âº» ¾À Å¬¸®¾î Á¤º¸ ÃÊ±âÈ­
-		sceneClearInfos.emplace_back(SCENE_GAME_FARMING_AREA, true);      // ÆÄ¹Ö ¿¡¸®¾î´Â ±âº» ÇØ±İ
-		sceneClearInfos.emplace_back(SCENE_GAME_HOUND_FOREST, false);     // ÇÏ¿îµå ½£Àº Å¬¸®¾î ÇÊ¿ä
-		sceneClearInfos.emplace_back(SCENE_GAME_SPIDER_QUEEN_HOUSE, false); // °Å¹Ì¿©¿ÕÀÇ ÁıÀº Å¬¸®¾î ÇÊ¿ä
+		// ê¸°ë³¸ í´ë¦¬ì–´ ì •ë³´
+		sceneClearInfos.emplace_back(SCENE_GAME_FARMING_AREA, true);      // ê¸°ë³¸ í•´ê¸ˆ
+		sceneClearInfos.emplace_back(SCENE_GAME_HOUND_FOREST, false);
+		sceneClearInfos.emplace_back(SCENE_GAME_SPIDER_QUEEN_HOUSE, false);
 
-		// ±âº» Ä³¸¯ÅÍ ÇØ±İ Á¤º¸ ÃÊ±âÈ­
-		characterUnlockInfos.emplace_back(GOID_PLAYER_WILSON, true, SCENE_NONE);  // WilsonÀº Ç×»ó ÇØ±İ
+		// ê¸°ë³¸ ìºë¦­í„° í•´ê¸ˆ ì •ë³´
+		characterUnlockInfos.emplace_back(GOID_PLAYER_WILSON, true, SCENE_NONE);
 		characterUnlockInfos.emplace_back(GOID_PLAYER_WILLOW, false, SCENE_GAME_HOUND_FOREST);
 		characterUnlockInfos.emplace_back(GOID_PLAYER_WOLFGANG, false, SCENE_GAME_SPIDER_QUEEN_HOUSE);
 
-		// ¾À Å¬¸®¾î Á¶°Ç ÃÊ±âÈ­
+		// í´ë¦¬ì–´ ì¡°ê±´ ì´ˆê¸°í™”
 		InitializeSceneClearConditions();
 	}
 
-	// ¾À Å¬¸®¾î Á¶°Ç ÃÊ±âÈ­
+	// ì¥ë©´ë³„ í´ë¦¬ì–´ ì¡°ê±´ ì´ˆê¸°í™”
 	void InitializeSceneClearConditions()
 	{
-		// ÆÄ¹Ö ¿¡¸®¾î Å¬¸®¾î Á¶°Ç: ±âº» ÇØ±İÀÌ¹Ç·Î Á¶°Ç ¾øÀ½
-		sceneClearConditions.emplace_back(SCENE_GAME_FARMING_AREA, L"±âº» ÇØ±İµÈ Áö¿ªÀÔ´Ï´Ù.");
+		sceneClearConditions.emplace_back(
+			SCENE_GAME_FARMING_AREA,
+			L"ê¸°ë³¸ìœ¼ë¡œ ì—´ë ¤ ìˆëŠ” ì§€ì—­ì…ë‹ˆë‹¤."
+		);
 
-		// ÇÏ¿îµå ½£ Å¬¸®¾î Á¶°Ç: ÇÏ¿îµå Ã³Ä¡
-		sceneClearConditions.emplace_back(SCENE_GAME_HOUND_FOREST,
-			L"ÇÏ¿îµå¸¦ Ã³Ä¡ÇÏ¿© ½£À» Á¤È­ÇÏ¼¼¿ä.",
-			std::vector<GameObjectID>{GOID_MONSTER_HOUNDDOG, GOID_MONSTER_REDHOUNDDOG, GOID_MONSTER_ICEHOUNDDOG});
+		sceneClearConditions.emplace_back(
+			SCENE_GAME_HOUND_FOREST,
+			L"í•˜ìš´ë“œ ëª¬ìŠ¤í„°ë“¤ì„ ì²˜ì¹˜í•˜ì„¸ìš”.",
+			std::vector<GameObjectID>{ GOID_MONSTER_HOUNDDOG, GOID_MONSTER_REDHOUNDDOG, GOID_MONSTER_ICEHOUNDDOG }
+		);
 
-		// °Å¹Ì¿©¿ÕÀÇ Áı Å¬¸®¾î Á¶°Ç: °Å¹Ì¿©¿Õ Ã³Ä¡ + Æ¯Á¤ ¾ÆÀÌÅÛ ¼öÁı
-		sceneClearConditions.emplace_back(SCENE_GAME_SPIDER_QUEEN_HOUSE,
-			L"°Å¹Ì¿©¿ÕÀ» Ã³Ä¡ÇÏ°í Æ¯Á¤ ¾ÆÀÌÅÛÀ» ¼öÁıÇÏ¼¼¿ä.",
-			std::vector<GameObjectID>{GOID_MONSTER_QUEEN_SPIDER},
-			std::vector<GameObjectID>{GOID_ITEM_MEAT, GOID_ITEM_BERRY}, 5);
+		sceneClearConditions.emplace_back(
+			SCENE_GAME_SPIDER_QUEEN_HOUSE,
+			L"ê±°ë¯¸ ì—¬ì™•ì„ ì²˜ì¹˜í•˜ê³  íŠ¹ì • ì•„ì´í…œì„ ëª¨ìœ¼ì„¸ìš”.",
+			std::vector<GameObjectID>{ GOID_MONSTER_QUEEN_SPIDER },
+			std::vector<GameObjectID>{ GOID_ITEM_MEAT, GOID_ITEM_BERRY },
+			5
+		);
 	}
 
-	// Æ¯Á¤ ¾ÀÀÇ Å¬¸®¾î Á¶°Ç °¡Á®¿À±â
+	// íŠ¹ì • ì¥ë©´ í´ë¦¬ì–´ ì¡°ê±´ ê°€ì ¸ì˜¤ê¸°
 	const SceneClearCondition* GetSceneClearCondition(SceneType sceneType) const
 	{
 		for (const auto& condition : sceneClearConditions)
-		{
 			if (condition.sceneType == sceneType)
 				return &condition;
-		}
 		return nullptr;
 	}
 
-	// ¾À Å¬¸®¾î »óÅÂ È®ÀÎ
+	// ì¥ë©´ í´ë¦¬ì–´ ì—¬ë¶€ í™•ì¸
 	bool IsSceneCleared(SceneType sceneType) const
 	{
 		for (const auto& sceneInfo : sceneClearInfos)
-		{
 			if (sceneInfo.sceneType == sceneType)
 				return sceneInfo.isCleared;
-		}
 		return false;
 	}
 
-	// Ä³¸¯ÅÍ ÇØ±İ »óÅÂ È®ÀÎ
+	// ìºë¦­í„° í•´ê¸ˆ ì—¬ë¶€ í™•ì¸
 	bool IsCharacterUnlocked(GameObjectID characterID) const
 	{
 		for (const auto& charInfo : characterUnlockInfos)
-		{
 			if (charInfo.characterID == characterID)
 				return charInfo.isUnlocked;
-		}
 		return false;
 	}
 
-	// ¾À Å¬¸®¾î Ã³¸®
+	// ì¥ë©´ í´ë¦¬ì–´ ì²˜ë¦¬
 	void ClearScene(SceneType sceneType)
 	{
 		for (auto& sceneInfo : sceneClearInfos)
@@ -444,22 +452,19 @@ struct GameProgress
 			if (sceneInfo.sceneType == sceneType)
 			{
 				sceneInfo.isCleared = true;
-				// ÇØ´ç ¾À Å¬¸®¾î·Î ÇØ±İµÇ´Â Ä³¸¯ÅÍµéµµ ÇØ±İ
-				UpdateCharacterUnlocks();
+				UpdateCharacterUnlocks(); // ìºë¦­í„° ìë™ í•´ê¸ˆ
 				break;
 			}
 		}
 	}
 
-	// Ä³¸¯ÅÍ ÇØ±İ »óÅÂ ¾÷µ¥ÀÌÆ®
+	// ìºë¦­í„° í•´ê¸ˆ ê°±ì‹ 
 	void UpdateCharacterUnlocks()
 	{
 		for (auto& charInfo : characterUnlockInfos)
 		{
 			if (charInfo.requiredScene != SCENE_NONE)
-			{
 				charInfo.isUnlocked = IsSceneCleared(charInfo.requiredScene);
-			}
 		}
 	}
 };
@@ -469,8 +474,8 @@ template<typename StateType>
 struct AnimInfo {
 	StateType state;
 	Direction dir;
-	std::wstring sheetFilePath; // SpriteSheet ÀÌ¹ÌÁö ÆÄÀÏ °æ·Î
-	std::wstring sheetKey;      // SpriteSheet ¹× AnimationClip Å° (°íÀ¯ ½Äº°ÀÚ)
+	std::wstring sheetFilePath; // ìŠ¤í”„ë¼ì´íŠ¸ ì‹œíŠ¸ ê²½ë¡œ
+	std::wstring sheetKey;      // AnimationClip ì‹ë³„ í‚¤
 	FLOAT frameWidth;
 	FLOAT frameHeight;
 	UINT framesPerRow;
@@ -487,10 +492,19 @@ struct AnimationFrame {
 	UINT height;
 	float pivotX;
 	float pivotY;
-	AnimationFrame() : sourceRect(0, 0, 0, 0), duration(0.1f), width(0), height(0), pivotX(0.5f), pivotY(1.0f) {}
-	AnimationFrame(const Gdiplus::RectF& rect, float dur, UINT w, UINT h)
-		: sourceRect(rect), duration(dur), width(w), height(h), pivotX(0.5f), pivotY(1.0f) {}
-	AnimationFrame(const Gdiplus::RectF& rect, float dur, UINT w, UINT h, float px, float py)
-		: sourceRect(rect), duration(dur), width(w), height(h), pivotX(px), pivotY(py) {}
-};
 
+	AnimationFrame()
+		: sourceRect(0, 0, 0, 0), duration(0.1f),
+		width(0), height(0), pivotX(0.5f), pivotY(0.5f)
+	{}
+
+	AnimationFrame(const Gdiplus::RectF& rect, float dur, UINT w, UINT h)
+		: sourceRect(rect), duration(dur),
+		width(w), height(h), pivotX(0.5f), pivotY(0.5f)
+	{}
+
+	AnimationFrame(const Gdiplus::RectF& rect, float dur, UINT w, UINT h, float px, float py)
+		: sourceRect(rect), duration(dur),
+		width(w), height(h), pivotX(px), pivotY(py)
+	{}
+};

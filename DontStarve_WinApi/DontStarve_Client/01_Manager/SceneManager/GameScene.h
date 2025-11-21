@@ -10,42 +10,42 @@ public:
 	GameScene();
 	virtual ~GameScene();
 
-	// BaseScene °¡»óÇÔ¼ö ±¸Çö
+	// BaseScene ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 	virtual void Init() override;
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
 	virtual void Render() override;
 	virtual void Release() override;
-	// TODO: °¢ Å¸ÀÏ¸¶´Ù ´Ù¸¥ Å¸ÀÏ¼ÂÀ¸·Î º¯È¯ÇÏµµ·Ï ¼öÁ¤ ÇÊ¿ä
+	// TODO: ï¿½ï¿½ Å¸ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ Å¸ï¿½Ï¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
 	virtual SceneType GetSceneType() const override { return SCENE_GAME_FARMING_AREA; }
 	
-	// ¸Å´ÏÀú ¾÷µ¥ÀÌÆ® ÇÔ¼öµé ±¸Çö
+	// ï¿½Å´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	virtual void UpdateManagers(float deltaTime) override;
 	virtual void LateUpdateManagers() override;
 	virtual void RenderManagers() override;
 	virtual void ReleaseManagers() override;
 
-	// ¸Å´ÏÀú ÃÊ±âÈ­/ÇØÁ¦ ÇÔ¼öµé
+	// ï¿½Å´ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­/ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½
 	virtual void InitializeManagers() override;
 	virtual void ReleaseAllManagers() override;
 
-	// GameScene Àü¿ë ÃÊ±âÈ­ ÇÔ¼ö (¸Ê µ¥ÀÌÅÍ¿Í ÇÔ²²)
+	// GameScene ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ô¼ï¿½ (ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½Ô²ï¿½)
 	void Init(const MapData& mapData);
 
-	// ÇÃ·¹ÀÌ¾î »ý¼º ¸Þ¼Òµå (publicÀ¸·Î º¯°æ)
+	// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼Òµï¿½ (publicï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 	void SpawnPlayer();
 	
-	// ¾À Å¬¸®¾î °ü·Ã ¸Þ¼Òµå
+	// ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼Òµï¿½
 	void ClearScene(SceneType sceneType);
 	bool IsSceneCleared(SceneType sceneType) const;
-	bool CheckSceneClearCondition(SceneType sceneType) const;  // ¾À Å¬¸®¾î Á¶°Ç È®ÀÎ
+	bool CheckSceneClearCondition(SceneType sceneType) const;  // ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	const GameProgress& GetGameProgress() const { return m_gameProgress; }
 	
-	// ¼±ÅÃµÈ Ä³¸¯ÅÍ ID ¼³Á¤
+	// ï¿½ï¿½ï¿½Ãµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ID ï¿½ï¿½ï¿½ï¿½
 	void SetSelectedCharacterID(GameObjectID characterID) { m_selectedCharacterID = characterID; }
 	GameObjectID GetSelectedCharacterID() const { return m_selectedCharacterID; }
 	
-	// °ÔÀÓ ÁøÇà Á¤º¸ °ü¸®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	void SaveGameProgress();
 	void LoadGameProgress();
 
@@ -57,12 +57,12 @@ private:
 	void HandlePlayerMovement(); // Moved to private as it's an internal scene logic
 	
 private:
-	// ¸Ê µ¥ÀÌÅÍ
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	MapData m_mapData;
 	
-	// °ÔÀÓ ÁøÇà Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	GameProgress m_gameProgress;
 	
-	// ¼±ÅÃµÈ Ä³¸¯ÅÍ ID
+	// ï¿½ï¿½ï¿½Ãµï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ID
 	GameObjectID m_selectedCharacterID;
 }; 

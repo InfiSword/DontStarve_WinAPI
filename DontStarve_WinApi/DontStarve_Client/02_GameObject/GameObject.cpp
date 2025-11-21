@@ -5,16 +5,16 @@
 GameObject::GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 	const std::wstring& resourcePath, const std::wstring& imageName, bool isActive, bool isInteractive)
 	:m_type(type), m_id(id), m_x(x), m_y(y), m_pivotX(pivotX), m_pivotY(pivotY), m_direction(dir),
-	m_width(0), m_height(0), resourcePath(resourcePath), imageName(imageName),
+	m_width(0), m_height(0), m_resourcePath(resourcePath), m_imageName(imageName),
 	m_isActive(isActive), m_layer(LAYER_WORLD_OBJECT), m_isInteractive(isInteractive)
 {
 	// 기본 이미지 GameObject에서만 기본 비트맵 로드
 	LoadBitmap();
 	
 	// 비트맵 크기 설정
-	if (m_bitmap) {
-		m_width = (float)m_bitmap->GetWidth();
-		m_height = (float)m_bitmap->GetHeight();
+	if (m_orignalBitmap) {
+		m_width = (float)m_orignalBitmap->GetWidth();
+		m_height = (float)m_orignalBitmap->GetHeight();
 	}
 }
 
@@ -57,7 +57,7 @@ void GameObject::Release()
 	}
 	m_components.clear();
 
-	SafeDelete(m_bitmap);
+	SafeDelete(m_orignalBitmap);
 }
 
 void GameObject::OnInteraction(GameObject* obj)
@@ -66,31 +66,31 @@ void GameObject::OnInteraction(GameObject* obj)
 
 // 기본 LoadBitmap 구현 확인
 void GameObject::LoadBitmap()
-{
-	if (m_type == GOBJ_PLAYER) {
-		OutputDebugStringW((L"GameObject: LoadBitmap 건너뜀 - 플레이어는 Animator 사용 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
-		return;
-	}
-	
-	if (resourcePath.empty() || imageName.empty()) {
+{	
+	if (m_resourcePath.empty() || m_imageName.empty()) {
 		OutputDebugStringW((L"GameObject: LoadBitmap 실패 - 경로나 이미지명이 비어있음 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
-		m_bitmap = nullptr;
+		m_orignalBitmap = nullptr;
 		return;
 	}
 	
-	std::wstring fullPath = ResourceManager::GetInstance()->BuildObjectResourcePath(m_id, L"", imageName);
+	std::wstring fullPath = ResourceManager::GetInstance()->BuildObjectResourcePath(m_id, L"", m_imageName);
 	
 	OutputDebugStringW((L"GameObject: LoadBitmap - 전체 경로: " + fullPath + L"\n").c_str());
 	
 	// 비트맵 로드
-	m_bitmap = new Gdiplus::Bitmap(fullPath.c_str());
-	if (m_bitmap && m_bitmap->GetLastStatus() != Gdiplus::Ok) {
+	m_orignalBitmap = new Gdiplus::Bitmap(fullPath.c_str());
+	if (m_orignalBitmap && m_orignalBitmap->GetLastStatus() != Gdiplus::Ok) 
+	{
 		OutputDebugStringW((L"GameObject: LoadBitmap 실패 - 비트맵 파일 로드 실패 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
-		delete m_bitmap;
-		m_bitmap = nullptr;
-	} else if (m_bitmap) {
+		delete m_orignalBitmap;
+		m_orignalBitmap = nullptr;
+	} 
+	else if (m_orignalBitmap) 
+	{
 		OutputDebugStringW((L"GameObject: LoadBitmap 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
-	} else {
+	} 
+	else
+	{
 		OutputDebugStringW((L"GameObject: LoadBitmap 실패 - 비트맵 생성 실패 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
 	}
 }

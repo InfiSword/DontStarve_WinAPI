@@ -1,69 +1,26 @@
 ﻿C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(534,5): warning MSB8004: Output 디렉터리가 슬래시로 끝나지 않습니다. Output 디렉터리의 적절한 평가를 허용하는 데 필요하므로 이 빌드 인스턴스에서 슬래시를 추가합니다.
   UIManager.cpp
-  InventoryManager.cpp
-  ResourceManager.cpp
-  CharacterSelectScene.cpp
-  GameScene.cpp
-  SceneManager.cpp
-  TitleScene.cpp
-  Building.cpp
-  Component.cpp
-  Entity.cpp
-  Item.cpp
-  Monster.cpp
-  Rock.cpp
-  Tree.cpp
-  Axe.cpp
-  Tool.cpp
-  UIButton.cpp
-  UIImage.cpp
-  AnimationClip.cpp
-  Animator.cpp
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
-  SpriteSheet.cpp
-  Client.cpp
-  pch.cpp
-  DontStarve_MainGame.cpp
-  TimeManager.cpp
-  InputManager.cpp
-  CameraManager.cpp
-  GameObject.cpp
-  ObjectManager.cpp
-  ColliderManager.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(44,144): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(44,113): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(45,149): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(45,117): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(82,98): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(82,85): warning C4244: '인수': 'LONG'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  GraphicsManager.cpp
-  Player.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(52,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(53,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(371,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(372,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  Ingredient.cpp
-  Grass.cpp
-  RenderManager.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(242,25): warning C4101: 'originalGraphicsState' :참조되지 않은 지역 변수입니다.
-  PigHouse.cpp
-  Inventory.cpp
-  BerryBush.cpp
-  Sapling.cpp
-  Boss_Hound.cpp
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
-  Boss_SpiderQueen.cpp
-  Hound.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Hound.cpp(29,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Hound.cpp(30,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  Pig.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Pig.cpp(29,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Pig.cpp(30,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  Spider.cpp
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Spider.cpp(29,24): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-D:\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Spider.cpp(30,25): warning C4244: '=': 'const UINT'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  SpiderEgg.cpp
-  코드를 생성하고 있습니다...
-  DontStarve_Client.vcxproj -> D:\DontStarve_WinAPI\DontStarve_WinApi\Build\DontStarve_Client.exe
+D:\DontStarve_WinAPI\DontStarve_WinApi\Header\Struct.h(396,4): error C2001: 상수에 줄 바꿈 문자가 있습니다.
+  (소스 파일 '01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  
+D:\DontStarve_WinAPI\DontStarve_WinApi\Header\Struct.h(401,4): error C2001: 상수에 줄 바꿈 문자가 있습니다.
+  (소스 파일 '01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  
+D:\DontStarve_WinAPI\DontStarve_WinApi\Header\Struct.h(397,9): error C2143: 구문 오류: ')'이(가) 'std::vector<GameObjectID,std::allocator<GameObjectID>>' 앞에 없습니다.
+  (소스 파일 '01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  
+D:\DontStarve_WinAPI\DontStarve_WinApi\Header\Struct.h(397,9): error C2143: 구문 오류: ';'이(가) 'std::vector<GameObjectID,std::allocator<GameObjectID>>' 앞에 없습니다.
+  (소스 파일 '01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  
+D:\DontStarve_WinAPI\DontStarve_WinApi\Header\Struct.h(397,104): error C2059: 구문 오류: ')'
+  (소스 파일 '01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  
+D:\DontStarve_WinAPI\DontStarve_WinApi\Header\Struct.h(402,9): error C2143: 구문 오류: ')'이(가) 'std::vector<GameObjectID,std::allocator<GameObjectID>>' 앞에 없습니다.
+  (소스 파일 '01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  
+D:\DontStarve_WinAPI\DontStarve_WinApi\Header\Struct.h(402,9): error C2143: 구문 오류: ';'이(가) 'std::vector<GameObjectID,std::allocator<GameObjectID>>' 앞에 없습니다.
+  (소스 파일 '01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  
+D:\DontStarve_WinAPI\DontStarve_WinApi\Header\Struct.h(403,65): error C2059: 구문 오류: ')'
+  (소스 파일 '01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  

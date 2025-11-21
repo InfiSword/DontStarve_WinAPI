@@ -5,22 +5,22 @@
 class GameObject
 {
 protected:
-    float m_x, m_y;
+    float m_x, m_y;					
     float m_width, m_height;	    // 비트맵(스프라이트시트) 크기
 	GameObjectID m_id;				// 오브젝트 아이디
 	GameObjectType m_type;			// 오브젝트 타입
 	RenderLayer m_layer;			// 레이어
 	Direction m_direction;			// 오브젝트 방향
 
-	std::wstring m_name;		// 해당 게임 오브젝트 이름
-    std::wstring resourcePath;	// 해당 리소스 경로
-    std::wstring imageName;		// ~~~.png
-	std::wstring m_description;	// 해당 오브젝트 설명 (필요시)
-	Gdiplus::Bitmap* m_bitmap;
-
-    // 컴포넌트 관리
+	std::wstring m_name;			// 해당 게임 오브젝트 이름
+    std::wstring m_resourcePath;	// 해당 리소스 경로
+    std::wstring m_imageName;		// ~~~.png
+	std::wstring m_description;		// 해당 오브젝트 설명 (필요시)
+	Gdiplus::Bitmap* m_orignalBitmap;
+									
+    // 컴포넌트 관리					
     std::vector<Component*> m_components;
-
+						
 	float m_pivotX;
 	float m_pivotY;
 
@@ -68,9 +68,9 @@ public:
 	virtual Gdiplus::RectF GetWorldBoundingBox() const { return Gdiplus::RectF(m_x - m_width * m_pivotX, m_y - m_height * m_pivotY, m_width, m_height); }
 	virtual float GetSortKey(RenderLayer layer) const { return static_cast<float>(layer) + m_y; }
 	
-	Gdiplus::Bitmap* GetBitmap() const { return m_bitmap; }
+	Gdiplus::Bitmap* GetBitmap() const { return m_orignalBitmap; }
 	RenderLayer GetRenderLayer() const { return m_layer; }
-	std::wstring GetImageName() const { return imageName; }
+	std::wstring GetImageName() const { return m_imageName; }
 	GameObjectID GetID() const { return m_id; }
 	GameObjectType GetType() const { return m_type; }
 	const std::wstring& GetName() const { return m_name; }

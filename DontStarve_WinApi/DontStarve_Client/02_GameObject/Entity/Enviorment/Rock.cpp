@@ -8,18 +8,15 @@ Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const 
 	m_hp(100), m_hitAnimTimer(0.0f), m_state(RockState::ROCK_INTACT)
 {
 	maxHp = m_hp;
+	m_rockCracked = new Gdiplus::Bitmap((resourcePath + L"rock01-1").c_str());
+	m_rockBroken = new Gdiplus::Bitmap((resourcePath + L"rock01-2").c_str());
 }
 
 Rock::~Rock() {}
 
 void Rock::Init()
 {
-	// 비트맵은 생성자에서 이미 로드됨
-	// 비트맵의 크기 설정 (생성자에서 설정했지만, 혹시 모를 경우를 대비해 재설정)
-	if (m_bitmap) {
-		this->m_width = static_cast<float>(m_bitmap->GetWidth());
-		this->m_height = static_cast<float>(m_bitmap->GetHeight());
-	}
+
 }
 
 void Rock::LateInit()

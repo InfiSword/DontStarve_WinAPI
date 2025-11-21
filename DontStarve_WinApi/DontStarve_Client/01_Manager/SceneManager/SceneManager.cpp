@@ -28,20 +28,20 @@ SceneManager::~SceneManager()
 
 void SceneManager::Init()
 {
-	// ÃÊ±â »óÅÂ ¼³Á¤
+	// ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_transitionState = TransitionState::NONE;
 	m_fadeAlpha = 0.0f;
 
-	// Ã¹ ¹øÂ° ¾À (Å¸ÀÌÆ² ¾À) ·Îµå
+	// Ã¹ ï¿½ï¿½Â° ï¿½ï¿½ (Å¸ï¿½ï¿½Æ² ï¿½ï¿½) ï¿½Îµï¿½
 	LoadTitleScene();
 }
 
 void SceneManager::Update(float deltaTime)
 {
-	// ÆäÀÌµå È¿°ú ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	UpdateFadeEffect(deltaTime);
 
-	// ÇöÀç ¾À ¾÷µ¥ÀÌÆ® (¾À¿¡¼­ ¸Å´ÏÀúµé ¾÷µ¥ÀÌÆ®)
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®)
 	if (m_currentScene) {
 		m_currentScene->Update(deltaTime);
 	}
@@ -49,7 +49,7 @@ void SceneManager::Update(float deltaTime)
 
 void SceneManager::LateUpdate()
 {
-	// ÇöÀç ¾À LateUpdate (¾À¿¡¼­ ¸Å´ÏÀúµé LateUpdate)
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ LateUpdate (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ LateUpdate)
 	if (m_currentScene) {
 		m_currentScene->LateUpdate();
 	}
@@ -57,32 +57,32 @@ void SceneManager::LateUpdate()
 
 void SceneManager::Render()
 {
-	// ¾À ÀüÈ¯ Áß¿¡´Â ·»´õ¸µÇÏÁö ¾ÊÀ½ (ÃÊ±âÈ­°¡ ¿Ï·áµÇÁö ¾ÊÀº »óÅÂ)
+	// ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ß¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 	if (m_transitionState == TransitionState::SCENE_SWITCH) {
-		// ÆäÀÌµå È¿°ú¸¸ ·»´õ¸µ
+		// ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		RenderFadeEffect();
 		return;
 	}
 
-	// ÇöÀç ¾À ·»´õ¸µ (¾À¿¡¼­ ¸Å´ÏÀúµé ·»´õ¸µ)
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
 	if (m_currentScene) {
 		m_currentScene->Render();
 	}
 
-	// ÆäÀÌµå È¿°ú ·»´õ¸µ
+	// ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	RenderFadeEffect();
 }
 
 void SceneManager::Release()
 {
-	// ÇöÀç ¾À ÇØÁ¦
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if (m_currentScene) {
 		m_currentScene->Release();
 		delete m_currentScene;
 		m_currentScene = nullptr;
 	}
 
-	// ´ÙÀ½ ¾À ÇØÁ¦
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if (m_nextScene) {
 		m_nextScene->Release();
 		delete m_nextScene;
@@ -92,11 +92,11 @@ void SceneManager::Release()
 
 void SceneManager::LoadTitleScene()
 {
-	// Å¸ÀÌÆ² ¾À »ý¼º ¹× ·Îµå
+	// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Îµï¿½
 	TitleScene* titleScene = new TitleScene();
 	titleScene->Init();
 
-	// ÇöÀç ¾ÀÀÌ ÀÖ´Ù¸é ÇØÁ¦
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if (m_currentScene) {
 		m_currentScene->Release();
 		delete m_currentScene;
@@ -104,50 +104,50 @@ void SceneManager::LoadTitleScene()
 
 	m_currentScene = titleScene;
 
-	// ÃÊ±â ·Îµå°¡ ¾Æ´Ñ °æ¿ì¿¡¸¸ ÆäÀÌµå ÀÎ ½ÃÀÛ
+	// ï¿½Ê±ï¿½ ï¿½Îµå°¡ ï¿½Æ´ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if (m_transitionState != TransitionState::NONE) {
 		StartFadeIn();
 	}
 
-	OutputDebugStringW(L"SceneManager: Å¸ÀÌÆ² ¾À ·Îµå ¿Ï·á\n");
+	OutputDebugStringW(L"SceneManager: Å¸ï¿½ï¿½Æ² ï¿½ï¿½ ï¿½Îµï¿½ ï¿½Ï·ï¿½\n");
 }
 
 void SceneManager::LoadCharacterSelectScene()
 {
-	// Ä³¸¯ÅÍ ¼±ÅÃ ¾À »ý¼º (ÃÊ±âÈ­´Â ÆäÀÌµå ¾Æ¿ô ¿Ï·á ÈÄ¿¡)
+	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ¿ï¿½ ï¿½Ï·ï¿½ ï¿½Ä¿ï¿½)
 	CharacterSelectScene* characterSelectScene = new CharacterSelectScene();
 	m_nextScene = characterSelectScene;
 
 	StartFadeOut();
 
-	OutputDebugStringW(L"SceneManager: Ä³¸¯ÅÍ ¼±ÅÃ ¾À ·Îµå ½ÃÀÛ - ÆäÀÌµå ¾Æ¿ô ½ÃÀÛ\n");
+	OutputDebugStringW(L"SceneManager: Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ¿ï¿½ ï¿½ï¿½ï¿½ï¿½\n");
 }
 
 void SceneManager::LoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID)
 {
-	OutputDebugStringW(L"SceneManager: °ÔÀÓ ¾À ·Îµå ½ÃÀÛ\n");
+	OutputDebugStringW(L"SceneManager: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½\n");
 
-	// ÀÓ½Ã µ¥ÀÌÅÍ ÀúÀå
+	// ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	m_tempMapFileName = mapFileName;
 	m_tempSelectedCharacterID = selectedCharacterID;
 
-	// °ÔÀÓ ¾À »ý¼º (ÃÊ±âÈ­´Â ÆäÀÌµå ¾Æ¿ô ¿Ï·á ÈÄ¿¡)
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ¿ï¿½ ï¿½Ï·ï¿½ ï¿½Ä¿ï¿½)
 	GameScene* gameScene = new GameScene();
 	gameScene->SetSelectedCharacterID(selectedCharacterID);
 
 	m_nextScene = gameScene;
 	StartFadeOut();
 
-	OutputDebugStringW((L"SceneManager: °ÔÀÓ ¾À ·Îµå ½ÃÀÛ - ¸Ê: " + mapFileName +
-		L", Ä³¸¯ÅÍ ID: " + std::to_wstring(selectedCharacterID) + L", ÆäÀÌµå ¾Æ¿ô ½ÃÀÛ\n").c_str());
+	OutputDebugStringW((L"SceneManager: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½: " + mapFileName +
+		L", Ä³ï¿½ï¿½ï¿½ï¿½ ID: " + std::to_wstring(selectedCharacterID) + L", ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ¿ï¿½ ï¿½ï¿½ï¿½ï¿½\n").c_str());
 }
 
 void SceneManager::ReturnToTitle()
 {
-	// Å¸ÀÌÆ² ¾ÀÀ¸·Î µ¹¾Æ°¡±â
-	OutputDebugStringW(L"SceneManager: Å¸ÀÌÆ² ¾ÀÀ¸·Î µ¹¾Æ°¡±â ½ÃÀÛ\n");
+	// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½
+	OutputDebugStringW(L"SceneManager: Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½\n");
 
-	// Å¸ÀÌÆ² ¾À »ý¼º (ÃÊ±âÈ­´Â ÆäÀÌµå ¾Æ¿ô ¿Ï·á ÈÄ¿¡)
+	// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ¿ï¿½ ï¿½Ï·ï¿½ ï¿½Ä¿ï¿½)
 	TitleScene* titleScene = new TitleScene();
 
 	m_nextScene = titleScene;
@@ -156,10 +156,10 @@ void SceneManager::ReturnToTitle()
 
 void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& mapData)
 {
-	// MapData ÃÊ±âÈ­
+	// MapData ï¿½Ê±ï¿½È­
 	mapData.mapFilePath = mapFileName;
 
-	// ÆÄÀÏ¸í¿¡¼­ ¸Ê ÀÌ¸§ ÃßÃâ (È®ÀåÀÚ Á¦°Å)
+	// ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ (È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 	size_t lastSlash = mapFileName.find_last_of(L"\\/");
 	size_t lastDot = mapFileName.find_last_of(L".");
 	if (lastSlash != std::wstring::npos) {
@@ -186,9 +186,9 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 	}
 
 	while (std::getline(file, line)) {
-		// ÁÖ¼® ¶óÀÎ Ã³¸®
+		// ï¿½Ö¼ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 		if (line.empty() || line[0] == L'#') {
-			// ¼½¼Ç ¶óÀÎ Ã¼Å©
+			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 			if (line.find(L"# TILES") != std::wstring::npos) {
 				section = TILES;
 				currentTileRow = 0;
@@ -202,7 +202,7 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 			continue;
 		}
 
-		// ¸ÞÅ¸µ¥ÀÌÅÍ ÆÄ½Ì
+		// ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½
 		if (line.find(L"MAP_WIDTH=") != std::wstring::npos) {
 			mapData.mapWidth = std::stoi(line.substr(line.find(L"=") + 1));
 		}
@@ -221,14 +221,14 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 			std::wstring token;
 			std::vector<std::wstring> tokens;
 
-			// ¸ðµç ÅäÅ«À» ¸ÕÀú ¼öÁý
+			// ï¿½ï¿½ï¿½ ï¿½ï¿½Å«ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			while (std::getline(ss, token, L',')) {
 				token.erase(0, token.find_first_not_of(L" \t"));
 				token.erase(token.find_last_not_of(L" \t") + 1);
 				tokens.push_back(token);
 			}
 
-			// Å¸ÀÏ µ¥ÀÌÅÍ ÆÄ½Ì - ¸ðµç Å¸ÀÏÀ» ¹èÄ¡ (TILE_NONEµµ Æ÷ÇÔ)
+			// Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ - ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ (TILE_NONEï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 			for (int i = 0; i < tokens.size(); i += 2)
 			{
 				int tileX = i / 2;
@@ -236,23 +236,23 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 					TileType tileType = EnumUtils::GetEnumValue<TileType>(tokens[i].c_str(), TILE_NONE);
 					TileID tileID = EnumUtils::GetEnumValue<TileID>(tokens[i + 1].c_str(), TILEID_NONE);
 
-					// ResourceManager¿¡¼­ Å¸ÀÏ Á¤º¸ °¡Á®¿À±â
+					// ResourceManagerï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 					const TileData* resourceData = resourceManager->GetTileResourceInfo(tileID);
 
-					// Å¸ÀÏ µ¥ÀÌÅÍ ¼³Á¤
+					// Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					mapData.tiles[tileX][currentTileRow].type = tileType;
 					mapData.tiles[tileX][currentTileRow].id = tileID;
 
-					// ResourceManager¿¡¼­ °¡Á®¿Â Á¤º¸·Î ¼³Á¤
+					// ResourceManagerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					if (resourceData) {
 						mapData.tiles[tileX][currentTileRow].tileAssetBaseDirectory = resourceData->tileAssetBaseDirectory;
 						mapData.tiles[tileX][currentTileRow].tileImageName = resourceData->tileImageName;
-						// pAtlasBitmap°ú sourceRect´Â ³ªÁß¿¡ ·Îµå ½ÃÁ¡¿¡ ¼³Á¤
+						// pAtlasBitmapï¿½ï¿½ sourceRectï¿½ï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						mapData.tiles[tileX][currentTileRow].pAtlasBitmap = nullptr;
 						mapData.tiles[tileX][currentTileRow].sourceRect = Gdiplus::RectF(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 					else {
-						// ¸®¼Ò½º Á¤º¸°¡ ¾ø´Â °æ¿ì ±âº»°ª ¼³Á¤
+						// ï¿½ï¿½ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½âº»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						mapData.tiles[tileX][currentTileRow].tileAssetBaseDirectory = L"";
 						mapData.tiles[tileX][currentTileRow].tileImageName = L"";
 						mapData.tiles[tileX][currentTileRow].pAtlasBitmap = nullptr;
@@ -266,7 +266,7 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 		}
 		else if (section == OBJECTS) {
 
-			// 0,0,0,0,0 Çü½ÄÀÇ ÁÙÀº °Ç³Ê¶Ù±â
+			// 0,0,0,0,0 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç³Ê¶Ù±ï¿½
 			if (line.find(L"0,0,0,0,0") != std::wstring::npos) {
 				continue;
 			}
@@ -282,7 +282,7 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 				std::getline(ss, pivotX, L',') &&
 				std::getline(ss, pivotY, L',')) {
 
-				// ¹®ÀÚ¿­ Á¤¸®
+				// ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 				type.erase(0, type.find_first_not_of(L" \t"));
 				type.erase(type.find_last_not_of(L" \t") + 1);
 				id.erase(0, id.find_first_not_of(L" \t"));
@@ -290,7 +290,7 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 				resource.erase(0, resource.find_first_not_of(L" \t"));
 				resource.erase(resource.find_last_not_of(L" \t") + 1);
 
-				// ¸Ê µ¥ÀÌÅÍ¿¡ °ÔÀÓ¿ÀºêÁ§Æ® Á¤º¸¸¸ ÀúÀå (½ÇÁ¦ »ý¼ºÀº GameScene¿¡¼­)
+				// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GameSceneï¿½ï¿½ï¿½ï¿½)
 				GameObjectID objID = EnumUtils::GetEnumValue<GameObjectID>(id.c_str(), GOID_NONE);
 				GameObjectType objType = EnumUtils::GetEnumValue<GameObjectType>(type.c_str(), GOBJ_NONE);
 				float objX = std::stof(x);
@@ -298,12 +298,12 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 				float objPivotX = std::stof(pivotX);
 				float objPivotY = std::stof(pivotY);
 
-				// ResourceManager¿¡¼­ ¿ÀºêÁ§Æ® Á¤º¸ °¡Á®¿À±â
+				// ResourceManagerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				const GameObjectData* resourceData = resourceManager->GetObjectResourceInfo(objID);
 
-				// À¯È¿ÇÑ ¿ÀºêÁ§Æ® IDÀÎ °æ¿ì¿¡¸¸ Ãß°¡
+				// ï¿½ï¿½È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® IDï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½ß°ï¿½
 				if (objID != GOID_NONE) {
-					// ¸Ê µ¥ÀÌÅÍ¿¡ Ãß°¡
+					// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ß°ï¿½
 					GameObjectData objData;
 					objData.type = objType;
 					objData.id = objID;
@@ -312,11 +312,11 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 					objData.pivotX = objPivotX;
 					objData.pivotY = objPivotY;
 
-					// ResourceManager¿¡¼­ °¡Á®¿Â Á¤º¸·Î ¼³Á¤
+					// ResourceManagerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					if (resourceData) {
 						objData.objectAssetBaseDirectory = resourceData->objectAssetBaseDirectory;
 						objData.assetImageName = resourceData->assetImageName;
-						// ÄÝ¶óÀÌ´õ Á¤º¸µµ º¹»ç
+						// ï¿½Ý¶ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						objData.hasCollider = resourceData->hasCollider;
 						objData.colliderOffsetX = resourceData->colliderOffsetX;
 						objData.colliderOffsetY = resourceData->colliderOffsetY;
@@ -328,7 +328,7 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 			}
 		}
 		else if (section == WALKABLE) {
-			// walkableAreas ÆÄ½Ì (1,1,1,0,1,...)
+			// walkableAreas ï¿½Ä½ï¿½ (1,1,1,0,1,...)
 			std::wstringstream ss(line);
 			std::wstring token;
 			int currentCol = 0;
@@ -348,16 +348,16 @@ void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& ma
 	file.close();
 }
 
-// ¾À Å¸ÀÔ ºñ±³, »ý¼º, ¹ÝÈ¯ µî¿¡¼­ ÅëÇÕ SceneType¸¸ »ç¿ëÇÏµµ·Ï Á¤¸®
+// ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½È¯ ï¿½î¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SceneTypeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 SceneType SceneManager::GetCurrentSceneType() const
 {
 	if (!m_currentScene) {
-		return SCENE_NONE; // ±âº»°ª
+		return SCENE_NONE; // ï¿½âº»ï¿½ï¿½
 	}
 	return m_currentScene->GetSceneType();
 }
 
-// ÆäÀÌµå È¿°ú °ü·Ã ¸Þ¼­µåµé ±¸Çö
+// ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 void SceneManager::StartFadeOut()
 {
 	m_transitionState = TransitionState::FADE_OUT;
@@ -372,30 +372,30 @@ void SceneManager::StartFadeIn()
 
 void SceneManager::UpdateFadeEffect(float deltaTime)
 {
-	// TimeManager¿¡¼­ ÀÌ¹Ì Á¦ÇÑµÈ deltaTimeÀ» ¹ÞÀ¸¹Ç·Î Ãß°¡ Á¦ÇÑ ºÒÇÊ¿ä
+	// TimeManagerï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½Ñµï¿½ deltaTimeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê¿ï¿½
 	switch (m_transitionState) {
 	case TransitionState::FADE_OUT:
 		m_fadeAlpha += deltaTime / m_fadeDuration;
 		if (m_fadeAlpha >= 1.0f) {
 			m_fadeAlpha = 1.0f;
 
-			// ÆäÀÌµå ¾Æ¿ô ¿Ï·á ½Ã ¾À ÀüÈ¯
+			// ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ¿ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½È¯
 			if (m_nextScene) {
-				// ÇöÀç ¾ÀÀÌ ÀÖ´Ù¸é ÇØÁ¦
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 				if (m_currentScene) {
 					m_currentScene->Release();
 					delete m_currentScene;
 				}
 
-				// ´ÙÀ½ ¾ÀÀ» ÇöÀç ¾ÀÀ¸·Î ¼³Á¤
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				m_currentScene = m_nextScene;
 				m_nextScene = nullptr;
 
-				// ¾À ÀüÈ¯ »óÅÂ·Î º¯°æ
+				// ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½Â·ï¿½ ï¿½ï¿½ï¿½ï¿½
 				m_transitionState = TransitionState::SCENE_SWITCH;
 			}
 			else {
-				// ´ÙÀ½ ¾ÀÀÌ ¾øÀ¸¸é ÆäÀÌµå »óÅÂ Á¾·á
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				m_transitionState = TransitionState::NONE;
 			}
 		}
@@ -403,31 +403,32 @@ void SceneManager::UpdateFadeEffect(float deltaTime)
 
 	case TransitionState::SCENE_SWITCH:
 	{
-		// ¾À ÀüÈ¯ Áß - »õ ¾À ÃÊ±âÈ­
+		// ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ - ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­
 		if (m_currentScene) {
-			// GameSceneÀÎ °æ¿ì ¸Ê µ¥ÀÌÅÍ·Î ÃÊ±âÈ­
+			// GameSceneï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ ï¿½Ê±ï¿½È­
 			if (m_currentScene->GetSceneType() == SCENE_GAME_FARMING_AREA ||
 				m_currentScene->GetSceneType() == SCENE_GAME_HOUND_FOREST ||
-				m_currentScene->GetSceneType() == SCENE_GAME_SPIDER_QUEEN_HOUSE) {
+				m_currentScene->GetSceneType() == SCENE_GAME_SPIDER_QUEEN_HOUSE)
+			{
 				GameScene* gameScene = dynamic_cast<GameScene*>(m_currentScene);
 				if (gameScene) {
-					// ¸Ê µ¥ÀÌÅÍ ÆÄ½Ì ¹× ÃÊ±âÈ­ (Èü¿¡ ÇÒ´çÇÏ¿© ½ºÅÃ ¿À¹öÇÃ·Î¿ì ¹æÁö)
+					// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­ (ï¿½ï¿½ï¿½ï¿½ ï¿½Ò´ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã·Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½)
 					std::unique_ptr<MapData> mapData = std::make_unique<MapData>();
 					ParseMapFileInto(m_tempMapFileName, *mapData);
 					gameScene->Init(*mapData);
-					// unique_ptr´Â ÀÚµ¿À¸·Î ÇØÁ¦µÊ
+					// unique_ptrï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-					OutputDebugStringW(L"SceneManager: °ÔÀÓ ¾À ÃÊ±âÈ­ ¿Ï·á\n");
+					OutputDebugStringW(L"SceneManager: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ï·ï¿½\n");
 				}
 			}
 			else {
-				// ´Ù¸¥ ¾ÀµéÀº ÀÏ¹Ý ÃÊ±âÈ­
+				// ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½ ï¿½Ê±ï¿½È­
 				m_currentScene->Init();
-				OutputDebugStringW(L"SceneManager: »õ ¾À ÃÊ±âÈ­ ¿Ï·á\n");
+				OutputDebugStringW(L"SceneManager: ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ï·ï¿½\n");
 			}
 		}
 
-		// ÃÊ±âÈ­ ¿Ï·á ÈÄ Áï½Ã ÆäÀÌµå ÀÎ ½ÃÀÛ
+		// ï¿½Ê±ï¿½È­ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		StartFadeIn();
 	}
 	break;
@@ -437,7 +438,7 @@ void SceneManager::UpdateFadeEffect(float deltaTime)
 		if (m_fadeAlpha <= 0.0f) {
 			m_fadeAlpha = 0.0f;
 			m_transitionState = TransitionState::NONE;
-			OutputDebugStringW(L"SceneManager: ÆäÀÌµå ÀÎ ¿Ï·á\n");
+			OutputDebugStringW(L"SceneManager: ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½Ï·ï¿½\n");
 		}
 		break;
 
@@ -446,11 +447,11 @@ void SceneManager::UpdateFadeEffect(float deltaTime)
 		break;
 	}
 
-	// µð¹ö±× Ãâ·Â Ãß°¡ (³Ê¹« ÀÚÁÖ Ãâ·ÂÇÏÁö ¾Êµµ·Ï Á¦ÇÑ)
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ (ï¿½Ê¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 	static float debugTimer = 0.0f;
 	debugTimer += deltaTime;
 	if (m_transitionState != TransitionState::NONE && debugTimer >= 0.1f) {
-		OutputDebugStringW((L"SceneManager: ÆäÀÌµå È¿°ú ¾÷µ¥ÀÌÆ® - ¾ËÆÄ: " + std::to_wstring(m_fadeAlpha) + L", »óÅÂ: " + std::to_wstring(static_cast<int>(m_transitionState)) + L"\n").c_str());
+		OutputDebugStringW((L"SceneManager: ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½: " + std::to_wstring(m_fadeAlpha) + L", ï¿½ï¿½ï¿½ï¿½: " + std::to_wstring(static_cast<int>(m_transitionState)) + L"\n").c_str());
 		debugTimer = 0.0f;
 	}
 }
@@ -458,39 +459,39 @@ void SceneManager::UpdateFadeEffect(float deltaTime)
 void SceneManager::RenderFadeEffect()
 {
 	if (m_transitionState != TransitionState::NONE) {
-		// ÆäÀÌµå È¿°ú ·»´õ¸µ
+		// ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		RenderManager* renderManager = RenderManager::GetInstance();
 		if (renderManager) {
-			// SCENE_SWITCH »óÅÂ¿¡¼­´Â ¿ÏÀüÈ÷ °ËÀº È­¸é À¯Áö
+			// SCENE_SWITCH ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			BYTE alpha;
 			if (m_transitionState == TransitionState::SCENE_SWITCH) {
-				alpha = 255; // ¿ÏÀüÈ÷ °ËÀº È­¸é
+				alpha = 255; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½
 			}
 			else {
-				// ¾ËÆÄ°ªÀ» 0-255 ¹üÀ§·Î º¯È¯ÇÏ°í, °ËÀº»öÀ¸·Î ÆäÀÌµå
+				// ï¿½ï¿½ï¿½Ä°ï¿½ï¿½ï¿½ 0-255 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½
 				alpha = static_cast<BYTE>(m_fadeAlpha * 255);
 			}
 
 			Gdiplus::Color fadeColor(alpha, 0, 0, 0);
 
-			// µð¹ö±× Ãâ·Â Á¦ÇÑ (³Ê¹« ÀÚÁÖ Ãâ·ÂÇÏÁö ¾Êµµ·Ï)
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Ê¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½)
 			static float renderDebugTimer = 0.0f;
-			renderDebugTimer += 0.016f; // ´ë·«ÀûÀÎ ÇÁ·¹ÀÓ ½Ã°£
+			renderDebugTimer += 0.016f; // ï¿½ë·«ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 			if (renderDebugTimer >= 0.5f) {
-				OutputDebugStringW((L"SceneManager: ÆäÀÌµå È¿°ú ·»´õ¸µ - ¾ËÆÄ: " + std::to_wstring(alpha) +
-					L", »óÅÂ: " + std::to_wstring(static_cast<int>(m_transitionState)) + L"\n").c_str());
+				OutputDebugStringW((L"SceneManager: ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½: " + std::to_wstring(alpha) +
+					L", ï¿½ï¿½ï¿½ï¿½: " + std::to_wstring(static_cast<int>(m_transitionState)) + L"\n").c_str());
 				renderDebugTimer = 0.0f;
 			}
 
 			renderManager->AddFillRectangleCommand(
 				Gdiplus::RectF(0, 0, WINCX, WINCY),
 				fadeColor,
-				LAYER_DEBUG_OVERLAY,  // °¡Àå À§¿¡ ·»´õ¸µ
-				999.0f  // °¡Àå À§¿¡ ·»´õ¸µ
+				LAYER_DEBUG_OVERLAY,  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				999.0f  // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			);
 		}
 		else {
-			OutputDebugStringW(L"SceneManager: RenderManager°¡ nullÀÔ´Ï´Ù. ÆäÀÌµå È¿°ú ·»´õ¸µ ½ÇÆÐ.\n");
+			OutputDebugStringW(L"SceneManager: RenderManagerï¿½ï¿½ nullï¿½Ô´Ï´ï¿½. ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.\n");
 		}
 	}
 }

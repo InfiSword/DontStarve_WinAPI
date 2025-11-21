@@ -22,5 +22,8 @@ private:
     int maxHp;
     float m_hitAnimTimer;
     RockState m_state;
-    
+
+private:
+    Gdiplus::Bitmap* m_rockCracked;
+    Gdiplus::Bitmap* m_rockBroken;
 }; 

@@ -42,16 +42,16 @@ void CameraManager::Update(float deltaTime)
 {
     if (!InputManager::GetInstance()) return;
 
-    // ÇÃ·¹ÀÌ¾î ÃßÀû ¸ðµå°¡ È°¼ºÈ­µÇ¾î ÀÖÀ¸¸é ÇÃ·¹ÀÌ¾î¸¦ µû¶ó°¨
+    // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å°¡ È°ï¿½ï¿½È­ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î¸¦ ï¿½ï¿½ï¿½ï¿½
     if (m_followMode && m_target) {
         FollowTarget(deltaTime);
     }
     
-    // ºäÆ÷Æ® º¯°æ °¨Áö
+    // ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     CheckViewportChanged();
     
-    // Ä«¸Þ¶ó ºäÆ÷Æ® ³» °¡½Ã ¿ÀºêÁ§Æ®´Â ¸Å ÇÁ·¹ÀÓ °»½ÅÇÏ¿©
-    // ¿ÀºêÁ§Æ® »ý¼º/»èÁ¦/ÀÌµ¿¿¡µµ Áï½Ã ´ëÀÀ
+    // Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½/ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     UpdateVisibleObjects();
 }
 
@@ -70,11 +70,11 @@ void CameraManager::Release()
 	m_visibleObjects.clear();
 	m_visibleObjectSet.clear();
 	
-	// Å¸ÀÏ Ä³½Ã Á¤¸®
+	// Å¸ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	ClearTileCache();
 }
 
-// ¿ùµå ÁÂÇ¥¸¦ È­¸é ÇÈ¼¿ ÁÂÇ¥·Î º¯È¯
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ È­ï¿½ï¿½ ï¿½È¼ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½È¯
 Gdiplus::PointF CameraManager::WorldToScreen(float worldX, float worldY)
 {
 
@@ -87,13 +87,13 @@ Gdiplus::PointF CameraManager::WorldToScreen(float worldX, float worldY)
     return Gdiplus::PointF(transformedX, transformedY);
 }
 
-// È­¸é ÇÈ¼¿ ÁÂÇ¥¸¦ ¿ùµå ÁÂÇ¥·Î º¯È¯
+// È­ï¿½ï¿½ ï¿½È¼ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½È¯
 Gdiplus::PointF CameraManager::ScreenToWorld(float screenX, float screenY) 
 {
     float uncenteredScreenX = screenX - WINCX / 2.0f;
     float uncenteredScreenY = screenY - WINCY / 2.0f;
 
-    // Ä«¸Þ¶ó ¿ÀÇÁ¼Â ¿ª»ê
+    // Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     float worldX = uncenteredScreenX + m_cameraPos.X;
     float worldY = uncenteredScreenY + m_cameraPos.Y;
 
@@ -105,10 +105,10 @@ Gdiplus::PointF CameraManager::GetCameraPos()
     return m_cameraPos;
 }
 
-// ºäÆ÷Æ®ÀÇ ¿ùµå ÁÂÇ¥ ¹üÀ§¸¦ ¹ÝÈ¯
+// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 Gdiplus::RectF CameraManager::GetViewportWorldRect() const
 {
-    // Ä«¸Þ¶ó À§Ä¡¸¦ Áß½ÉÀ¸·Î ÇÑ ºäÆ÷Æ® °è»ê
+    // Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ß½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
     float halfWidth = WINCX / 2.0f;
     float halfHeight = WINCY / 2.0f;
     
@@ -140,7 +140,7 @@ void CameraManager::FollowTarget(float deltaTime)
 {
 	if (!m_target)
 		return;
-	// ÇÃ·¹ÀÌ¾îÀÇ (x, y)°¡ ¹ß ¹Ø Áß¾ÓÀÌ¸é, ±×´ë·Î »ç¿ë
+	// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ (x, y)ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ß¾ï¿½ï¿½Ì¸ï¿½, ï¿½×´ï¿½ï¿½ ï¿½ï¿½ï¿½
 	m_cameraPos.X = m_target->GetX();
 	m_cameraPos.Y = m_target->GetY();
 }
@@ -151,46 +151,46 @@ void CameraManager::SetCameraPosition(float x, float y)
     m_cameraPos.Y = y;
 }
 
-// === È­¸é¿¡ º¸ÀÌ´Â ¿ÀºêÁ§Æ® °ü¸® ±â´É ===
+// === È­ï¿½é¿¡ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ===
 
 void CameraManager::UpdateVisibleObjects()
 {
 	m_visibleObjects.clear();
 	m_visibleObjectSet.clear();
 	
-	// ObjectManager¿¡¼­ ¸ðµç ¿ÀºêÁ§Æ® °¡Á®¿À±â
+	// ObjectManagerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!objectManager) return;
 	
 	const std::vector<GameObject*>& allObjects = objectManager->GetGameObjects();
 	if (allObjects.empty()) return;
 	
-	// ÇöÀç ºäÆ÷Æ® Á¤º¸ °¡Á®¿À±â
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	Gdiplus::RectF viewportRect = GetViewportWorldRect();
 	
-	// ¿©À¯ °ø°£À» Æ÷ÇÔÇÑ °Ë»ç ¹üÀ§ (¿ÀºêÁ§Æ® Å©±â¿Í ¾Ö´Ï¸ÞÀÌ¼Ç ¹üÀ§¸¦ °í·Á)
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® Å©ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½)
 	const float MARGIN = 200.0f;
 	float startX = viewportRect.X - MARGIN;
 	float endX = viewportRect.X + viewportRect.Width + MARGIN;
 	float startY = viewportRect.Y - MARGIN;
 	float endY = viewportRect.Y + viewportRect.Height + MARGIN;
 	
-	// Áßº¹ Ã¼Å©¸¦ À§ÇÑ ÀÓ½Ã set (¾ÆÀÌÅÛ Áßº¹ ¹æÁö)
+	// ï¿½ßºï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ set (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½)
 	std::unordered_set<std::wstring> addedIngredients;
 	
-	// È°¼ºÈ­µÈ ¿ÀºêÁ§Æ® Áß¿¡¼­ È­¸é¿¡ º¸ÀÌ´Â °Í¸¸ ÇÊÅÍ¸µ
+	// È°ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ß¿ï¿½ï¿½ï¿½ È­ï¿½é¿¡ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½
 	for (GameObject* obj : allObjects) {
 		if (!obj || !obj->GetActive()) {
 			continue;
 		}
 		
-		// ·»´õ¸µ °¡´ÉÇÑ ¿ÀºêÁ§Æ®ÀÎÁö È®ÀÎ
-		// Player´Â ¿©ÀüÈ÷ Animator¸¦ »ç¿ëÇÒ ¼ö ÀÖÀ¸¹Ç·Î µÑ ´Ù È®ÀÎ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+		// Playerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Animatorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ ï¿½ï¿½ È®ï¿½ï¿½
 		if (!obj->GetBitmap() && !obj->GetComponent<Animator>()) {
 			continue;
 		}
 		
-		// IngredientÀÎ °æ¿ì Áßº¹ Ã¼Å©
+		// Ingredientï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ßºï¿½ Ã¼Å©
 		if (obj->GetType() == GOBJ_ITEM) {
 			std::wstring ingredientKey = std::to_wstring(obj->GetID()) + L"_" + 
 				std::to_wstring(obj->GetX()) + L"_" + std::to_wstring(obj->GetY());
@@ -200,10 +200,10 @@ void CameraManager::UpdateVisibleObjects()
 			addedIngredients.insert(ingredientKey);
 		}
 		
-		// ¿ÀºêÁ§Æ®ÀÇ ¿ùµå ¹Ù¿îµù ¹Ú½º °è»ê
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½
 		Gdiplus::RectF objBounds = obj->GetWorldBoundingBox();
 		
-		// È­¸é ¹üÀ§¿Í °ãÄ¡´ÂÁö È®ÀÎ (AABB Ãæµ¹ °Ë»ç)
+		// È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ (AABB ï¿½æµ¹ ï¿½Ë»ï¿½)
 		if (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
 			objBounds.Y < endY && objBounds.Y + objBounds.Height > startY) {
 			
@@ -212,11 +212,11 @@ void CameraManager::UpdateVisibleObjects()
 		}
 	}
 	
-	// µð¹ö±×: °¡½Ã ¿ÀºêÁ§Æ® ¾÷µ¥ÀÌÆ® È®ÀÎ (30ÇÁ·¹ÀÓ¸¶´Ù ÇÑ ¹ø¾¿ Ãâ·Â)
+	// ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® È®ï¿½ï¿½ (30ï¿½ï¿½ï¿½ï¿½ï¿½Ó¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½)
 	static int updateCounter = 0;
 	if (++updateCounter % 30 == 0) {
-		OutputDebugStringW((L"[CameraManager] °¡½Ã ¿ÀºêÁ§Æ® ¾÷µ¥ÀÌÆ®: " + 
-			std::to_wstring(m_visibleObjects.size()) + L"°³ (Ä«¸Þ¶ó: " + 
+		OutputDebugStringW((L"[CameraManager] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®: " + 
+			std::to_wstring(m_visibleObjects.size()) + L"ï¿½ï¿½ (Ä«ï¿½Þ¶ï¿½: " + 
 			std::to_wstring((int)m_cameraPos.X) + L", " + std::to_wstring((int)m_cameraPos.Y) + L")\n").c_str());
 	}
 }
@@ -224,22 +224,22 @@ void CameraManager::UpdateVisibleObjects()
 GameObject* CameraManager::FindObjectAtPosition(float worldX, float worldY)
 {
 	
-	// È­¸é¿¡ º¸ÀÌ´Â ¿ÀºêÁ§Æ®¸¸ °Ë»ç (¼º´É ÃÖÀûÈ­)
+	// È­ï¿½é¿¡ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ë»ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­)
 	for (int i = (int)m_visibleObjects.size() - 1; i >= 0; --i) {
 		GameObject* obj = m_visibleObjects[i];
 		if (!obj) {
 			continue;
 		}
 		
-		// »óÈ£ÀÛ¿ë °¡´ÉÇÑ ¿ÀºêÁ§Æ®ÀÎÁö ¸ÕÀú È®ÀÎ
+		// ï¿½ï¿½È£ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 		if (!obj->CanInteract()) {
 			continue;
 		}
 		
-		// ¿ÀºêÁ§Æ®ÀÇ ¿ùµå ¹Ù¿îµù ¹Ú½º °è»ê
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½
 		Gdiplus::RectF objBounds = obj->GetWorldBoundingBox();
 		
-		// Å¬¸¯ÇÑ À§Ä¡°¡ ¿ÀºêÁ§Æ® ¿µ¿ª ¾È¿¡ ÀÖ´ÂÁö È®ÀÎ
+		// Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½È¿ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 		if (objBounds.Contains(worldX, worldY)) {
 			return obj;
 		}
@@ -257,20 +257,20 @@ bool CameraManager::IsObjectInViewport(GameObject* obj) const
 {
 	if (!obj || !obj->GetActive()) return false;
 	
-	// ¿ÀºêÁ§Æ®ÀÇ ¿ùµå ¹Ù¿îµù ¹Ú½º °è»ê
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½
 	Gdiplus::RectF objBounds = obj->GetWorldBoundingBox();
 	
-	// ÇöÀç ºäÆ÷Æ® Á¤º¸ °¡Á®¿À±â
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	Gdiplus::RectF viewportRect = GetViewportWorldRect();
 	
-	// ¿©À¯ °ø°£À» Æ÷ÇÔÇÑ °Ë»ç ¹üÀ§
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½
 	const float MARGIN = 200.0f;
 	float startX = viewportRect.X - MARGIN;
 	float endX = viewportRect.X + viewportRect.Width + MARGIN;
 	float startY = viewportRect.Y - MARGIN;
 	float endY = viewportRect.Y + viewportRect.Height + MARGIN;
 	
-	// È­¸é ¹üÀ§¿Í °ãÄ¡´ÂÁö È®ÀÎ
+	// È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 	return (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
 			objBounds.Y < endY && objBounds.Y + objBounds.Height > startY);
 }
@@ -279,7 +279,7 @@ void CameraManager::CheckViewportChanged()
 {
 	Gdiplus::RectF currentViewport = GetViewportWorldRect();
 	
-	// ºäÆ÷Æ®°¡ º¯°æµÇ¾ú´ÂÁö È®ÀÎ (Ä«¸Þ¶ó À§Ä¡³ª Å©±â°¡ º¯°æµÇ¾úÀ» ¶§)
+	// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ (Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Å©ï¿½â°¡ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½)
 	if (currentViewport.X != m_lastViewportRect.X || 
 		currentViewport.Y != m_lastViewportRect.Y ||
 		currentViewport.Width != m_lastViewportRect.Width || 
@@ -290,7 +290,7 @@ void CameraManager::CheckViewportChanged()
 	}
 }
 
-// === Å¸ÀÏ ·»´õ¸µ °ü¸® ±â´É ===
+// === Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ===
 
 void CameraManager::RenderVisibleTiles(RenderManager* renderManager, const MapData* mapData)
 {
@@ -298,16 +298,16 @@ void CameraManager::RenderVisibleTiles(RenderManager* renderManager, const MapDa
 		return;
 	}
 
-	// ±âÁ¸ CheckViewportChanged() ÇÔ¼öÀÇ °á°ú¸¦ »ç¿ë
-	// Update()¿¡¼­ ÀÌ¹Ì È£ÃâµÇ¾î m_viewportChanged°¡ ¼³Á¤µÊ
+	// ï¿½ï¿½ï¿½ï¿½ CheckViewportChanged() ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// Update()ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ È£ï¿½ï¿½Ç¾ï¿½ m_viewportChangedï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (m_viewportChanged) {
 		m_tileViewportChanged = true;
-		m_viewportChanged = false; // Å¸ÀÏ ·»´õ¸µ¿¡ Àü´Þ ÈÄ Áï½Ã Å¬¸®¾î
+		m_viewportChanged = false; // Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
 	}
 
-	// ºäÆ÷Æ®°¡ º¯°æµÇÁö ¾Ê¾ÒÀ¸¸é ÀÌÀü ¹üÀ§ »ç¿ë
+	// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	if (!m_tileViewportChanged) {
-		// ÀÌÀü¿¡ °è»êµÈ ¹üÀ§·Î ·»´õ¸µ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		for (int y = m_lastStartTileY; y < m_lastEndTileY; ++y) {
 			float worldY = y * TILE_SIZE + TILE_SIZE / 2.0f;
 			for (int x = m_lastStartTileX; x < m_lastEndTileX; ++x) {
@@ -317,7 +317,7 @@ void CameraManager::RenderVisibleTiles(RenderManager* renderManager, const MapDa
 		return;
 	}
 
-	// ºäÆ÷Æ®°¡ º¯°æµÇ¾úÀ» ¶§¸¸ »õ·Î¿î ¹üÀ§ °è»ê
+	// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	Gdiplus::RectF currentViewport = GetViewportWorldRect();
 	const float MARGIN = TILE_SIZE;
 	float startX = currentViewport.X - MARGIN;
@@ -325,20 +325,20 @@ void CameraManager::RenderVisibleTiles(RenderManager* renderManager, const MapDa
 	float startY = currentViewport.Y - MARGIN;
 	float endY = currentViewport.Y + currentViewport.Height + MARGIN;
 
-	// Å¸ÀÏ ÀÎµ¦½º ¹üÀ§ °è»ê
+	// Å¸ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	int startTileX = max(0, (int)floor(startX / TILE_SIZE));
 	int endTileX = min(MAP_WIDTH, (int)ceil(endX / TILE_SIZE));
 	int startTileY = max(0, (int)floor(startY / TILE_SIZE));
 	int endTileY = min(MAP_HEIGHT, (int)ceil(endY / TILE_SIZE));
 
-	// ¹üÀ§ ¾÷µ¥ÀÌÆ®
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	m_lastStartTileX = startTileX;
 	m_lastStartTileY = startTileY;
 	m_lastEndTileX = endTileX;
 	m_lastEndTileY = endTileY;
 	m_tileViewportChanged = false;
 
-	// ÃÖÀûÈ­µÈ Å¸ÀÏ ·»´õ¸µ
+	// ï¿½ï¿½ï¿½ï¿½È­ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	for (int y = startTileY; y < endTileY; ++y) {
 		float worldY = y * TILE_SIZE + TILE_SIZE / 2.0f;
 		for (int x = startTileX; x < endTileX; ++x) {
@@ -347,20 +347,20 @@ void CameraManager::RenderVisibleTiles(RenderManager* renderManager, const MapDa
 	}
 }
 
-// °³º° Å¸ÀÏ ·»´õ¸µ ÇïÆÛ ÇÔ¼ö
+// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
 void CameraManager::RenderSingleTile(RenderManager* renderManager, const MapData* mapData, int x, int y, float worldY)
 {
 	const TileData& tileData = mapData->tiles[x][y];
 	
-	// ºó Å¸ÀÏÀÌ³ª TILE_NONEÀÎ Å¸ÀÏ ½ºÅµ
+	// ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½Ì³ï¿½ TILE_NONEï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½Åµ
 	if (tileData.id == TILEID_NONE || tileData.type == TILE_NONE) {
 		return;
 	}
 
-	// Å¸ÀÏ Ä³½Ã¿¡¼­ µ¥ÀÌÅÍ °¡Á®¿À±â (ÃÖÀûÈ­µÈ °Ë»ö)
+	// Å¸ï¿½ï¿½ Ä³ï¿½Ã¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½È­ï¿½ï¿½ ï¿½Ë»ï¿½)
 	auto cacheIt = m_tileCache.find(tileData.id);
 	if (cacheIt == m_tileCache.end()) {
-		// Ä³½Ã¿¡ ¾ø´Â Å¸ÀÏ¸¸ ·Îµå
+		// Ä³ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ï¸ï¿½ ï¿½Îµï¿½
 		TileCacheData newCacheData;
 		newCacheData.id = tileData.id;
 		LoadTileBitmap(tileData.id, newCacheData);
@@ -369,28 +369,28 @@ void CameraManager::RenderSingleTile(RenderManager* renderManager, const MapData
 			cacheIt = m_tileCache.find(tileData.id);
 		}
 		else {
-			return; // ·Îµå ½ÇÆÐÇÑ Å¸ÀÏÀº ½ºÅµ
+			return; // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Åµ
 		}
 	}
 
 	TileCacheData& cacheData = cacheIt->second;
 	Gdiplus::Bitmap* tileBitmap = cacheData.bitmap;
 
-	// ºñÆ®¸ÊÀÌ ·ÎµåµÇÁö ¾ÊÀº °æ¿ì¸¸ ·Îµå
+	// ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¸¸ ï¿½Îµï¿½
 	if (!tileBitmap) {
 		LoadTileBitmap(tileData.id, cacheData);
 		tileBitmap = cacheData.bitmap;
 		if (!tileBitmap) return;
 	}
 
-	// Å¸ÀÏ ·»´õ¸µ
+	// Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	float worldX = x * TILE_SIZE + TILE_SIZE / 2.0f;
 	renderManager->RenderTile(tileBitmap, worldX, worldY, TILE_SIZE, TILE_SIZE);
 }
 
 void CameraManager::ClearTileCache()
 {
-	// Å¸ÀÏ Ä³½ÃÀÇ ºñÆ®¸Êµé ÇØÁ¦
+	// Å¸ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½
 	for (auto& pair : m_tileCache) {
 		if (pair.second.bitmap) {
 			delete pair.second.bitmap;
@@ -406,7 +406,7 @@ void CameraManager::LoadTileBitmap(TileID tileID, TileCacheData& cacheData)
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 	const TileData* resourceTile = resourceManager->GetTileResourceInfo(tileID);
 	if (resourceTile) {
-		// TileDataÀÇ tileImageNameÀ» »ç¿ëÇÏ¿© °æ·Î ±¸¼º
+		// TileDataï¿½ï¿½ tileImageNameï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		std::wstring fullPath = resourceManager->BuildTileResourcePath(tileID, L"", resourceTile->tileImageName);
 		
 		cacheData.bitmap = new Gdiplus::Bitmap(fullPath.c_str());

@@ -32,10 +32,10 @@ void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstri
 {
 	// Normal 비트맵 로드
 	if (!normalImagePath.empty()) {
-		m_bitmap = new Gdiplus::Bitmap(normalImagePath.c_str());
-		if (m_bitmap && m_bitmap->GetLastStatus() != Gdiplus::Ok) {
-			delete m_bitmap;
-			m_bitmap = nullptr;
+		m_orignalBitmap = new Gdiplus::Bitmap(normalImagePath.c_str());
+		if (m_orignalBitmap && m_orignalBitmap->GetLastStatus() != Gdiplus::Ok) {
+			delete m_orignalBitmap;
+			m_orignalBitmap = nullptr;
 		}
 	}
 
@@ -188,11 +188,11 @@ Gdiplus::Bitmap* UIButton::GetBitmap() const
 	switch (m_buttonState) {
 	case ButtonState::HOVER:
 	case ButtonState::CLICKED:
-		return (m_hoverBitmap) ? m_hoverBitmap : m_bitmap;
+		return (m_hoverBitmap) ? m_hoverBitmap : m_orignalBitmap;
 	case ButtonState::DISABLED:
 	case ButtonState::NORMAL:
 	default:
-		return m_bitmap;
+		return m_orignalBitmap;
 	}
 }
 
@@ -208,9 +208,9 @@ ButtonState UIButton::GetButtonState() const
 
 void UIButton::Release()
 {
-	if (m_bitmap) {
-		delete m_bitmap;
-		m_bitmap = nullptr;
+	if (m_orignalBitmap) {
+		delete m_orignalBitmap;
+		m_orignalBitmap = nullptr;
 	}
 	if (m_hoverBitmap) {
 		delete m_hoverBitmap;
@@ -245,7 +245,7 @@ void UIButton::SetDisabled(bool disabled)
 
 void UIButton::RenderDisabled()
 {
-    if (!m_bitmap) return;
+    if (!m_orignalBitmap) return;
     
     // 비활성화된 버튼을 어둡게 렌더링 (완전히 검은색이 아닌 어두운 회색)
     Gdiplus::ColorMatrix colorMatrix = {
@@ -262,7 +262,7 @@ void UIButton::RenderDisabled()
     Gdiplus::RectF destRect(GetX() - GetWidth() / 2.0f, GetY() - GetHeight() / 2.0f, GetWidth(), GetHeight());
 
 	RenderManager::GetInstance()->RenderUIImage(
-		m_bitmap,
+		m_orignalBitmap,
 		m_x - (m_pivotX * m_width),  // destLeft
 		m_y - (m_pivotY * m_height), // destTop
 		m_width,
