@@ -4,10 +4,10 @@ class Item;
 class Player;
 
 struct ItemSlot {
-	std::shared_ptr<Item> item;
+	Item* item;
 	UINT count;
 
-	ItemSlot() : count(0) {}
+	ItemSlot() : item(nullptr), count(0) {}
 	bool IsEmpty() const { return item == nullptr || count == 0; }
 	void Clear() { item = nullptr; count = 0; }
 };
@@ -24,7 +24,7 @@ public:
 
 	void Init(std::vector<Gdiplus::RectF>& slotRects);
 
-	bool AddItem(std::shared_ptr<Item> itemDef, UINT count = 1);
+	bool AddItem(Item* itemDef, UINT count = 1);
 	bool RemoveItem(UINT slotIndex, UINT count = 1);
 	bool ConsumeItems(const std::map<UINT, UINT>& requiredItems);
 
@@ -44,7 +44,7 @@ private:
 	int FindFirstEmptySlot() const;
 	int FindExistingStack(UINT itemId) const;
 
-	// UI ·»´õ¸µ¿ë ¸â¹ö º¯¼öµé
+	// UI ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	Gdiplus::Bitmap* m_inventoryBgBitmap;
 	Gdiplus::Bitmap* m_slotBgBitmap;
 	Gdiplus::Font* m_font;

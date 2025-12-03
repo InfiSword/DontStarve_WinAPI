@@ -28,7 +28,7 @@ void InputManager::LateInit()
 
 void InputManager::Update(float deltaTime)
 {
-    // ÀÌÀü ÇÁ·¹ÀÓ »óÅÂ¸¦ ÇöÀç ÇÁ·¹ÀÓ »óÅÂ·Î º¹»ç
+    // ì´ì „ í”„ë ˆì„ì˜ í‚¤ ìƒíƒœë¥¼ í˜„ì¬ í”„ë ˆì„ì˜ ì´ì „ ìƒíƒœë¡œ ë³µì‚¬
     memcpy(s_keyPrevState, s_keyState, sizeof(s_keyState));
     s_lButtonPrevState = s_lButtonState;
     s_rButtonPrevState = s_rButtonState;
@@ -67,7 +67,7 @@ Gdiplus::PointF InputManager::GetMouseClickScreenPos() const {
     return Gdiplus::PointF(static_cast<float>(s_mousePos.x), static_cast<float>(s_mousePos.y));
 }
 
-// ¸¶¿ì½º Å¬¸¯µÈ ¿ùµå ÁÂÇ¥
+// ë§ˆìš°ìŠ¤ í´ë¦­í•œ ì›”ë“œ ì¢Œí‘œ
 Gdiplus::PointF InputManager::GetMouseClickWorldPos() const {
     Gdiplus::PointF screenPos = GetMouseClickScreenPos();
     return CameraManager::GetInstance()->ScreenToWorld(screenPos.X, screenPos.Y);

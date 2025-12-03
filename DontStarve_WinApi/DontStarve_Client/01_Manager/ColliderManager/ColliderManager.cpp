@@ -23,24 +23,24 @@ void ColliderManager::LateInit()
 
 void ColliderManager::Update(float deltaTime)
 {
-    // µ¿Àû ¿ÀºêÁ§Æ®µéÀÇ ÄÝ¶óÀÌ´õ À§Ä¡ °»½Å 
+    // ëª¨ë“  ê²Œìž„ì˜¤ë¸Œì íŠ¸ì˜ ì½œë¼ì´ë” ìœ„ì¹˜ ì—…ë°ì´íŠ¸ 
 }
 
 void ColliderManager::LateUpdate()
 {
-    // ÇÁ·¹ÀÓ´ç Ãæµ¹ °Ë»ç ·ÎÁ÷ 
+    // ëª¨ë“  ì˜¤ë¸Œì íŠ¸ì˜ ì¶©ëŒ ê²€ì‚¬ ì²˜ë¦¬ 
 }
 
 void ColliderManager::Render(Gdiplus::Graphics* pGraphics)
 {
-    // µð¹ö±×¿ë ÄÝ¶óÀÌ´õ ¿µ¿ª ±×¸®±â 
+    // ë””ë²„ê·¸ìš© ì½œë¼ì´ë” ë°•ìŠ¤ ê·¸ë¦¬ê¸° 
     if (!pGraphics || !CameraManager::GetInstance()) return;
 
     Gdiplus::Pen debugPen(Gdiplus::Color(255, 255, 0, 0), 1); 
 
     for (Collider* pCollider : m_colliders) {
         if (pCollider && pCollider->m_pOwner) {
-            // ÄÝ¶óÀÌ´õÀÇ ¿ùµå ÁÂÇ¥¸¦ È­¸é ÁÂÇ¥·Î º¯È¯
+            // ì½œë¼ì´ë”ì˜ ì›”ë“œ ì¢Œí‘œë¥¼ í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜
             Gdiplus::PointF screenTopLeft = CameraManager::GetInstance()->WorldToScreen(pCollider->m_boundingBox.left, pCollider->m_boundingBox.top);
             Gdiplus::PointF screenBottomRight = CameraManager::GetInstance()->WorldToScreen(pCollider->m_boundingBox.right, pCollider->m_boundingBox.bottom);
 
@@ -69,7 +69,7 @@ void ColliderManager::AddCollider(Collider* pCollider)
 
 void ColliderManager::RemoveCollider(Collider* pCollider)
 {
-    // º¤ÅÍ¿¡¼­ ÄÝ¶óÀÌ´õ Á¦°Å ·ÎÁ÷
+    // ë¦¬ìŠ¤íŠ¸ì—ì„œ ì½œë¼ì´ë” ì œê±° ë° ì‚­ì œ
     m_colliders.erase(std::remove(m_colliders.begin(), m_colliders.end(), pCollider), m_colliders.end());
     SafeDelete(pCollider);
 }
@@ -78,7 +78,7 @@ GameObject* ColliderManager::CheckPointCollision(POINT screenPos)
 {
     if (!CameraManager::GetInstance()) return nullptr;
 
-    // È­¸é ÁÂÇ¥¸¦ ¿ùµå ÁÂÇ¥·Î º¯È¯
+    // í™”ë©´ ì¢Œí‘œë¥¼ ì›”ë“œ ì¢Œí‘œë¡œ ë³€í™˜
     Gdiplus::PointF worldPos = CameraManager::GetInstance()->ScreenToWorld(screenPos.x, screenPos.y);
 
     for (Collider* pCollider : m_colliders) {

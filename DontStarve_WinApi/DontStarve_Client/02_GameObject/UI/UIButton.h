@@ -11,7 +11,7 @@ private:
     bool m_isDisabled;
     std::function<void()> m_onClickCallback;
     
-    // ÅØ½ºÆ® °ü·Ã ¸â¹ö º¯¼ö
+    // í…ìŠ¤íŠ¸ ë Œë”ë§ ê´€ë ¨ ë©¤ë²„
     std::wstring m_buttonText;
     Gdiplus::Font* m_font;
     Gdiplus::Brush* m_textBrush;
@@ -32,17 +32,17 @@ public:
 
     Gdiplus::Bitmap* GetBitmap() const;
 
-    // UIButton Àü¿ë ¸Ş¼Òµå
+    // UIButton ì „ìš© ë©”ì„œë“œ
     void LoadBitmaps(const std::wstring& normalImagePath, const std::wstring& hoverImagePath);
     void InitializeText();
     void CheckMouseInteraction();
     bool IsPointInside(float x, float y) const;
     ButtonState GetButtonState() const;    
 
-    // ¹öÆ° ÀÌº¥Æ®
+    // ë²„íŠ¼ ì´ë²¤íŠ¸
     void SetOnClickCallback(std::function<void()> callback);
     
-    // ºñÈ°¼ºÈ­ °ü·Ã ¸Ş¼Òµå
+    // ë¹„í™œì„±í™” ê´€ë ¨ ë©”ì„œë“œ
     void SetDisabled(bool disabled);
     bool IsDisabled() const { return m_isDisabled; }
     void RenderDisabled();

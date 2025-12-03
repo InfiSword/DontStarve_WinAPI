@@ -29,22 +29,22 @@ void UIImage::LoadBitmap(const std::wstring& imagePath)
 
 void UIImage::Update(float deltaTime)
 {
-	// UIImage´Â Á¤ÀûÀÌ¹Ç·Î Æ¯º°ÇÑ ¾÷µ¥ÀÌÆ® ¾øÀ½
+	// UIImageëŠ” ì •ì  ì´ë¯¸ì§€ì´ë¯€ë¡œ íŠ¹ë³„í•œ ì—…ë°ì´íŠ¸ ì—†ìŒ
 }
 
 void UIImage::Render()
 {
     if (!GetActive() || !m_orignalBitmap) return;
 
-    // RenderManager¸¦ ÅëÇÑ UI ·»´õ¸µÀ¸·Î ÅëÀÏ
+    // RenderManagerë¥¼ í†µí•´ UI ì´ë¯¸ì§€ ë Œë”ë§
     RenderManager::GetInstance()->RenderUIImage(
         m_orignalBitmap,
         m_x - (m_pivotX * m_width),  // destLeft
         m_y - (m_pivotY * m_height), // destTop
         m_width,
         m_height,
-		m_layer,  // UIImageÀÇ ·¹ÀÌ¾î »ç¿ë
-		m_sortKey  // UIImageÀÇ Á¤·Ä Å° »ç¿ë
+		m_layer,  // UIImageì˜ ë ˆì´ì–´ ì‚¬ìš©
+		m_sortKey  // UIImageì˜ ì •ë ¬ í‚¤ ì‚¬ìš©
     );
 }
 

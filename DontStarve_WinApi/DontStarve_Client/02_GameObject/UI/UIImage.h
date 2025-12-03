@@ -8,7 +8,7 @@ public:
     UIImage(GameObjectID id, float x, float y, float width, float height, RenderLayer layer, const std::wstring& imagePath, float sortKey);
     virtual ~UIImage();
 
-    // GameObject ÀÎÅÍÆäÀÌ½º ±¸Çö
+    // GameObject ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„
     virtual void Init() override {}
     virtual void LateInit() override {}
     virtual void Update(float deltaTime) override;
@@ -16,7 +16,7 @@ public:
     virtual void Render();
     virtual void Release() override;
 
-    // UIImage Æ¯È­ ¸Ş¼Òµå
+    // UIImage ì „ìš© ë©”ì„œë“œ
     void LoadBitmap(const std::wstring& imagePath);
     Gdiplus::Bitmap* GetBitmap() const;
 

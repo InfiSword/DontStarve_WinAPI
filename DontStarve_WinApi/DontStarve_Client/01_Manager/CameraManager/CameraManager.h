@@ -1,6 +1,6 @@
 #pragma once
 
-// Ÿ�� ĳ�� ������ ����ü
+// 타일 캐시 데이터 구조체
 struct TileCacheData {
 	TileID id;
 	Gdiplus::Bitmap* bitmap;
@@ -30,79 +30,79 @@ public:
 	void Render();
 	void Release();
 
-	// ���� ��ǥ <-> ȭ�� ��ǥ ��ȯ �Լ�
+	// 월드 좌표 <-> 화면 좌표 변환 함수
 	Gdiplus::PointF WorldToScreen(float worldX, float worldY);
 	Gdiplus::PointF ScreenToWorld(float screenX, float screenY);
 	
-	// ����Ʈ ���� ��� �Լ�
+	// 뷰포트 영역 관련 함수
 	Gdiplus::RectF GetViewportWorldRect() const;
 	
 	Gdiplus::PointF GetCameraPos();
 
-	// �÷��̾� ���� ���
+	// 플레이어 추적 기능
 	void SetTarget(GameObject* target);
 	const GameObject* GetTarget();
 	void FollowTarget(float deltaTime);
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 	bool IsFollowMode() const { return m_followMode; }
 	
-	// ī�޶� ��ġ ���� ����
+	// 카메라 위치 직접 설정
 	void SetCameraPosition(float x, float y);
 
-	// === ȭ�鿡 ���̴� ������Ʈ ���� ��� (ViewportManager ����) ===
-	// ȭ�鿡 ���̴� ������Ʈ ������Ʈ (ObjectManager�� ������Ʈ���� �������)
+	// === 화면에 보이는 게임오브젝트 관리 기능 (ViewportManager 역할) ===
+	// 화면에 보이는 게임오브젝트 업데이트 (ObjectManager의 게임오브젝트들을 필터링)
 	void UpdateVisibleObjects();
 	const std::vector<GameObject*>& GetVisibleObjects() const { return m_visibleObjects; }
 	
-	// Ư�� ��ġ�� ������Ʈ ã�� (ȭ�鿡 ���̴� ������Ʈ�� �˻�)
+	// 특정 위치의 게임오브젝트 찾기 (화면에 보이는 게임오브젝트만 검색)
 	GameObject* FindObjectAtPosition(float worldX, float worldY);
 	
-	// ȭ�鿡 ���̴� ������Ʈ���� Ȯ��
+	// 화면에 보이는 게임오브젝트인지 확인
 	bool IsObjectVisible(GameObject* obj) const;
 	
-	// ����Ʈ ���� ����
+	// 뷰포트 변경 확인
 	bool HasViewportChanged() const { return m_viewportChanged; }
 	void ClearViewportChanged() { m_viewportChanged = false; }	
 
-	// === Ÿ�� ������ ���� ��� ===
-	// ȭ�鿡 ���̴� Ÿ�� ������ (�� �����͸� �Ű������� ����)
+	// === 타일 렌더링 관리 기능 ===
+	// 화면에 보이는 타일 렌더링 (맵 데이터를 파라미터로 받음)
 	void RenderVisibleTiles(RenderManager* renderManager, const MapData* mapData);
 	
-	// Ÿ�� ĳ�� ����
+	// 타일 캐시 해제
 	void ClearTileCache();
 
 private:
     GameObject* m_target;
 	Gdiplus::PointF m_cameraPos;
 
-	float m_zoomFactor;             // ���� �� ����
+	float m_zoomFactor;             // 줌 배율 설정
 	
-	bool m_followMode;              // �÷��̾� ���� ���
+	bool m_followMode;              // 플레이어 추적 모드
 	
-	// === ȭ�鿡 ���̴� ������Ʈ ���� (ViewportManager ����) ===
+	// === 화면에 보이는 게임오브젝트 관리 (ViewportManager 역할) ===
 	std::vector<GameObject*> m_visibleObjects;
-	std::unordered_set<GameObject*> m_visibleObjectSet; // ���� �˻��� ���� �ؽü�
+	std::unordered_set<GameObject*> m_visibleObjectSet; // 빠른 검색을 위한 해시셋
 	
-	// ����Ʈ ����
+	// 뷰포트 영역
 	Gdiplus::RectF m_lastViewportRect;
 	bool m_viewportChanged;
 	
-	// ȭ�鿡 ���̴� ������Ʈ���� Ȯ���ϴ� ���� �Լ�
+	// 화면에 보이는 게임오브젝트인지 확인하는 내부 함수
 	bool IsObjectInViewport(GameObject* obj) const;
 	
-	// ����Ʈ ���� ����
+	// 뷰포트 변경 확인
 	void CheckViewportChanged();
 	
-	// === Ÿ�� ������ ���� ===
+	// === 타일 렌더링 관리 ===
 	std::map<UINT, TileCacheData> m_tileCache;
 	std::vector<std::pair<int, int>> m_visibleTileIndices;
 	
-	// Ÿ�� ������ ����ȭ ���� ������
+	// 타일 렌더링 최적화 관련 변수
 	int m_lastStartTileX, m_lastStartTileY, m_lastEndTileX, m_lastEndTileY;
 	bool m_tileViewportChanged;
 	
-	// Ÿ�� ������ ���� �Լ���
+	// 타일 렌더링 관련 함수들
 	void LoadTileBitmap(TileID tileID, TileCacheData& cacheData);
 	void RenderSingleTile(RenderManager* renderManager, const MapData* mapData, int x, int y, float worldY);
-	// bool IsTileInViewport(int tileX, int tileY) const; // ���� �̻��
+	// bool IsTileInViewport(int tileX, int tileY) const; // 현재 미사용
 };

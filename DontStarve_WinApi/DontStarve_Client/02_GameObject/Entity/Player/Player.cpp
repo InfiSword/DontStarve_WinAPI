@@ -86,7 +86,7 @@ void Player::ToggleEquipItem(int slotIndex)
 	}
 
 	// 도구(Tool) 타입만 장착 가능
-	std::shared_ptr<Tool> toolItem = std::dynamic_pointer_cast<Tool>(targetSlot.item);
+	Tool* toolItem = dynamic_cast<Tool*>(targetSlot.item);
 	if (!toolItem) {
 		OutputDebugStringW(L"Player: Cannot equip non-tool item.\n");
 		return;
@@ -129,7 +129,7 @@ void Player::Damaged(int damage)
 //			GameObjectID objID = m_currentInteractionTarget->GetID();
 //			if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
 //				// 도구를 장착했고 파손되지 않았으면 사용
-//				std::shared_ptr<Axe> equippedAxe = dynamic_pointer_cast<Axe>(m_equippedItem);
+//				Axe* equippedAxe = dynamic_cast<Axe*>(m_equippedItem);
 //				if (equippedAxe && !equippedAxe->IsBroken()) {
 //					// Tree의 상태를 변경하기 위해서는 캐릭터가 필요 (나중 구현)
 //					Tree* tree = dynamic_cast<Tree*>(m_currentInteractionTarget);
@@ -340,7 +340,8 @@ void Player::Update(float deltaTime)
 	//requiredMaterials[GOID_ITEM_NORMAL_TWIGS] = 2; // 나뭇가지 2개
 	//requiredMaterials[GOID_ITEM_NORMAL_ROCK] = 2;  // 돌 2개
 
-	//std::shared_ptr<Item> axeItemDef = ObjectManager::GetInstance()->CreateItem(GOID_ITEM_AXE);
+	//GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(GOID_ITEM_AXE, 0.0f, 0.0f, nullptr, false);
+	//Item* axeItemDef = dynamic_cast<Item*>(itemObj);
 
 	//	if (!axeItemDef) {
 	//		return;
@@ -389,8 +390,10 @@ void Player::FinalizeInteraction() {
 	// 오브젝트 타입과 ID에 따라 상호작용 처리 방법
 	if (objType == GOBJ_ITEM) {
 		// 일반 Ingredient 아이템 처리
-		std::shared_ptr<Item> itemObj = ObjectManager::GetInstance()->CreateItem(objID);
-		if (itemObj && m_inventory->AddItem(itemObj, 1)) 
+		// 인벤토리 아이템은 ObjectManager에 추가하지 않음 (addToManager = false)
+		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(objID, 0.0f, 0.0f, nullptr, false);
+		Item* item = dynamic_cast<Item*>(itemObj);
+		if (item && m_inventory->AddItem(item, 1)) 
 		{
 			ObjectManager::GetInstance()->RemoveGameObject(m_currentInteractionTarget);
 			itemCollected = true;
@@ -407,8 +410,10 @@ void Player::FinalizeInteraction() {
 			// 드롭 아이템이 설정되어 있는 경우에만 처리
 			if (itemID != GOID_NONE && itemCount > 0) {
 				// 해당 아이템을 생성하여 인벤토리에 추가
-				std::shared_ptr<Item> itemObj = ObjectManager::GetInstance()->CreateItem(itemID);
-				if (itemObj && m_inventory->AddItem(itemObj, itemCount)) 
+				// 인벤토리 아이템은 ObjectManager에 추가하지 않음 (addToManager = false)
+				GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(itemID, 0.0f, 0.0f, nullptr, false);
+				Item* item = dynamic_cast<Item*>(itemObj);
+				if (item && m_inventory->AddItem(item, itemCount)) 
 				{
 					ObjectManager::GetInstance()->RemoveGameObject(m_currentInteractionTarget);
 					itemCollected = true;

@@ -5,7 +5,7 @@ class GameObject;
 class Item;
 class Inventory;
 
-// InventoryManager´Â ¿ÜºÎ È¯°æ°ú ÀÎº¥Åä¸® ½Ã½ºÅÛÀ» ¿¬°áÇÏ´Â ÀÎÅÍÆäÀÌ½º ¿ªÇÒÀ» ´ã´çÇÕ´Ï´Ù.
+// InventoryManagerëŠ” í”Œë ˆì´ì–´ ì¸ë²¤í† ë¦¬ ì‹œìŠ¤í…œì„ ê´€ë¦¬í•˜ëŠ” ì‹±ê¸€í†¤ ë§¤ë‹ˆì € í´ë˜ìŠ¤ì…ë‹ˆë‹¤.
 class InventoryManager : public CSingleTon<InventoryManager>
 {
 	friend class CSingleTon<InventoryManager>;
@@ -20,42 +20,42 @@ public:
 	void Render();
 	void Release();
 
-	// ¿ÜºÎ È¯°æ°ú ÀÎº¥Åä¸® »óÈ£ÀÛ¿ë ÀÎÅÍÆäÀÌ½º
+	// í”Œë ˆì´ì–´ ì¸ë²¤í† ë¦¬ ê´€ë ¨ ì¸í„°í˜ì´ìŠ¤
 	
-	// ¿ùµå ¿ÀºêÁ§Æ®·ÎºÎÅÍ ¾ÆÀÌÅÛ È¹µæ
+	// ì›”ë“œ ì˜¤ë¸Œì íŠ¸ë¡œë¶€í„° ì•„ì´í…œ íšë“
 	bool TryGainItemFromWorldObject(Player* player, GameObject* worldObject);
 	
-	// ¾ÆÀÌÅÛ »ç¿ë Ã³¸® (µµ±¸ Âø¿ë, ¼Òºñ ¾ÆÀÌÅÛ »ç¿ë µî)
+	// ì•„ì´í…œ ì‚¬ìš© ì²˜ë¦¬ (ë„êµ¬ ì‚¬ìš©, ìŒì‹ ì•„ì´í…œ ì‚¬ìš© ë“±)
 	bool TryUseItem(Player* player, int slotIndex);
 	
-	// ¾ÆÀÌÅÛ ¹ö¸®±â (¿ùµå¿¡ µå·Ó)
+	// ì•„ì´í…œ ë²„ë¦¬ê¸° (ì›”ë“œì— ë“œë¡­)
 	bool TryDropItem(Player* player, int slotIndex, UINT count = 1);
 	
-	// ¾ÆÀÌÅÛ Á¶ÇÕ ½Ã½ºÅÛ
+	// ì•„ì´í…œ ì œì‘ ì‹œìŠ¤í…œ
 	bool TryCraftItem(Player* player, GameObjectID targetItemID);
 	
-	// ¾ÆÀÌÅÛ ±³È¯ ½Ã½ºÅÛ (»óÁ¡, NPC µî)
+	// ì•„ì´í…œ êµí™˜ ì‹œìŠ¤í…œ (ê±°ë˜, NPC ë“±)
 	bool TryTradeItem(Player* player, const std::map<UINT, UINT>& giveItems, const std::map<UINT, UINT>& receiveItems);
 	
-	// ÀÎº¥Åä¸® ÀüÃ¼ ÀúÀå ±â´É
+	// ì¸ë²¤í† ë¦¬ ì „ì²´ ì €ì¥ ê¸°ëŠ¥
 	void SaveInventoryToFile(Player* player, const std::wstring& filePath);
 	void LoadInventoryFromFile(Player* player, const std::wstring& filePath);
 
 private:
-	// ÀÌ¹ÌÁö °æ·Î¸¦ ¹Ş¾Æ¼­ Gdiplus::Bitmap*À» ¹İÈ¯ÇÏ´Â ÇÔ¼ö (Ä³½Ã ±â´É)
+	// ì´ë¯¸ì§€ ê²½ë¡œë¥¼ ë°›ì•„ì„œ Gdiplus::Bitmap*ë¥¼ ë°˜í™˜í•˜ëŠ” í•¨ìˆ˜ (ìºì‹œ ì‚¬ìš©)
 	Gdiplus::Bitmap* GetBitmapForPath(const std::wstring& imagePath);
 	
-	// ¾ÆÀÌÅÛ Á¶ÇÕ ·¹½ÃÇÇ °ü¸®
+	// ì•„ì´í…œ ì œì‘ ë ˆì‹œí”¼ ê´€ë¦¬
 	void LoadCraftingRecipes();
 	bool HasCraftingRecipe(GameObjectID itemID) const;
 	std::map<UINT, UINT> GetCraftingRecipe(GameObjectID itemID) const;
 	
-	// ¿ùµå ¿ÀºêÁ§Æ®¿¡¼­ ¾òÀ» ¼ö ÀÖ´Â ¾ÆÀÌÅÛ °è»ê
+	// ì›”ë“œ ì˜¤ë¸Œì íŠ¸ë¡œë¶€í„° ë“œë¡­ ê°€ëŠ¥í•œ ì•„ì´í…œ ëª©ë¡
 	std::vector<std::pair<GameObjectID, UINT>> CalculateDropsFromObject(GameObject* worldObject);
 
 private:
 	std::map<std::wstring, Gdiplus::Bitmap*> m_bitmapCache;
 	
-	// ¾ÆÀÌÅÛ Á¶ÇÕ ·¹½ÃÇÇ µ¥ÀÌÅÍ (¾ÆÀÌÅÛID -> ÇÊ¿ä Àç·á)
+	// ì•„ì´í…œ ì œì‘ ë ˆì‹œí”¼ ë°ì´í„° (ì•„ì´í…œID -> í•„ìš” ì¬ë£Œ)
 	std::map<GameObjectID, std::map<UINT, UINT>> m_craftingRecipes;
 }; 

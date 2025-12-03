@@ -6,13 +6,13 @@ class Collider {
 public:
     enum Type { RECTANGLE, CIRCLE };
     Type m_type;
-    GameObject* m_pOwner; // ÀÌ Äİ¶óÀÌ´õ¸¦ ¼ÒÀ¯ÇÑ GameObject
+    GameObject* m_pOwner; // ì´ ì½œë¼ì´ë”ë¥¼ ì†Œìœ í•˜ëŠ” GameObject
     RECT m_boundingBox;   // AABB 
 
     Collider(GameObject* owner, RECT boundingBox) : m_pOwner(owner), m_boundingBox(boundingBox), m_type(RECTANGLE) {}
     virtual ~Collider() = default;
 
-    // Ãæµ¹ °¨Áö ¸Ş¼­µå
+    // ì¶©ëŒ ê²€ì‚¬ ë©”ì„œë“œ
     virtual bool Intersects(const POINT& point) {
         return PtInRect(&m_boundingBox, point); 
     }
@@ -27,22 +27,22 @@ public:
 
     void Init();
     void LateInit();                     
-    void Update(float deltaTime);         // µ¿Àû ¿ÀºêÁ§Æ® Äİ¶óÀÌ´õ À§Ä¡ °»½Å
-    void LateUpdate();                    // Ãæµ¹ °Ë»ç ¼öÇà 
+    void Update(float deltaTime);         // ëª¨ë“  ê²Œì„ì˜¤ë¸Œì íŠ¸ ì½œë¼ì´ë” ìœ„ì¹˜ ì—…ë°ì´íŠ¸
+    void LateUpdate();                    // ì¶©ëŒ ê²€ì‚¬ ì²˜ë¦¬ 
     void Render(Gdiplus::Graphics* pGraphics); 
-    // µğ¹ö±×¿ë Äİ¶óÀÌ´õ ¿µ¿ª ±×¸®±â
+    // ë””ë²„ê·¸ìš© ì½œë¼ì´ë” ë°•ìŠ¤ ê·¸ë¦¬ê¸°
     void Release();                    
 
     void AddCollider(Collider* pCollider);
     void RemoveCollider(Collider* pCollider);
 
-    // Ãæµ¹ Ã³¸®
+    // ì¶©ëŒ ì²˜ë¦¬
     GameObject* CheckPointCollision(POINT screenPos); 
-    // È­¸é ÁÂÇ¥·Î Å¬¸¯µÈ GameObject Ã£±â
+    // í™”ë©´ ì¢Œí‘œì—ì„œ í´ë¦­í•œ GameObject ì°¾ê¸°
     
     // GameObject* CheckRectCollision(RECT screenRect); 
-    // »ç°¢Çü ¿µ¿ª°ú Ãæµ¹ÇÏ´Â GameObject Ã£±â
+    // ì‚¬ê°í˜• ì˜ì—­ê³¼ ì¶©ëŒí•˜ëŠ” GameObject ì°¾ê¸°
 
 private:
-    std::vector<Collider*> m_colliders; // °ü¸®ÇÒ Äİ¶óÀÌ´õµé
+    std::vector<Collider*> m_colliders; // ë“±ë¡ëœ ì½œë¼ì´ë”ë“¤
 };

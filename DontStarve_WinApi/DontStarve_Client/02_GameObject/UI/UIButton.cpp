@@ -30,7 +30,7 @@ UIButton::~UIButton()
 
 void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstring& hoverImagePath)
 {
-	// Normal ºñÆ®¸Ê ·Îµå
+	// Normal ë¹„íŠ¸ë§µ ë¡œë“œ
 	if (!normalImagePath.empty()) {
 		m_orignalBitmap = new Gdiplus::Bitmap(normalImagePath.c_str());
 		if (m_orignalBitmap && m_orignalBitmap->GetLastStatus() != Gdiplus::Ok) {
@@ -39,7 +39,7 @@ void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstri
 		}
 	}
 
-	// Hover ºñÆ®¸Ê ·Îµå
+	// Hover ë¹„íŠ¸ë§µ ë¡œë“œ
 	if (!hoverImagePath.empty()) {
 		m_hoverBitmap = new Gdiplus::Bitmap(hoverImagePath.c_str());
 		if (m_hoverBitmap && m_hoverBitmap->GetLastStatus() != Gdiplus::Ok) {
@@ -51,7 +51,7 @@ void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstri
 
 void UIButton::InitializeText()
 {
-	// ±âÁ¸ ¸®¼Ò½º°¡ ÀÖ´Ù¸é ÇØÁ¦
+	// ê¸°ì¡´ í…ìŠ¤íŠ¸ ë¦¬ì†ŒìŠ¤ê°€ ìˆìœ¼ë©´ í•´ì œ
 	if (m_font) {
 		delete m_font;
 		m_font = nullptr;
@@ -65,19 +65,19 @@ void UIButton::InitializeText()
 		m_stringFormat = nullptr;
 	}
 
-	// ±âº» ÆùÆ® »ı¼º (Å©±â 16)
+	// ê¸°ë³¸ í°íŠ¸ ìƒì„± (í¬ê¸° 16)
 	m_font = new Gdiplus::Font(L"Arial", 16.0f);
 
-	// ±âº» ºê·¯½Ã »ı¼º (°ËÀº»ö)
+	// ê¸°ë³¸ ë¸ŒëŸ¬ì‹œ ìƒì„± (ê²€ì€ìƒ‰)
 	m_textBrush = new Gdiplus::SolidBrush(Gdiplus::Color::Black);
 
-	// ±âº» ¹®ÀÚ¿­ Æ÷¸Ë »ı¼º (Áß¾Ó Á¤·Ä)
+	// ê¸°ë³¸ ë¬¸ìì—´ ì •ë ¬ ì„¤ì • (ì¤‘ì•™ ì •ë ¬)
 	m_stringFormat = new Gdiplus::StringFormat();
 
 	m_stringFormat->SetAlignment(Gdiplus::StringAlignmentCenter);
 	m_stringFormat->SetLineAlignment(Gdiplus::StringAlignmentCenter);
 
-	// »ı¼ºµÈ °´Ã¼µéÀÌ À¯È¿ÇÑÁö ÃÖÁ¾ È®ÀÎ
+	// í°íŠ¸ íŒ¨ë°€ë¦¬ ìœ íš¨ì„± ì¬í™•ì¸
 	Gdiplus::FontFamily fontFamily;
 	if (m_font->GetFamily(&fontFamily) != Gdiplus::Ok) {
 		Release();
@@ -96,23 +96,23 @@ void UIButton::Update(float deltaTime)
 
 void UIButton::CheckMouseInteraction()
 {
-	// ºñÈ°¼ºÈ­µÈ ¹öÆ°Àº ¸¶¿ì½º »óÈ£ÀÛ¿ë Ã³¸®ÇÏÁö ¾ÊÀ½
+	// ë¹„í™œì„±í™”ëœ ë²„íŠ¼ì€ ë§ˆìš°ìŠ¤ ì´ë²¤íŠ¸ë¥¼ ì²˜ë¦¬í•˜ì§€ ì•ŠìŒ
 	if (m_isDisabled) {
 		m_isMouseOver = false;
 		m_buttonState = ButtonState::DISABLED;
 		return;
 	}
 
-	// ¸¶¿ì½º À§Ä¡ °¡Á®¿À±â
+	// ë§ˆìš°ìŠ¤ ìœ„ì¹˜ ê°€ì ¸ì˜¤ê¸°
 	POINT mousePos = InputManager::GetInstance()->GetMousePos();
 	float mouseX = static_cast<float>(mousePos.x);
 	float mouseY = static_cast<float>(mousePos.y);
 
-	// ¸¶¿ì½º°¡ ¹öÆ° ¿µ¿ª ¾È¿¡ ÀÖ´ÂÁö È®ÀÎ
+	// ë§ˆìš°ìŠ¤ê°€ ë²„íŠ¼ ì˜ì—­ ì•ˆì— ìˆëŠ”ì§€ í™•ì¸
 	bool wasMouseOver = m_isMouseOver;
 	m_isMouseOver = IsPointInside(mouseX, mouseY);
 
-	// ¸¶¿ì½º Å¬¸¯ Ã³¸®
+	// ë§ˆìš°ìŠ¤ í´ë¦­ ì²˜ë¦¬
 	if (m_isMouseOver && InputManager::GetInstance()->IsLButtonClicked()) {
 		m_buttonState = ButtonState::CLICKED;
 		if (m_onClickCallback) {
@@ -141,7 +141,7 @@ void UIButton::Render()
 {
 	if (!GetActive()) return;
 
-	// ºñÈ°¼ºÈ­µÈ ¹öÆ°Àº °ËÀº»öÀ¸·Î ·»´õ¸µ
+	// ë¹„í™œì„±í™”ëœ ë²„íŠ¼ì€ ë¹„í™œì„±í™” ìŠ¤íƒ€ì¼ë¡œ ë Œë”ë§
 	if (m_isDisabled) {
 		RenderDisabled();
 		return;
@@ -150,7 +150,7 @@ void UIButton::Render()
 	Gdiplus::Bitmap* currentBitmap = GetBitmap();
 	if (!currentBitmap) return;
 
-	// RenderManager¸¦ ÅëÇÑ UI ·»´õ¸µÀ¸·Î ÅëÀÏ
+	// RenderManagerë¥¼ í†µí•´ UI ì´ë¯¸ì§€ ë Œë”ë§
 	RenderManager::GetInstance()->RenderUIImage(
 		currentBitmap,
 		m_x - (m_pivotX * m_width),  // destLeft
@@ -158,16 +158,16 @@ void UIButton::Render()
 		m_width,
 		m_height,
 		LAYER_UI_FOREGROUND,
-		static_cast<float>(m_buttonState)  // ¹öÆ° »óÅÂ¸¦ sortKey·Î »ç¿ë
+		static_cast<float>(m_buttonState)  // ë²„íŠ¼ ìƒíƒœë¥¼ sortKeyë¡œ ì‚¬ìš©
 	);
 
-	// ÅØ½ºÆ® ·»´õ¸µ (¹öÆ° ÀÌ¹ÌÁö À§¿¡ Ç¥½Ã)
-	// ¸ğµç ÅØ½ºÆ® ¸®¼Ò½º°¡ À¯È¿ÇÑÁö ´Ù½Ã ÇÑ¹ø È®ÀÎ
+	// í…ìŠ¤íŠ¸ ë Œë”ë§ (ë²„íŠ¼ ì´ë¯¸ì§€ ìœ„ì— í‘œì‹œ)
+	// ëª¨ë“  í…ìŠ¤íŠ¸ ë¦¬ì†ŒìŠ¤ê°€ ìœ íš¨í•œì§€ ë‹¤ì‹œ í•œë²ˆ í™•ì¸
 	if (!m_buttonText.empty() && m_font && m_textBrush && m_stringFormat) {
-		// ÆùÆ®¿Í ºê·¯½ÃÀÇ »óÅÂ È®ÀÎ
+		// í°íŠ¸ì™€ ë¸ŒëŸ¬ì‹œ ìœ íš¨ì„± í™•ì¸
 		Gdiplus::FontFamily fontFamily;
 		if (m_font->GetFamily(&fontFamily) == Gdiplus::Ok) {
-			// ÅØ½ºÆ®°¡ ºñ¾îÀÖÁö ¾Ê°í ¸ğµç ÅØ½ºÆ® ¸®¼Ò½º°¡ À¯È¿ÇÑ °æ¿ì¿¡¸¸ ·»´õ¸µ
+			// í…ìŠ¤íŠ¸ê°€ ë¹„ì–´ìˆì§€ ì•Šê³  ëª¨ë“  í…ìŠ¤íŠ¸ ë¦¬ì†ŒìŠ¤ê°€ ìœ íš¨í•œ ê²½ìš°ì—ë§Œ ë Œë”ë§
 			RenderManager::GetInstance()->RenderUIText(
 				m_buttonText,
 				m_font,
@@ -177,7 +177,7 @@ void UIButton::Render()
 				m_width,
 				m_height,
 				LAYER_UI_FOREGROUND,
-				static_cast<float>(m_buttonState) + 0.1f  // ÀÌ¹ÌÁöº¸´Ù À§¿¡ Ç¥½Ã
+				static_cast<float>(m_buttonState) + 0.1f  // ì´ë¯¸ì§€ë³´ë‹¤ ìœ„ì— í‘œì‹œ
 			);
 		}
 	}
@@ -217,7 +217,7 @@ void UIButton::Release()
 		m_hoverBitmap = nullptr;
 	}
 
-	// ÅØ½ºÆ® °ü·Ã ¸®¼Ò½º ÇØÁ¦
+	// í…ìŠ¤íŠ¸ ê´€ë ¨ ë¦¬ì†ŒìŠ¤ í•´ì œ
 	if (m_font) {
 		delete m_font;
 		m_font = nullptr;
@@ -237,7 +237,7 @@ void UIButton::SetDisabled(bool disabled)
     m_isDisabled = disabled;
     if (disabled) {
         m_buttonState = ButtonState::DISABLED;
-        // ºñÈ°¼ºÈ­ ½Ã¿¡µµ Äİ¹éÀº À¯ÁöÇÏµÇ, Å¬¸¯ ÀÌº¥Æ®¸¸ Â÷´Ü
+        // ë¹„í™œì„±í™” ìƒíƒœì—ì„œëŠ” ë§ˆìš°ìŠ¤ ì´ë²¤íŠ¸ë¥¼ ë°›ì§€ ì•ŠìŒ
     } else {
         m_buttonState = ButtonState::NORMAL;
     }
@@ -247,12 +247,12 @@ void UIButton::RenderDisabled()
 {
     if (!m_orignalBitmap) return;
     
-    // ºñÈ°¼ºÈ­µÈ ¹öÆ°À» ¾îµÓ°Ô ·»´õ¸µ (¿ÏÀüÈ÷ °ËÀº»öÀÌ ¾Æ´Ñ ¾îµÎ¿î È¸»ö)
+    // ë¹„í™œì„±í™”ëœ ë²„íŠ¼ì„ ì–´ë‘¡ê²Œ ë Œë”ë§ (ìƒ‰ìƒì„ 30%ë¡œ ì¤„ì„)
     Gdiplus::ColorMatrix colorMatrix = {
         0.3f, 0.0f, 0.0f, 0.0f, 0.0f,  // Red (30%)
         0.0f, 0.3f, 0.0f, 0.0f, 0.0f,  // Green (30%)
         0.0f, 0.0f, 0.3f, 0.0f, 0.0f,  // Blue (30%)
-        0.0f, 0.0f, 0.0f, 0.7f, 0.0f,  // Alpha (70% Åõ¸íµµ)
+        0.0f, 0.0f, 0.0f, 0.7f, 0.0f,  // Alpha (70% íˆ¬ëª…ë„)
         0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Additional
     };
     
@@ -268,7 +268,7 @@ void UIButton::RenderDisabled()
 		m_width,
 		m_height,
 		LAYER_UI_FOREGROUND,
-		static_cast<float>(m_buttonState)  // ¹öÆ° »óÅÂ¸¦ sortKey·Î »ç¿ë
+		static_cast<float>(m_buttonState)  // ë²„íŠ¼ ìƒíƒœë¥¼ sortKeyë¡œ ì‚¬ìš©
 	);
 
    /* pGraphics->DrawImage(m_normalBitmap, destRect, 0, 0, 

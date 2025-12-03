@@ -37,11 +37,9 @@ public:
 	// 실제 바운드 박스를 이용한 정확한 충돌 검사
 	GameObject* FindObjectAtPositionWithBounds(float x, float y);
 	
-	// 게임오브젝트 생성
-	GameObject* CreateGameObject(GameObjectID id, float x, float y, const GameObjectData* resourceData = nullptr);
-	
-	// 아이템 생성
-	std::shared_ptr<Item> CreateItem(GameObjectID itemID);
+	// 게임오브젝트 생성 (모든 GameObject와 Item 통합 관리)
+	// addToManager: true면 ObjectManager에 추가, false면 생성만 하고 추가하지 않음 (인벤토리 아이템 등)
+	GameObject* CreateGameObject(GameObjectID id, float x, float y, const GameObjectData* resourceData = nullptr, bool addToManager = true);
 
 	// 바운드 표시 토글
 	void ToggleBoundsDisplay() { m_showBounds = !m_showBounds; }
@@ -50,13 +48,11 @@ public:
 
 private:
 	// ========================================
-	// 팩토리 맵 패턴: GameObjectID -> 생성 함수
+	// 팩토리 맵 패턴: GameObjectID -> 생성 함수 (모든 GameObject와 Item 통합)
 	// ========================================
 	using GameObjectFactoryFunc = std::function<GameObject*(GameObjectID id, float x, float y, const GameObjectData* data)>;
-	using ItemFactoryFunc = std::function<std::shared_ptr<Item>(GameObjectID id, const GameObjectData* data)>;
 	
 	std::map<GameObjectID, GameObjectFactoryFunc> m_gameObjectFactories;
-	std::map<GameObjectID, ItemFactoryFunc> m_itemFactories;
 	
 	// 팩토리 맵 초기화
 	void InitializeFactories();

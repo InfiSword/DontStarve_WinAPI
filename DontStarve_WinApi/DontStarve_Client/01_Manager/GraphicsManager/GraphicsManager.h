@@ -9,15 +9,15 @@ public:
 	~GraphicsManager();
 
 	void Init();		
-	// GDI+ ·»´õ¸µ ÄÁÅØ½ºÆ® ¹× ´õºí ¹öÆÛ¸µ ¼³Á¤
+	// GDI+ ì´ˆê¸°í™” ë° ë”ë¸” ë²„í¼ë§ì„ ìœ„í•œ ì„¤ì •
 	void LateInit();      
 	void Update(float deltaTime);      
 	void LateUpdate();    
-	void Render();        // ´õºí ¹öÆÛ¸µµÈ ³»¿ëÀ» È­¸é¿¡ Ç¥½Ã
-	void Release();       // GDI+ ¸®¼Ò½º ÇØÁ¦
+	void Render();        // ë”ë¸” ë²„í¼ì˜ ë‚´ìš©ì„ í™”ë©´ì— í‘œì‹œ
+	void Release();       // GDI+ ë¦¬ì†ŒìŠ¤ í•´ì œ
 
 	Gdiplus::Graphics* GetGraphics(); 
-	// ÇöÀç ±×¸®±â ÁßÀÎ Graphics °´Ã¼¸¦ ¹İÈ¯
+	// ê·¸ë¦¬ê¸° ì‘ì—…ì„ ìœ„í•œ Graphics ê°ì²´ë¥¼ ë°˜í™˜
 
 private:
 	Gdiplus::Graphics* m_pGraphics;

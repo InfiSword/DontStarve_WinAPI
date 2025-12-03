@@ -20,7 +20,7 @@ void InventoryManager::LateInit() {}
 void InventoryManager::Update(float deltaTime) {}
 void InventoryManager::LateUpdate() {}
 void InventoryManager::Render() {
-	// PlayerÀÇ ÀÎº¥Åä¸® ·»´õ¸µ
+	// Playerì˜ ì¸ë²¤í† ë¦¬ ë Œë”ë§
 	Player* player = ObjectManager::GetInstance()->GetPlayer();
 	if (!player) {
 		return;
@@ -31,15 +31,15 @@ void InventoryManager::Render() {
 		return;
 	}
 	
-	// ÇöÀç ÀåÂøµÈ ¾ÆÀÌÅÛ ½½·Ô ÀÎµ¦½º °¡Á®¿À±â
+	// í˜„ì¬ ì¥ì°©ëœ ì•„ì´í…œì˜ ìŠ¬ë¡¯ ì¸ë±ìŠ¤ ê°€ì ¸ì˜¤ê¸°
 	int equippedSlotIndex = player->GetEquippedSlotIndex();
 	
-	// RenderManager¸¦ ÅëÇØ ÀÎº¥Åä¸® ·»´õ¸µ
+	// RenderManagerë¥¼ í†µí•´ ì¸ë²¤í† ë¦¬ ë Œë”ë§
 	inventory->Render(equippedSlotIndex);
 }
 
 void InventoryManager::Release() {
-	// ºñÆ®¸Ê Ä³½Ã Á¤¸®
+	// ë¹„íŠ¸ë§µ ìºì‹œ í•´ì œ
 	for (auto& pair : m_bitmapCache) {
 		if (pair.second) {
 			delete pair.second;
@@ -49,36 +49,36 @@ void InventoryManager::Release() {
 	m_craftingRecipes.clear();
 }
 
-// ¿ùµå ¿ÀºêÁ§Æ®·ÎºÎÅÍ ¾ÆÀÌÅÛ È¹µæ
+// ì›”ë“œ ì˜¤ë¸Œì íŠ¸ë¡œë¶€í„° ì•„ì´í…œ íšë“
 bool InventoryManager::TryGainItemFromWorldObject(Player* player, GameObject* worldObject) {
 	if (!player || !worldObject) return false;
 	
 	Inventory* inventory = player->GetInventory();
 	if (!inventory) return false;
 	
-	// ¿ùµå ¿ÀºêÁ§Æ®·ÎºÎÅÍ È¹µæ °¡´ÉÇÑ ¾ÆÀÌÅÛµé °è»ê
+	// ì›”ë“œ ì˜¤ë¸Œì íŠ¸ë¡œë¶€í„° íšë“ ê°€ëŠ¥í•œ ì•„ì´í…œ ë“œë¡­ ëª©ë¡ ê³„ì‚°
 	std::vector<std::pair<GameObjectID, UINT>> drops = CalculateDropsFromObject(worldObject);
 	
 	bool anyItemAdded = false;
 	for (const auto& drop : drops) {
-		// TODO: ObjectManager¿¡ GetItemDefinition ¸Ş¼­µå Ãß°¡ ÇÊ¿ä
-		// ÀÓ½Ã·Î ÁÖ¼® Ã³¸®
+		// TODO: ObjectManagerì— GetItemDefinition í•¨ìˆ˜ ì¶”ê°€ í•„ìš”
+		// ì„ì‹œë¡œ ìµœì†Œ ì²˜ë¦¬
 		/*
 		std::shared_ptr<Item> itemDef = ObjectManager::GetInstance()->GetItemDefinition(drop.first);
 		if (itemDef) {
 			if (inventory->AddItem(itemDef, drop.second)) {
 				anyItemAdded = true;
-				OutputDebugStringW((L"InventoryManager: ¾ÆÀÌÅÛ È¹µæ - ID: " + std::to_wstring(drop.first) + L", °³¼ö: " + std::to_wstring(drop.second) + L"\n").c_str());
+				OutputDebugStringW((L"InventoryManager: ì•„ì´í…œ íšë“ - ID: " + std::to_wstring(drop.first) + L", ê°œìˆ˜: " + std::to_wstring(drop.second) + L"\n").c_str());
 			}
 		}
 		*/
-		OutputDebugStringW((L"InventoryManager: ¾ÆÀÌÅÛ È¹µæ ¿¹Á¤ - ID: " + std::to_wstring(drop.first) + L", °³¼ö: " + std::to_wstring(drop.second) + L"\n").c_str());
+		OutputDebugStringW((L"InventoryManager: ì•„ì´í…œ íšë“ ì‹¤íŒ¨ - ID: " + std::to_wstring(drop.first) + L", ê°œìˆ˜: " + std::to_wstring(drop.second) + L"\n").c_str());
 	}
 	
 	return anyItemAdded;
 }
 
-// ¾ÆÀÌÅÛ »ç¿ë Ã³¸®
+// ì•„ì´í…œ ì‚¬ìš© ì²˜ë¦¬
 bool InventoryManager::TryUseItem(Player* player, int slotIndex) {
 	if (!player) return false;
 	
@@ -88,17 +88,17 @@ bool InventoryManager::TryUseItem(Player* player, int slotIndex) {
 	const ItemSlot& slot = inventory->GetSlot(slotIndex);
 	if (slot.IsEmpty()) return false;
 	
-	// ¾ÆÀÌÅÛ Å¸ÀÔ¿¡ µû¸¥ »ç¿ë Ã³¸®
-	std::shared_ptr<Item> item = slot.item;
+	// ì•„ì´í…œ íƒ€ì…ì— ë”°ë¥¸ ì‚¬ìš© ì²˜ë¦¬
+	Item* item = slot.item;
 	
-	// TODO: ¾ÆÀÌÅÛ Å¸ÀÔº° »ç¿ë ·ÎÁ÷ ±¸Çö
-	// ¿¹: µµ±¸ Âø¿ë, ¼Òºñ ¾ÆÀÌÅÛ »ç¿ë, °Ç¼³ ¾ÆÀÌÅÛ »ç¿ë µî
+	// TODO: ì•„ì´í…œ íƒ€ì…ë³„ ì‚¬ìš© ë¡œì§ êµ¬í˜„
+	// ì˜ˆ: ë„êµ¬ ì‚¬ìš©, ìŒì‹ ì•„ì´í…œ ì‚¬ìš©, ì¥ë¹„ ì•„ì´í…œ ì¥ì°© ë“±
 	
-	OutputDebugStringW((L"InventoryManager: ¾ÆÀÌÅÛ »ç¿ë - ½½·Ô " + std::to_wstring(slotIndex) + L"\n").c_str());
+	OutputDebugStringW((L"InventoryManager: ì•„ì´í…œ ì‚¬ìš© - ìŠ¬ë¡¯ " + std::to_wstring(slotIndex) + L"\n").c_str());
 	return true;
 }
 
-// ¾ÆÀÌÅÛ ¹ö¸®±â (¿ùµå¿¡ µå·Ó)
+// ì•„ì´í…œ ë²„ë¦¬ê¸° (ì›”ë“œì— ë“œë¡­)
 bool InventoryManager::TryDropItem(Player* player, int slotIndex, UINT count) {
 	if (!player) return false;
 	
@@ -108,79 +108,79 @@ bool InventoryManager::TryDropItem(Player* player, int slotIndex, UINT count) {
 	const ItemSlot& slot = inventory->GetSlot(slotIndex);
 	if (slot.IsEmpty() || slot.count < count) return false;
 	
-	// ÀÎº¥Åä¸®¿¡¼­ ¾ÆÀÌÅÛ Á¦°Å
+	// ì¸ë²¤í† ë¦¬ì—ì„œ ì•„ì´í…œ ì œê±°
 	if (inventory->RemoveItem(slotIndex, count)) {
-		// TODO: ¿ùµå¿¡ ¾ÆÀÌÅÛ ¿ÀºêÁ§Æ® »ı¼º
-		// ÇÃ·¹ÀÌ¾î À§Ä¡ ±ÙÃ³¿¡ ¾ÆÀÌÅÛ µå·Ó
+		// TODO: ì›”ë“œì— ì•„ì´í…œ ê²Œì„ì˜¤ë¸Œì íŠ¸ ìƒì„±
+		// í”Œë ˆì´ì–´ ìœ„ì¹˜ ê·¼ì²˜ì— ì•„ì´í…œ ë“œë¡­
 		
-		OutputDebugStringW((L"InventoryManager: ¾ÆÀÌÅÛ µå·Ó - ½½·Ô " + std::to_wstring(slotIndex) + L", °³¼ö: " + std::to_wstring(count) + L"\n").c_str());
+		OutputDebugStringW((L"InventoryManager: ì•„ì´í…œ ë²„ë¦¼ - ìŠ¬ë¡¯ " + std::to_wstring(slotIndex) + L", ê°œìˆ˜: " + std::to_wstring(count) + L"\n").c_str());
 		return true;
 	}
 	
 	return false;
 }
 
-// ¾ÆÀÌÅÛ Á¶ÇÕ ½Ã½ºÅÛ
+// ì•„ì´í…œ ì œì‘ ì‹œìŠ¤í…œ
 bool InventoryManager::TryCraftItem(Player* player, GameObjectID targetItemID) {
 	if (!player) return false;
 	
 	Inventory* inventory = player->GetInventory();
 	if (!inventory) return false;
 	
-	// Á¶ÇÕ ·¹½ÃÇÇ È®ÀÎ
+	// ì œì‘ ë ˆì‹œí”¼ í™•ì¸
 	if (!HasCraftingRecipe(targetItemID)) {
-		OutputDebugStringW(L"InventoryManager: Á¶ÇÕ ·¹½ÃÇÇ°¡ ¾ø½À´Ï´Ù.\n");
+		OutputDebugStringW(L"InventoryManager: ì œì‘ ë ˆì‹œí”¼ê°€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n");
 		return false;
 	}
 	
 	std::map<UINT, UINT> recipe = GetCraftingRecipe(targetItemID);
 	
-	// ÇÊ¿äÇÑ Àç·á°¡ ÀÖ´ÂÁö È®ÀÎ
+	// í•„ìš”í•œ ì¬ë£Œê°€ ìˆëŠ”ì§€ í™•ì¸
 	if (!inventory->CheckHasEnoughItems(recipe)) {
-		OutputDebugStringW(L"InventoryManager: Á¶ÇÕ¿¡ ÇÊ¿äÇÑ Àç·á°¡ ºÎÁ·ÇÕ´Ï´Ù.\n");
+		OutputDebugStringW(L"InventoryManager: ì¸ë²¤í† ë¦¬ì— í•„ìš”í•œ ì¬ë£Œê°€ ë¶€ì¡±í•©ë‹ˆë‹¤.\n");
 		return false;
 	}
 	
-	// Àç·á ¼Ò¸ğ
+	// ì¬ë£Œ ì†Œëª¨
 	if (inventory->ConsumeItems(recipe)) {
-		// TODO: ObjectManager¿¡ GetItemDefinition ¸Ş¼­µå Ãß°¡ ÇÊ¿ä
-		// ÀÓ½Ã·Î ÁÖ¼® Ã³¸®
+		// TODO: ObjectManagerì— GetItemDefinition í•¨ìˆ˜ ì¶”ê°€ í•„ìš”
+		// ì„ì‹œë¡œ ìµœì†Œ ì²˜ë¦¬
 		/*
 		std::shared_ptr<Item> craftedItem = ObjectManager::GetInstance()->GetItemDefinition(targetItemID);
 		if (craftedItem && inventory->AddItem(craftedItem, 1)) {
-			OutputDebugStringW((L"InventoryManager: ¾ÆÀÌÅÛ Á¶ÇÕ ¿Ï·á - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
+			OutputDebugStringW((L"InventoryManager: ì•„ì´í…œ ì œì‘ ì™„ë£Œ - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
 			return true;
 		}
 		*/
-		OutputDebugStringW((L"InventoryManager: ¾ÆÀÌÅÛ Á¶ÇÕ ¿Ï·á ¿¹Á¤ - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
+		OutputDebugStringW((L"InventoryManager: ì•„ì´í…œ ì œì‘ ì™„ë£Œ ì‹¤íŒ¨ - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
 		return true;
 	}
 	
 	return false;
 }
 
-// ¾ÆÀÌÅÛ ±³È¯ ½Ã½ºÅÛ
+// ì•„ì´í…œ êµí™˜ ì‹œìŠ¤í…œ
 bool InventoryManager::TryTradeItem(Player* player, const std::map<UINT, UINT>& giveItems, const std::map<UINT, UINT>& receiveItems) {
 	if (!player) return false;
 	
 	Inventory* inventory = player->GetInventory();
 	if (!inventory) return false;
 	
-	// ÁÖ´Â ¾ÆÀÌÅÛÀÌ ÃæºĞÇÑÁö È®ÀÎ
+	// ë³´ìœ í•œ ì•„ì´í…œì´ ì¶©ë¶„í•œì§€ í™•ì¸
 	if (!inventory->CheckHasEnoughItems(giveItems)) {
-		OutputDebugStringW(L"InventoryManager: ±³È¯ÇÒ ¾ÆÀÌÅÛÀÌ ºÎÁ·ÇÕ´Ï´Ù.\n");
+		OutputDebugStringW(L"InventoryManager: êµí™˜í•  ì•„ì´í…œì´ ë¶€ì¡±í•©ë‹ˆë‹¤.\n");
 		return false;
 	}
 	
-	// ¹ŞÀ» ¾ÆÀÌÅÛÀ» ³ÖÀ» °ø°£ÀÌ ÀÖ´ÂÁö È®ÀÎ
-	// TODO: ÀÎº¥Åä¸® °ø°£ È®ÀÎ ·ÎÁ÷ ÇÊ¿ä
+	// ë°›ì„ ì•„ì´í…œì˜ ì¸ë²¤í† ë¦¬ ê³µê°„ í™•ì¸
+	// TODO: ì¸ë²¤í† ë¦¬ ê³µê°„ í™•ì¸ ë¡œì§ í•„ìš”
 	
-	// ¾ÆÀÌÅÛ ±³È¯ ½ÇÇà
+	// ì•„ì´í…œ êµí™˜ ì²˜ë¦¬
 	if (inventory->ConsumeItems(giveItems)) {
 		bool allReceived = true;
 		for (const auto& receive : receiveItems) {
-			// TODO: ObjectManager¿¡ GetItemDefinition ¸Ş¼­µå Ãß°¡ ÇÊ¿ä
-			// ÀÓ½Ã·Î ÁÖ¼® Ã³¸®
+			// TODO: ObjectManagerì— GetItemDefinition í•¨ìˆ˜ ì¶”ê°€ í•„ìš”
+			// ì„ì‹œë¡œ ìµœì†Œ ì²˜ë¦¬
 			/*
 			std::shared_ptr<Item> item = ObjectManager::GetInstance()->GetItemDefinition((GameObjectID)receive.first);
 			if (!item || !inventory->AddItem(item, receive.second)) {
@@ -191,30 +191,30 @@ bool InventoryManager::TryTradeItem(Player* player, const std::map<UINT, UINT>& 
 		}
 		
 		if (allReceived) {
-			OutputDebugStringW(L"InventoryManager: ¾ÆÀÌÅÛ ±³È¯ ¿Ï·á\n");
+			OutputDebugStringW(L"InventoryManager: ì•„ì´í…œ êµí™˜ ì™„ë£Œ\n");
 			return true;
 		}
 		else {
-			OutputDebugStringW(L"InventoryManager: ¾ÆÀÌÅÛ ±³È¯ Áß ¿À·ù ¹ß»ı\n");
-			// TODO: ·Ñ¹é ·ÎÁ÷ ÇÊ¿ä
+			OutputDebugStringW(L"InventoryManager: ì•„ì´í…œ êµí™˜ ì¤‘ ì˜¤ë¥˜ ë°œìƒ\n");
+			// TODO: ë¡¤ë°± ì²˜ë¦¬ í•„ìš”
 		}
 	}
 	
 	return false;
 }
 
-// ÀÎº¥Åä¸® ÀúÀå/·Îµå ±â´É
+// ì¸ë²¤í† ë¦¬ ì €ì¥/ë¡œë“œ ê¸°ëŠ¥
 void InventoryManager::SaveInventoryToFile(Player* player, const std::wstring& filePath) {
-	// TODO: ÆÄÀÏ ÀúÀå ±â´É ±¸Çö
-	OutputDebugStringW((L"InventoryManager: ÀÎº¥Åä¸® ÀúÀå - " + filePath + L"\n").c_str());
+	// TODO: íŒŒì¼ ì €ì¥ ê¸°ëŠ¥ êµ¬í˜„
+	OutputDebugStringW((L"InventoryManager: ì¸ë²¤í† ë¦¬ ì €ì¥ - " + filePath + L"\n").c_str());
 }
 
 void InventoryManager::LoadInventoryFromFile(Player* player, const std::wstring& filePath) {
-	// TODO: ÆÄÀÏ ·Îµå ±â´É ±¸Çö
-	OutputDebugStringW((L"InventoryManager: ÀÎº¥Åä¸® ·Îµå - " + filePath + L"\n").c_str());
+	// TODO: íŒŒì¼ ë¡œë“œ ê¸°ëŠ¥ êµ¬í˜„
+	OutputDebugStringW((L"InventoryManager: ì¸ë²¤í† ë¦¬ ë¡œë“œ - " + filePath + L"\n").c_str());
 }
 
-// ÀÌ¹ÌÁö °æ·Î¸¦ ¹Ş¾Æ¼­ Gdiplus::Bitmap*À» ¹İÈ¯ÇÏ´Â ÇÔ¼ö
+// ì´ë¯¸ì§€ ê²½ë¡œë¥¼ ë°›ì•„ì„œ Gdiplus::Bitmap*ë¥¼ ë°˜í™˜í•˜ëŠ” í•¨ìˆ˜
 Gdiplus::Bitmap* InventoryManager::GetBitmapForPath(const std::wstring& imagePath) {
 	auto it = m_bitmapCache.find(imagePath);
 	if (it != m_bitmapCache.end()) {
@@ -233,23 +233,23 @@ Gdiplus::Bitmap* InventoryManager::GetBitmapForPath(const std::wstring& imagePat
 	}
 }
 
-// ¾ÆÀÌÅÛ Á¶ÇÕ ·¹½ÃÇÇ ·Îµå
+// ì•„ì´í…œ ì œì‘ ë ˆì‹œí”¼ ë¡œë“œ
 void InventoryManager::LoadCraftingRecipes() {
 	m_craftingRecipes.clear();
 	
-	// µµ³¢ Á¶ÇÕ ·¹½ÃÇÇ: ³ª¹« 1°³ + ³ª¹µ°¡Áö 1°³
+	// ë„ë¼ ì œì‘ ë ˆì‹œí”¼: í†µë‚˜ë¬´ 1ê°œ + ë‚˜ë­‡ê°€ì§€ 1ê°œ
 	m_craftingRecipes[GOID_ITEM_AXE] = {
 		{GOID_ITEM_NORMAL_TREE_LOG, 1},
 		{GOID_ITEM_NORMAL_TWIGS, 1}
 	};
 	
-	// °î±ªÀÌ Á¶ÇÕ ·¹½ÃÇÇ: ³ª¹µ°¡Áö 2°³ + µ¹ 2°³
+	// ê³¡ê´­ì´ ì œì‘ ë ˆì‹œí”¼: ë‚˜ë­‡ê°€ì§€ 2ê°œ + ëŒ 2ê°œ
 	m_craftingRecipes[GOID_ITEM_PICKAXE] = {
 		{GOID_ITEM_NORMAL_TWIGS, 2},
 		{GOID_ITEM_NORMAL_ROCK, 2}
 	};
 	
-	OutputDebugStringW(L"InventoryManager: Á¶ÇÕ ·¹½ÃÇÇ ·Îµå ¿Ï·á\n");
+	OutputDebugStringW(L"InventoryManager: ì œì‘ ë ˆì‹œí”¼ ë¡œë“œ ì™„ë£Œ\n");
 }
 
 bool InventoryManager::HasCraftingRecipe(GameObjectID itemID) const {
@@ -264,18 +264,18 @@ std::map<UINT, UINT> InventoryManager::GetCraftingRecipe(GameObjectID itemID) co
 	return {};
 }
 
-// ¿ùµå ¿ÀºêÁ§Æ®¿¡¼­ ¾òÀ» ¼ö ÀÖ´Â ¾ÆÀÌÅÛ °è»ê
+// ì›”ë“œ ì˜¤ë¸Œì íŠ¸ë¡œë¶€í„° ë“œë¡­ ê°€ëŠ¥í•œ ì•„ì´í…œ ëª©ë¡
 std::vector<std::pair<GameObjectID, UINT>> InventoryManager::CalculateDropsFromObject(GameObject* worldObject) {
 	std::vector<std::pair<GameObjectID, UINT>> drops;
 	
 	if (!worldObject) return drops;
 	
-	// TODO: ¿ÀºêÁ§Æ® Å¸ÀÔ¿¡ µû¸¥ µå·Ó ¾ÆÀÌÅÛ °è»ê
-	// ¿¹½Ã: ³ª¹« -> ³ª¹« 1°³, ³ª¹µ°¡Áö 1°³
-	//       ¹ÙÀ§ -> µ¹ 2-3°³
-	//       Ç® -> Ç® 1°³
+	// TODO: ì˜¤ë¸Œì íŠ¸ íƒ€ì…ì— ë”°ë¥¸ ë“œë¡­ ì•„ì´í…œ ëª©ë¡ ì„¤ì •
+	// ì˜ˆì‹œ: ë‚˜ë¬´ -> í†µë‚˜ë¬´ 1ê°œ, ë‚˜ë­‡ê°€ì§€ 1ê°œ
+	//       ëŒ -> ëŒ 2-3ê°œ
+	//       ê¸ˆ -> ê¸ˆ 1ê°œ
 	
-	// ÀÓ½Ã ¿¹½Ã ÄÚµå
+	// ì„ì‹œ í•˜ë“œ ì½”ë“œ
 	GameObjectID objID = worldObject->GetID();
 	
 	switch (objID) {

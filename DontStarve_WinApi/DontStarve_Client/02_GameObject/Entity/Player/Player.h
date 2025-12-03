@@ -37,7 +37,7 @@ public:
 	void SetPlayerState(PlayerState newState) { m_state = newState; }
 
 	float GetInteractionRadius() const { return m_stopThreshold + 10.0f; }
-	std::shared_ptr<Item> GetEquippedItem() const { return m_equippedItem; }
+	Item* GetEquippedItem() const { return m_equippedItem; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
 	
 	// 상호작용 중인지 확인 (애니메이션 재생 중인지)
@@ -74,5 +74,5 @@ private:
 	float m_stopThreshold;
 
 	int m_equippedSlotIndex;
-	std::shared_ptr<Item> m_equippedItem;
+	Item* m_equippedItem;
 };

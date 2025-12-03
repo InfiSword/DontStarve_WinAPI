@@ -28,7 +28,7 @@ Inventory::~Inventory() {
 	if (m_stringFormat) { delete m_stringFormat; m_stringFormat = nullptr; }
 }
 
-// ÀÎº¥Åä¸® ÃÊ±âÈ­: ½½·Ô UIÀÇ È­¸é À§Ä¡¸¦ ¼³Á¤ÇÕ´Ï´Ù.
+// ì¸ë²¤í† ë¦¬ ì´ˆê¸°í™”: ìŠ¬ë¡¯ UIì˜ í™”ë©´ ìœ„ì¹˜ë¥¼ ì„¤ì •í•©ë‹ˆë‹¤.
 void Inventory::Init(std::vector<Gdiplus::RectF>& slotRects)
 {	
 	float slotWidth = 64.0f;
@@ -49,81 +49,81 @@ void Inventory::Init(std::vector<Gdiplus::RectF>& slotRects)
 		);
 	}
 	
-	// ¾ÈÀüÇÏ°Ô m_slotRects ÇÒ´ç
+	// ë³µì‚¬í•˜ì—¬ m_slotRects í• ë‹¹
 	m_slotRects.clear();
 	m_slotRects = slotRects;
 	
 	LoadUIBitmaps();
 }
 
-// ¾ÆÀÌÅÛ Ãß°¡ ÇÔ¼ö
-bool Inventory::AddItem(std::shared_ptr<Item> itemDef, UINT count) {
-	if (!itemDef) return false; // À¯È¿ÇÏÁö ¾ÊÀº ¾ÆÀÌÅÛ Á¤ÀÇ
+// ì•„ì´í…œ ì¶”ê°€ í•¨ìˆ˜
+bool Inventory::AddItem(Item* itemDef, UINT count) {
+	if (!itemDef) return false; // ìœ íš¨í•˜ì§€ ì•Šì€ ì•„ì´í…œì´ë©´ ì‹¤íŒ¨
 
-	//  ÀÌ¹Ì ÀÎº¥Åä¸®¿¡ °°Àº ¾ÆÀÌÅÛÀÌ ÀúÀåµÇ¾î ÀÖ°í, ½ºÅÃÀÌ °¡´ÉÇÏ´Ù¸é ±× ½½·Ô¿¡ Ãß°¡ÇÕ´Ï´Ù.
+	// ì´ë¯¸ ì¸ë²¤í† ë¦¬ì— ê°™ì€ ì•„ì´í…œì´ ìŒ“ì—¬ ìˆê³ , ìŠ¤íƒì´ ê°€ëŠ¥í•˜ë©´ í•´ë‹¹ ìŠ¬ë¡¯ì— ì¶”ê°€í•©ë‹ˆë‹¤.
 	int existingSlotIndex = FindExistingStack(itemDef->GetID());
 	if (existingSlotIndex != -1 && m_slots[existingSlotIndex].count < ITEM_STACK_MAX) {
-		// Ãß°¡ÇÒ ¼ö ÀÖ´Â ÃÖ´ë °³¼ö¸¦ °è»êÇÏ¿© Ãß°¡ÇÏ°í, ³²Àº °³¼ö¸¦ ¾÷µ¥ÀÌÆ®ÇÕ´Ï´Ù.
+		// ì¶”ê°€í•  ìˆ˜ ìˆëŠ” ìµœëŒ€ ê°œìˆ˜ë¥¼ ê³„ì‚°í•˜ì—¬ ì¶”ê°€í•˜ê³ , ë‚¨ì€ ê°œìˆ˜ë¥¼ ì—…ë°ì´íŠ¸í•©ë‹ˆë‹¤.
 		UINT canAdd = ITEM_STACK_MAX - m_slots[existingSlotIndex].count;
-		UINT actualAdd = min(count, canAdd); // min() ÇÔ¼ö´Â <algorithm>¿¡ ÀÖÀ½
+		UINT actualAdd = min(count, canAdd); // min() í•¨ìˆ˜ëŠ” <algorithm>ì— ìˆìŒ
 		m_slots[existingSlotIndex].count += actualAdd;
 		count -= actualAdd;
 		if (count == 0)
-			return true; // ¸ğµç ¾ÆÀÌÅÛÀÌ Ãß°¡ ¿Ï·á
+			return true; // ëª¨ë“  ì•„ì´í…œì„ ì¶”ê°€ ì™„ë£Œ
 	}
 
-	// ³²Àº ¾ÆÀÌÅÛÀ» »õ ½½·Ô¿¡ °è¼Ó Ãß°¡ÇÕ´Ï´Ù.
+	// ìƒˆë¡œìš´ ì•„ì´í…œì„ ë¹ˆ ìŠ¬ë¡¯ì— ê³„ì† ì¶”ê°€í•©ë‹ˆë‹¤.
 	while (count > 0) {
 		int emptySlotIndex = FindFirstEmptySlot();
 		if (emptySlotIndex == -1) {
-			return false; // ÀÎº¥Åä¸® °ø°£ ºÎÁ·
+			return false; // ì¸ë²¤í† ë¦¬ ê³µê°„ ë¶€ì¡±
 		}
-		UINT actualAdd = min(count, ITEM_STACK_MAX); // ÇÑ ½½·Ô¿¡ ³ÖÀ» ¼ö ÀÖ´Â ÃÖ´ë °³¼ö
-		m_slots[emptySlotIndex].item = itemDef;     // ¾ÆÀÌÅÛ Á¤ÀÇ ¼³Á¤
-		m_slots[emptySlotIndex].count = actualAdd;   // ¾ÆÀÌÅÛ °³¼ö ¼³Á¤
-		count -= actualAdd;                         // ³²Àº Ãß°¡ ´ë»ó °³¼ö¾÷µ¥ÀÌÆ®
+		UINT actualAdd = min(count, ITEM_STACK_MAX); // í•œ ìŠ¬ë¡¯ì— ë„£ì„ ìˆ˜ ìˆëŠ” ìµœëŒ€ ê°œìˆ˜
+		m_slots[emptySlotIndex].item = itemDef;     // ì•„ì´í…œ í¬ì¸í„° ì €ì¥
+		m_slots[emptySlotIndex].count = actualAdd;   // ì•„ì´í…œ ê°œìˆ˜ ì €ì¥
+		count -= actualAdd;                         // ë‚¨ì€ ì¶”ê°€í•  ê°œìˆ˜ ì—…ë°ì´íŠ¸
 	}
 
-	return true; // ¸ğµç ¾ÆÀÌÅÛÀÌ ¼º°øÀûÀ¸·Î Ãß°¡
+	return true; // ëª¨ë“  ì•„ì´í…œì„ ì„±ê³µì ìœ¼ë¡œ ì¶”ê°€
 }
 
-// ¾ÆÀÌÅÛ Á¦°Å: Æ¯Á¤ ½½·Ô¿¡¼­ Æ¯Á¤ °³¼ö¸¸Å­ Á¦°Å
+// ì•„ì´í…œ ì œê±°: íŠ¹ì • ìŠ¬ë¡¯ì—ì„œ íŠ¹ì • ê°œìˆ˜ë§Œí¼ ì œê±°
 bool Inventory::RemoveItem(UINT slotIndex, UINT count) {
-	// ½½·Ô ÀÎµ¦½º À¯È¿¼º ¹× ¾ÆÀÌÅÛ Á¸Àç¿©ºÎ, °³¼ö°¡ ÃæºĞÇÑÁö °Ë»ç
+	// ìŠ¬ë¡¯ ì¸ë±ìŠ¤ ìœ íš¨ì„±ê³¼ ì•„ì´í…œ ì¡´ì¬ ì—¬ë¶€, ì•„ì´í…œ ê°œìˆ˜ í™•ì¸
 	if (slotIndex >= INVENTORY_SLOT_COUNT || m_slots[slotIndex].IsEmpty() || m_slots[slotIndex].count < count) {
 		return false;
 	}
 
-	m_slots[slotIndex].count -= count; // ¾ÆÀÌÅÛ °³¼ö °¨¼Ò
+	m_slots[slotIndex].count -= count; // ì•„ì´í…œ ê°œìˆ˜ ê°ì†Œ
 	if (m_slots[slotIndex].count == 0) {
-		m_slots[slotIndex].Clear(); // °³¼ö°¡ 0ÀÌ µÇ¸é ½½·Ô Á¤¸®
+		m_slots[slotIndex].Clear(); // ì•„ì´í…œ 0ê°œê°€ ë˜ë©´ í´ë¦¬ì–´
 	}
 	return true;
 }
 
-// ¾ÆÀÌÅÛ ¼Ò¸ğ --> Á¦ÀÛ ½Ã½ºÅÛ¿¡¼­ ¿©·¯ ¾ÆÀÌÅÛ ¼Ò¸ğ
+// ì•„ì´í…œ ì†Œëª¨ --> ì œì‘ ì‹œìŠ¤í…œì—ì„œ í•„ìš”í•œ ì•„ì´í…œ ì†Œëª¨
 bool Inventory::ConsumeItems(const std::map<UINT, UINT>& requiredItems) {
-	// ¼Ò¸ğ ÇÊ¿äÇÑ ¸ğµç ¾ÆÀÌÅÛÀÌ ÀÎº¥Åä¸®¿¡ ÃæºĞÈ÷ ÀÖ´ÂÁö ¸ÕÀú È®ÀÎ
+	// ì†Œëª¨ í•„ìš”í•œ ëª¨ë“  ì•„ì´í…œì´ ì¸ë²¤í† ë¦¬ì— ìˆëŠ”ì§€ í™•ì¸
 	if (!CheckHasEnoughItems(requiredItems)) {
 		return false;
 	}
 
-	// ÃæºĞÇÏ´Ù¸é ¾ÆÀÌÅÛ ¼Ò¸ğ 
+	// ì¶©ë¶„í•˜ë©´ ì•„ì´í…œ ì†Œëª¨ 
 	std::map<UINT, UINT> tempRequired = requiredItems;
 
 	for (int i = INVENTORY_SLOT_COUNT - 1; i >= 0; --i) {
 		ItemSlot& slot = m_slots[i];
-		if (slot.IsEmpty() || tempRequired.count(slot.item->GetID()) == 0) continue; // ¾ÆÀÌÅÛ ¾ø°Å³ª ¼Ò¸ğ ´ë»ó ¾ÆÀÌÅÛÀÌ ¾Æ´Ï¸é ³Ñ±â±â
+		if (slot.IsEmpty() || tempRequired.count(slot.item->GetID()) == 0) continue; // ìŠ¬ë¡¯ì´ ë¹„ì–´ìˆê±°ë‚˜ ì†Œëª¨í•  ì•„ì´í…œì´ ì•„ë‹ˆë©´ ìŠ¤í‚µ
 
 		UINT itemIdToConsume = slot.item->GetID();
-		UINT& neededCount = tempRequired.at(itemIdToConsume); // ÂüÁ¶¸¦ ¹Ş¾Æ¼­ ¹Ù·Î ÇÊ¿ä °³¼ö¸¦ ¾÷µ¥ÀÌÆ®
+		UINT& neededCount = tempRequired.at(itemIdToConsume); // í•„ìš”í•œ ê°œìˆ˜ë¥¼ ê°€ì ¸ì™€ì„œ ì‹¤ì œ í•„ìš”í•œ ê°œìˆ˜ ì—…ë°ì´íŠ¸
 
-		if (neededCount > 0) { // ¾ÆÁ÷ ÀÌ ¾ÆÀÌÅÛÀÌ ÇÊ¿äÇÏ´Ù¸é
-			UINT consumeAmount = min(slot.count, neededCount); // ÇöÀç ½½·Ô¿¡¼­ ¼Ò¸ğÇÒ ¼ö ÀÖ´Â ÃÖ´ë °³¼ö
+		if (neededCount > 0) { // ì•„ì§ ë” ì•„ì´í…œì´ í•„ìš”í•˜ë‹¤ë©´
+			UINT consumeAmount = min(slot.count, neededCount); // í˜„ì¬ ìŠ¬ë¡¯ì—ì„œ ì†Œëª¨í•  ìˆ˜ ìˆëŠ” ìµœëŒ€ ê°œìˆ˜
 			slot.count -= consumeAmount;
-			neededCount -= consumeAmount; // ÇÊ¿äÇÑ ¾ÆÀÌÅÛÀÌ °¨¼Ò
+			neededCount -= consumeAmount; // í•„ìš”í•œ ì•„ì´í…œ ê°œìˆ˜ ê°ì†Œ
 
-			if (slot.count == 0) { // ¾ÆÀÌÅÛ ¼ÒÁøµÇ¸é Å¬¸®¾î
+			if (slot.count == 0) { // ì•„ì´í…œì´ 0ê°œê°€ ë˜ë©´ í´ë¦¬ì–´
 				slot.Clear();
 			}
 		}
@@ -131,7 +131,7 @@ bool Inventory::ConsumeItems(const std::map<UINT, UINT>& requiredItems) {
 	return true;
 }
 
-// Æ¯Á¤ Item IDÀÇ ÀüÃ¼ ¾ÆÀÌÅÛÀÇ ÃÑ·® ¼ö ¹İÈ¯
+// íŠ¹ì • Item IDì˜ ì „ì²´ ì•„ì´í…œ ê°œìˆ˜ë¥¼ í•©ì‚°í•˜ì—¬ ë°˜í™˜
 UINT Inventory::GetItemCount(UINT itemId) const {
 	UINT totalCount = 0;
 	for (const auto& slot : m_slots) {
@@ -142,7 +142,7 @@ UINT Inventory::GetItemCount(UINT itemId) const {
 	return totalCount;
 }
 
-// Æ¯Á¤ ¾ÆÀÌÅÛ ½½·ÔÀÇ const ÂüÁ¶¸¦ ¹İÈ¯
+// íŠ¹ì • ìŠ¬ë¡¯ì˜ ì•„ì´í…œì„ const ì°¸ì¡°ë¡œ ë°˜í™˜
 const ItemSlot& Inventory::GetSlot(int index) const {
 	static ItemSlot emptySlot;
 	if (index < 0 || index >= INVENTORY_SLOT_COUNT) {
@@ -151,17 +151,17 @@ const ItemSlot& Inventory::GetSlot(int index) const {
 	return m_slots[index];
 }
 
-// ÀÎº¥Åä¸® UI¿Í °¢ ½½·Ô¿¡ ÀÖ´Â ¾ÆÀÌÅÛµéÀ» ±×¸®±â À§ÇÑ ÇÔ¼ö - RenderManager¸¦ ÅëÇØ ·»´õ¸µ ¸í·É Ãß°¡
+// ì¸ë²¤í† ë¦¬ UIì—ì„œ ê° ìŠ¬ë¡¯ì— ìˆëŠ” ì•„ì´í…œë“¤ì„ ê·¸ë¦¬ëŠ” í•¨ìˆ˜ - RenderManagerë¥¼ í†µí•´ ë Œë”ë§ ëª…ë ¹ ì¶”ê°€
 void Inventory::Render(int equippedSlotIndex) {
 	RenderManager* pRM = RenderManager::GetInstance();
 
 	if (!pRM) {
-		OutputDebugStringW(L"Inventory: RenderManager°¡ ¾ø½À´Ï´Ù.\n");
+		OutputDebugStringW(L"Inventory: RenderManagerê°€ ì—†ìŠµë‹ˆë‹¤.\n");
 		return;
 	}
 
 	if (m_slotRects.empty()) {
-		OutputDebugStringW(L"Inventory: ½½·Ô À§Ä¡°¡ ÃÊ±âÈ­µÇÁö ¾Ê¾Ò½À´Ï´Ù.\n");
+		OutputDebugStringW(L"Inventory: ìŠ¬ë¡¯ ìœ„ì¹˜ê°€ ì´ˆê¸°í™”ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.\n");
 		return;
 	}
 
@@ -171,7 +171,7 @@ void Inventory::Render(int equippedSlotIndex) {
 		float bgHeight = (float)inventoryBgBitmap->GetHeight();
 
 		float bgX = WINCX / 2.0f - bgWidth / 2.0f;
-		float bgY = WINCY - bgHeight - 5.f; // È­¸é ÇÏ´Ü¿¡¼­ 10ÇÈ¼¿ À§·Î
+		float bgY = WINCY - bgHeight - 5.f; // í™”ë©´ í•˜ë‹¨ì—ì„œ 10í”½ì…€ ìœ„
 
 		Gdiplus::RectF inventoryBgDestRect(bgX, bgY, bgWidth, bgHeight);
 
@@ -186,14 +186,14 @@ void Inventory::Render(int equippedSlotIndex) {
 			DIR_DOWN
 		);
 	} else {
-		OutputDebugStringW(L"Inventory: ÀÎº¥Åä¸® ¹è°æ ºñÆ®¸ÊÀÌ ¾ø½À´Ï´Ù.\n");
+		OutputDebugStringW(L"Inventory: ì¸ë²¤í† ë¦¬ ë°°ê²½ ë¹„íŠ¸ë§µì´ ì—†ìŠµë‹ˆë‹¤.\n");
 	}
 
 	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
 		const ItemSlot& slot = m_slots[i];
 
-		//  ½½·Ô ¹è°æ UI ±×¸®±â -
-		//  Inventory::s_slotBgBitmap »ç¿ë
+		// ê° ìŠ¬ë¡¯ UI ê·¸ë¦¬ê¸° -
+		//  Inventory::s_slotBgBitmap ì‚¬ìš©
 		if (m_slotBgBitmap) {
 			Gdiplus::Bitmap* slotBgBitmap = m_slotBgBitmap;
 			pRM->AddDrawCommand(
@@ -208,7 +208,7 @@ void Inventory::Render(int equippedSlotIndex) {
 			);
 		}
 
-		// ½½·Ô¿¡ ¾ÆÀÌÅÛÀÌ ÀÖ´Ù¸é ¾ÆÀÌÅÛ ÀÌ¹ÌÁö ±×¸®±â
+		// ìŠ¬ë¡¯ì— ì•„ì´í…œì´ ìˆìœ¼ë©´ ì•„ì´í…œ ì´ë¯¸ì§€ë¥¼ ê·¸ë¦¼
 		if (!slot.IsEmpty()) {
 			Gdiplus::Bitmap* itemBitmap = slot.item->GetBitmap();
 			if (itemBitmap) {
@@ -239,7 +239,7 @@ void Inventory::Render(int equippedSlotIndex) {
 					DIR_DOWN
 				);
 
-				// ¾ÆÀÌÅÛ °³¼ö ÅØ½ºÆ® ·»´õ¸µ
+				// ì•„ì´í…œ ê°œìˆ˜ í…ìŠ¤íŠ¸ ê·¸ë¦¬ê¸°
 				if (slot.count >= 1) {
 
 					wchar_t countStr[16];
@@ -266,16 +266,16 @@ void Inventory::Render(int equippedSlotIndex) {
 	if (equippedSlotIndex != -1 &&
 		equippedSlotIndex >= 0 && equippedSlotIndex < INVENTORY_SLOT_COUNT) {
 
-		// ÇÏÀÌ¶óÀÌÆ®¸¦ AddDrawCommand·Î Á÷Á¢ ±×¸®±â
+		// í•˜ì´ë¼ì´íŠ¸ë¥¼ AddDrawCommandë¡œ ê·¸ë¦¬ê¸°
 		Gdiplus::RectF highlightRect = m_slotRects[equippedSlotIndex];
 		
-		// ÇÏÀÌ¶óÀÌÆ® »ç°¢Çü ±×¸®±â (³ë¶õ»ö Å×µÎ¸®)
+		// í•˜ì´ë¼ì´íŠ¸ ì‚¬ê°í˜• ê·¸ë¦¬ê¸° (ë…¸ë€ìƒ‰ í…Œë‘ë¦¬)
 		pRM->AddDrawCommand(
 			highlightRect,
-			Gdiplus::Color(255, 255, 255, 0), // ³ë¶õ»ö
-			3.0f, // Å×µÎ¸® µÎ²²
+			Gdiplus::Color(255, 255, 255, 0), // ë…¸ë€ìƒ‰
+			3.0f, // í…Œë‘ë¦¬ ë‘ê»˜
 			LAYER_UI_FOREGROUND,
-			0.f + 3.2f  // UI ÅØ½ºÆ®º¸´Ù »ìÂ¦ µÚ¿¡
+			0.f + 3.2f  // UI í…ìŠ¤íŠ¸ë³´ë‹¤ ìœ„ì—
 		);
 	}
 }
@@ -286,31 +286,31 @@ int Inventory::FindFirstEmptySlot() const {
 			return i;
 		}
 	}
-	return -1; // ºó ½½·Ô ¾øÀ½
+	return -1; // ë¹ˆ ìŠ¬ë¡¯ ì—†ìŒ
 }
 
 int Inventory::FindExistingStack(UINT itemId) const {
 	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-		// ¾ÆÀÌÅÛ ÀÖÀ¸¸é¼­ °°°í, °°Àº ¾ÆÀÌÅÛÀÌ¸é, ½ºÅÃÀÌ ÃÖ´ë°¡ ¾Æ´Ï¸é ¹İÈ¯
+		// ì•„ì´í…œì´ ì¡´ì¬í•˜ë©´ì„œ ê°™ì€ ì•„ì´í…œì´ê³ , ì•„ì´í…œì´ ìµœëŒ€ì¹˜ê°€ ì•„ë‹ˆë©´ ë°˜í™˜
 		if (!m_slots[i].IsEmpty() && m_slots[i].item->GetID() == itemId && m_slots[i].count < ITEM_STACK_MAX) {
 			return i;
 		}
 	}
-	return -1; // ±âÁ¸ ½ºÅÃÀ» Ã£À» ¼ö ¾øÀ½
+	return -1; // ê°™ì€ ì•„ì´í…œì„ ì°¾ì„ ìˆ˜ ì—†ìŒ
 }
 
 bool Inventory::CheckHasEnoughItems(const std::map<UINT, UINT>& requiredItems) const {
 	for (const auto& req : requiredItems) {
 		if (GetItemCount(req.first) < req.second) {
-			return false; // ÇÊ¿äÇÑ ¾ÆÀÌÅÛ °³¼ö ºÎÁ·
+			return false; // í•„ìš”í•œ ì•„ì´í…œì´ ë¶€ì¡±í•¨
 		}
 	}
-	return true; // ¸ğµç ÇÊ¿äÇÑ ¾ÆÀÌÅÛ °³¼ö ÃæºĞ
+	return true; // ëª¨ë“  í•„ìš”í•œ ì•„ì´í…œì´ ì¶©ë¶„í•¨
 }
 
 void Inventory::LoadUIBitmaps() 
 {
-	// ResourceManager¸¦ »ç¿ëÇÏ¿© °æ·Î ±¸¼º
+	// ResourceManagerë¥¼ ì‚¬ìš©í•˜ì—¬ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
 	auto* pRM = ResourceManager::GetInstance();
 	
 	if (!m_inventoryBgBitmap) {
@@ -323,15 +323,15 @@ void Inventory::LoadUIBitmaps()
 	}
 
 	if (!m_font) {
-		Gdiplus::FontFamily fontFamily(L"Arial"); // ÆùÆ® ÆĞ¹Ğ¸®
+		Gdiplus::FontFamily fontFamily(L"Arial"); // í°íŠ¸ íŒ¨ë°€ë¦¬
 		m_font = new Gdiplus::Font(&fontFamily, 18, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
 		if (m_font->GetLastStatus() != Gdiplus::Ok) {
 			delete m_font;
 			m_font = nullptr;
 		}
 	}
-	if (!m_solidBrush) m_solidBrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 255, 255, 255)); // Èò»ö ºê·¯½Ã
-	if (!m_shadowBrush) m_shadowBrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 0, 0, 0));       // ±×¸²ÀÚ ºê·¯½Ã (±×¸²ÀÚ¿ë)
+	if (!m_solidBrush) m_solidBrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 255, 255, 255)); // í°ìƒ‰ ë¸ŒëŸ¬ì‹œ
+	if (!m_shadowBrush) m_shadowBrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 0, 0, 0));       // ê·¸ë¦¼ì ë¸ŒëŸ¬ì‹œ (ê²€ì€ìƒ‰)
 	if (!m_stringFormat) {
 		m_stringFormat = new Gdiplus::StringFormat();
 		m_stringFormat->SetAlignment(Gdiplus::StringAlignmentFar);
@@ -351,10 +351,10 @@ bool Inventory::HandleMouseClick(float mouseScreenX, float mouseScreenY, Player*
 			const ItemSlot& slot = GetSlot(i);
 			
 			if (slot.IsEmpty()) {
-				return true; // ºó ½½·Ô Å¬¸¯µµ Ã³¸®µÊÀ¸·Î °£ÁÖ
+				return true; // ë¹ˆ ìŠ¬ë¡¯ í´ë¦­ ì²˜ë¦¬ ì™„ë£Œ
 			}
 			
-			// ¾ÆÀÌÅÛÀÌ ÀÖ´Â ½½·Ô Å¬¸¯ ½Ã ÀåÂø ½Ãµµ
+			// ì•„ì´í…œì´ ìˆëŠ” ìŠ¬ë¡¯ í´ë¦­ ì‹œ ì¥ì°© í† ê¸€
 			player->ToggleEquipItem(i);
 			
 			return true; 

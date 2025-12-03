@@ -265,55 +265,42 @@ void ObjectManager::InitializeFactories()
 	m_gameObjectFactories[GOID_BUILDING_SPIDER_NORMALEGG] = m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG];
 	m_gameObjectFactories[GOID_BUILDING_SPIDER_TALLEGG] = m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG];
 
-	// 재료 타입 - Ingredient
-	auto ingredientFactory = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Ingredient(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data->objectAssetBaseDirectory, data->assetImageName);
+	// 아이템 팩토리 등록 (GameObjectFactory에 통합)
+	// 인벤토리 아이템은 x, y 좌표를 사용하지 않지만 통합을 위해 파라미터로 받음
+	m_gameObjectFactories[GOID_ITEM_NORMAL_TREE_LOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Item(GOBJ_ITEM, id, L"LOG", L"A Log.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
-	m_gameObjectFactories[GOID_ITEM_NORMAL_ROCK] = ingredientFactory;
-	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_GRASS] = ingredientFactory;
-	m_gameObjectFactories[GOID_ITEM_NORMAL_TWIGS] = ingredientFactory;
-	m_gameObjectFactories[GOID_ITEM_GOLD_ROCK] = ingredientFactory;
-	m_gameObjectFactories[GOID_ITEM_NORMAL_TREE_LOG] = ingredientFactory;
-	m_gameObjectFactories[GOID_ITEM_ROPE] = ingredientFactory;
-	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_STONE] = ingredientFactory;
-	m_gameObjectFactories[GOID_ITEM_MEAT] = ingredientFactory;
-	m_gameObjectFactories[GOID_ITEM_BERRY] = ingredientFactory;
-
-	// 아이템 팩토리 등록
-	m_itemFactories[GOID_ITEM_NORMAL_TREE_LOG] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Item>(GOBJ_ITEM, id, L"LOG", L"A Log.", data->objectAssetBaseDirectory, data->assetImageName);
+	m_gameObjectFactories[GOID_ITEM_NORMAL_TWIGS] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Item(GOBJ_ITEM, id, L"Twigs", L"A common twig.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
-	m_itemFactories[GOID_ITEM_NORMAL_TWIGS] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Item>(GOBJ_ITEM, id, L"Twigs", L"A common twig.", data->objectAssetBaseDirectory, data->assetImageName);
+	m_gameObjectFactories[GOID_ITEM_NORMAL_ROCK] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Item(GOBJ_ITEM, id, L"Rock Shard", L"A small piece of rock.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
-	m_itemFactories[GOID_ITEM_NORMAL_ROCK] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Item>(GOBJ_ITEM, id, L"Rock Shard", L"A small piece of rock.", data->objectAssetBaseDirectory, data->assetImageName);
+	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Item(GOBJ_ITEM, id, L"Cut Grass", L"Bundled grass, good for crafting.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
-	m_itemFactories[GOID_ITEM_CUT_NORMAL_GRASS] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Item>(GOBJ_ITEM, id, L"Cut Grass", L"Bundled grass, good for crafting.", data->objectAssetBaseDirectory, data->assetImageName);
+	m_gameObjectFactories[GOID_ITEM_GOLD_ROCK] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Item(GOBJ_ITEM, id, L"Gold", L"Shiny and valuable.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
-	m_itemFactories[GOID_ITEM_GOLD_ROCK] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Item>(GOBJ_ITEM, id, L"Gold", L"Shiny and valuable.", data->objectAssetBaseDirectory, data->assetImageName);
+	m_gameObjectFactories[GOID_ITEM_ROPE] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Item(GOBJ_ITEM, id, L"Rope", L"Useful for crafting.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
-	m_itemFactories[GOID_ITEM_ROPE] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Item>(GOBJ_ITEM, id, L"Rope", L"Useful for crafting.", data->objectAssetBaseDirectory, data->assetImageName);
+	m_gameObjectFactories[GOID_ITEM_MEAT] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Item(GOBJ_ITEM, id, L"Meat", L"Fresh meat.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
-	m_itemFactories[GOID_ITEM_MEAT] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Item>(GOBJ_ITEM, id, L"Meat", L"Fresh meat.", data->objectAssetBaseDirectory, data->assetImageName);
+	m_gameObjectFactories[GOID_ITEM_BERRY] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Item(GOBJ_ITEM, id, L"Berry", L"Sweet and nutritious.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
-	m_itemFactories[GOID_ITEM_BERRY] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Item>(GOBJ_ITEM, id, L"Berry", L"Sweet and nutritious.", data->objectAssetBaseDirectory, data->assetImageName);
-	};
-	m_itemFactories[GOID_ITEM_AXE] = [](GameObjectID id, const GameObjectData* data) -> std::shared_ptr<Item> {
-		return std::make_shared<Axe>(id, L"Axe", L"Cuts down trees.", data->objectAssetBaseDirectory + L"/" + data->assetImageName, 100.0f, 1.0f);
+	m_gameObjectFactories[GOID_ITEM_AXE] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		// Axe는 Tool을 상속받아 x, y를 받지 않으므로 무시하고 생성
+		return new Axe(id, L"Axe", L"Cuts down trees.", data ? (data->objectAssetBaseDirectory + L"/" + data->assetImageName) : L"", 100.0f, 1.0f);
 	};
 }
 
 // ========================================
-// 팩토리 패턴: 게임오브젝트 생성 및 관리
+// 팩토리 패턴: 게임오브젝트 생성 및 관리 (모든 GameObject와 Item 통합)
 // ========================================
-GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, const GameObjectData* resourceData)
+GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, const GameObjectData* resourceData, bool addToManager)
 {
 	// ResourceManager에서 리소스 정보 가져오기
 	const GameObjectData* data = resourceData;
@@ -328,8 +315,13 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 		
 		// 생성된 게임오브젝트를 오브젝트매니저에 추가 (GameObject 생명주기 관리)
 		if (newObj) {
-			AddGameObject(newObj);
-			OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 완료 - ID: " + std::to_wstring(id) + L" at (" + std::to_wstring(x) + L", " + std::to_wstring(y) + L")\n").c_str());
+			if (addToManager) {
+				AddGameObject(newObj);
+				OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 완료 - ID: " + std::to_wstring(id) + L" at (" + std::to_wstring(x) + L", " + std::to_wstring(y) + L")\n").c_str());
+			}
+			else {
+				OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 완료 (인벤토리용) - ID: " + std::to_wstring(id) + L"\n").c_str());
+			}
 		}
 		else {
 			OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 실패 - ID: " + std::to_wstring(id) + L"\n").c_str());
@@ -343,28 +335,6 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 	}
 }
 
-// ========================================
-// 팩토리 패턴: 아이템 생성 함수
-// ========================================
-std::shared_ptr<Item> ObjectManager::CreateItem(GameObjectID itemID)
-{
-	const GameObjectData* resourceData = ResourceManager::GetInstance()->GetObjectResourceInfo(itemID);
-	if (!resourceData) {
-		OutputDebugStringW(L"ObjectManager: 아이템 리소스 정보를 찾을 수 없습니다.\n");
-		return nullptr;
-	}
-
-	// 팩토리 맵에서 생성 함수 찾기
-	auto it = m_itemFactories.find(itemID);
-	if (it != m_itemFactories.end()) {
-		return it->second(itemID, resourceData);
-	}
-	else {
-		// 기본 아이템으로 생성 (알 수 없는 아이템)
-		return std::make_shared<Item>(GOBJ_ITEM, itemID, L"Unknown Item", L"Unknown item.", 
-			resourceData->objectAssetBaseDirectory, resourceData->assetImageName);
-	}
-}
 
 void ObjectManager::RenderBounds()
 {
