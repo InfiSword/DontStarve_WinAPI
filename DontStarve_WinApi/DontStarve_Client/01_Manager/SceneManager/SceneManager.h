@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "BaseScene.h"
 
 class BaseScene;
@@ -19,30 +19,30 @@ public:
 	void Render();
 	void Release();
 
-	// ¾À ·Îµå ÇÔ¼öµé
+	// ï¿½ï¿½ ï¿½Îµï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½
 	void LoadTitleScene();
 	void LoadCharacterSelectScene();
 	void LoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID = GOID_NONE);
-	void ReturnToTitle();  // ´Ù½Ã Å¸ÀÌÆ²·Î
+	void ReturnToTitle();  // ï¿½Ù½ï¿½ Å¸ï¿½ï¿½Æ²ï¿½ï¿½
 
-	// ¸Ê ÆÄÀÏ ÆÄ½Ì
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½
 	void ParseMapFileInto(const std::wstring& mapFileName, MapData& mapData);
 
-	// ÆäÀÌµå È¿°ú
+	// ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½
 	void StartFadeOut();
 	void StartFadeIn();
 	void UpdateFadeEffect(float deltaTime);
 	void RenderFadeEffect();
 
-	// ÇöÀç ¾À Å¸ÀÔ ¹ÝÈ¯
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½È¯
 	SceneType GetCurrentSceneType() const;
 
 private:
-	// ÆäÀÌµå È¿°ú °ü·Ã
+	// ï¿½ï¿½ï¿½Ìµï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	enum class TransitionState {
 		NONE,
 		FADE_OUT,
-		SCENE_SWITCH,  // ¾À ÀüÈ¯ Áß (»õ ¾À ÃÊ±âÈ­)
+		SCENE_SWITCH,  // ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ (ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­)
 		FADE_IN
 	};
 
@@ -52,7 +52,7 @@ private:
 	float m_fadeAlpha;
 	float m_fadeDuration;
 	
-	// ÀÓ½Ã ¸Ê µ¥ÀÌÅÍ ÀúÀå¿ë
+	// ï¿½Ó½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 	std::wstring m_tempMapFileName;
 	GameObjectID m_tempSelectedCharacterID;
 }; 
