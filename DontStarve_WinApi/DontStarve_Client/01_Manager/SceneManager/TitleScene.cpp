@@ -17,20 +17,20 @@ TitleScene::~TitleScene()
 
 void TitleScene::Init()
 {
-	// TitleScene¿¡ ÇÊ¿äÇÑ ¸Å´ÏÀúµé ÃÊ±âÈ­
+	// TitleSceneì— í•„ìš”í•œ ë§¤ë‹ˆì €ë“¤ ì´ˆê¸°í™”
 	InitializeManagers();
 	
-	// UI »ı¼º
+	// UI ìƒì„±
 	CreateUI();
 }
 
 void TitleScene::CreateUI()
 {
-	// È­¸é Å©±â °è»ê
+	// í™”ë©´ í¬ê¸° ê³„ì‚°
 	float screenWidth = WINCX;
 	float screenHeight = WINCY;
 
-	// ¹è°æ ÀÌ¹ÌÁö »ı¼º
+	// ë°°ê²½ ì´ë¯¸ì§€ ìƒì„±
 	UIImage* backgroundImage = new UIImage(
 		static_cast<GameObjectID>(GOID_MAIN_BG),
 		screenWidth / 2.0f,
@@ -43,7 +43,7 @@ void TitleScene::CreateUI()
 	);
 	UIManager::GetInstance()->AddUIImage(backgroundImage);
 
-	// ·Î°í ÀÌ¹ÌÁö »ı¼º (È­¸é »ó´Ü¿¡ À§Ä¡)
+	// ë¡œê³  ì´ë¯¸ì§€ ìƒì„± (í™”ë©´ ìƒë‹¨ì— ìœ„ì¹˜)
 	UIImage* logoImage = new UIImage(
 		static_cast<GameObjectID>(GOID_GAME_LOGO),
 		screenWidth / 2.0f,
@@ -56,7 +56,7 @@ void TitleScene::CreateUI()
 	);
 	UIManager::GetInstance()->AddUIImage(logoImage);
 
-	// °ÔÀÓ½ÃÀÛ ¹öÆ° »ı¼º
+	// ê²Œì„ì‹œì‘ ë²„íŠ¼ ìƒì„±
 	UIButton* startButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BUTTON1),
 		screenWidth / 2.0f,
@@ -65,16 +65,16 @@ void TitleScene::CreateUI()
 		60.0f,
 		L"../Resource/UI/frontscreen.png",
 		L"../Resource/UI/HighLight_frontscreen.png",
-		L"°ÔÀÓ½ÃÀÛ"
+		L"ê²Œì„ì‹œì‘"
 	);
 	
-	// °ÔÀÓ½ÃÀÛ ¹öÆ° Äİ¹é ¼³Á¤
+	// ê²Œì„ì‹œì‘ ë²„íŠ¼ ì½œë°± ì„¤ì •
 	startButton->SetOnClickCallback([this]() {
 		OnStartButtonClicked();
 	});
 	UIManager::GetInstance()->AddUIButton(startButton);
 
-	// Á¾·á ¹öÆ° »ı¼º
+	// ì¢…ë£Œ ë²„íŠ¼ ìƒì„±
 	UIButton* exitButton = new UIButton(
 		static_cast<GameObjectID>(GOID_ENDBUTTON1),
 		screenWidth / 2.0f,
@@ -83,10 +83,10 @@ void TitleScene::CreateUI()
 		60.0f,
 		L"../Resource/UI/frontscreen.png",
 		L"../Resource/UI/HighLight_frontscreen.png",
-		L"Á¾·á"
+		L"ì¢…ë£Œ"
 	);
 	
-	// Á¾·á ¹öÆ° Äİ¹é ¼³Á¤
+	// ì¢…ë£Œ ë²„íŠ¼ ì½œë°± ì„¤ì •
 	exitButton->SetOnClickCallback([this]() {
 		OnExitButtonClicked();
 	});
@@ -95,25 +95,25 @@ void TitleScene::CreateUI()
 
 void TitleScene::Update(float deltaTime)
 {
-	// ¸Å´ÏÀúµé ¾÷µ¥ÀÌÆ®
+	// ë§¤ë‹ˆì €ë“¤ ì—…ë°ì´íŠ¸
 	UpdateManagers(deltaTime);
 }
 
 void TitleScene::LateUpdate()
 {
-	// ¸Å´ÏÀúµé LateUpdate
+	// ë§¤ë‹ˆì €ë“¤ LateUpdate
 	LateUpdateManagers();
 }
 
 void TitleScene::Render()
 {
-	// ¸Å´ÏÀúµé ·»´õ¸µ
+	// ë§¤ë‹ˆì €ë“¤ ë Œë”ë§
 	RenderManagers();
 }
 
 void TitleScene::Release()
 {
-	// TitleScene¿¡¼­ »ç¿ëÇÑ ¸Å´ÏÀúµé ÇØÁ¦
+	// TitleSceneì—ì„œ ì‚¬ìš©í•œ ë§¤ë‹ˆì €ë“¤ í•´ì œ
 	ReleaseAllManagers();
 }
 
@@ -121,7 +121,7 @@ void TitleScene::OnStartButtonClicked()
 {
 	OutputDebugStringW(L"TitleScene: Start button clicked!\n");
 	
-	// SceneManager¸¦ ÅëÇØ Ä³¸¯ÅÍ ¼±ÅÃ ¾ÀÀ¸·Î ÀüÈ¯
+	// SceneManagerë¥¼ í†µí•´ ìºë¦­í„° ì„ íƒ ì”¬ìœ¼ë¡œ ì „í™˜
 	SceneManager::GetInstance()->LoadCharacterSelectScene();
 }
 
@@ -129,55 +129,55 @@ void TitleScene::OnExitButtonClicked()
 {
 	OutputDebugStringW(L"TitleScene: Exit button clicked!\n");
 	
-	// ÇÁ·Î±×·¥ Á¾·á
+	// í”„ë¡œê·¸ë¨ ì¢…ë£Œ
 	PostQuitMessage(0);
 }
 
 void TitleScene::UpdateManagers(float deltaTime)
 {
-	// TitleScene¿¡¼­´Â UIManager¿Í InputManager ¾÷µ¥ÀÌÆ®
+	// TitleSceneì—ì„œ UIManagerì™€ InputManager ì—…ë°ì´íŠ¸
 	UIManager::GetInstance()->Update(deltaTime);
 	InputManager::GetInstance()->Update(deltaTime);
 }
 
 void TitleScene::LateUpdateManagers()
 {
-	// TitleScene¿¡¼­´Â UIManager¿Í InputManager LateUpdate
+	// TitleSceneì—ì„œ UIManagerì™€ InputManager LateUpdate
 	UIManager::GetInstance()->LateUpdate();
 	InputManager::GetInstance()->LateUpdate();
 }
 
 void TitleScene::RenderManagers()
 {
-	// TitleScene¿¡¼­´Â UIManager¿Í InputManager ·»´õ¸µ
+	// TitleSceneì—ì„œ UIManagerì™€ InputManager ë Œë”ë§
 	UIManager::GetInstance()->Render();
 	InputManager::GetInstance()->Render();
 }
 
 void TitleScene::ReleaseManagers()
 {
-	// TitleScene¿¡¼­´Â UIManager¸¸ ÇØÁ¦
+	// TitleSceneì—ì„œ UIManager í•´ì œ
 	UIManager::GetInstance()->Release();
 }
 
 void TitleScene::InitializeManagers()
 {
-	OutputDebugStringW(L"TitleScene: ¸Å´ÏÀú ÃÊ±âÈ­ ½ÃÀÛ\n");
+	OutputDebugStringW(L"TitleScene: ë§¤ë‹ˆì € ì´ˆê¸°í™” ì‹œì‘\n");
 	
-	// TitleScene¿¡¼­´Â UIManager¿Í InputManager ÃÊ±âÈ­
+	// TitleSceneì—ì„œ UIManagerì™€ InputManagerë¥¼ ì´ˆê¸°í™”
 	UIManager::GetInstance()->Init();
 	InputManager::GetInstance()->Init();
 	
-	OutputDebugStringW(L"TitleScene: ¸Å´ÏÀú ÃÊ±âÈ­ ¿Ï·á\n");
+	OutputDebugStringW(L"TitleScene: ë§¤ë‹ˆì € ì´ˆê¸°í™” ì™„ë£Œ\n");
 }
 
 void TitleScene::ReleaseAllManagers()
 {
-	OutputDebugStringW(L"TitleScene: ¸Å´ÏÀú ÇØÁ¦ ½ÃÀÛ\n");
+	OutputDebugStringW(L"TitleScene: ë§¤ë‹ˆì € í•´ì œ ì‹œì‘\n");
 	
-	// TitleScene¿¡¼­ »ç¿ëÇÑ ¸Å´ÏÀúµé ÇØÁ¦
+	// TitleSceneì—ì„œ ì‚¬ìš©í•œ ë§¤ë‹ˆì €ë“¤ í•´ì œ
 	InputManager::GetInstance()->Release();
 	UIManager::GetInstance()->Release();
 	
-	OutputDebugStringW(L"TitleScene: ¸Å´ÏÀú ÇØÁ¦ ¿Ï·á\n");
-} 
+	OutputDebugStringW(L"TitleScene: ë§¤ë‹ˆì € í•´ì œ ì™„ë£Œ\n");
+}

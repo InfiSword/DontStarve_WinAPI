@@ -21,73 +21,73 @@ CharacterSelectScene::~CharacterSelectScene()
 
 void CharacterSelectScene::Init()
 {
-	// CharacterSelectScene�� �ʿ��� �Ŵ����� �ʱ�ȭ
+	// CharacterSelectScene에 필요한 매니저들 초기화
 	InitializeManagers();
 	
-	// ĳ���� ��� �ʱ�ȭ
+	// 캐릭터 목록 초기화
 	InitializeCharacters();
-	OutputDebugStringW((L"CharacterSelectScene: ĳ���� ��� �ʱ�ȭ �Ϸ� - " + std::to_wstring(m_characterList.size()) + L"�� ĳ����\n").c_str());
+	OutputDebugStringW((L"CharacterSelectScene: 캐릭터 목록 초기화 완료 - " + std::to_wstring(m_characterList.size()) + L"개 캐릭터\n").c_str());
 	
-	// UI ����
+	// UI 생성
 	CreateUI();
-	OutputDebugStringW(L"CharacterSelectScene: UI ���� �Ϸ�\n");
+	OutputDebugStringW(L"CharacterSelectScene: UI 생성 완료\n");
 	
-	// �ؽ�Ʈ ������ �ʱ�ȭ
+	// 텍스트 렌더링 초기화
 	InitializeTextRendering();
 	
-	// �ʱ� ���� ����
+	// 초기 상태 설정
 	m_currentState = CharacterSelectionState::BROWSING;
 	m_selectedCharacterIndex = -1;
 	m_isLockedCharacterSelected = false;
 	m_isSelectButtonDisabled = true;
 	
-	OutputDebugStringW(L"CharacterSelectScene: �ʱ�ȭ �Ϸ�\n");
+	OutputDebugStringW(L"CharacterSelectScene: 초기화 완료\n");
 }
 
 
 void CharacterSelectScene::InitializeCharacters()
 {
-	// ĳ���� ��� �ʱ�ȭ
+	// 캐릭터 목록 초기화
 	m_characterList.clear();
 	
 	float screenWidth = static_cast<float>(WINCX);
 	float screenHeight = static_cast<float>(WINCY);
 	
-	// ĳ���͵��� ��ġ ��ġ
+	// 캐릭터들의 위치 설정
 	float startX = 150.0f;
 	float spacing = 200.0f;
 	float characterY = 300.0f;
 	
-	// Wilson ĳ���� �߰� (�⺻ �ر�)
+	// Wilson 캐릭터 추가 (기본 해금)
 	m_characterList.emplace_back(
 		L"Wilson",
 		L"../Resource/UI/wilson.png",
 		L"../Resource/UI/Willson_Character.png",
-		L"�⺻ ĳ�����Դϴ�.\n��� ��Ȳ���� ���������� ������ �� �ִ�\n �������� ĳ�����Դϴ�.",
+		L"기본 캐릭터입니다.\n모든 상황에서 안정적으로 플레이할 수 있는\n 균형잡힌 캐릭터입니다.",
 		startX,
 		characterY,
 		GOID_PLAYER_WILSON,
 		true  
 	);
 	
-	// Willow ĳ���� �߰� (�Ҿ��� ���� Ŭ���� �� �ر�)
+	// Willow 캐릭터 추가 (불타는 나무 클릭 시 해금)
 	m_characterList.emplace_back(
 		L"Willow",
 		L"../Resource/Objects/Player/Willson/willow_portrait.png",
 		L"../Resource/Objects/Player/Willson/willow_character.png",
-		L"���� �������Դϴ�.\n���� �ٷ�� �ɷ��� �پ�ϴ�.\n\n�ر� ����: �Ҿ��� ���� Ŭ����",
+		L"불의 마법사입니다.\n불을 두려워하지 않고 활용할 수 있습니다.\n\n해금 조건: 불타는 나무 클릭",
 		startX + spacing,
 		characterY,
 		GOID_PLAYER_WILLOW,
 		m_gameProgress.IsCharacterUnlocked(GOID_PLAYER_WILLOW)
 	);
 	
-	// Wolfgang ĳ���� �߰� (�Ź̿��հ� ���� Ŭ���� �� �ر�)
+	// Wolfgang 캐릭터 추가 (돌멩이 던지기 클릭 시 해금)
 	m_characterList.emplace_back(
 		L"Wolfgang",
 		L"../Resource/Objects/Player/Willson/wolfgang_portrait.png",
 		L"../Resource/Objects/Player/Willson/wolfgang_character.png",
-		L"���� ĳ�����Դϴ�.\n������� �������� �� �������ϴ�.\n\n�ر� ����: �Ź̿��հ� ���� Ŭ����",
+		L"강한 캐릭터입니다.\n체력이 높을수록 더 강해지는 캐릭터입니다.\n\n해금 조건: 돌멩이 던지기 클릭",
 		startX + spacing * 2,
 		characterY,
 		GOID_PLAYER_WOLFGANG,
@@ -97,11 +97,11 @@ void CharacterSelectScene::InitializeCharacters()
 
 void CharacterSelectScene::CreateUI()
 {
-	// ȭ�� ũ��
+	// 화면 크기
 	float screenWidth = static_cast<float>(WINCX);
 	float screenHeight = static_cast<float>(WINCY);
 
-	// ��� �̹��� ����
+	// 배경 이미지 생성
 	UIImage* backgroundImage = new UIImage(
 		static_cast<GameObjectID>(GOID_MAIN_BG),
 		screenWidth / 2.0f,
@@ -114,7 +114,7 @@ void CharacterSelectScene::CreateUI()
 	);
 	UIManager::GetInstance()->AddUIImage(backgroundImage);
 
-	// �ڷΰ��� ��ư ���� (ȭ�� �ϴ�)
+	// 뒤로가기 버튼 생성 (화면 아래)
 	UIButton* backButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BACK_BUTTON),
 		100.0f,  
@@ -123,7 +123,7 @@ void CharacterSelectScene::CreateUI()
 		100.0f,
 		L"../Resource/UI/Button.png",
 		L"../Resource/UI/Button_Click.png",
-		L"Ÿ��Ʋ ȭ��"
+		L"타이틀 화면"
 	);
 	
 	backButton->SetOnClickCallback([this]() {
@@ -131,7 +131,7 @@ void CharacterSelectScene::CreateUI()
 	});
 	UIManager::GetInstance()->AddUIButton(backButton);
 
-	// ���õ� ĳ���� ��Ʈ����Ʈ (�����ʿ� ��ġ) - �ʱ⿡�� ����
+	// 선택된 캐릭터 포트레이트 (오른쪽에 위치) - 초기에는 숨김
 	UIImage* selectedPortrait = new UIImage(
 		static_cast<GameObjectID>(GOID_PLAYER_PORTRAIT),
 		screenWidth / 2.0f + 300.0f,
@@ -142,10 +142,10 @@ void CharacterSelectScene::CreateUI()
 		L"../Resource/UI/wilson.png",
 		1.0f
 	);
-	selectedPortrait->SetActive(false);  // �ʱ⿡�� ��Ȱ��ȭ
+	selectedPortrait->SetActive(false);  // 초기에는 비활성화
 	UIManager::GetInstance()->AddUIImage(selectedPortrait);
 
-	// ĳ���� ����â (UI4.png) - �ʱ⿡�� ����
+	// 캐릭터 정보창 (UI4.png) - 초기에는 숨김
 	UIImage* characterInfoPanel = new UIImage(
 		static_cast<GameObjectID>(GOID_PLAYER_INFO),
 		screenWidth / 2.0f + 300.0f,
@@ -156,10 +156,10 @@ void CharacterSelectScene::CreateUI()
 		L"../Resource/UI/UI4.png",
 		1.0f
 	);
-	characterInfoPanel->SetActive(false);  // �ʱ⿡�� ��Ȱ��ȭ
+	characterInfoPanel->SetActive(false);  // 초기에는 비활성화
 	UIManager::GetInstance()->AddUIImage(characterInfoPanel);
 
-	// ���� ��ư - �ʱ⿡�� ����
+	// 선택 버튼 - 초기에는 숨김
 	UIButton* selectButton = new UIButton(
 		static_cast<GameObjectID>(GOID_SELECT_BUTTON),
 		screenWidth / 2.0f + 200.f,
@@ -168,7 +168,7 @@ void CharacterSelectScene::CreateUI()
 		50.0f,
 		L"../Resource/UI/Select_Bar.png",
 		L"../Resource/UI/Select_Bar.png",
-		L"����"
+		L"선택"
 	);
 	
 	selectButton->SetOnClickCallback([this, selectButton]()
@@ -177,10 +177,10 @@ void CharacterSelectScene::CreateUI()
 		this->OnSelectButtonClicked();
 	});
 
-	selectButton->SetActive(false);  // �ʱ⿡�� ��Ȱ��ȭ
+	selectButton->SetActive(false);  // 초기에는 비활성화
 	UIManager::GetInstance()->AddUIButton(selectButton);
 
-	// ��� ��ư - �ʱ⿡�� ����
+	// 취소 버튼 - 초기에는 숨김
 	UIButton* cancelButton = new UIButton(
 		static_cast<GameObjectID>(GOID_CANCEL_SELECTION),
 		screenWidth / 2.0f + 450.f,
@@ -189,33 +189,33 @@ void CharacterSelectScene::CreateUI()
 		50.0f,
 		L"../Resource/UI/Select_Bar.png",
 		L"../Resource/UI/Select_Bar.png",
-		L"���"
+		L"취소"
 	);
 	
 	cancelButton->SetOnClickCallback([this]() {
 		this->OnCancelButtonClicked();
 	});
-	cancelButton->SetActive(false);  // �ʱ⿡�� ��Ȱ��ȭ
+	cancelButton->SetActive(false);  // 초기에는 비활성화
 	UIManager::GetInstance()->AddUIButton(cancelButton);
 	
-	// ĳ���� ��ư�� ����
+	// 캐릭터 버튼들 생성
 	CreateCharacterButtons();
 }
 
 void CharacterSelectScene::CreateCharacterButtons()
 {
-	OutputDebugStringW((L"CharacterSelectScene: ĳ���� ��ư ���� ���� - " + std::to_wstring(m_characterList.size()) + L"�� ĳ����\n").c_str());
+	OutputDebugStringW((L"CharacterSelectScene: 캐릭터 버튼 생성 시작 - " + std::to_wstring(m_characterList.size()) + L"개 캐릭터\n").c_str());
 	
-	// ��� ĳ���Ϳ� ���� UI ��ҵ� ����
+	// 모든 캐릭터에 대한 UI 요소들 생성
 	for (size_t i = 0; i < m_characterList.size(); ++i) {
 		const CharacterInfo& charInfo = m_characterList[i];
 		
-		OutputDebugStringW((L"CharacterSelectScene: ĳ���� " + std::to_wstring(i) + L" ��ư ���� - " + charInfo.name + L"\n").c_str());
+		OutputDebugStringW((L"CharacterSelectScene: 캐릭터 " + std::to_wstring(i) + L" 버튼 생성 - " + charInfo.name + L"\n").c_str());
 		
 		float buttonWidth = 150.0f;
 		float buttonHeight = 150.0f;
 		
-		// HUD ��� ����
+		// HUD 배경 생성
 		UIImage* hudBackground = new UIImage(
 			static_cast<GameObjectID>(3000 + i * 10),
 			charInfo.buttonPosX,
@@ -228,7 +228,7 @@ void CharacterSelectScene::CreateCharacterButtons()
 		);
 		UIManager::GetInstance()->AddUIImage(hudBackground);
 		
-		// ĳ���� �̹��� ����
+		// 캐릭터 이미지 생성
 		UIImage* characterImage = new UIImage(
 			static_cast<GameObjectID>(3001 + i * 10),
 			charInfo.buttonPosX,
@@ -241,7 +241,7 @@ void CharacterSelectScene::CreateCharacterButtons()
 		);
 		UIManager::GetInstance()->AddUIImage(characterImage);
 		
-		// ��� �������� ���� (�رݵ��� ���� ĳ���Ϳ���)
+		// 잠금 오버레이 생성 (해금되지 않은 캐릭터만)
 		if (!charInfo.isUnlocked) {
 			UIImage* lockOverlay = new UIImage(
 				static_cast<GameObjectID>(3003 + i * 10),
@@ -256,19 +256,19 @@ void CharacterSelectScene::CreateCharacterButtons()
 			UIManager::GetInstance()->AddUIImage(lockOverlay);
 		}
 		
-		// ĳ���� ��ư ���� (Ŭ�� �̺�Ʈ ó��) - ��� ĳ���Ϳ� ���� ����
+		// 캐릭터 버튼 생성 (클릭 이벤트 처리) - 모든 캐릭터에 대해 생성
 		UIButton* characterButton = new UIButton(
 			static_cast<GameObjectID>(3002 + i * 10),
 			charInfo.buttonPosX,
 			charInfo.buttonPosY,
 			buttonWidth,
 			buttonHeight,
-			L"", // �� ��ư
-			L"", // �� ��ư
-			L""  // �ؽ�Ʈ ����
+			L"", // 빈 버튼
+			L"", // 빈 버튼
+			L""  // 텍스트 없음
 		);
 		
-		// ���ٷ� ĳ���� �ε����� ĸó
+		// 람다로 캐릭터 인덱스 캡처
 		int characterIndex = static_cast<int>(i);
 		characterButton->SetOnClickCallback([this, characterIndex]() {
 			OnCharacterButtonClicked(characterIndex);
@@ -277,27 +277,27 @@ void CharacterSelectScene::CreateCharacterButtons()
 		UIManager::GetInstance()->AddUIButton(characterButton);
 	}
 	
-	OutputDebugStringW(L"CharacterSelectScene: ĳ���� ��ư ���� �Ϸ�\n");
+	OutputDebugStringW(L"CharacterSelectScene: 캐릭터 버튼 생성 완료\n");
 }
 
 void CharacterSelectScene::Update(float deltaTime)
 {
-	// �Ŵ����� ������Ʈ
+	// 매니저들 업데이트
 	UpdateManagers(deltaTime);
 }
 
 void CharacterSelectScene::LateUpdate()
 {
-	// �Ŵ����� LateUpdate
+	// 매니저들 LateUpdate
 	LateUpdateManagers();
 }
 
 void CharacterSelectScene::Render()
 {
-	// �Ŵ����� ������
+	// 매니저들 렌더링
 	RenderManagers();
 	
-	// ĳ���� ���� �ؽ�Ʈ ������
+	// 캐릭터 설명 텍스트 렌더링
 	if (m_selectedCharacterIndex >= 0) {
 		RenderCharacterDescription();
 	}
@@ -305,7 +305,7 @@ void CharacterSelectScene::Render()
 
 void CharacterSelectScene::Release()
 {
-	// �ؽ�Ʈ ������ ���� ����
+	// 텍스트 렌더링 리소스 해제
 	if (m_descriptionFont) {
 		delete m_descriptionFont;
 		m_descriptionFont = nullptr;
@@ -315,16 +315,16 @@ void CharacterSelectScene::Release()
 		m_descriptionBrush = nullptr;
 	}
 	
-	// CharacterSelectScene���� ����� �Ŵ����� ����
+	// CharacterSelectScene에서 사용한 매니저들 해제
 	ReleaseAllManagers();
 }
 
 void CharacterSelectScene::InitializeTextRendering()
 {
-	// ��Ʈ ���� (�⺻ ��Ʈ, ũ�� 16)
-	m_descriptionFont = new Gdiplus::Font(L"���� ���", 16.0f, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+	// 폰트 생성 (기본 폰트, 크기 16)
+	m_descriptionFont = new Gdiplus::Font(L"맑은 고딕", 16.0f, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
 	
-	// �귯�� ���� (������)
+	// 브러시 생성 (검은색)
 	m_descriptionBrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 0, 0, 0));
 }
 
@@ -333,19 +333,19 @@ void CharacterSelectScene::RenderCharacterDescription()
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		const CharacterInfo& selectedChar = m_characterList[m_selectedCharacterIndex];
 		
-		// ĳ���� ���� �г��� ��ġ�� ũ��
-		float panelX = WINCX / 2.0f + 300.0f - 250.0f; // �г� �߽ɿ��� ��������
-		float panelY = WINCY / 2.0f + 200.0f - 100.0f; // �г� �߽ɿ��� ����
+		// 캐릭터 정보 패널의 위치와 크기
+		float panelX = WINCX / 2.0f + 300.0f - 250.0f; // 패널 중심에서 왼쪽으로 이동
+		float panelY = WINCY / 2.0f + 200.0f - 100.0f; // 패널 중심에서 위로 이동
 		float panelWidth = 500.0f;
 		float panelHeight = 200.0f;
 		
-		// �ؽ�Ʈ ������ ���� ��� (�г� ���ο� ����)
+		// 텍스트 렌더링 영역 계산 (패널 내부에 여백)
 		float textX = panelX + 20.0f;
 		float textY = panelY + 20.0f;
 		float textWidth = panelWidth - 40.0f;
 		float textHeight = panelHeight - 40.0f;
 		
-		// �ؽ�Ʈ ������
+		// 텍스트 렌더링
 		RenderManager::GetInstance()->RenderUIText(
 			selectedChar.description,
 			m_descriptionFont,
@@ -355,7 +355,7 @@ void CharacterSelectScene::RenderCharacterDescription()
 			textWidth,
 			textHeight,
 			LAYER_UI_FOREGROUND,
-			6.0f  // �ؽ�Ʈ�� �ٸ� UI���� ���� ������
+			6.0f  // 텍스트가 다른 UI보다 앞에 렌더링되도록
 		);
 	}
 }
@@ -365,11 +365,11 @@ void CharacterSelectScene::UpdateCharacterSelection()
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		const CharacterInfo& selectedChar = m_characterList[m_selectedCharacterIndex];
 		
-		// ���õ� ĳ������ ��Ʈ����Ʈ �̹��� ����
+		// 선택된 캐릭터의 포트레이트 이미지 업데이트
 		UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
 		if (selectedPortrait)
 		{
-			// ��� ĳ���ʹ� lock.png, �رݵ� ĳ���ʹ� �ش� ��Ʈ����Ʈ ���
+			// 잠금 캐릭터는 lock.png, 해금된 캐릭터는 해당 포트레이트 경로
 			std::wstring portraitPath;
 			if (!selectedChar.isUnlocked) 
 			{
@@ -378,7 +378,7 @@ void CharacterSelectScene::UpdateCharacterSelection()
 				portraitPath = selectedChar.portraitPath;
 			}
 			
-			// UIImage�� LoadBitmap �Լ��� ����ؼ� ��Ʈ����Ʈ �̹��� ����
+			// UIImage의 LoadBitmap 함수를 사용하여 포트레이트 이미지 업데이트
 			selectedPortrait->LoadBitmap(portraitPath);
 		}
 	}
@@ -389,7 +389,7 @@ std::wstring CharacterSelectScene::GetSelectedCharacterName() const
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		return m_characterList[m_selectedCharacterIndex].name;
 	}
-	return L"UnKnown"; // �⺻��
+	return L"UnKnown"; // 기본값
 }
 
 GameObjectID CharacterSelectScene::GetSelectedCharacterID() const
@@ -397,7 +397,7 @@ GameObjectID CharacterSelectScene::GetSelectedCharacterID() const
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		return m_characterList[m_selectedCharacterIndex].characterID;
 	}
-	return GOID_NONE; // �⺻��
+	return GOID_NONE; // 기본값
 }
 
 void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
@@ -411,7 +411,7 @@ void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 		m_isLockedCharacterSelected = !charInfo.isUnlocked;
 		m_currentState = CharacterSelectionState::CHARACTER_INFO;
 		
-		// UI ���̱�
+		// UI 표시
 		UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
 		if (selectedPortrait) {
 			selectedPortrait->SetActive(true);
@@ -434,10 +434,10 @@ void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 		
 		UpdateCharacterSelection();
 		
-		// ��� �� CONFIRM_SELECT ���·� ��ȯ
+		// 상태를 CONFIRM_SELECT 상태로 전환
 		m_currentState = CharacterSelectionState::CONFIRM_SELECT;
 		
-		// ���� ��ư ���� ������Ʈ
+		// 선택 버튼 상태 업데이트
 		UpdateSelectButtonState();
 	}
 }
@@ -449,7 +449,7 @@ void CharacterSelectScene::OnSelectButtonClicked()
 		return;
 	}
 	
-	// ��� ĳ���ʹ� ������ �� ����
+	// 잠금 캐릭터는 선택할 수 없음
 	if (m_isLockedCharacterSelected) {
 		OutputDebugStringW(L"Cannot select locked character!\n");
 		return;
@@ -460,7 +460,7 @@ void CharacterSelectScene::OnSelectButtonClicked()
 	OutputDebugStringW((L"Character Confirmed! Loading Game Scene with: " + selectedCharacterName + L" (ID: " + std::to_wstring(selectedCharacterID) + L")\n").c_str());
 	
 	m_currentState = CharacterSelectionState::CLICK_GAME;
-	// ���õ� ĳ���� ������ SceneManager�� �����Ͽ� ���� ������ ��ȯ
+	// 선택된 캐릭터 정보를 SceneManager에 전달하여 게임 씬으로 전환
 	SceneManager::GetInstance()->LoadGameScene(L"../MapData/00_map.dsm", selectedCharacterID);
 }
 
@@ -468,13 +468,13 @@ void CharacterSelectScene::OnCancelButtonClicked()
 {
 	OutputDebugStringW(L"Character Selection Cancelled!\n");
 	
-	// ĳ���� ���� �ʱ�ȭ, ����¡ ���·� ���ư���
+	// 캐릭터 선택 초기화, 브라우징 상태로 되돌리기
 	m_selectedCharacterIndex = -1;
 	m_isLockedCharacterSelected = false;
 	m_isSelectButtonDisabled = false;
 	m_currentState = CharacterSelectionState::BROWSING;
 	
-	// UI �����
+	// UI 숨김
 	UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
 	if (selectedPortrait) {
 		selectedPortrait->SetActive(false);
@@ -495,7 +495,7 @@ void CharacterSelectScene::OnCancelButtonClicked()
 		cancelButton->SetActive(false);
 	}
 	
-	// ���� ��ư ���� �ʱ�ȭ
+	// 선택 버튼 상태 초기화
 	UpdateSelectButtonState();
 }
 
@@ -503,7 +503,7 @@ void CharacterSelectScene::OnBackButtonClicked()
 {
 	OutputDebugStringW(L"Back button clicked! Returning to Title Scene\n");
 	
-	// UI �����
+	// UI 숨김
 	UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
 	if (selectedPortrait) {
 		selectedPortrait->SetActive(false);
@@ -524,22 +524,22 @@ void CharacterSelectScene::OnBackButtonClicked()
 		cancelButton->SetActive(false);
 	}
 	
-	// Ÿ��Ʋ ������ ���ư���
+	// 타이틀 씬으로 되돌리기
 	SceneManager::GetInstance()->ReturnToTitle();
 }
 
 void CharacterSelectScene::UpdateSelectButtonState()
 {
-	// ��� ĳ���Ͱ� ���õǾ����� ���� ��ư ��Ȱ��ȭ
+	// 잠금 캐릭터가 선택되었다면 선택 버튼 비활성화
 	m_isSelectButtonDisabled = m_isLockedCharacterSelected;
 	
 	UIButton* selectButton = UIManager::GetInstance()->FindUIButton(GOID_SELECT_BUTTON);
 	if (selectButton) {
 		if (m_isSelectButtonDisabled) {
-			// ��ư�� ��Ȱ��ȭ ���·� ����
+			// 버튼을 비활성화 상태로 설정
 			selectButton->SetDisabled(true);
 		} else {
-			// ��ư�� Ȱ��ȭ ���·� ����
+			// 버튼을 활성화 상태로 설정
 			selectButton->SetDisabled(false);
 		}
 	}
@@ -547,60 +547,60 @@ void CharacterSelectScene::UpdateSelectButtonState()
 
 void CharacterSelectScene::UpdateCharacterUnlockStatus()
 {
-	// ���� ���� ��Ȳ�� ���� ĳ���� �ر� ���� ������Ʈ
+	// 현재 진행 상황에 따라 캐릭터 해금 상태 업데이트
 	for (auto& charInfo : m_characterList) {
 		charInfo.isUnlocked = m_gameProgress.IsCharacterUnlocked(charInfo.characterID);
 	}
 	
-	// UI ��ҵ� �����
+	// UI 요소들 재생성
 	CreateUI();
 }
 
 void CharacterSelectScene::UpdateManagers(float deltaTime)
 {
-	// CharacterSelectScene������ UIManager�� InputManager ������Ʈ
+	// CharacterSelectScene에서 UIManager와 InputManager 업데이트
 	UIManager::GetInstance()->Update(deltaTime);
 	InputManager::GetInstance()->Update(deltaTime);
 }
 
 void CharacterSelectScene::LateUpdateManagers()
 {
-	// CharacterSelectScene������ UIManager�� InputManager LateUpdate
+	// CharacterSelectScene에서 UIManager와 InputManager LateUpdate
 	UIManager::GetInstance()->LateUpdate();
 	InputManager::GetInstance()->LateUpdate();
 }
 
 void CharacterSelectScene::RenderManagers()
 {
-	// CharacterSelectScene������ UIManager�� InputManager ������
+	// CharacterSelectScene에서 UIManager와 InputManager 렌더링
 	UIManager::GetInstance()->Render();
 	InputManager::GetInstance()->Render();
 }
 
 void CharacterSelectScene::ReleaseManagers()
 {
-	// CharacterSelectScene������ UIManager�� ����
+	// CharacterSelectScene에서 UIManager 해제
 	UIManager::GetInstance()->Release();
 }
 
 void CharacterSelectScene::InitializeManagers()
 {
-	OutputDebugStringW(L"CharacterSelectScene: �Ŵ��� �ʱ�ȭ ����\n");
+	OutputDebugStringW(L"CharacterSelectScene: 매니저 초기화 시작\n");
 	
-	// CharacterSelectScene������ UIManager�� InputManager�� �ʱ�ȭ
+	// CharacterSelectScene에서 UIManager와 InputManager를 초기화
 	UIManager::GetInstance()->Init();
 	InputManager::GetInstance()->Init();
 	
-	OutputDebugStringW(L"CharacterSelectScene: �Ŵ��� �ʱ�ȭ �Ϸ�\n");
+	OutputDebugStringW(L"CharacterSelectScene: 매니저 초기화 완료\n");
 }
 
 void CharacterSelectScene::ReleaseAllManagers()
 {
-	OutputDebugStringW(L"CharacterSelectScene: �Ŵ��� ���� ����\n");
+	OutputDebugStringW(L"CharacterSelectScene: 매니저 해제 시작\n");
 	
-	// CharacterSelectScene���� ����� �Ŵ����� ����
+	// CharacterSelectScene에서 사용한 매니저들 해제
 	InputManager::GetInstance()->Release();
 	UIManager::GetInstance()->Release();
 	
-	OutputDebugStringW(L"CharacterSelectScene: �Ŵ��� ���� �Ϸ�\n");
+	OutputDebugStringW(L"CharacterSelectScene: 매니저 해제 완료\n");
 }

@@ -3,6 +3,7 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
+#include "../../../03_Animation/AnimationDefinition.h"
 #include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "Boss_SpiderQueen.h"
@@ -33,88 +34,102 @@ void Boss_SpiderQueen::OnInteraction(GameObject* obj)
     // 보스 상호작용
 }
 
-//void Boss_SpiderQueen::RegisterAllAnimations()
-//{
-//	// ResourceManager를 사용하여 리소스 로드
-//	auto* pRM = ResourceManager::GetInstance();
-//	
-//	// QUEEN SPIDER 애니메이션 등록
-//	Animator* animator = GetComponent<Animator>();
-//	if (!animator) return;
-//	
-//	if (m_id == GOID_MONSTER_QUEEN_SPIDER)
-//	{
-//		// IDLE 애니메이션들
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-//			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-//			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-//			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-//			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		// WALK 애니메이션들
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
-//			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
-//			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
-//			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
-//			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		// ATTACK 애니메이션들
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
-//			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
-//			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
-//			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
-//			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		// HIT 애니메이션
-//		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_hit_side.png"),
-//			120, 120, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		// DEATH 애니메이션
-//		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_death.png"),
-//			120, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//	}
-//	
-//	OutputDebugStringW(L"Boss_SpiderQueen: 보스 애니메이션 등록 완료\n");
-//}
+std::vector<AnimationDefinition> Boss_SpiderQueen::GetAnimationDefinitions() const {
+    std::vector<AnimationDefinition> definitions;
+    ResourceManager* pRM = ResourceManager::GetInstance();
+    
+    if (m_id == GOID_MONSTER_QUEEN_SPIDER) {
+        // IDLE 애니메이션들
+        for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+            AnimationDefinition idle;
+            idle.state = static_cast<int>(MONSTER_IDLE);
+            idle.direction = static_cast<Direction>(dir);
+            idle.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png");
+            idle.frameWidth = 120;
+            idle.frameHeight = 120;
+            idle.framesPerRow = 1;
+            idle.totalFrames = 1;
+            idle.frameDuration = 0.1f;
+            idle.pivotX = m_pivotX;
+            idle.pivotY = m_pivotY;
+            idle.isLoop = true;
+            definitions.push_back(idle);
+        }
+        
+        // WALK 애니메이션들
+        std::wstring walkPath = pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png");
+        for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+            AnimationDefinition walk;
+            walk.state = static_cast<int>(MONSTER_WALK);
+            walk.direction = static_cast<Direction>(dir);
+            walk.imagePath = walkPath;
+            walk.frameWidth = 120;
+            walk.frameHeight = 120;
+            walk.framesPerRow = 6;
+            walk.totalFrames = 6;
+            walk.frameDuration = 0.1f;
+            walk.pivotX = m_pivotX;
+            walk.pivotY = m_pivotY;
+            walk.isLoop = true;
+            definitions.push_back(walk);
+        }
+        
+        // ATTACK 애니메이션들
+        std::wstring attackPath = pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png");
+        for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+            AnimationDefinition attack;
+            attack.state = static_cast<int>(MONSTER_ATTACK);
+            attack.direction = static_cast<Direction>(dir);
+            attack.imagePath = attackPath;
+            attack.frameWidth = 140;
+            attack.frameHeight = 140;
+            attack.framesPerRow = 8;
+            attack.totalFrames = 8;
+            attack.frameDuration = 0.1f;
+            attack.pivotX = m_pivotX;
+            attack.pivotY = m_pivotY;
+            attack.isLoop = false;
+            definitions.push_back(attack);
+        }
+        
+        // HIT 애니메이션
+        AnimationDefinition hit;
+        hit.state = static_cast<int>(MONSTER_HIT);
+        hit.direction = DIR_DOWN;
+        hit.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_hit_side.png");
+        hit.frameWidth = 120;
+        hit.frameHeight = 120;
+        hit.framesPerRow = 3;
+        hit.totalFrames = 3;
+        hit.frameDuration = 0.1f;
+        hit.pivotX = m_pivotX;
+        hit.pivotY = m_pivotY;
+        hit.isLoop = false;
+        definitions.push_back(hit);
+        
+        // DEATH 애니메이션
+        AnimationDefinition death;
+        death.state = static_cast<int>(MONSTER_DEATH);
+        death.direction = DIR_DOWN;
+        death.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_death.png");
+        death.frameWidth = 120;
+        death.frameHeight = 120;
+        death.framesPerRow = 8;
+        death.totalFrames = 8;
+        death.frameDuration = 0.1f;
+        death.pivotX = m_pivotX;
+        death.pivotY = m_pivotY;
+        death.isLoop = false;
+        definitions.push_back(death);
+    }
+    
+    return definitions;
+}
 
 void Boss_SpiderQueen::Damaged(int damage)
 {
 	m_hp -= damage;
 	m_state = MONSTER_HIT;
-
-	// UpdateAnimatorState();
 	
 	// 보스 페이즈 체크
 	if (m_hp <= maxHp * 0.5f && m_bossPhase == 1) {
@@ -124,7 +139,6 @@ void Boss_SpiderQueen::Damaged(int damage)
 	
 	if (m_hp <= 0) {
 		m_state = MONSTER_DEATH;
-		// UpdateAnimatorState();
 		
 		// 보스 처치 시 특별한 보상
 		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다!\n");

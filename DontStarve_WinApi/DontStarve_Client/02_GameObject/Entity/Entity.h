@@ -1,5 +1,6 @@
 #pragma once
 #include "../GameObject.h"
+#include "../../03_Animation/AnimationDefinition.h"
 
 class Entity : public GameObject
 {
@@ -30,6 +31,9 @@ public:
 
     // 화면 범위 확인 함수
     bool IsPositionInScreenBounds(float x, float y);
+    
+    // 애니메이션 정의 제공 (Animator가 자동 등록에 사용)
+    virtual std::vector<AnimationDefinition> GetAnimationDefinitions() const { return {}; }
 };
 
 

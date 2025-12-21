@@ -3,6 +3,7 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
+#include "../../../03_Animation/AnimationDefinition.h"
 #include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "Spider.h"
@@ -50,143 +51,291 @@ void Spider::Damaged(int damage)
 {
 }
 
-// Unity Animator 스타일 애니메이션 등록
-//void Spider::RegisterAllAnimations()
-//{
-//	// ResourceManager를 사용하여 리소스 로드
-//	auto* pRM = ResourceManager::GetInstance();
-//	
-//	// SPIDER 애니메이션 등록
-//	Animator* animator = GetComponent<Animator>();
-//	if (!animator) return;
-//	
-//	if (m_id == GOID_MONSTER_SPIDER)
-//	{
-//		// IDLE 애니메이션들
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
-//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
-//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
-//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png"),
-//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		// WALK 애니메이션들
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_down.png"),
-//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_up.png"),
-//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png"),
-//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png"),
-//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		// ATTACK 애니메이션들
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_down.png"),
-//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_up.png"),
-//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png"),
-//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png"),
-//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		// HIT 애니메이션
-//		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_hit.png"),
-//			80, 80, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		// DEATH 애니메이션
-//		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_death.png"),
-//			80, 80, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//	}
-//	else if (m_id == GOID_MONSTER_WARRIOR_SPIDER)
-//	{
-//		// WARRIOR SPIDER 애니메이션들
-//		// IDLE 애니메이션들
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
-//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
-//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
-//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png"),
-//			80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		// WALK 애니메이션들
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_down.png"),
-//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_up.png"),
-//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png"),
-//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png"),
-//			80, 80, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		// ATTACK 애니메이션들
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_down.png"),
-//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_up.png"),
-//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png"),
-//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png"),
-//			100, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		// HIT 애니메이션
-//		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_hit.png"),
-//			80, 80, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		// DEATH 애니메이션
-//		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_death.png"),
-//			80, 80, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//	}
-//	
-//	OutputDebugStringW(L"Spider: Unity Animator 스타일로 모든 애니메이션 등록 완료\n");
-//}
+std::vector<AnimationDefinition> Spider::GetAnimationDefinitions() const {
+    std::vector<AnimationDefinition> definitions;
+    ResourceManager* pRM = ResourceManager::GetInstance();
+    
+    if (m_id == GOID_MONSTER_SPIDER) {
+        // IDLE 애니메이션들
+        for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+            AnimationDefinition idle;
+            idle.state = static_cast<int>(MONSTER_IDLE);
+            idle.direction = static_cast<Direction>(dir);
+            idle.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_idle_01.png");
+            idle.frameWidth = 80;
+            idle.frameHeight = 80;
+            idle.framesPerRow = 1;
+            idle.totalFrames = 1;
+            idle.frameDuration = 0.1f;
+            idle.pivotX = m_pivotX;
+            idle.pivotY = m_pivotY;
+            idle.isLoop = true;
+            definitions.push_back(idle);
+        }
+        
+        // WALK 애니메이션들
+        AnimationDefinition walkDown;
+        walkDown.state = static_cast<int>(MONSTER_WALK);
+        walkDown.direction = DIR_DOWN;
+        walkDown.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_down.png");
+        walkDown.frameWidth = 80;
+        walkDown.frameHeight = 80;
+        walkDown.framesPerRow = 6;
+        walkDown.totalFrames = 6;
+        walkDown.frameDuration = 0.1f;
+        walkDown.pivotX = m_pivotX;
+        walkDown.pivotY = m_pivotY;
+        walkDown.isLoop = true;
+        definitions.push_back(walkDown);
+        
+        AnimationDefinition walkUp;
+        walkUp.state = static_cast<int>(MONSTER_WALK);
+        walkUp.direction = DIR_UP;
+        walkUp.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_up.png");
+        walkUp.frameWidth = 80;
+        walkUp.frameHeight = 80;
+        walkUp.framesPerRow = 6;
+        walkUp.totalFrames = 6;
+        walkUp.frameDuration = 0.1f;
+        walkUp.pivotX = m_pivotX;
+        walkUp.pivotY = m_pivotY;
+        walkUp.isLoop = true;
+        definitions.push_back(walkUp);
+        
+        AnimationDefinition walkSide;
+        walkSide.state = static_cast<int>(MONSTER_WALK);
+        walkSide.direction = DIR_LEFT;
+        walkSide.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_walk_loop_side.png");
+        walkSide.frameWidth = 80;
+        walkSide.frameHeight = 80;
+        walkSide.framesPerRow = 6;
+        walkSide.totalFrames = 6;
+        walkSide.frameDuration = 0.1f;
+        walkSide.pivotX = m_pivotX;
+        walkSide.pivotY = m_pivotY;
+        walkSide.isLoop = true;
+        definitions.push_back(walkSide);
+        
+        walkSide.direction = DIR_RIGHT;
+        definitions.push_back(walkSide);
+        
+        // ATTACK 애니메이션들
+        AnimationDefinition attackDown;
+        attackDown.state = static_cast<int>(MONSTER_ATTACK);
+        attackDown.direction = DIR_DOWN;
+        attackDown.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_down.png");
+        attackDown.frameWidth = 100;
+        attackDown.frameHeight = 100;
+        attackDown.framesPerRow = 8;
+        attackDown.totalFrames = 8;
+        attackDown.frameDuration = 0.1f;
+        attackDown.pivotX = m_pivotX;
+        attackDown.pivotY = m_pivotY;
+        attackDown.isLoop = false;
+        definitions.push_back(attackDown);
+        
+        AnimationDefinition attackUp;
+        attackUp.state = static_cast<int>(MONSTER_ATTACK);
+        attackUp.direction = DIR_UP;
+        attackUp.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_up.png");
+        attackUp.frameWidth = 100;
+        attackUp.frameHeight = 100;
+        attackUp.framesPerRow = 8;
+        attackUp.totalFrames = 8;
+        attackUp.frameDuration = 0.1f;
+        attackUp.pivotX = m_pivotX;
+        attackUp.pivotY = m_pivotY;
+        attackUp.isLoop = false;
+        definitions.push_back(attackUp);
+        
+        AnimationDefinition attackSide;
+        attackSide.state = static_cast<int>(MONSTER_ATTACK);
+        attackSide.direction = DIR_LEFT;
+        attackSide.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_atk_side.png");
+        attackSide.frameWidth = 100;
+        attackSide.frameHeight = 100;
+        attackSide.framesPerRow = 8;
+        attackSide.totalFrames = 8;
+        attackSide.frameDuration = 0.1f;
+        attackSide.pivotX = m_pivotX;
+        attackSide.pivotY = m_pivotY;
+        attackSide.isLoop = false;
+        definitions.push_back(attackSide);
+        
+        attackSide.direction = DIR_RIGHT;
+        definitions.push_back(attackSide);
+        
+        // HIT 애니메이션
+        AnimationDefinition hit;
+        hit.state = static_cast<int>(MONSTER_HIT);
+        hit.direction = DIR_DOWN;
+        hit.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_hit.png");
+        hit.frameWidth = 80;
+        hit.frameHeight = 80;
+        hit.framesPerRow = 3;
+        hit.totalFrames = 3;
+        hit.frameDuration = 0.1f;
+        hit.pivotX = m_pivotX;
+        hit.pivotY = m_pivotY;
+        hit.isLoop = false;
+        definitions.push_back(hit);
+        
+        // DEATH 애니메이션
+        AnimationDefinition death;
+        death.state = static_cast<int>(MONSTER_DEATH);
+        death.direction = DIR_DOWN;
+        death.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_SPIDER, L"", L"Spider_spider_death.png");
+        death.frameWidth = 80;
+        death.frameHeight = 80;
+        death.framesPerRow = 8;
+        death.totalFrames = 8;
+        death.frameDuration = 0.1f;
+        death.pivotX = m_pivotX;
+        death.pivotY = m_pivotY;
+        death.isLoop = false;
+        definitions.push_back(death);
+    }
+    else if (m_id == GOID_MONSTER_WARRIOR_SPIDER) {
+        // WARRIOR SPIDER 애니메이션들
+        // IDLE 애니메이션들
+        for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+            AnimationDefinition idle;
+            idle.state = static_cast<int>(MONSTER_IDLE);
+            idle.direction = static_cast<Direction>(dir);
+            idle.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_idle_01.png");
+            idle.frameWidth = 80;
+            idle.frameHeight = 80;
+            idle.framesPerRow = 1;
+            idle.totalFrames = 1;
+            idle.frameDuration = 0.1f;
+            idle.pivotX = m_pivotX;
+            idle.pivotY = m_pivotY;
+            idle.isLoop = true;
+            definitions.push_back(idle);
+        }
+        
+        // WALK 애니메이션들
+        AnimationDefinition walkDown;
+        walkDown.state = static_cast<int>(MONSTER_WALK);
+        walkDown.direction = DIR_DOWN;
+        walkDown.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_down.png");
+        walkDown.frameWidth = 80;
+        walkDown.frameHeight = 80;
+        walkDown.framesPerRow = 6;
+        walkDown.totalFrames = 6;
+        walkDown.frameDuration = 0.1f;
+        walkDown.pivotX = m_pivotX;
+        walkDown.pivotY = m_pivotY;
+        walkDown.isLoop = true;
+        definitions.push_back(walkDown);
+        
+        AnimationDefinition walkUp;
+        walkUp.state = static_cast<int>(MONSTER_WALK);
+        walkUp.direction = DIR_UP;
+        walkUp.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_up.png");
+        walkUp.frameWidth = 80;
+        walkUp.frameHeight = 80;
+        walkUp.framesPerRow = 6;
+        walkUp.totalFrames = 6;
+        walkUp.frameDuration = 0.1f;
+        walkUp.pivotX = m_pivotX;
+        walkUp.pivotY = m_pivotY;
+        walkUp.isLoop = true;
+        definitions.push_back(walkUp);
+        
+        AnimationDefinition walkSide;
+        walkSide.state = static_cast<int>(MONSTER_WALK);
+        walkSide.direction = DIR_LEFT;
+        walkSide.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_walk_loop_side.png");
+        walkSide.frameWidth = 80;
+        walkSide.frameHeight = 80;
+        walkSide.framesPerRow = 6;
+        walkSide.totalFrames = 6;
+        walkSide.frameDuration = 0.1f;
+        walkSide.pivotX = m_pivotX;
+        walkSide.pivotY = m_pivotY;
+        walkSide.isLoop = true;
+        definitions.push_back(walkSide);
+        
+        walkSide.direction = DIR_RIGHT;
+        definitions.push_back(walkSide);
+        
+        // ATTACK 애니메이션들
+        AnimationDefinition attackDown;
+        attackDown.state = static_cast<int>(MONSTER_ATTACK);
+        attackDown.direction = DIR_DOWN;
+        attackDown.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_down.png");
+        attackDown.frameWidth = 100;
+        attackDown.frameHeight = 100;
+        attackDown.framesPerRow = 8;
+        attackDown.totalFrames = 8;
+        attackDown.frameDuration = 0.1f;
+        attackDown.pivotX = m_pivotX;
+        attackDown.pivotY = m_pivotY;
+        attackDown.isLoop = false;
+        definitions.push_back(attackDown);
+        
+        AnimationDefinition attackUp;
+        attackUp.state = static_cast<int>(MONSTER_ATTACK);
+        attackUp.direction = DIR_UP;
+        attackUp.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_up.png");
+        attackUp.frameWidth = 100;
+        attackUp.frameHeight = 100;
+        attackUp.framesPerRow = 8;
+        attackUp.totalFrames = 8;
+        attackUp.frameDuration = 0.1f;
+        attackUp.pivotX = m_pivotX;
+        attackUp.pivotY = m_pivotY;
+        attackUp.isLoop = false;
+        definitions.push_back(attackUp);
+        
+        AnimationDefinition attackSide;
+        attackSide.state = static_cast<int>(MONSTER_ATTACK);
+        attackSide.direction = DIR_LEFT;
+        attackSide.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_atk_side.png");
+        attackSide.frameWidth = 100;
+        attackSide.frameHeight = 100;
+        attackSide.framesPerRow = 8;
+        attackSide.totalFrames = 8;
+        attackSide.frameDuration = 0.1f;
+        attackSide.pivotX = m_pivotX;
+        attackSide.pivotY = m_pivotY;
+        attackSide.isLoop = false;
+        definitions.push_back(attackSide);
+        
+        attackSide.direction = DIR_RIGHT;
+        definitions.push_back(attackSide);
+        
+        // HIT 애니메이션
+        AnimationDefinition hit;
+        hit.state = static_cast<int>(MONSTER_HIT);
+        hit.direction = DIR_DOWN;
+        hit.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_hit.png");
+        hit.frameWidth = 80;
+        hit.frameHeight = 80;
+        hit.framesPerRow = 3;
+        hit.totalFrames = 3;
+        hit.frameDuration = 0.1f;
+        hit.pivotX = m_pivotX;
+        hit.pivotY = m_pivotY;
+        hit.isLoop = false;
+        definitions.push_back(hit);
+        
+        // DEATH 애니메이션
+        AnimationDefinition death;
+        death.state = static_cast<int>(MONSTER_DEATH);
+        death.direction = DIR_DOWN;
+        death.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_WARRIOR_SPIDER, L"", L"Warrior_spider_death.png");
+        death.frameWidth = 80;
+        death.frameHeight = 80;
+        death.framesPerRow = 8;
+        death.totalFrames = 8;
+        death.frameDuration = 0.1f;
+        death.pivotX = m_pivotX;
+        death.pivotY = m_pivotY;
+        death.isLoop = false;
+        definitions.push_back(death);
+    }
+    
+    return definitions;
+}

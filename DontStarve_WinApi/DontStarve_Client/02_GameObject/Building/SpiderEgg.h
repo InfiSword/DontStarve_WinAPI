@@ -19,6 +19,9 @@ public:
     virtual void Damaged(int damage) override;
     virtual void SetTimeState(BuildingState buildingState) override;
     virtual BuildingState GetTimeState() const override;
+    
+    // 애니메이션 정의 제공 (Entity 오버라이드)
+    virtual std::vector<AnimationDefinition> GetAnimationDefinitions() const override;
 
 private:
 

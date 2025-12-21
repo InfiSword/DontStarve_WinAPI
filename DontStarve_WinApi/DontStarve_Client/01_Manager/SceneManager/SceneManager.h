@@ -19,30 +19,30 @@ public:
 	void Render();
 	void Release();
 
-	// �� �ε� �Լ���
+	// 씬 로드 함수들
 	void LoadTitleScene();
 	void LoadCharacterSelectScene();
 	void LoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID = GOID_NONE);
-	void ReturnToTitle();  // �ٽ� Ÿ��Ʋ��
+	void ReturnToTitle();  // 다시 타이틀로
 
-	// �� ���� �Ľ�
+	// 맵 데이터 파싱
 	void ParseMapFileInto(const std::wstring& mapFileName, MapData& mapData);
 
-	// ���̵� ȿ��
+	// 전환 효과
 	void StartFadeOut();
 	void StartFadeIn();
 	void UpdateFadeEffect(float deltaTime);
 	void RenderFadeEffect();
 
-	// ���� �� Ÿ�� ��ȯ
+	// 현재 씬 타입 반환
 	SceneType GetCurrentSceneType() const;
 
 private:
-	// ���̵� ȿ�� ����
+	// 전환 효과 상태
 	enum class TransitionState {
 		NONE,
 		FADE_OUT,
-		SCENE_SWITCH,  // �� ��ȯ �� (�� �� �ʱ�ȭ)
+		SCENE_SWITCH,  // 씬 전환 중 (새 씬 초기화)
 		FADE_IN
 	};
 
@@ -52,7 +52,7 @@ private:
 	float m_fadeAlpha;
 	float m_fadeDuration;
 	
-	// �ӽ� �� ������ �����
+	// 임시 맵 파일명 저장용
 	std::wstring m_tempMapFileName;
 	GameObjectID m_tempSelectedCharacterID;
-}; 
+};

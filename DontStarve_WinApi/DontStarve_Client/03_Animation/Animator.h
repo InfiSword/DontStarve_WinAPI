@@ -2,6 +2,7 @@
 #include <map>
 #include <memory>
 #include "../02_GameObject/Component/Component.h"
+#include "AnimationDefinition.h"
 
 class GameObject;
 
@@ -21,9 +22,8 @@ public:
     Animator(GameObject* owner);
     virtual ~Animator();
 
-    // Unity Animator 스타일의 애니메이션 등록 (템플릿 메서드)
-    template<typename StateEnum>
-    void RegisterAnimation(StateEnum state, Direction dir, 
+    // Unity Animator 스타일의 애니메이션 등록
+    void RegisterAnimation(int state, Direction dir, 
                           const std::wstring& imagePath,
                           UINT frameWidth, UINT frameHeight,
                           UINT framesPerRow, UINT totalFrames,
@@ -33,11 +33,13 @@ public:
                           const std::map<int, std::wstring>& events = {});
 
     // 상태 설정 (Unity Animator 스타일)
-    template<typename StateEnum>
-    void SetState(StateEnum state, Direction direction);
+    void SetState(int state, Direction direction);
 
     // 이벤트 콜백 설정
     void SetEventCallback(AnimationEventCallback callback) { m_globalEventCallback = callback; }
+
+    // 컴포넌트 초기화 (Component 오버라이드) - 애니메이션 자동 등록
+    virtual void Init() override;
 
     // 시간 업데이트 및 상태 업데이트 (Component 오버라이드)
     virtual void Update(float deltaTime) override;
