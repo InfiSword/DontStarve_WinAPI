@@ -17,22 +17,34 @@ Entity::~Entity()
 
 void Entity::Init()
 {
-    // Animator 컴포넌트 생성 및 초기화
-    // GetAnimationDefinitions()가 비어있지 않은 경우에만 생성
     if (!GetAnimationDefinitions().empty()) {
         m_animator = AddComponent<Animator>();
         if (m_animator) {
-            OutputDebugStringW(L"Entity: Animator 컴포넌트 생성 완료\n");
+            OutputDebugStringW(L"Entity: Animator 애니메이션 컴포넌트 생성 완료\n");
+            
+            // Animator에 애니메이션 정의를 직접 등록
+            auto definitions = GetAnimationDefinitions();
+            OutputDebugStringW((L"Entity: Init() - 애니메이션 정의 " + std::to_wstring(definitions.size()) + L"개 받음\n").c_str());
+            
+            for (const auto& def : definitions) {
+                // 애니메이션 등록
+                m_animator->RegisterAnimation(def.state, def.direction, def.imagePath,
+                                            def.frameWidth, def.frameHeight,
+                                            def.framesPerRow, def.totalFrames,
+                                            def.frameDuration, def.pivotX, def.pivotY,
+                                            def.isLoop, def.events);
+            }
+            
+            OutputDebugStringW((L"Entity: Init() - 애니메이션 등록 완료\n"));
         } else {
-            OutputDebugStringW(L"Entity: Animator 컴포넌트 생성 실패\n");
+            OutputDebugStringW(L"Entity: Animator 애니메이션 컴포넌트 생성 실패\n");
         }
     }
     
-    // 부모 클래스의 Init 호출 (컴포넌트 초기화)
     GameObject::Init();
 }
 
-// 방향 관련 유틸리티 함수들
+// 諛⑺뼢 愿젴 쑀떥由ы떚 븿닔뱾
 Direction Entity::GetOppositeDirection(Direction dir)
 {
     switch (dir)
@@ -45,7 +57,7 @@ Direction Entity::GetOppositeDirection(Direction dir)
     }
 }
 
-// 거리 계산 유틸리티 함수들
+// 嫄곕━ 怨꾩궛 쑀떥由ы떚 븿닔뱾
 float Entity::CalculateDistance(float x1, float y1, float x2, float y2)
 {
     float dx = x2 - x1;
@@ -58,7 +70,7 @@ Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, floa
     float dx = toX - fromX;
     float dy = toY - fromY;
     
-    // 절댓값이 더 큰 방향을 우선적으로 선택
+    // 젅뙎媛믪씠 뜑 겙 諛⑺뼢쓣 슦꽑쟻쑝濡 꽑깮
     if (abs(dx) > abs(dy))
     {
         return (dx > 0) ? DIR_RIGHT : DIR_LEFT;
@@ -69,10 +81,10 @@ Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, floa
     }
 }
 
-// 화면 범위 확인 함수
+// 솕硫 踰붿쐞 솗씤 븿닔
 bool Entity::IsPositionInScreenBounds(float x, float y)
 {
-    // 화면 좌표로 변환하여 확인
+    // 솕硫 醫뚰몴濡 蹂솚븯뿬 솗씤
     Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(x, y);
     
     return (screenPos.X >= 0 && screenPos.X <= WINCX && 

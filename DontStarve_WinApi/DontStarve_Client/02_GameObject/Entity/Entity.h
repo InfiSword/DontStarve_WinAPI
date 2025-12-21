@@ -37,8 +37,7 @@ public:
 
     // 화면 범위 확인 함수
     bool IsPositionInScreenBounds(float x, float y);
-    
-    // 애니메이션 정의 제공 (Animator가 자동 등록에 사용)
+
     virtual std::vector<AnimationDefinition> GetAnimationDefinitions() const { return {}; }
     
     // Animator 접근자

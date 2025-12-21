@@ -9,29 +9,15 @@ Animator::Animator(GameObject* owner)
       m_elapsed(0.0f), m_isPlaying(false), m_lastTriggeredFrame(-1) {}
 
 Animator::~Animator() { 
-    m_animations.clear(); // unique_ptr에서 자동으로 해제됨
+    m_animations.clear(); // unique_ptr이므로 자동으로 해제됨
     m_currentClip = nullptr; 
 }
 
 void Animator::Init() {
     Component::Init();
     
-    // owner GameObject로부터 애니메이션 정의를 받아서 자동 등록
-    if (m_owner) {
-        auto definitions = m_owner->GetAnimationDefinitions();
-        OutputDebugStringW((L"Animator: Init() - 애니메이션 정의 " + std::to_wstring(definitions.size()) + L"개 받음\n").c_str());
-        
-        for (const auto& def : definitions) {
-            // 애니메이션 등록
-            RegisterAnimation(def.state, def.direction, def.imagePath,
-                            def.frameWidth, def.frameHeight,
-                            def.framesPerRow, def.totalFrames,
-                            def.frameDuration, def.pivotX, def.pivotY,
-                            def.isLoop, def.events);
-        }
-        
-        OutputDebugStringW((L"Animator: Init() - 애니메이션 등록 완료 (" + std::to_wstring(m_animations.size()) + L"개)\n").c_str());
-    }
+    // 애니메이션 등록은 Entity::Init()에서 직접 처리하도록 변경
+    // GetComponent를 통한 로직을 건너뛰기 위해 여기서는 기본 초기화만 수행
 }
 
 // 애니메이션 등록 구현
@@ -44,7 +30,7 @@ void Animator::RegisterAnimation(int state, Direction dir,
                                 bool loop,
                                 const std::map<int, std::wstring>& events) 
 {
-    OutputDebugStringW((L"Animator: RegisterAnimation 호출 - State: " + std::to_wstring(state) + 
+    OutputDebugStringW((L"Animator: RegisterAnimation 시작 - State: " + std::to_wstring(state) + 
                        L", Direction: " + std::to_wstring(static_cast<int>(dir)) + L"\n").c_str());
     
     int key = GetAnimationKey(state, static_cast<int>(dir));
@@ -106,7 +92,7 @@ void Animator::SelectAndPlayAnimation() {
             m_isPlaying = true;
             m_lastTriggeredFrame = -1;
             
-            OutputDebugStringW((L"Animator: 애니메이션 전환 - State: " + 
+            OutputDebugStringW((L"Animator: 애니메이션 재생 - State: " + 
                                std::to_wstring(m_currentState) + L", Direction: " + 
                                std::to_wstring(m_currentDirection) + L"\n").c_str());
         }
@@ -129,7 +115,8 @@ std::wstring Animator::GenerateAnimationName(int state, int direction) const {
 
 void Animator::Update(float deltaTime)
 {
-    if (m_isPlaying && m_currentClip) {
+    if (m_isPlaying && m_currentClip)
+	{
         // 이전 프레임 인덱스 저장 (이벤트 트리거용)
         int prevFrameIndex = GetCurrentFrameIndex();
         
@@ -146,7 +133,8 @@ void Animator::Update(float deltaTime)
         int currentFrameIndex = GetCurrentFrameIndex();
         
         // 프레임이 변경되었고 이벤트가 있는 경우 트리거
-        if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame) {
+        if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame)
+		{
             auto it = m_currentClip->GetEventFrames().find(currentFrameIndex);
             if (it != m_currentClip->GetEventFrames().end()) {
                 if (m_currentClip->GetEventCallback()) {
@@ -154,9 +142,7 @@ void Animator::Update(float deltaTime)
                     m_lastTriggeredFrame = currentFrameIndex;
                 }
             }
-        }
-        
-
+        }       
     }
 }
 

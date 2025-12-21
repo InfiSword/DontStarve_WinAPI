@@ -94,4 +94,3 @@ void GameObject::LoadBitmap()
 		OutputDebugStringW((L"GameObject: LoadBitmap 실패 - 비트맵 생성 실패 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
 	}
 }
-

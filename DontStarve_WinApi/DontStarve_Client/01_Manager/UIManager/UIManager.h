@@ -18,18 +18,18 @@ public:
 	void Render();
 	void Release();
 
-	// UI ©Д╪р ╟Э╦╝
+	// UI Л≤╓К╦▄Л═²М┼╦ Й╢─К╕╛
 	void AddUIImage(UIImage* image);
 	void AddUIButton(UIButton* button);
 	void RemoveUIImage(UIImage* image);
 	void RemoveUIButton(UIButton* button);
 	void ClearAllUI();
 
-	// ф╞а╓ UI ©Д╪р цё╠Б
+	// М┼╧Л═∙ UI Л≤╓К╦▄Л═²М┼╦ Л╟╬Й╦╟
 	UIImage* FindUIImage(GameObjectID id);
 	UIButton* FindUIButton(GameObjectID id);
 
-	// UI ╩Себ ╟Э╦╝
+	// UI Л┐│М┐° Й╢─К╕╛
 	void SetUIVisibility(bool visible);
 	bool IsUIVisible() const { return m_isUIVisible; }
 

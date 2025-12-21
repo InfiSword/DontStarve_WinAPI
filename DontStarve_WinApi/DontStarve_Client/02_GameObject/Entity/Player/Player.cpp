@@ -140,8 +140,7 @@ std::vector<AnimationDefinition> Player::GetAnimationDefinitions() const {
     OutputDebugStringW(L"Player: GetAnimationDefinitions 시작\n");
     
     std::vector<AnimationDefinition> definitions;
-    
-    // ResourceManager를 사용하여 리소스 로드
+
     ResourceManager* pRM = ResourceManager::GetInstance();
     
     // IDLE 애니메이션들
@@ -301,7 +300,6 @@ std::vector<AnimationDefinition> Player::GetAnimationDefinitions() const {
 }
 
 void Player::UpdateAnimatorState() {
-    // Unity Animator 스타일 - 상태와 방향만 설정하면 자동으로 애니메이션 전환
 	if (m_animator) {
 		m_animator->SetState(static_cast<int>(m_state), m_direction);	
 	}
@@ -312,8 +310,6 @@ void Player::UpdateAnimatorState() {
 			m_orignalBitmap = spriteSheet->GetBitmap();
 	}
 }
-
-
 
 void Player::SetTargetPosition(float worldX, float worldY) {
 	m_targetWorldPos = Gdiplus::PointF(worldX, worldY);
@@ -343,17 +339,18 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 
 void Player::Update(float deltaTime) 
 {
-	// 입력 처리 및 상호작용 시작 (먼저 처리)
 	HandleMovement();
 	
 	float moveSpeedThisFrame = m_playerSpeed * deltaTime;
 
-	if ((m_state == PlayerState::WALK && isMoveToGoal) || isMoveToGoal) {
+	if ((m_state == PlayerState::WALK && isMoveToGoal) || isMoveToGoal)
+	{
 		float dx = m_targetWorldPos.X - this->m_x;
 		float dy = m_targetWorldPos.Y - this->m_y;
 		float distance = std::sqrt(dx * dx + dy * dy);
 		isMoveToGoal = true;
 		correctValue = 0;
+
 		if (distance <= m_stopThreshold) { 
 			this->m_x = m_targetWorldPos.X;
 			this->m_y = m_targetWorldPos.Y;
@@ -390,21 +387,17 @@ void Player::Update(float deltaTime)
 			this->m_x += moveX;
 			this->m_y += moveY;
 			m_state = PlayerState::WALK; 
-			UpdateAnimatorState(); // WALK 애니메이션으로 전환
-
-			// 이동 중에 방향 변경 (SetTargetPosition에서 이미 처리한 경우)
-			// 방향 변경은 SetTargetPosition에서 이미 처리됨
-			// 여기서는 애니메이션 상태만 업데이트
-		}
-	}
-	else if (m_state == PlayerState::CHOP || m_state == PlayerState::PICKUP) { 
-		// PICKUP 애니메이션 완료 대기 (애니메이션이 끝나면 상호작용 완료)
-		if (m_state == PlayerState::PICKUP && m_animator && m_animator->IsAnimationDone()) {
-			FinalizeInteraction();
-			m_state = PlayerState::IDLE;
 			UpdateAnimatorState(); 
 		}
-		// CHOP 같은 애니메이션은 이벤트로 처리되기 때문에 여기서 상태만 유지
+	}
+	else if (m_state == PlayerState::CHOP || m_state == PlayerState::PICKUP) 		
+	{
+		if (m_state == PlayerState::PICKUP && m_animator && m_animator->IsAnimationDone()) 
+		{
+			FinalizeInteraction();
+			m_state = PlayerState::IDLE;
+			UpdateAnimatorState();
+		}
 	}
 
 	// 건물 제작 코드 주석
@@ -460,10 +453,7 @@ void Player::FinalizeInteraction() {
 	GameObjectID objID = m_currentInteractionTarget->GetID();
 	GameObjectType objType = m_currentInteractionTarget->GetType();
 	
-	// 오브젝트 타입과 ID에 따라 상호작용 처리 방법
 	if (objType == GOBJ_ITEM) {
-		// 일반 Ingredient 아이템 처리
-		// 인벤토리 아이템은 ObjectManager에 추가하지 않음 (addToManager = false)
 		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(objID, 0.0f, 0.0f, nullptr, false);
 		Item* item = dynamic_cast<Item*>(itemObj);
 		if (item && m_inventory->AddItem(item, 1)) 
@@ -473,17 +463,12 @@ void Player::FinalizeInteraction() {
 		}
 	}
 	else if (objType == GOBJ_NATURAL_ENVIR) {
-		// 자연 환경 오브젝트 처리 (BerryBush, Grass, Sapling)
-		// Entity의 가상 함수를 사용하여 드롭 아이템 정보 가져오기
 		Entity* entity = dynamic_cast<Entity*>(m_currentInteractionTarget);
 		if (entity) {
 			GameObjectID itemID = entity->GetDropItemID();
 			int itemCount = entity->GetDropItemCount();
 			
-			// 드롭 아이템이 설정되어 있는 경우에만 처리
 			if (itemID != GOID_NONE && itemCount > 0) {
-				// 해당 아이템을 생성하여 인벤토리에 추가
-				// 인벤토리 아이템은 ObjectManager에 추가하지 않음 (addToManager = false)
 				GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(itemID, 0.0f, 0.0f, nullptr, false);
 				Item* item = dynamic_cast<Item*>(itemObj);
 				if (item && m_inventory->AddItem(item, itemCount)) 
@@ -495,9 +480,7 @@ void Player::FinalizeInteraction() {
 		}
 	}
 
-	m_currentInteractionTarget = nullptr; // 상호작용 대상 초기화
-	
-	// pickup 완료 후 Direction을 DIR_DOWN으로 설정
+	m_currentInteractionTarget = nullptr; 
 	m_direction = DIR_DOWN;
 	UpdateAnimatorState();
 }
@@ -520,30 +503,24 @@ void Player::OnInteraction(GameObject* obj)
 		return;
 	}
 
-	// m_currentInteractionTarget는 이미 SetInteractionTarget에서 설정됨
-	// 여기서 다시 설정하지 않음
-
-	// 오브젝트 타입에 따라 상호작용 처리
 	GameObjectID objID = obj->GetID();
 	GameObjectType objType = obj->GetType();
 	
-	// 나무 타입인지 확인 (ID 기반으로 정확히 체크)
 	if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) { 
-		m_state = PlayerState::CHOP; // 상태 변경
+		m_state = PlayerState::CHOP; 
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator에서 자동으로 애니메이션 전환
+		UpdateAnimatorState();
 	}
 	else if (objType == GOBJ_NATURAL_ENVIR) {
-		// 자연 환경 오브젝트는 (BerryBush, Grass, Sapling)은 PICKUP
-		m_state = PlayerState::PICKUP; // 상태 변경  
+
+		m_state = PlayerState::PICKUP; 	
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator에서 자동으로 애니메이션 전환
+		UpdateAnimatorState();
 	}
 	else {
-		// 기타 상호작용 가능한 오브젝트는 PICKUP
-		m_state = PlayerState::PICKUP; // 상태 변경  
+		m_state = PlayerState::PICKUP;  
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator에서 자동으로 애니메이션 전환
+		UpdateAnimatorState();
 	}
 }
 
@@ -609,9 +586,8 @@ void Player::HandleMovement()
 		// 화면 좌표를 월드 좌표로 변환
 		CameraManager* cameraManager = CameraManager::GetInstance();
 		if (cameraManager) {
-			Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(mouseX, mouseY);
+			Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(mouseX, mouseY);		
 			
-			// 클릭 상호작용 처리
 			HandleClickInteraction(worldPos.X, worldPos.Y);
 		}
 	}

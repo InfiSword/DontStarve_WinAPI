@@ -1,6 +1,4 @@
 #pragma once
-#include <map>
-#include <memory>
 #include "../02_GameObject/Component/Component.h"
 #include "AnimationDefinition.h"
 

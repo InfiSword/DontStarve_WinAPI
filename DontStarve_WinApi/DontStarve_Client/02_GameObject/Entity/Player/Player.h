@@ -35,9 +35,6 @@ public:
 	Item* GetEquippedItem() const { return m_equippedItem; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
 	
-	// 상호작용 중인지 확인
-	bool IsInteracting() const { return m_currentInteractionTarget != nullptr && (m_state == PlayerState::PICKUP || m_state == PlayerState::CHOP); }
-	
 	// 상호작용 대상 오브젝트 반환
 	GameObject* GetInteractionTarget() const { return m_currentInteractionTarget; }
 
