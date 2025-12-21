@@ -116,8 +116,7 @@ void GameScene::Update(float deltaTime)
 	// 매니저들 업데이트
 	UpdateManagers(deltaTime);
 
-	// 플레이어 이동 처리
-	HandlePlayerMovement();
+	// 플레이어 이동 처리 제거 - Player::Update()에서 처리됨
 	
 	// 테두리 표시 토글 (B 키)
 	InputManager* inputManager = InputManager::GetInstance();
@@ -272,14 +271,6 @@ void GameScene::SpawnPlayer()
 	}
 }
 
-void GameScene::HandlePlayerMovement()
-{
-	Player* player = ObjectManager::GetInstance()->GetPlayer();
-	if (!player) return;
-
-	// 플레이어에게 모든 입력 처리 및 이동 관리 위임
-	player->HandleMovement();
-}
 
 void GameScene::ClearScene(SceneType sceneType)
 {

@@ -30,28 +30,28 @@ void Item::LoadBitmap()
 {
 
     if (m_resourcePath.empty() || m_imageName.empty()) {
-        OutputDebugStringW((L"Item: LoadBitmap ���� - ��γ� �̹������� ������� (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+        OutputDebugStringW((L"Item: LoadBitmap 실패 - 경로나 이미지명이 비어있음 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
         m_orignalBitmap = nullptr;
         return;
     }
     
-    // ResourceManager�� ����Ͽ� ��� ����
+    // ResourceManager를 통해 전체 경로 생성
     auto* pRM = ResourceManager::GetInstance();
     std::wstring fullPath = pRM->BuildObjectResourcePath(m_id, L"", m_imageName);
     
-    OutputDebugStringW((L"Item: LoadBitmap - ��ü ���: " + fullPath + L"\n").c_str());
+    OutputDebugStringW((L"Item: LoadBitmap - 전체 경로: " + fullPath + L"\n").c_str());
     
-    // ��Ʈ�� �ε�
+    // 비트맵 생성
     m_orignalBitmap = new Gdiplus::Bitmap(fullPath.c_str());
     if (m_orignalBitmap && m_orignalBitmap->GetLastStatus() != Gdiplus::Ok) {
-        OutputDebugStringW((L"Item: LoadBitmap ���� - ��Ʈ�� ���� ���� (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+        OutputDebugStringW((L"Item: LoadBitmap 실패 - 비트맵 파일 로드 실패 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
         delete m_orignalBitmap;
         m_orignalBitmap = nullptr;
     } else if (m_orignalBitmap)
     {
-        OutputDebugStringW((L"Item: LoadBitmap ���� - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+        OutputDebugStringW((L"Item: LoadBitmap 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
     } else {
-        OutputDebugStringW((L"Item: LoadBitmap ���� - ��Ʈ�� ���� ���� (ID: " + std::to_wstring(m_id) + L")\n").c_str());
+        OutputDebugStringW((L"Item: LoadBitmap 실패 - 비트맵 생성 실패 (ID: " + std::to_wstring(m_id) + L")\n").c_str());
     }
 }
 

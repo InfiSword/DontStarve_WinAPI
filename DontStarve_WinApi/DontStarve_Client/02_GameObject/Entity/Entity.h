@@ -2,17 +2,23 @@
 #include "../GameObject.h"
 #include "../../03_Animation/AnimationDefinition.h"
 
+class Animator;
+
 class Entity : public GameObject
 {
 protected:
     GameObjectID m_dropItemID;  // 드롭 아이템의 ID
     int m_dropItemCount;
+    Animator* m_animator;       // 애니메이션을 위한 Animator 컴포넌트
 
 public:
     Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
            const std::wstring& resourcePath = L"", const std::wstring& imageName = L"",
            bool isActive = true, bool isInteractive = false);
     virtual ~Entity();
+
+    // 초기화 - Animator 생성
+    virtual void Init() override;
 
     // 데미지 처리
     virtual void Damaged(int damage) = 0;
@@ -34,6 +40,7 @@ public:
     
     // 애니메이션 정의 제공 (Animator가 자동 등록에 사용)
     virtual std::vector<AnimationDefinition> GetAnimationDefinitions() const { return {}; }
+    
+    // Animator 접근자
+    Animator* GetAnimator() const { return m_animator; }
 };
-
-

@@ -1,16 +1,35 @@
 #include "../../99_Default/pch.h"
 #include "Entity.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
+#include "../../03_Animation/Animator.h"
 
 Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
 	const std::wstring& resourcePath, const std::wstring& imageName, bool isActive, bool isInteractive)
-    :GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, isActive, isInteractive)
+    :GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, isActive, isInteractive),
+     m_animator(nullptr)
 {
 
 }
 
 Entity::~Entity()
 {
+}
+
+void Entity::Init()
+{
+    // Animator 컴포넌트 생성 및 초기화
+    // GetAnimationDefinitions()가 비어있지 않은 경우에만 생성
+    if (!GetAnimationDefinitions().empty()) {
+        m_animator = AddComponent<Animator>();
+        if (m_animator) {
+            OutputDebugStringW(L"Entity: Animator 컴포넌트 생성 완료\n");
+        } else {
+            OutputDebugStringW(L"Entity: Animator 컴포넌트 생성 실패\n");
+        }
+    }
+    
+    // 부모 클래스의 Init 호출 (컴포넌트 초기화)
+    GameObject::Init();
 }
 
 // 방향 관련 유틸리티 함수들

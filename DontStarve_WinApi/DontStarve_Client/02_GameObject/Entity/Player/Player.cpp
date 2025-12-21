@@ -1,7 +1,6 @@
 #include "../../../99_Default/pch.h"
 #include "Player.h"
-#include "../../../03_Animation/Animator.h"
-#include "../../../03_Animation/AnimationDefinition.h"
+
 #include "../../../01_Manager/InputManager/InputManager.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
@@ -12,8 +11,10 @@
 
 #include "../../../02_GameObject/UI/Inventory.h"
 
+#include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../../../03_Animation/SpriteSheet.h"
+#include "../../../03_Animation/AnimationDefinition.h"
 
 #include "../../Item/Ingredient.h"
 #include "../../Item/Tool/Tool.h"
@@ -33,28 +34,20 @@ Player::~Player() { Release(); }
 
 void Player::Init()
 {
-	// Unity 스타일: Animator 컴포넌트 추가
-	Animator* animator = AddComponent<Animator>();
-	m_inventory = new Inventory();
-
-	// Unity Animator 스타일 - 이벤트 콜백 설정
-	/*if (animator) {
-		animator->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-			this->OnAnimationEvent(frameIndex, eventName);
-		});
-	}*/
+	// 부모 클래스(Entity)의 Init 호출 - Animator가 자동으로 생성됨
+	Entity::Init();
 	
-	// 애니메이션 등록은 Animator::Init()에서 자동으로 처리됨
+	m_inventory = new Inventory();
+	
 	UpdateAnimatorState(); // 초기 상태 설정
 	
-	// 초기 크기 설정 (애니메이션 클립에서 첫 번째 프레임으로 크기 설정)
-	if (animator) {
-		const AnimationFrame& frame = animator->GetCurrentFrame();
+	// 초기 크기 설정
+	if (m_animator) {
+		const AnimationFrame& frame = m_animator->GetCurrentFrame();
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 		
-		// Animator 초기화 확인
-		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
+		const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
 		if (spriteSheet) {
 			OutputDebugStringW(L"Player: Animator 초기화 완료 - SpriteSheet 로드됨\n");
 		} else {
@@ -309,13 +302,12 @@ std::vector<AnimationDefinition> Player::GetAnimationDefinitions() const {
 
 void Player::UpdateAnimatorState() {
     // Unity Animator 스타일 - 상태와 방향만 설정하면 자동으로 애니메이션 전환
-	Animator* animator = GetComponent<Animator>();
-	if (animator) {
-		animator->SetState(static_cast<int>(m_state), m_direction);	
+	if (m_animator) {
+		m_animator->SetState(static_cast<int>(m_state), m_direction);	
 	}
 
-	if (animator) {
-		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
+	if (m_animator) {
+		const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
 		if(spriteSheet != nullptr)
 			m_orignalBitmap = spriteSheet->GetBitmap();
 	}
@@ -351,6 +343,9 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 
 void Player::Update(float deltaTime) 
 {
+	// 입력 처리 및 상호작용 시작 (먼저 처리)
+	HandleMovement();
+	
 	float moveSpeedThisFrame = m_playerSpeed * deltaTime;
 
 	if ((m_state == PlayerState::WALK && isMoveToGoal) || isMoveToGoal) {
@@ -404,8 +399,7 @@ void Player::Update(float deltaTime)
 	}
 	else if (m_state == PlayerState::CHOP || m_state == PlayerState::PICKUP) { 
 		// PICKUP 애니메이션 완료 대기 (애니메이션이 끝나면 상호작용 완료)
-		Animator* animator = GetComponent<Animator>();
-		if (m_state == PlayerState::PICKUP && animator && animator->IsAnimationDone()) {
+		if (m_state == PlayerState::PICKUP && m_animator && m_animator->IsAnimationDone()) {
 			FinalizeInteraction();
 			m_state = PlayerState::IDLE;
 			UpdateAnimatorState(); 
@@ -446,9 +440,8 @@ void Player::Update(float deltaTime)
 	// 애니메이션 업데이트는 GameObject::Update()에서 컴포넌트의 Update()를 통해 자동으로 처리됨
 	
 	// 현재 프레임의 크기로 크기 업데이트
-	Animator* animator = GetComponent<Animator>();
-	if (animator) {
-		const AnimationFrame& frame = animator->GetCurrentFrame();
+	if (m_animator) {
+		const AnimationFrame& frame = m_animator->GetCurrentFrame();
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 	}
