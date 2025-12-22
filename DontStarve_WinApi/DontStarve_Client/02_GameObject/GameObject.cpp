@@ -8,10 +8,8 @@ GameObject::GameObject(GameObjectType type, GameObjectID id, float x, float y, f
 	m_width(0), m_height(0), m_resourcePath(resourcePath), m_imageName(imageName),
 	m_isActive(isActive), m_layer(LAYER_WORLD_OBJECT), m_isInteractive(isInteractive)
 {
-	// 기본 이미지 GameObject에서만 기본 비트맵 로드
 	LoadBitmap();
 	
-	// 비트맵 크기 설정
 	if (m_orignalBitmap) {
 		m_width = (float)m_orignalBitmap->GetWidth();
 		m_height = (float)m_orignalBitmap->GetHeight();

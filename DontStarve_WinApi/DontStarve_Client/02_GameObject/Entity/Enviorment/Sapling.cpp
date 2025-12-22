@@ -14,10 +14,10 @@ Sapling::~Sapling() {}
 
 void Sapling::Init()
 {
-	// �̹��� �ε�
+	// 이미지 로드
 	LoadBitmap();
 	
-	// ��Ʈ�ʿ��� ũ�� ��������
+	// 스프라이트 크기 설정
 	if (m_orignalBitmap) {
 		this->m_width = static_cast<float>(m_orignalBitmap->GetWidth());
 		this->m_height = static_cast<float>(m_orignalBitmap->GetHeight());
@@ -30,7 +30,7 @@ void Sapling::LateInit()
 
 void Sapling::Update(float deltaTime)
 {
-	// �ʿ��� ������Ʈ ������ �ִٸ� ���⿡ �߰�
+	// 필요한 컴포넌트 업데이트가 있다면 여기서 추가
 }
 
 void Sapling::LateUpdate()
@@ -39,7 +39,7 @@ void Sapling::LateUpdate()
 
 void Sapling::Release()
 {
-	// �ʿ��� ���� �۾�
+	// 필요한 정리 작업
 }
 
 void Sapling::OnInteraction(GameObject* obj)

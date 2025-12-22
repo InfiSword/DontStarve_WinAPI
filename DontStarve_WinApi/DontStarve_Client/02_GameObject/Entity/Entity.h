@@ -1,13 +1,12 @@
 #pragma once
 #include "../GameObject.h"
-#include "../../03_Animation/AnimationDefinition.h"
 
 class Animator;
 
 class Entity : public GameObject
 {
 protected:
-    GameObjectID m_dropItemID;  // 드롭 아이템의 ID
+    GameObjectID m_dropItemID;  // 드랍 아이템의 ID
     int m_dropItemCount;
     Animator* m_animator;       // 애니메이션을 위한 Animator 컴포넌트
 
@@ -23,7 +22,7 @@ public:
     // 데미지 처리
     virtual void Damaged(int damage) = 0;
 
-    // 드롭 아이템 관련 함수
+    // 드랍 아이템 관련 함수
     virtual GameObjectID GetDropItemID() const { return GOID_NONE; }
     virtual int GetDropItemCount() const { return 0; }
     virtual void SetDropItem(GameObjectID itemID, int count = 1) {}
@@ -37,8 +36,6 @@ public:
 
     // 화면 범위 확인 함수
     bool IsPositionInScreenBounds(float x, float y);
-
-    virtual std::vector<AnimationDefinition> GetAnimationDefinitions() const { return {}; }
     
     // Animator 접근자
     Animator* GetAnimator() const { return m_animator; }

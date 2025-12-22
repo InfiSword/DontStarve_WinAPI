@@ -3,7 +3,6 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
-#include "../../../03_Animation/AnimationDefinition.h"
 #include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "Pig.h"
@@ -22,8 +21,55 @@ void Pig::Init()
 	Monster::Init();
 	
 	OutputDebugStringW((L"Pig: Init 완료 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+
+	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 패턴 제거)
+	if (!m_animator) {
+		m_animator = AddComponent<Animator>();
+	}
+	if (m_animator) {
+		ResourceManager* pRM = ResourceManager::GetInstance();
+		if (m_id == GOID_MONSTER_PIG) {
+			// IDLE
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_down.png"),
+				120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_up.png"),
+				120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png"),
+				120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png"),
+				120, 150, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+
+			// ATTACK
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"down_pigman_atk_down.png"),
+				150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"up_pigman_atk_up.png"),
+				150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png"),
+				150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png"),
+				150, 180, 6, 6, 0.1f, m_pivotX, m_pivotY, false);
+
+			// HIT / DEATH
+			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Hit", L"Hit_pigman_hit.png"),
+				120, 150, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
+			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Death", L"Death_pigman_death.png"),
+				150, 100, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+		}
+
+		m_animator->SetState((int)m_state, m_direction);
+	}
 	
-	// 초기 크기 설정 (애니메이션 클립에서 첫 번째 프레임으로 크기 설정)
+	// 초기 크기 설정 (애니메이션 클립의 첫 프레임 기준)
 	Animator* animator = GetComponent<Animator>();
 	if (animator) {
 		const AnimationFrame& frame = animator->GetCurrentFrame();
@@ -44,140 +90,9 @@ void Pig::Init()
 
 void Pig::OnInteraction(GameObject* obj)
 {
-	// 기본 상호작용
+	// 기본 상호작용 사용
 }
 
 void Pig::Damaged(int damage)
 {
-}
-
-std::vector<AnimationDefinition> Pig::GetAnimationDefinitions() const {
-    std::vector<AnimationDefinition> definitions;
-    ResourceManager* pRM = ResourceManager::GetInstance();
-    
-    if (m_id == GOID_MONSTER_PIG) {
-        // IDLE 애니메이션들
-        AnimationDefinition idleDown;
-        idleDown.state = static_cast<int>(MONSTER_IDLE);
-        idleDown.direction = DIR_DOWN;
-        idleDown.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_down.png");
-        idleDown.frameWidth = 120;
-        idleDown.frameHeight = 150;
-        idleDown.framesPerRow = 6;
-        idleDown.totalFrames = 6;
-        idleDown.frameDuration = 0.1f;
-        idleDown.pivotX = m_pivotX;
-        idleDown.pivotY = m_pivotY;
-        idleDown.isLoop = true;
-        definitions.push_back(idleDown);
-        
-        AnimationDefinition idleUp;
-        idleUp.state = static_cast<int>(MONSTER_IDLE);
-        idleUp.direction = DIR_UP;
-        idleUp.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_up.png");
-        idleUp.frameWidth = 120;
-        idleUp.frameHeight = 150;
-        idleUp.framesPerRow = 6;
-        idleUp.totalFrames = 6;
-        idleUp.frameDuration = 0.1f;
-        idleUp.pivotX = m_pivotX;
-        idleUp.pivotY = m_pivotY;
-        idleUp.isLoop = true;
-        definitions.push_back(idleUp);
-        
-        AnimationDefinition idleSide;
-        idleSide.state = static_cast<int>(MONSTER_IDLE);
-        idleSide.direction = DIR_LEFT;
-        idleSide.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png");
-        idleSide.frameWidth = 120;
-        idleSide.frameHeight = 150;
-        idleSide.framesPerRow = 6;
-        idleSide.totalFrames = 6;
-        idleSide.frameDuration = 0.1f;
-        idleSide.pivotX = m_pivotX;
-        idleSide.pivotY = m_pivotY;
-        idleSide.isLoop = true;
-        definitions.push_back(idleSide);
-        
-        idleSide.direction = DIR_RIGHT;
-        definitions.push_back(idleSide);
-        
-        // ATTACK 애니메이션들
-        AnimationDefinition attackDown;
-        attackDown.state = static_cast<int>(MONSTER_ATTACK);
-        attackDown.direction = DIR_DOWN;
-        attackDown.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"down_pigman_atk_down.png");
-        attackDown.frameWidth = 150;
-        attackDown.frameHeight = 180;
-        attackDown.framesPerRow = 6;
-        attackDown.totalFrames = 6;
-        attackDown.frameDuration = 0.1f;
-        attackDown.pivotX = m_pivotX;
-        attackDown.pivotY = m_pivotY;
-        attackDown.isLoop = false;
-        definitions.push_back(attackDown);
-        
-        AnimationDefinition attackUp;
-        attackUp.state = static_cast<int>(MONSTER_ATTACK);
-        attackUp.direction = DIR_UP;
-        attackUp.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"up_pigman_atk_up.png");
-        attackUp.frameWidth = 150;
-        attackUp.frameHeight = 180;
-        attackUp.framesPerRow = 6;
-        attackUp.totalFrames = 6;
-        attackUp.frameDuration = 0.1f;
-        attackUp.pivotX = m_pivotX;
-        attackUp.pivotY = m_pivotY;
-        attackUp.isLoop = false;
-        definitions.push_back(attackUp);
-        
-        AnimationDefinition attackSide;
-        attackSide.state = static_cast<int>(MONSTER_ATTACK);
-        attackSide.direction = DIR_LEFT;
-        attackSide.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png");
-        attackSide.frameWidth = 150;
-        attackSide.frameHeight = 180;
-        attackSide.framesPerRow = 6;
-        attackSide.totalFrames = 6;
-        attackSide.frameDuration = 0.1f;
-        attackSide.pivotX = m_pivotX;
-        attackSide.pivotY = m_pivotY;
-        attackSide.isLoop = false;
-        definitions.push_back(attackSide);
-        
-        attackSide.direction = DIR_RIGHT;
-        definitions.push_back(attackSide);
-        
-        // HIT 애니메이션
-        AnimationDefinition hit;
-        hit.state = static_cast<int>(MONSTER_HIT);
-        hit.direction = DIR_DOWN;
-        hit.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Hit", L"Hit_pigman_hit.png");
-        hit.frameWidth = 120;
-        hit.frameHeight = 150;
-        hit.framesPerRow = 3;
-        hit.totalFrames = 3;
-        hit.frameDuration = 0.1f;
-        hit.pivotX = m_pivotX;
-        hit.pivotY = m_pivotY;
-        hit.isLoop = false;
-        definitions.push_back(hit);
-        
-        // DEATH 애니메이션
-        AnimationDefinition death;
-        death.state = static_cast<int>(MONSTER_DEATH);
-        death.direction = DIR_DOWN;
-        death.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Death", L"Death_pigman_death.png");
-        death.frameWidth = 150;
-        death.frameHeight = 100;
-        death.framesPerRow = 8;
-        death.totalFrames = 8;
-        death.frameDuration = 0.1f;
-        death.pivotX = m_pivotX;
-        death.pivotY = m_pivotY;
-        death.isLoop = false;
-        definitions.push_back(death);
-    }
-    
-    return definitions;
 }

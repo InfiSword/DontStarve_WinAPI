@@ -17,34 +17,12 @@ Entity::~Entity()
 
 void Entity::Init()
 {
-    if (!GetAnimationDefinitions().empty()) {
-        m_animator = AddComponent<Animator>();
-        if (m_animator) {
-            OutputDebugStringW(L"Entity: Animator ì• ë‹ˆë©”ì´ì…˜ ì»´í¬ë„ŒíŠ¸ ìƒì„± ì™„ë£Œ\n");
-            
-            // Animatorì— ì• ë‹ˆë©”ì´ì…˜ ì •ì˜ë¥¼ ì§ì ‘ ë“±ë¡
-            auto definitions = GetAnimationDefinitions();
-            OutputDebugStringW((L"Entity: Init() - ì• ë‹ˆë©”ì´ì…˜ ì •ì˜ " + std::to_wstring(definitions.size()) + L"ê°œ ë°›ìŒ\n").c_str());
-            
-            for (const auto& def : definitions) {
-                // ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡
-                m_animator->RegisterAnimation(def.state, def.direction, def.imagePath,
-                                            def.frameWidth, def.frameHeight,
-                                            def.framesPerRow, def.totalFrames,
-                                            def.frameDuration, def.pivotX, def.pivotY,
-                                            def.isLoop, def.events);
-            }
-            
-            OutputDebugStringW((L"Entity: Init() - ì• ë‹ˆë©”ì´ì…˜ ë“±ë¡ ì™„ë£Œ\n"));
-        } else {
-            OutputDebugStringW(L"Entity: Animator ì• ë‹ˆë©”ì´ì…˜ ì»´í¬ë„ŒíŠ¸ ìƒì„± ì‹¤íŒ¨\n");
-        }
-    }
-    
+    // ÇÏÀ§ Å¬·¡½º¿¡¼­ ÇÊ¿ä½Ã Animator¸¦ »ý¼ºÇÏ°í RegisterAnimationÀ» Á÷Á¢ È£ÃâÇÏµµ·Ï º¯°æ
+    // GetAnimationDefinitions ÆÐÅÏ Á¦°Å
     GameObject::Init();
 }
 
-// è«›â‘ºë¼¢ æ„¿ì ´ ì‘€ë–¥ç”±Ñ‹ë–š ë¸¿ë‹”ë±¾
+// ¹æÇâ °ü·Ã À¯Æ¿¸®Æ¼ ÇÔ¼öµé
 Direction Entity::GetOppositeDirection(Direction dir)
 {
     switch (dir)
@@ -57,7 +35,7 @@ Direction Entity::GetOppositeDirection(Direction dir)
     }
 }
 
-// å«„ê³•â” æ€¨ê¾©ê¶› ì‘€ë–¥ç”±Ñ‹ë–š ë¸¿ë‹”ë±¾
+// °Å¸® °è»ê À¯Æ¿¸®Æ¼ ÇÔ¼öµé
 float Entity::CalculateDistance(float x1, float y1, float x2, float y2)
 {
     float dx = x2 - x1;
@@ -70,7 +48,7 @@ Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, floa
     float dx = toX - fromX;
     float dy = toY - fromY;
     
-    // ì …ë™Žåª›ë¯ªì”  ëœ‘ ê²™ è«›â‘ºë¼¢ì“£ ìŠ¦ê½‘ìŸ»ì‘æ¿¡ ê½‘ê¹®
+    // Àý´ñ°ªÀÌ ´õ Å« ¹æÇâÀ» ¿ì¼±ÀûÀ¸·Î ¼±ÅÃ
     if (abs(dx) > abs(dy))
     {
         return (dx > 0) ? DIR_RIGHT : DIR_LEFT;
@@ -81,10 +59,10 @@ Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, floa
     }
 }
 
-// ì†•ï§Ž è¸°ë¶¿ìž ì†—ì”¤ ë¸¿ë‹”
+// È­¸é ¹üÀ§ È®ÀÎ ÇÔ¼ö
 bool Entity::IsPositionInScreenBounds(float x, float y)
 {
-    // ì†•ï§Ž é†«ëš°ëª´æ¿¡ è¹‚ì†šë¸¯ë¿¬ ì†—ì”¤
+    // È­¸é ÁÂÇ¥·Î º¯È¯ÇÏ¿© È®ÀÎ
     Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(x, y);
     
     return (screenPos.X >= 0 && screenPos.X <= WINCX && 

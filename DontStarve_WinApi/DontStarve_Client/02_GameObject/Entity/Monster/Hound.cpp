@@ -3,7 +3,6 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
-#include "../../../03_Animation/AnimationDefinition.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../Player/Player.h"
 #include "Hound.h"
@@ -22,8 +21,46 @@ void Hound::Init()
 	Monster::Init();
 	
 	OutputDebugStringW((L"Hound: Init 완료 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+
+	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 패턴 제거)
+	if (!m_animator) {
+		m_animator = AddComponent<Animator>();
+	}
+	if (m_animator) {
+		ResourceManager* pRM = ResourceManager::GetInstance();
+
+		if (m_id == GOID_MONSTER_HOUNDDOG) {
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_down.png"),
+				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_up.png"),
+				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png"),
+				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png"),
+				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_down.png"),
+				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_up.png"),
+				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png"),
+				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png"),
+				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+		}
+
+		m_animator->SetState((int)m_state, m_direction);
+	}
 	
-	// 초기 크기 설정 (애니메이션 클립에서 첫 번째 프레임으로 크기 설정)
+	// 초기 크기 설정 (애니메이션 클립의 첫 프레임 기준)
 	Animator* animator = GetComponent<Animator>();
 	if (animator) {
 		const AnimationFrame& frame = animator->GetCurrentFrame();
@@ -44,106 +81,5 @@ void Hound::Init()
 
 void Hound::OnInteraction(GameObject* obj)
 {
-	// 기본 상호작용
-}
-
-std::vector<AnimationDefinition> Hound::GetAnimationDefinitions() const {
-    std::vector<AnimationDefinition> definitions;
-    ResourceManager* pRM = ResourceManager::GetInstance();
-    
-    if (m_id == GOID_MONSTER_HOUNDDOG) {
-        // IDLE 애니메이션들
-        AnimationDefinition idleDown;
-        idleDown.state = static_cast<int>(MONSTER_IDLE);
-        idleDown.direction = DIR_DOWN;
-        idleDown.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_down.png");
-        idleDown.frameWidth = 120;
-        idleDown.frameHeight = 100;
-        idleDown.framesPerRow = 6;
-        idleDown.totalFrames = 6;
-        idleDown.frameDuration = 0.1f;
-        idleDown.pivotX = m_pivotX;
-        idleDown.pivotY = m_pivotY;
-        idleDown.isLoop = true;
-        definitions.push_back(idleDown);
-        
-        AnimationDefinition idleUp;
-        idleUp.state = static_cast<int>(MONSTER_IDLE);
-        idleUp.direction = DIR_UP;
-        idleUp.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_up.png");
-        idleUp.frameWidth = 120;
-        idleUp.frameHeight = 100;
-        idleUp.framesPerRow = 6;
-        idleUp.totalFrames = 6;
-        idleUp.frameDuration = 0.1f;
-        idleUp.pivotX = m_pivotX;
-        idleUp.pivotY = m_pivotY;
-        idleUp.isLoop = true;
-        definitions.push_back(idleUp);
-        
-        AnimationDefinition idleSide;
-        idleSide.state = static_cast<int>(MONSTER_IDLE);
-        idleSide.direction = DIR_LEFT;
-        idleSide.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png");
-        idleSide.frameWidth = 120;
-        idleSide.frameHeight = 100;
-        idleSide.framesPerRow = 6;
-        idleSide.totalFrames = 6;
-        idleSide.frameDuration = 0.1f;
-        idleSide.pivotX = m_pivotX;
-        idleSide.pivotY = m_pivotY;
-        idleSide.isLoop = true;
-        definitions.push_back(idleSide);
-        
-        idleSide.direction = DIR_RIGHT;
-        definitions.push_back(idleSide);
-        
-        // ATTACK 애니메이션들
-        AnimationDefinition attackDown;
-        attackDown.state = static_cast<int>(MONSTER_ATTACK);
-        attackDown.direction = DIR_DOWN;
-        attackDown.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_down.png");
-        attackDown.frameWidth = 140;
-        attackDown.frameHeight = 120;
-        attackDown.framesPerRow = 8;
-        attackDown.totalFrames = 8;
-        attackDown.frameDuration = 0.1f;
-        attackDown.pivotX = m_pivotX;
-        attackDown.pivotY = m_pivotY;
-        attackDown.isLoop = false;
-        definitions.push_back(attackDown);
-        
-        AnimationDefinition attackUp;
-        attackUp.state = static_cast<int>(MONSTER_ATTACK);
-        attackUp.direction = DIR_UP;
-        attackUp.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_up.png");
-        attackUp.frameWidth = 140;
-        attackUp.frameHeight = 120;
-        attackUp.framesPerRow = 8;
-        attackUp.totalFrames = 8;
-        attackUp.frameDuration = 0.1f;
-        attackUp.pivotX = m_pivotX;
-        attackUp.pivotY = m_pivotY;
-        attackUp.isLoop = false;
-        definitions.push_back(attackUp);
-        
-        AnimationDefinition attackSide;
-        attackSide.state = static_cast<int>(MONSTER_ATTACK);
-        attackSide.direction = DIR_LEFT;
-        attackSide.imagePath = pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png");
-        attackSide.frameWidth = 140;
-        attackSide.frameHeight = 120;
-        attackSide.framesPerRow = 8;
-        attackSide.totalFrames = 8;
-        attackSide.frameDuration = 0.1f;
-        attackSide.pivotX = m_pivotX;
-        attackSide.pivotY = m_pivotY;
-        attackSide.isLoop = false;
-        definitions.push_back(attackSide);
-        
-        attackSide.direction = DIR_RIGHT;
-        definitions.push_back(attackSide);
-    }
-    
-    return definitions;
+	// 기본 상호작용 사용
 }

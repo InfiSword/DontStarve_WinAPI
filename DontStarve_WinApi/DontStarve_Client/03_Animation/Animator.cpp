@@ -1,7 +1,7 @@
 #include "../99_Default/pch.h"
 #include "../01_Manager/RenderManager/RenderManager.h"
 #include "Animator.h"
-#include "AnimationClip.h" 
+#include "AnimationClip.h"
 #include "SpriteSheet.h"  
 
 Animator::Animator(GameObject* owner)
@@ -9,7 +9,7 @@ Animator::Animator(GameObject* owner)
       m_elapsed(0.0f), m_isPlaying(false), m_lastTriggeredFrame(-1) {}
 
 Animator::~Animator() { 
-    m_animations.clear(); // unique_ptr이므로 자동으로 해제됨
+    m_animations.clear(); // unique_ptr이므로 소멸 시 자동으로 정리됨
     m_currentClip = nullptr; 
 }
 
@@ -37,19 +37,31 @@ void Animator::RegisterAnimation(int state, Direction dir,
     
     OutputDebugStringW((L"Animator: 애니메이션 키 생성 - Key: " + std::to_wstring(key) + L"\n").c_str());
     
-    // AnimationClip 생성
-    auto clip = AnimationClip::Builder()
-        .SetName(GenerateAnimationName(state, static_cast<int>(dir)))
-        .SetImagePath(imagePath)
-        .SetFrameSize(frameWidth, frameHeight)
-        .SetFrameCount(framesPerRow, totalFrames)
-        .SetFrameDuration(frameDuration)
-        .SetPivot(pivotX, pivotY)
-        .SetLooping(loop)
-        .Build();
+    // SpriteSheet를 먼저 생성하고, 생성자로 Clip을 초기화
+    auto spriteSheet = SpriteSheet::CreateFromFile(
+        imagePath,
+        frameWidth,
+        frameHeight,
+        framesPerRow,
+        totalFrames
+    );
+
+    if (!spriteSheet) {
+        OutputDebugStringW((L"Animator: SpriteSheet 생성 실패 - " + imagePath + L"\n").c_str());
+        return;
+    }
+
+    auto clip = std::make_unique<AnimationClip>(
+        L"", // 이름은 현재 사용하지 않으므로 빈 문자열 전달
+        std::move(spriteSheet),
+        frameDuration,
+        pivotX,
+        pivotY,
+        loop
+    );
     
     if (clip) {
-        // 이벤트 추가
+        // 이벤트 프레임 등록
         for (const auto& eventPair : events) {
             clip->AddEventFrame(eventPair.first, eventPair.second);
         }
@@ -109,10 +121,6 @@ void Animator::SelectAndPlayAnimation() {
     }
 }
 
-std::wstring Animator::GenerateAnimationName(int state, int direction) const {
-    return L"Anim_State" + std::to_wstring(state) + L"_Dir" + std::to_wstring(direction);
-}
-
 void Animator::Update(float deltaTime)
 {
     if (m_isPlaying && m_currentClip)
@@ -120,7 +128,7 @@ void Animator::Update(float deltaTime)
         // 이전 프레임 인덱스 저장 (이벤트 트리거용)
         int prevFrameIndex = GetCurrentFrameIndex();
         
-        // 시간 업데이트
+        // 경과 시간 누적
         m_elapsed += deltaTime;
         
         // 루프가 아닌 애니메이션의 종료 체크
@@ -189,8 +197,6 @@ const AnimationFrame& Animator::GetCurrentFrame() const {
     }
     return m_currentClip->GetCurrentFrame(m_elapsed);
 }
-
-bool Animator::IsPlaying() const { return m_isPlaying; }
 
 const SpriteSheet* Animator::GetSpriteSheet() const {
     if (!m_currentClip) {

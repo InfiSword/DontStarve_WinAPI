@@ -14,7 +14,6 @@
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../../../03_Animation/SpriteSheet.h"
-#include "../../../03_Animation/AnimationDefinition.h"
 
 #include "../../Item/Ingredient.h"
 #include "../../Item/Tool/Tool.h"
@@ -36,6 +35,49 @@ void Player::Init()
 {
 	// 부모 클래스(Entity)의 Init 호출 - Animator가 자동으로 생성됨
 	Entity::Init();
+
+	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 패턴 제거)
+	if (!m_animator) {
+		m_animator = AddComponent<Animator>();
+	}
+	if (m_animator) {
+		ResourceManager* pRM = ResourceManager::GetInstance();
+
+		// IDLE
+		m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN,  pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Down.png"),
+			126, 189, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP,    pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Up.png"),
+			128, 193, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT,  pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
+			135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
+			135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
+
+		// WALK(RUN)
+		m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN,  pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Down.png"),
+			139, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP,    pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Up.png"),
+			133, 231, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT,  pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
+			141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
+			141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
+
+		// PICKUP
+		std::wstring pickupPath = pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png");
+		for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
+				127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
+		}
+
+		// CHOP (이벤트 포함)
+		std::map<int, std::wstring> chopEvents = { {4, L"chop_hit"} };
+		std::wstring chopPath = pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png");
+		for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)PlayerState::CHOP, (Direction)dir, chopPath,
+				284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
+		}
+	}
 	
 	m_inventory = new Inventory();
 	
@@ -135,169 +177,6 @@ void Player::Damaged(int damage)
 //		}
 //	}
 //}
-
-std::vector<AnimationDefinition> Player::GetAnimationDefinitions() const {
-    OutputDebugStringW(L"Player: GetAnimationDefinitions 시작\n");
-    
-    std::vector<AnimationDefinition> definitions;
-
-    ResourceManager* pRM = ResourceManager::GetInstance();
-    
-    // IDLE 애니메이션들
-    AnimationDefinition idleDown;
-    idleDown.state = static_cast<int>(PlayerState::IDLE);
-    idleDown.direction = DIR_DOWN;
-    idleDown.imagePath = pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Down.png");
-    idleDown.frameWidth = 126;
-    idleDown.frameHeight = 189;
-    idleDown.framesPerRow = 7;
-    idleDown.totalFrames = 64;
-    idleDown.frameDuration = 0.03f;
-    idleDown.pivotX = m_pivotX;
-    idleDown.pivotY = m_pivotY;
-    idleDown.isLoop = true;
-    definitions.push_back(idleDown);
-    
-    AnimationDefinition idleUp;
-    idleUp.state = static_cast<int>(PlayerState::IDLE);
-    idleUp.direction = DIR_UP;
-    idleUp.imagePath = pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Up.png");
-    idleUp.frameWidth = 128;
-    idleUp.frameHeight = 193;
-    idleUp.framesPerRow = 7;
-    idleUp.totalFrames = 64;
-    idleUp.frameDuration = 0.03f;
-    idleUp.pivotX = m_pivotX;
-    idleUp.pivotY = m_pivotY;
-    idleUp.isLoop = true;
-    definitions.push_back(idleUp);
-    
-    AnimationDefinition idleLeft;
-    idleLeft.state = static_cast<int>(PlayerState::IDLE);
-    idleLeft.direction = DIR_LEFT;
-    idleLeft.imagePath = pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png");
-    idleLeft.frameWidth = 135;
-    idleLeft.frameHeight = 194;
-    idleLeft.framesPerRow = 7;
-    idleLeft.totalFrames = 64;
-    idleLeft.frameDuration = 0.03f;
-    idleLeft.pivotX = m_pivotX;
-    idleLeft.pivotY = m_pivotY;
-    idleLeft.isLoop = true;
-    definitions.push_back(idleLeft);
-    
-    AnimationDefinition idleRight;
-    idleRight.state = static_cast<int>(PlayerState::IDLE);
-    idleRight.direction = DIR_RIGHT;
-    idleRight.imagePath = pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png");
-    idleRight.frameWidth = 135;
-    idleRight.frameHeight = 194;
-    idleRight.framesPerRow = 7;
-    idleRight.totalFrames = 64;
-    idleRight.frameDuration = 0.03f;
-    idleRight.pivotX = m_pivotX;
-    idleRight.pivotY = m_pivotY;
-    idleRight.isLoop = true;
-    definitions.push_back(idleRight);
-
-    // WALK 애니메이션들
-    AnimationDefinition walkDown;
-    walkDown.state = static_cast<int>(PlayerState::WALK);
-    walkDown.direction = DIR_DOWN;
-    walkDown.imagePath = pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Down.png");
-    walkDown.frameWidth = 139;
-    walkDown.frameHeight = 226;
-    walkDown.framesPerRow = 6;
-    walkDown.totalFrames = 33;
-    walkDown.frameDuration = 0.03f;
-    walkDown.pivotX = m_pivotX;
-    walkDown.pivotY = m_pivotY;
-    walkDown.isLoop = true;
-    definitions.push_back(walkDown);
-    
-    AnimationDefinition walkUp;
-    walkUp.state = static_cast<int>(PlayerState::WALK);
-    walkUp.direction = DIR_UP;
-    walkUp.imagePath = pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Up.png");
-    walkUp.frameWidth = 133;
-    walkUp.frameHeight = 231;
-    walkUp.framesPerRow = 6;
-    walkUp.totalFrames = 33;
-    walkUp.frameDuration = 0.03f;
-    walkUp.pivotX = m_pivotX;
-    walkUp.pivotY = m_pivotY;
-    walkUp.isLoop = true;
-    definitions.push_back(walkUp);
-    
-    AnimationDefinition walkLeft;
-    walkLeft.state = static_cast<int>(PlayerState::WALK);
-    walkLeft.direction = DIR_LEFT;
-    walkLeft.imagePath = pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png");
-    walkLeft.frameWidth = 141;
-    walkLeft.frameHeight = 226;
-    walkLeft.framesPerRow = 6;
-    walkLeft.totalFrames = 33;
-    walkLeft.frameDuration = 0.03f;
-    walkLeft.pivotX = m_pivotX;
-    walkLeft.pivotY = m_pivotY;
-    walkLeft.isLoop = true;
-    definitions.push_back(walkLeft);
-    
-    AnimationDefinition walkRight;
-    walkRight.state = static_cast<int>(PlayerState::WALK);
-    walkRight.direction = DIR_RIGHT;
-    walkRight.imagePath = pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png");
-    walkRight.frameWidth = 141;
-    walkRight.frameHeight = 226;
-    walkRight.framesPerRow = 6;
-    walkRight.totalFrames = 33;
-    walkRight.frameDuration = 0.03f;
-    walkRight.pivotX = m_pivotX;
-    walkRight.pivotY = m_pivotY;
-    walkRight.isLoop = true;
-    definitions.push_back(walkRight);
-
-    // PICKUP 애니메이션들 (모든 방향에서 동일한 이미지 사용)
-    std::wstring pickupPath = pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png");
-    for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
-        AnimationDefinition pickup;
-        pickup.state = static_cast<int>(PlayerState::PICKUP);
-        pickup.direction = static_cast<Direction>(dir);
-        pickup.imagePath = pickupPath;
-        pickup.frameWidth = 127;
-        pickup.frameHeight = 201;
-        pickup.framesPerRow = 6;
-        pickup.totalFrames = 20;
-        pickup.frameDuration = 0.03f;
-        pickup.pivotX = m_pivotX;
-        pickup.pivotY = m_pivotY;
-        pickup.isLoop = false;
-        definitions.push_back(pickup);
-    }
-
-    // CHOP 애니메이션 (이벤트 포함)
-    std::map<int, std::wstring> chopEvents = {{4, L"chop_hit"}};
-    std::wstring chopPath = pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png");
-    for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
-        AnimationDefinition chop;
-        chop.state = static_cast<int>(PlayerState::CHOP);
-        chop.direction = static_cast<Direction>(dir);
-        chop.imagePath = chopPath;
-        chop.frameWidth = 284;
-        chop.frameHeight = 248;
-        chop.framesPerRow = 6;
-        chop.totalFrames = 54;
-        chop.frameDuration = 0.03f;
-        chop.pivotX = m_pivotX + 0.1f;
-        chop.pivotY = m_pivotY;
-        chop.isLoop = false;
-        chop.events = chopEvents;
-        definitions.push_back(chop);
-    }
-    
-    OutputDebugStringW((L"Player: GetAnimationDefinitions 완료 - " + std::to_wstring(definitions.size()) + L"개 애니메이션 정의 반환\n").c_str());
-    return definitions;
-}
 
 void Player::UpdateAnimatorState() {
 	if (m_animator) {

@@ -34,16 +34,13 @@ public:
 	float GetInteractionRadius() const { return m_stopThreshold + 10.0f; }
 	Item* GetEquippedItem() const { return m_equippedItem; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
-	
-	// 상호작용 대상 오브젝트 반환
+
 	GameObject* GetInteractionTarget() const { return m_currentInteractionTarget; }
 
 	void ToggleEquipItem(int slotIndex);
 	//void OnAnimationEvent(int frameIndex, const std::wstring& eventName);
 
 	virtual void Damaged(int damage) override;
-
-	virtual std::vector<AnimationDefinition> GetAnimationDefinitions() const override;
 
 private:
 	void UpdateAnimatorState();

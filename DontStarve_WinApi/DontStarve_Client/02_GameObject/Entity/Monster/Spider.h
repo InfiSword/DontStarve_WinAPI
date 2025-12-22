@@ -10,6 +10,4 @@ public:
     virtual void Init() override;
     virtual void OnInteraction(GameObject* obj) override;    
     virtual void Damaged(int damage) override;
-
-    virtual std::vector<AnimationDefinition> GetAnimationDefinitions() const override;
 };

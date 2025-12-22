@@ -1,6 +1,6 @@
 #pragma once
 #include "../02_GameObject/Component/Component.h"
-#include "AnimationDefinition.h"
+#include "AnimationClip.h"
 
 class GameObject;
 
@@ -48,7 +48,6 @@ public:
 
     // 현재 상태 정보 반환
     const AnimationFrame& GetCurrentFrame() const;
-    bool IsPlaying() const;
     const SpriteSheet* GetSpriteSheet() const;
     bool IsAnimationDone() const;
     AnimationClip* GetClip() const { return m_currentClip; }
@@ -78,5 +77,4 @@ private:
     // 내부 메서드
     int GetAnimationKey(int state, int direction) const { return state * 1000 + direction; }
     void SelectAndPlayAnimation();
-    std::wstring GenerateAnimationName(int state, int direction) const;
 };

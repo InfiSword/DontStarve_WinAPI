@@ -9,6 +9,4 @@ public:
 
     virtual void Init() override;
     virtual void OnInteraction(GameObject* obj) override;
-
-    virtual std::vector<AnimationDefinition> GetAnimationDefinitions() const override;
 };
