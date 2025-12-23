@@ -26,107 +26,72 @@ void Boss_SpiderQueen::Init()
 	m_specialAttackCooldown = 0.0f;
 	
 	OutputDebugStringW((L"Boss_SpiderQueen: 보스 초기화 완료 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+
+	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 패턴 제거)
+	if (!m_animator) {
+		m_animator = AddComponent<Animator>();
+	}
+	if (m_animator) {
+		ResourceManager* pRM = ResourceManager::GetInstance();
+
+		if (m_id == GOID_MONSTER_QUEEN_SPIDER) {
+			// IDLE
+			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,
+					pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
+					120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+			}
+
+			// WALK
+			std::wstring walkPath = pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png");
+			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				m_animator->RegisterAnimation((int)MONSTER_WALK, (Direction)dir,
+					walkPath,
+					120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+			}
+
+			// ATTACK
+			std::wstring attackPath = pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png");
+			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, (Direction)dir,
+					attackPath,
+					140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+			}
+
+			// HIT / DEATH
+			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_hit_side.png"),
+				120, 120, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
+
+			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
+				pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_death.png"),
+				120, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+		}
+
+		m_animator->SetState((int)m_state, m_direction);
+	}
 }
 
 void Boss_SpiderQueen::OnInteraction(GameObject* obj)
 {
-    // 보스 상호작용
+    // 보스 상호작용 처리 (추후 확장 가능)
 }
-
-//void Boss_SpiderQueen::RegisterAllAnimations()
-//{
-//	// ResourceManager를 사용하여 리소스 로드
-//	auto* pRM = ResourceManager::GetInstance();
-//	
-//	// QUEEN SPIDER 애니메이션 등록
-//	Animator* animator = GetComponent<Animator>();
-//	if (!animator) return;
-//	
-//	if (m_id == GOID_MONSTER_QUEEN_SPIDER)
-//	{
-//		// IDLE 애니메이션들
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-//			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-//			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-//			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_IDLE, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-//			120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		// WALK 애니메이션들
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
-//			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
-//			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
-//			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		animator->RegisterAnimation(MONSTER_WALK, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Walk_spider_queen_walk_loop_side.png"),
-//			120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
-//		
-//		// ATTACK 애니메이션들
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
-//			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_UP,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
-//			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_LEFT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
-//			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		animator->RegisterAnimation(MONSTER_ATTACK, DIR_RIGHT,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_atk_side.png"),
-//			140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		// HIT 애니메이션
-//		animator->RegisterAnimation(MONSTER_HIT, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_hit_side.png"),
-//			120, 120, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
-//		
-//		// DEATH 애니메이션
-//		animator->RegisterAnimation(MONSTER_DEATH, DIR_DOWN,
-//			pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_death.png"),
-//			120, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
-//	}
-//	
-//	OutputDebugStringW(L"Boss_SpiderQueen: 보스 애니메이션 등록 완료\n");
-//}
 
 void Boss_SpiderQueen::Damaged(int damage)
 {
 	m_hp -= damage;
 	m_state = MONSTER_HIT;
-
-	// UpdateAnimatorState();
 	
 	// 보스 페이즈 체크
 	if (m_hp <= maxHp * 0.5f && m_bossPhase == 1) {
 		m_bossPhase = 2;
-		OutputDebugStringW(L"Boss_SpiderQueen: 보스 페이즈가 2 단계로 전환!\n");
+		OutputDebugStringW(L"Boss_SpiderQueen: 보스 페이즈가 2단계로 전환!\n");
 	}
 	
 	if (m_hp <= 0) {
 		m_state = MONSTER_DEATH;
-		// UpdateAnimatorState();
 		
-		// 보스 처치 시 특별한 보상
+		// 보스 처치 시 특수 연출
 		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다!\n");
 	}
 }

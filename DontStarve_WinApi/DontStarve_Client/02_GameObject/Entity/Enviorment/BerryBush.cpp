@@ -17,7 +17,7 @@ void BerryBush::Init()
 	// 이미지 로드
 	LoadBitmap();
 	
-	// 비트맵의 크기 설정
+	// 스프라이트 크기 설정
 	if (m_orignalBitmap) {
 		this->m_width = static_cast<float>(m_orignalBitmap->GetWidth());
 		this->m_height = static_cast<float>(m_orignalBitmap->GetHeight());
@@ -30,7 +30,7 @@ void BerryBush::LateInit()
 
 void BerryBush::Update(float deltaTime)
 {
-	// 필요한 컴포넌트 업데이트가 있다면 여기에 추가
+	// 필요한 컴포넌트 업데이트가 있다면 여기서 추가
 }
 
 void BerryBush::LateUpdate()
@@ -44,7 +44,7 @@ void BerryBush::Release()
 
 void BerryBush::OnInteraction(GameObject* obj)
 {
-	// 기본 상호작용
+	// 기본 상호작용 사용
 }
 
 

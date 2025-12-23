@@ -2,89 +2,34 @@
 #include "SpriteSheet.h" 
 #include <functional>
 #include <memory>
+#include <vector>
+#include <map>
 
-// ¾Ö´Ï¸ŞÀÌ¼Ç ÀÌº¥Æ® Äİ¹é Å¸ÀÔ Á¤ÀÇ
+// ì• ë‹ˆë©”ì´ì…˜ ì´ë²¤íŠ¸ ì½œë°± íƒ€ì… ì •ì˜
 using AnimationEventCallback = std::function<void(int, const std::wstring&)>;
-
-// ¾Ö´Ï¸ŞÀÌ¼Ç ºô´õ Å¬·¡½º (´õ Æí¸®ÇÑ »ı¼ºÀ» À§ÇØ)
-class AnimationBuilder {
-public:
-    AnimationBuilder& SetName(const std::wstring& name);
-    AnimationBuilder& SetImagePath(const std::wstring& imagePath);
-    AnimationBuilder& SetFrameSize(UINT width, UINT height);
-    AnimationBuilder& SetFrameCount(UINT framesPerRow, UINT totalFrames);
-    AnimationBuilder& SetFrameDuration(float duration);
-    AnimationBuilder& SetPivot(float pivotX, float pivotY);
-    AnimationBuilder& SetLooping(bool loop);
-    AnimationBuilder& AddEvent(int frameIndex, const std::wstring& eventName);
-    
-    // ÆíÀÇ ¸Ş¼Òµåµé
-    AnimationBuilder& AsIdle() { return SetLooping(true).SetFrameDuration(0.1f); }
-    AnimationBuilder& AsWalk() { return SetLooping(true).SetFrameDuration(0.03f); }
-    AnimationBuilder& AsAction() { return SetLooping(false).SetFrameDuration(0.05f); }
-    
-    std::unique_ptr<class AnimationClip> Build();
-
-private:
-    std::wstring m_name;
-    std::wstring m_imagePath;
-    UINT m_frameWidth = 0;
-    UINT m_frameHeight = 0;
-    UINT m_framesPerRow = 1;
-    UINT m_totalFrames = 1;
-    float m_frameDuration = 0.1f;
-    float m_pivotX = 0.5f;
-    float m_pivotY = 1.0f;
-    bool m_isLooping = true;
-    std::map<int, std::wstring> m_events;
-};
 
 class AnimationClip {
 public:
-    // ±âº» »ı¼ºÀÚµé
-    AnimationClip();
-    AnimationClip(const std::wstring& name, bool loop = true);
-    
-    // Á÷Á¢ ÆÄÀÏ °æ·Î·Î ¾Ö´Ï¸ŞÀÌ¼Ç »ı¼ºÇÏ´Â static factory methods
-    static std::unique_ptr<AnimationClip> CreateFromFile(
+    // SpriteSheetë¥¼ ë°›ëŠ” ìƒì„±ì
+    AnimationClip(
         const std::wstring& name,
-        const std::wstring& imagePath,
-        UINT frameWidth, UINT frameHeight,
-        UINT framesPerRow, UINT totalFrames,
+        std::unique_ptr<SpriteSheet> spriteSheet,
         float frameDuration = 0.1f,
-        float pivotX = 0.5f, float pivotY = 1.0f,
+        float pivotX = 0.5f,
+        float pivotY = 1.0f,
         bool loop = true
     );
-    
-    // °£´ÜÇÑ ½ºÇÁ¶óÀÌÆ® ½ÃÆ® ¾Ö´Ï¸ŞÀÌ¼ÇÀ» ÇÑ ÁÙ·Î »ı¼º
-    static std::unique_ptr<AnimationClip> CreateSimple(
-        const std::wstring& imagePath,
-        UINT frameWidth, UINT frameHeight,
-        UINT totalFrames,
-        bool loop = true
-    ) {
-        return CreateFromFile(L"", imagePath, frameWidth, frameHeight, totalFrames, totalFrames, 0.1f, 0.5f, 1.0f, loop);
-    }
-    
-    // Builder ÆĞÅÏÀ» À§ÇÑ static method
-    static AnimationBuilder Builder();
 
     ~AnimationClip();
-
-    // ±âÁ¸ ¸Ş¼Òµåµé
-    void SetSpriteSheet(std::unique_ptr<SpriteSheet> pSheet);
-    void AddFrame(const AnimationFrame& frame);
-    void SetLooping(bool loop);
-    void SetName(const std::wstring& name);
-    void SetTotalDuration(float duration);
-    const std::wstring& GetName() const;
+    
+    // í”„ë ˆì„ / ìƒíƒœ ì¡°íšŒ ë©”ì„œë“œ
     bool IsLooping() const;
     float GetTotalDuration() const;
     const SpriteSheet* GetSpriteSheet() const;
     const std::vector<AnimationFrame>& GetFrames() const;
     const AnimationFrame& GetCurrentFrame(float elapsed) const;
 
-    // ÀÌº¥Æ® °ü·Ã ¸Ş¼Òµåµé
+    // ì´ë²¤íŠ¸ ê´€ë ¨ ë©”ì„œë“œ
     void AddEventFrame(int frameIndex, const std::wstring& eventName);
     void SetEventCallback(AnimationEventCallback callback);
     const std::map<int, std::wstring>& GetEventFrames() const { return m_eventFrames; }
@@ -92,15 +37,11 @@ public:
 
 private:    
     std::unique_ptr<SpriteSheet> m_pSpriteSheet;
-    std::wstring m_name;
     std::vector<AnimationFrame> m_frames;
     bool m_isLooping;
     float m_totalDuration;
 
-    // ÀÌº¥Æ® °ü·Ã ¸â¹öµé
+    // ì´ë²¤íŠ¸ ê´€ë ¨ ë©¤ë²„
     std::map<int, std::wstring> m_eventFrames;
     AnimationEventCallback m_eventCallback;
-    
-    // ³»ºÎ ÃÊ±âÈ­ ¸Ş¼Òµå
-    void InitializeFromSpriteSheet(float frameDuration, float pivotX, float pivotY);
 };

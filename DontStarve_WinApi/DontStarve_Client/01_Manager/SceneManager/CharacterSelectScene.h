@@ -1,17 +1,17 @@
 #pragma once
 #include "BaseScene.h"
 
-// Ä³¸¯ÅÍ Á¤º¸ ±¸Á¶Ã¼
+// ìºë¦­í„° ì •ë³´ êµ¬ì¡°ì²´
 struct CharacterInfo
 {
-	std::wstring name;              // Ä³¸¯ÅÍ ÀÌ¸§
-	std::wstring portraitPath;      // Æ÷Æ®·¹ÀÌÆ® ÀÌ¹ÌÁö °æ·Î
-	std::wstring characterImagePath; // Ä³¸¯ÅÍ ÀÌ¹ÌÁö °æ·Î
-	std::wstring description;       // Ä³¸¯ÅÍ ¼³¸í
-	float buttonPosX;              // ¹öÆ° X À§Ä¡
-	float buttonPosY;              // ¹öÆ° Y À§Ä¡
-	GameObjectID characterID;       // Ä³¸¯ÅÍ ID
-	bool isUnlocked;               // ÇØ±İ »óÅÂ
+	std::wstring name;              // ìºë¦­í„° ì´ë¦„
+	std::wstring portraitPath;      // í¬íŠ¸ë ˆì´íŠ¸ ì´ë¯¸ì§€ ê²½ë¡œ
+	std::wstring characterImagePath; // ìºë¦­í„° ì´ë¯¸ì§€ ê²½ë¡œ
+	std::wstring description;       // ìºë¦­í„° ì„¤ëª…
+	float buttonPosX;              // ë²„íŠ¼ X ìœ„ì¹˜
+	float buttonPosY;              // ë²„íŠ¼ Y ìœ„ì¹˜
+	GameObjectID characterID;       // ìºë¦­í„° ID
+	bool isUnlocked;               // í•´ê¸ˆ ì—¬ë¶€
 	
 	CharacterInfo(const std::wstring& n, const std::wstring& pp, const std::wstring& cip, 
 				  const std::wstring& desc, float x, float y, GameObjectID id, bool unlocked = false)
@@ -21,38 +21,38 @@ struct CharacterInfo
 
 enum class CharacterSelectionState
 {
-	BROWSING,       // Ä³¸¯ÅÍ ¼±ÅÃ ¸ğµå Áß
-	CHARACTER_INFO, // Ä³¸¯ÅÍ Á¤º¸ Ç¥½Ã Áß
-	CONFIRM_SELECT, // ¼±ÅÃ È®ÀÎ Áß
+	BROWSING,       // ìºë¦­í„° ëª©ë¡ ë³´ê¸° ìƒíƒœ
+	CHARACTER_INFO, // ìºë¦­í„° ì •ë³´ í‘œì‹œ ìƒíƒœ
+	CONFIRM_SELECT, // ì„ íƒ í™•ì¸ ìƒíƒœ
 	CLICK_GAME,
 };
 
 class CharacterSelectScene : public BaseScene
 {
 private:
-	// Ä³¸¯ÅÍ Á¤º¸
-	std::vector<CharacterInfo> m_characterList;        // ¸ğµç µî·ÏµÈ Ä³¸¯ÅÍ ¸ñ·Ï
+	// ìºë¦­í„° ëª©ë¡
+	std::vector<CharacterInfo> m_characterList;        // ëª¨ë“  ë“±ë¡ëœ ìºë¦­í„° ëª©ë¡
 	
-	// ÅØ½ºÆ® ·»´õ¸µ °ü·Ã
-	Gdiplus::Font* m_descriptionFont;   // ¼³¸í ÅØ½ºÆ®¿ë ÆùÆ®
-	Gdiplus::SolidBrush* m_descriptionBrush; // ¼³¸í ÅØ½ºÆ®¿ë ºê·¯½Ã
+	// í…ìŠ¤íŠ¸ ë Œë”ë§ ë¦¬ì†ŒìŠ¤
+	Gdiplus::Font* m_descriptionFont;   // ì„¤ëª… í…ìŠ¤íŠ¸ìš© í°íŠ¸
+	Gdiplus::SolidBrush* m_descriptionBrush; // ì„¤ëª… í…ìŠ¤íŠ¸ìš© ë¸ŒëŸ¬ì‹œ
 	
-	// ¼±ÅÃ »óÅÂ °ü¸®
+	// ìƒíƒœ ê´€ë¦¬ ë³€ìˆ˜
 	CharacterSelectionState m_currentState;
-	int m_selectedCharacterIndex;       // ¼±ÅÃµÈ Ä³¸¯ÅÍ ÀÎµ¦½º (-1: ¼±ÅÃ ¾ÈµÊ)
+	int m_selectedCharacterIndex;       // ì„ íƒëœ ìºë¦­í„° ì¸ë±ìŠ¤ (-1: ì„ íƒ ì•ˆë¨)
 	
-	// °ÔÀÓ ÁøÇà Á¤º¸
+	// ê²Œì„ ì§„í–‰ ì •ë³´
 	GameProgress m_gameProgress;
 	
-	// ¼±ÅÃ »óÅÂ °ü·Ã º¯¼ö
-	bool m_isLockedCharacterSelected;   // Àá±ä Ä³¸¯ÅÍ°¡ ¼±ÅÃµÇ¾ú´ÂÁö ¿©ºÎ
-	bool m_isSelectButtonDisabled;      // ¼±ÅÃ ¹öÆ° ºñÈ°¼ºÈ­ ¿©ºÎ
+	// ì„ íƒ ìƒíƒœ ê´€ë¦¬ ë³€ìˆ˜
+	bool m_isLockedCharacterSelected;   // ì ê¸ˆ ìºë¦­í„°ê°€ ì„ íƒë˜ì—ˆëŠ”ì§€ ì—¬ë¶€
+	bool m_isSelectButtonDisabled;      // ì„ íƒ ë²„íŠ¼ ë¹„í™œì„±í™” ì—¬ë¶€
 
 public:
 	CharacterSelectScene();
 	virtual ~CharacterSelectScene();
 
-	// BaseScene °¡»óÇÔ¼ö ±¸Çö
+	// BaseScene ê°€ìƒí•¨ìˆ˜ êµ¬í˜„
 	virtual void Init() override;
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
@@ -66,35 +66,35 @@ public:
 	virtual void RenderManagers() override;
 	virtual void ReleaseManagers() override;
 
-	// ¸Å´ÏÀú ÃÊ±âÈ­/ÇØÁ¦ ÇÔ¼öµé
+	// ë§¤ë‹ˆì € ì´ˆê¸°í™”/í•´ì œ í•¨ìˆ˜ë“¤
 	virtual void InitializeManagers() override;
 	virtual void ReleaseAllManagers() override;
 
-	// Ä³¸¯ÅÍ ¼±ÅÃ public ÇÔ¼öµé
+	// ìºë¦­í„° ì„ íƒ public í•¨ìˆ˜ë“¤
 	std::wstring GetSelectedCharacterName() const;
 	int GetSelectedCharacterIndex() const { return m_selectedCharacterIndex; }
 	
-	// °ÔÀÓ ÁøÇà Á¤º¸ ¼³Á¤ ÇÔ¼ö
+	// ê²Œì„ ì§„í–‰ ì •ë³´ ì„¤ì • í•¨ìˆ˜
 	void SetGameProgress(const GameProgress& progress) { m_gameProgress = progress; }
 	
-	// ¼±ÅÃµÈ Ä³¸¯ÅÍ ID ¹İÈ¯
+	// ì„ íƒëœ ìºë¦­í„° ID ë°˜í™˜
 	GameObjectID GetSelectedCharacterID() const;
 
 protected:
 	virtual void CreateUI() override;
 
 private:
-	void InitializeCharacters();        // Ä³¸¯ÅÍ ¸ñ·Ï ÃÊ±âÈ­
-	void CreateCharacterButtons();      // Ä³¸¯ÅÍ ¹öÆ° »ı¼º
-	void UpdateCharacterSelection();    // ¼±ÅÃµÈ Ä³¸¯ÅÍ UI ¾÷µ¥ÀÌÆ®
-	void InitializeTextRendering();    // ÅØ½ºÆ® ·»´õ¸µ ÃÊ±âÈ­
-	void RenderCharacterDescription(); // Ä³¸¯ÅÍ ¼³¸í ÅØ½ºÆ® ·»´õ¸µ
-	void UpdateCharacterUnlockStatus(); // Ä³¸¯ÅÍ ÇØ±İ »óÅÂ ¾÷µ¥ÀÌÆ®
-	void UpdateSelectButtonState();    // ¼±ÅÃ ¹öÆ° »óÅÂ ¾÷µ¥ÀÌÆ®
+	void InitializeCharacters();        // ìºë¦­í„° ëª©ë¡ ì´ˆê¸°í™”
+	void CreateCharacterButtons();      // ìºë¦­í„° ë²„íŠ¼ ìƒì„±
+	void UpdateCharacterSelection();    // ì„ íƒëœ ìºë¦­í„° UI ì—…ë°ì´íŠ¸
+	void InitializeTextRendering();    // í…ìŠ¤íŠ¸ ë Œë”ë§ ì´ˆê¸°í™”
+	void RenderCharacterDescription(); // ìºë¦­í„° ì„¤ëª… í…ìŠ¤íŠ¸ ë Œë”ë§
+	void UpdateCharacterUnlockStatus(); // ìºë¦­í„° í•´ê¸ˆ ìƒíƒœ ì—…ë°ì´íŠ¸
+	void UpdateSelectButtonState();    // ì„ íƒ ë²„íŠ¼ ìƒíƒœ ì—…ë°ì´íŠ¸
 	
-	// ¹öÆ° Äİ¹é ÇÔ¼öµé
+	// ë²„íŠ¼ ì½œë°± í•¨ìˆ˜ë“¤
 	void OnCharacterButtonClicked(int characterIndex);
 	void OnSelectButtonClicked();
 	void OnCancelButtonClicked();
-	void OnBackButtonClicked();        // µÚ·Î°¡±â ¹öÆ° Å¬¸¯
-}; 
+	void OnBackButtonClicked();        // ë’¤ë¡œê°€ê¸° ë²„íŠ¼ í´ë¦­
+};

@@ -7,7 +7,7 @@ public:
 	TitleScene();
 	virtual ~TitleScene();
 
-	// BaseScene °¡»óÇÔ¼ö ±¸Çö
+	// BaseScene ê°€ìƒí•¨ìˆ˜ êµ¬í˜„
 	virtual void Init() override;
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
@@ -20,7 +20,7 @@ public:
 	virtual void RenderManagers() override;
 	virtual void ReleaseManagers() override;
 
-	// ¸Å´ÏÀú ÃÊ±âÈ­/ÇØÁ¦ ÇÔ¼öµé
+	// ë§¤ë‹ˆì € ì´ˆê¸°í™”/í•´ì œ í•¨ìˆ˜ë“¤
 	virtual void InitializeManagers() override;
 	virtual void ReleaseAllManagers() override;
 
@@ -30,4 +30,4 @@ protected:
 private:
 	void OnStartButtonClicked();
 	void OnExitButtonClicked();
-}; 
+};

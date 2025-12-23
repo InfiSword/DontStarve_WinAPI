@@ -21,73 +21,73 @@ CharacterSelectScene::~CharacterSelectScene()
 
 void CharacterSelectScene::Init()
 {
-	// CharacterSelectScene¿¡ ÇÊ¿äÇÑ ¸Å´ÏÀúµé ÃÊ±âÈ­
+	// CharacterSelectSceneì— í•„ìš”í•œ ë§¤ë‹ˆì €ë“¤ ì´ˆê¸°í™”
 	InitializeManagers();
 	
-	// Ä³¸¯ÅÍ ¸ñ·Ï ÃÊ±âÈ­
+	// ìºë¦­í„° ëª©ë¡ ì´ˆê¸°í™”
 	InitializeCharacters();
-	OutputDebugStringW((L"CharacterSelectScene: Ä³¸¯ÅÍ ¸ñ·Ï ÃÊ±âÈ­ ¿Ï·á - " + std::to_wstring(m_characterList.size()) + L"°³ Ä³¸¯ÅÍ\n").c_str());
+	OutputDebugStringW((L"CharacterSelectScene: ìºë¦­í„° ëª©ë¡ ì´ˆê¸°í™” ì™„ë£Œ - " + std::to_wstring(m_characterList.size()) + L"ê°œ ìºë¦­í„°\n").c_str());
 	
-	// UI »ı¼º
+	// UI ìƒì„±
 	CreateUI();
-	OutputDebugStringW(L"CharacterSelectScene: UI »ı¼º ¿Ï·á\n");
+	OutputDebugStringW(L"CharacterSelectScene: UI ìƒì„± ì™„ë£Œ\n");
 	
-	// ÅØ½ºÆ® ·»´õ¸µ ÃÊ±âÈ­
+	// í…ìŠ¤íŠ¸ ë Œë”ë§ ì´ˆê¸°í™”
 	InitializeTextRendering();
 	
-	// ÃÊ±â »óÅÂ ¼³Á¤
+	// ì´ˆê¸° ìƒíƒœ ì„¤ì •
 	m_currentState = CharacterSelectionState::BROWSING;
 	m_selectedCharacterIndex = -1;
 	m_isLockedCharacterSelected = false;
 	m_isSelectButtonDisabled = true;
 	
-	OutputDebugStringW(L"CharacterSelectScene: ÃÊ±âÈ­ ¿Ï·á\n");
+	OutputDebugStringW(L"CharacterSelectScene: ì´ˆê¸°í™” ì™„ë£Œ\n");
 }
 
 
 void CharacterSelectScene::InitializeCharacters()
 {
-	// Ä³¸¯ÅÍ ¸ñ·Ï ÃÊ±âÈ­
+	// ìºë¦­í„° ëª©ë¡ ì´ˆê¸°í™”
 	m_characterList.clear();
 	
 	float screenWidth = static_cast<float>(WINCX);
 	float screenHeight = static_cast<float>(WINCY);
 	
-	// Ä³¸¯ÅÍµéÀÇ ¹èÄ¡ À§Ä¡
+	// ìºë¦­í„°ë“¤ì˜ ìœ„ì¹˜ ì„¤ì •
 	float startX = 150.0f;
 	float spacing = 200.0f;
 	float characterY = 300.0f;
 	
-	// Wilson Ä³¸¯ÅÍ Ãß°¡ (±âº» ÇØ±İ)
+	// Wilson ìºë¦­í„° ì¶”ê°€ (ê¸°ë³¸ í•´ê¸ˆ)
 	m_characterList.emplace_back(
 		L"Wilson",
 		L"../Resource/UI/wilson.png",
 		L"../Resource/UI/Willson_Character.png",
-		L"±âº» Ä³¸¯ÅÍÀÔ´Ï´Ù.\n¸ğµç »óÈ²¿¡¼­ ¾ÈÁ¤ÀûÀ¸·Î »ıÁ¸ÇÒ ¼ö ÀÖ´Â\n ±ÕÇüÀâÈù Ä³¸¯ÅÍÀÔ´Ï´Ù.",
+		L"ê¸°ë³¸ ìºë¦­í„°ì…ë‹ˆë‹¤.\nëª¨ë“  ìƒí™©ì—ì„œ ì•ˆì •ì ìœ¼ë¡œ í”Œë ˆì´í•  ìˆ˜ ìˆëŠ”\n ê· í˜•ì¡íŒ ìºë¦­í„°ì…ë‹ˆë‹¤.",
 		startX,
 		characterY,
 		GOID_PLAYER_WILSON,
 		true  
 	);
 	
-	// Willow Ä³¸¯ÅÍ Ãß°¡ (ºÒ¾¾¿Í ³ª¹« Å¬¸®¾î ½Ã ÇØ±İ)
+	// Willow ìºë¦­í„° ì¶”ê°€ (ë¶ˆíƒ€ëŠ” ë‚˜ë¬´ í´ë¦­ ì‹œ í•´ê¸ˆ)
 	m_characterList.emplace_back(
 		L"Willow",
 		L"../Resource/Objects/Player/Willson/willow_portrait.png",
 		L"../Resource/Objects/Player/Willson/willow_character.png",
-		L"ºÒÀÇ ¸¶¹ı»çÀÔ´Ï´Ù.\nºÒÀ» ´Ù·ç´Â ´É·ÂÀÌ ¶Ù¾î³³´Ï´Ù.\n\nÇØ±İ Á¶°Ç: ºÒ¾¾¿Í ³ª¹« Å¬¸®¾î",
+		L"ë¶ˆì˜ ë§ˆë²•ì‚¬ì…ë‹ˆë‹¤.\në¶ˆì„ ë‘ë ¤ì›Œí•˜ì§€ ì•Šê³  í™œìš©í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.\n\ní•´ê¸ˆ ì¡°ê±´: ë¶ˆíƒ€ëŠ” ë‚˜ë¬´ í´ë¦­",
 		startX + spacing,
 		characterY,
 		GOID_PLAYER_WILLOW,
 		m_gameProgress.IsCharacterUnlocked(GOID_PLAYER_WILLOW)
 	);
 	
-	// Wolfgang Ä³¸¯ÅÍ Ãß°¡ (°Å¹Ì¿©¿Õ°ú ³ª¹« Å¬¸®¾î ½Ã ÇØ±İ)
+	// Wolfgang ìºë¦­í„° ì¶”ê°€ (ëŒë©©ì´ ë˜ì§€ê¸° í´ë¦­ ì‹œ í•´ê¸ˆ)
 	m_characterList.emplace_back(
 		L"Wolfgang",
 		L"../Resource/Objects/Player/Willson/wolfgang_portrait.png",
 		L"../Resource/Objects/Player/Willson/wolfgang_character.png",
-		L"°­ÇÑ Ä³¸¯ÅÍÀÔ´Ï´Ù.\n¹è°íÇÄÀÌ ³·À»¼ö·Ï ´õ °­ÇØÁı´Ï´Ù.\n\nÇØ±İ Á¶°Ç: °Å¹Ì¿©¿Õ°ú ³ª¹« Å¬¸®¾î",
+		L"ê°•í•œ ìºë¦­í„°ì…ë‹ˆë‹¤.\nì²´ë ¥ì´ ë†’ì„ìˆ˜ë¡ ë” ê°•í•´ì§€ëŠ” ìºë¦­í„°ì…ë‹ˆë‹¤.\n\ní•´ê¸ˆ ì¡°ê±´: ëŒë©©ì´ ë˜ì§€ê¸° í´ë¦­",
 		startX + spacing * 2,
 		characterY,
 		GOID_PLAYER_WOLFGANG,
@@ -97,11 +97,11 @@ void CharacterSelectScene::InitializeCharacters()
 
 void CharacterSelectScene::CreateUI()
 {
-	// È­¸é Å©±â
+	// í™”ë©´ í¬ê¸°
 	float screenWidth = static_cast<float>(WINCX);
 	float screenHeight = static_cast<float>(WINCY);
 
-	// ¹è°æ ÀÌ¹ÌÁö »ı¼º
+	// ë°°ê²½ ì´ë¯¸ì§€ ìƒì„±
 	UIImage* backgroundImage = new UIImage(
 		static_cast<GameObjectID>(GOID_MAIN_BG),
 		screenWidth / 2.0f,
@@ -114,7 +114,7 @@ void CharacterSelectScene::CreateUI()
 	);
 	UIManager::GetInstance()->AddUIImage(backgroundImage);
 
-	// µÚ·Î°¡±â ¹öÆ° »ı¼º (È­¸é ÇÏ´Ü)
+	// ë’¤ë¡œê°€ê¸° ë²„íŠ¼ ìƒì„± (í™”ë©´ ì•„ë˜)
 	UIButton* backButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BACK_BUTTON),
 		100.0f,  
@@ -123,7 +123,7 @@ void CharacterSelectScene::CreateUI()
 		100.0f,
 		L"../Resource/UI/Button.png",
 		L"../Resource/UI/Button_Click.png",
-		L"Å¸ÀÌÆ² È­¸é"
+		L"íƒ€ì´í‹€ í™”ë©´"
 	);
 	
 	backButton->SetOnClickCallback([this]() {
@@ -131,7 +131,7 @@ void CharacterSelectScene::CreateUI()
 	});
 	UIManager::GetInstance()->AddUIButton(backButton);
 
-	// ¼±ÅÃµÈ Ä³¸¯ÅÍ Æ÷Æ®·¹ÀÌÆ® (¿À¸¥ÂÊ¿¡ ¹èÄ¡) - ÃÊ±â¿¡´Â ¼û±è
+	// ì„ íƒëœ ìºë¦­í„° í¬íŠ¸ë ˆì´íŠ¸ (ì˜¤ë¥¸ìª½ì— ìœ„ì¹˜) - ì´ˆê¸°ì—ëŠ” ìˆ¨ê¹€
 	UIImage* selectedPortrait = new UIImage(
 		static_cast<GameObjectID>(GOID_PLAYER_PORTRAIT),
 		screenWidth / 2.0f + 300.0f,
@@ -142,10 +142,10 @@ void CharacterSelectScene::CreateUI()
 		L"../Resource/UI/wilson.png",
 		1.0f
 	);
-	selectedPortrait->SetActive(false);  // ÃÊ±â¿¡´Â ºñÈ°¼ºÈ­
+	selectedPortrait->SetActive(false);  // ì´ˆê¸°ì—ëŠ” ë¹„í™œì„±í™”
 	UIManager::GetInstance()->AddUIImage(selectedPortrait);
 
-	// Ä³¸¯ÅÍ Á¤º¸Ã¢ (UI4.png) - ÃÊ±â¿¡´Â ¼û±è
+	// ìºë¦­í„° ì •ë³´ì°½ (UI4.png) - ì´ˆê¸°ì—ëŠ” ìˆ¨ê¹€
 	UIImage* characterInfoPanel = new UIImage(
 		static_cast<GameObjectID>(GOID_PLAYER_INFO),
 		screenWidth / 2.0f + 300.0f,
@@ -156,10 +156,10 @@ void CharacterSelectScene::CreateUI()
 		L"../Resource/UI/UI4.png",
 		1.0f
 	);
-	characterInfoPanel->SetActive(false);  // ÃÊ±â¿¡´Â ºñÈ°¼ºÈ­
+	characterInfoPanel->SetActive(false);  // ì´ˆê¸°ì—ëŠ” ë¹„í™œì„±í™”
 	UIManager::GetInstance()->AddUIImage(characterInfoPanel);
 
-	// ¼±ÅÃ ¹öÆ° - ÃÊ±â¿¡´Â ¼û±è
+	// ì„ íƒ ë²„íŠ¼ - ì´ˆê¸°ì—ëŠ” ìˆ¨ê¹€
 	UIButton* selectButton = new UIButton(
 		static_cast<GameObjectID>(GOID_SELECT_BUTTON),
 		screenWidth / 2.0f + 200.f,
@@ -168,7 +168,7 @@ void CharacterSelectScene::CreateUI()
 		50.0f,
 		L"../Resource/UI/Select_Bar.png",
 		L"../Resource/UI/Select_Bar.png",
-		L"¼±ÅÃ"
+		L"ì„ íƒ"
 	);
 	
 	selectButton->SetOnClickCallback([this, selectButton]()
@@ -177,10 +177,10 @@ void CharacterSelectScene::CreateUI()
 		this->OnSelectButtonClicked();
 	});
 
-	selectButton->SetActive(false);  // ÃÊ±â¿¡´Â ºñÈ°¼ºÈ­
+	selectButton->SetActive(false);  // ì´ˆê¸°ì—ëŠ” ë¹„í™œì„±í™”
 	UIManager::GetInstance()->AddUIButton(selectButton);
 
-	// Ãë¼Ò ¹öÆ° - ÃÊ±â¿¡´Â ¼û±è
+	// ì·¨ì†Œ ë²„íŠ¼ - ì´ˆê¸°ì—ëŠ” ìˆ¨ê¹€
 	UIButton* cancelButton = new UIButton(
 		static_cast<GameObjectID>(GOID_CANCEL_SELECTION),
 		screenWidth / 2.0f + 450.f,
@@ -189,33 +189,33 @@ void CharacterSelectScene::CreateUI()
 		50.0f,
 		L"../Resource/UI/Select_Bar.png",
 		L"../Resource/UI/Select_Bar.png",
-		L"Ãë¼Ò"
+		L"ì·¨ì†Œ"
 	);
 	
 	cancelButton->SetOnClickCallback([this]() {
 		this->OnCancelButtonClicked();
 	});
-	cancelButton->SetActive(false);  // ÃÊ±â¿¡´Â ºñÈ°¼ºÈ­
+	cancelButton->SetActive(false);  // ì´ˆê¸°ì—ëŠ” ë¹„í™œì„±í™”
 	UIManager::GetInstance()->AddUIButton(cancelButton);
 	
-	// Ä³¸¯ÅÍ ¹öÆ°µé »ı¼º
+	// ìºë¦­í„° ë²„íŠ¼ë“¤ ìƒì„±
 	CreateCharacterButtons();
 }
 
 void CharacterSelectScene::CreateCharacterButtons()
 {
-	OutputDebugStringW((L"CharacterSelectScene: Ä³¸¯ÅÍ ¹öÆ° »ı¼º ½ÃÀÛ - " + std::to_wstring(m_characterList.size()) + L"°³ Ä³¸¯ÅÍ\n").c_str());
+	OutputDebugStringW((L"CharacterSelectScene: ìºë¦­í„° ë²„íŠ¼ ìƒì„± ì‹œì‘ - " + std::to_wstring(m_characterList.size()) + L"ê°œ ìºë¦­í„°\n").c_str());
 	
-	// ¸ğµç Ä³¸¯ÅÍ¿¡ ´ëÇÑ UI ¿ä¼Òµé »ı¼º
+	// ëª¨ë“  ìºë¦­í„°ì— ëŒ€í•œ UI ìš”ì†Œë“¤ ìƒì„±
 	for (size_t i = 0; i < m_characterList.size(); ++i) {
 		const CharacterInfo& charInfo = m_characterList[i];
 		
-		OutputDebugStringW((L"CharacterSelectScene: Ä³¸¯ÅÍ " + std::to_wstring(i) + L" ¹öÆ° »ı¼º - " + charInfo.name + L"\n").c_str());
+		OutputDebugStringW((L"CharacterSelectScene: ìºë¦­í„° " + std::to_wstring(i) + L" ë²„íŠ¼ ìƒì„± - " + charInfo.name + L"\n").c_str());
 		
 		float buttonWidth = 150.0f;
 		float buttonHeight = 150.0f;
 		
-		// HUD ¹è°æ »ı¼º
+		// HUD ë°°ê²½ ìƒì„±
 		UIImage* hudBackground = new UIImage(
 			static_cast<GameObjectID>(3000 + i * 10),
 			charInfo.buttonPosX,
@@ -228,7 +228,7 @@ void CharacterSelectScene::CreateCharacterButtons()
 		);
 		UIManager::GetInstance()->AddUIImage(hudBackground);
 		
-		// Ä³¸¯ÅÍ ÀÌ¹ÌÁö »ı¼º
+		// ìºë¦­í„° ì´ë¯¸ì§€ ìƒì„±
 		UIImage* characterImage = new UIImage(
 			static_cast<GameObjectID>(3001 + i * 10),
 			charInfo.buttonPosX,
@@ -241,7 +241,7 @@ void CharacterSelectScene::CreateCharacterButtons()
 		);
 		UIManager::GetInstance()->AddUIImage(characterImage);
 		
-		// Àá±İ ¿À¹ö·¹ÀÌ »ı¼º (ÇØ±İµÇÁö ¾ÊÀº Ä³¸¯ÅÍ¿¡¸¸)
+		// ì ê¸ˆ ì˜¤ë²„ë ˆì´ ìƒì„± (í•´ê¸ˆë˜ì§€ ì•Šì€ ìºë¦­í„°ë§Œ)
 		if (!charInfo.isUnlocked) {
 			UIImage* lockOverlay = new UIImage(
 				static_cast<GameObjectID>(3003 + i * 10),
@@ -256,19 +256,19 @@ void CharacterSelectScene::CreateCharacterButtons()
 			UIManager::GetInstance()->AddUIImage(lockOverlay);
 		}
 		
-		// Ä³¸¯ÅÍ ¹öÆ° »ı¼º (Å¬¸¯ ÀÌº¥Æ® Ã³¸®) - ¸ğµç Ä³¸¯ÅÍ¿¡ ´ëÇØ »ı¼º
+		// ìºë¦­í„° ë²„íŠ¼ ìƒì„± (í´ë¦­ ì´ë²¤íŠ¸ ì²˜ë¦¬) - ëª¨ë“  ìºë¦­í„°ì— ëŒ€í•´ ìƒì„±
 		UIButton* characterButton = new UIButton(
 			static_cast<GameObjectID>(3002 + i * 10),
 			charInfo.buttonPosX,
 			charInfo.buttonPosY,
 			buttonWidth,
 			buttonHeight,
-			L"", // ºó ¹öÆ°
-			L"", // ºó ¹öÆ°
-			L""  // ÅØ½ºÆ® ¾øÀ½
+			L"", // ë¹ˆ ë²„íŠ¼
+			L"", // ë¹ˆ ë²„íŠ¼
+			L""  // í…ìŠ¤íŠ¸ ì—†ìŒ
 		);
 		
-		// ¶÷´Ù·Î Ä³¸¯ÅÍ ÀÎµ¦½º¸¦ Ä¸Ã³
+		// ëŒë‹¤ë¡œ ìºë¦­í„° ì¸ë±ìŠ¤ ìº¡ì²˜
 		int characterIndex = static_cast<int>(i);
 		characterButton->SetOnClickCallback([this, characterIndex]() {
 			OnCharacterButtonClicked(characterIndex);
@@ -277,27 +277,27 @@ void CharacterSelectScene::CreateCharacterButtons()
 		UIManager::GetInstance()->AddUIButton(characterButton);
 	}
 	
-	OutputDebugStringW(L"CharacterSelectScene: Ä³¸¯ÅÍ ¹öÆ° »ı¼º ¿Ï·á\n");
+	OutputDebugStringW(L"CharacterSelectScene: ìºë¦­í„° ë²„íŠ¼ ìƒì„± ì™„ë£Œ\n");
 }
 
 void CharacterSelectScene::Update(float deltaTime)
 {
-	// ¸Å´ÏÀúµé ¾÷µ¥ÀÌÆ®
+	// ë§¤ë‹ˆì €ë“¤ ì—…ë°ì´íŠ¸
 	UpdateManagers(deltaTime);
 }
 
 void CharacterSelectScene::LateUpdate()
 {
-	// ¸Å´ÏÀúµé LateUpdate
+	// ë§¤ë‹ˆì €ë“¤ LateUpdate
 	LateUpdateManagers();
 }
 
 void CharacterSelectScene::Render()
 {
-	// ¸Å´ÏÀúµé ·»´õ¸µ
+	// ë§¤ë‹ˆì €ë“¤ ë Œë”ë§
 	RenderManagers();
 	
-	// Ä³¸¯ÅÍ ¼³¸í ÅØ½ºÆ® ·»´õ¸µ
+	// ìºë¦­í„° ì„¤ëª… í…ìŠ¤íŠ¸ ë Œë”ë§
 	if (m_selectedCharacterIndex >= 0) {
 		RenderCharacterDescription();
 	}
@@ -305,7 +305,7 @@ void CharacterSelectScene::Render()
 
 void CharacterSelectScene::Release()
 {
-	// ÅØ½ºÆ® ·»´õ¸µ °ü·Ã ÇØÁ¦
+	// í…ìŠ¤íŠ¸ ë Œë”ë§ ë¦¬ì†ŒìŠ¤ í•´ì œ
 	if (m_descriptionFont) {
 		delete m_descriptionFont;
 		m_descriptionFont = nullptr;
@@ -315,16 +315,16 @@ void CharacterSelectScene::Release()
 		m_descriptionBrush = nullptr;
 	}
 	
-	// CharacterSelectScene¿¡¼­ »ç¿ëÇÑ ¸Å´ÏÀúµé ÇØÁ¦
+	// CharacterSelectSceneì—ì„œ ì‚¬ìš©í•œ ë§¤ë‹ˆì €ë“¤ í•´ì œ
 	ReleaseAllManagers();
 }
 
 void CharacterSelectScene::InitializeTextRendering()
 {
-	// ÆùÆ® »ı¼º (±âº» ÆùÆ®, Å©±â 16)
-	m_descriptionFont = new Gdiplus::Font(L"¸¼Àº °íµñ", 16.0f, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+	// í°íŠ¸ ìƒì„± (ê¸°ë³¸ í°íŠ¸, í¬ê¸° 16)
+	m_descriptionFont = new Gdiplus::Font(L"ë§‘ì€ ê³ ë”•", 16.0f, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
 	
-	// ºê·¯½Ã »ı¼º (°ËÀº»ö)
+	// ë¸ŒëŸ¬ì‹œ ìƒì„± (ê²€ì€ìƒ‰)
 	m_descriptionBrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 0, 0, 0));
 }
 
@@ -333,19 +333,19 @@ void CharacterSelectScene::RenderCharacterDescription()
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		const CharacterInfo& selectedChar = m_characterList[m_selectedCharacterIndex];
 		
-		// Ä³¸¯ÅÍ Á¤º¸ ÆĞ³ÎÀÇ À§Ä¡¿Í Å©±â
-		float panelX = WINCX / 2.0f + 300.0f - 250.0f; // ÆĞ³Î Áß½É¿¡¼­ ¿ŞÂÊÀ¸·Î
-		float panelY = WINCY / 2.0f + 200.0f - 100.0f; // ÆĞ³Î Áß½É¿¡¼­ À§·Î
+		// ìºë¦­í„° ì •ë³´ íŒ¨ë„ì˜ ìœ„ì¹˜ì™€ í¬ê¸°
+		float panelX = WINCX / 2.0f + 300.0f - 250.0f; // íŒ¨ë„ ì¤‘ì‹¬ì—ì„œ ì™¼ìª½ìœ¼ë¡œ ì´ë™
+		float panelY = WINCY / 2.0f + 200.0f - 100.0f; // íŒ¨ë„ ì¤‘ì‹¬ì—ì„œ ìœ„ë¡œ ì´ë™
 		float panelWidth = 500.0f;
 		float panelHeight = 200.0f;
 		
-		// ÅØ½ºÆ® ·»´õ¸µ ¿µ¿ª °è»ê (ÆĞ³Î ³»ºÎ¿¡ ¿©¹é)
+		// í…ìŠ¤íŠ¸ ë Œë”ë§ ì˜ì—­ ê³„ì‚° (íŒ¨ë„ ë‚´ë¶€ì— ì—¬ë°±)
 		float textX = panelX + 20.0f;
 		float textY = panelY + 20.0f;
 		float textWidth = panelWidth - 40.0f;
 		float textHeight = panelHeight - 40.0f;
 		
-		// ÅØ½ºÆ® ·»´õ¸µ
+		// í…ìŠ¤íŠ¸ ë Œë”ë§
 		RenderManager::GetInstance()->RenderUIText(
 			selectedChar.description,
 			m_descriptionFont,
@@ -355,7 +355,7 @@ void CharacterSelectScene::RenderCharacterDescription()
 			textWidth,
 			textHeight,
 			LAYER_UI_FOREGROUND,
-			6.0f  // ÅØ½ºÆ®´Â ´Ù¸¥ UIº¸´Ù À§¿¡ ·»´õ¸µ
+			6.0f  // í…ìŠ¤íŠ¸ê°€ ë‹¤ë¥¸ UIë³´ë‹¤ ì•ì— ë Œë”ë§ë˜ë„ë¡
 		);
 	}
 }
@@ -365,11 +365,11 @@ void CharacterSelectScene::UpdateCharacterSelection()
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		const CharacterInfo& selectedChar = m_characterList[m_selectedCharacterIndex];
 		
-		// ¼±ÅÃµÈ Ä³¸¯ÅÍÀÇ Æ÷Æ®·¹ÀÌÆ® ÀÌ¹ÌÁö º¯°æ
+		// ì„ íƒëœ ìºë¦­í„°ì˜ í¬íŠ¸ë ˆì´íŠ¸ ì´ë¯¸ì§€ ì—…ë°ì´íŠ¸
 		UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
 		if (selectedPortrait)
 		{
-			// Àá±ä Ä³¸¯ÅÍ´Â lock.png, ÇØ±İµÈ Ä³¸¯ÅÍ´Â ÇØ´ç Æ÷Æ®·¹ÀÌÆ® »ç¿ë
+			// ì ê¸ˆ ìºë¦­í„°ëŠ” lock.png, í•´ê¸ˆëœ ìºë¦­í„°ëŠ” í•´ë‹¹ í¬íŠ¸ë ˆì´íŠ¸ ê²½ë¡œ
 			std::wstring portraitPath;
 			if (!selectedChar.isUnlocked) 
 			{
@@ -378,7 +378,7 @@ void CharacterSelectScene::UpdateCharacterSelection()
 				portraitPath = selectedChar.portraitPath;
 			}
 			
-			// UIImageÀÇ LoadBitmap ÇÔ¼ö¸¦ »ç¿ëÇØ¼­ Æ÷Æ®·¹ÀÌÆ® ÀÌ¹ÌÁö º¯°æ
+			// UIImageì˜ LoadBitmap í•¨ìˆ˜ë¥¼ ì‚¬ìš©í•˜ì—¬ í¬íŠ¸ë ˆì´íŠ¸ ì´ë¯¸ì§€ ì—…ë°ì´íŠ¸
 			selectedPortrait->LoadBitmap(portraitPath);
 		}
 	}
@@ -389,7 +389,7 @@ std::wstring CharacterSelectScene::GetSelectedCharacterName() const
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		return m_characterList[m_selectedCharacterIndex].name;
 	}
-	return L"UnKnown"; // ±âº»°ª
+	return L"UnKnown"; // ê¸°ë³¸ê°’
 }
 
 GameObjectID CharacterSelectScene::GetSelectedCharacterID() const
@@ -397,7 +397,7 @@ GameObjectID CharacterSelectScene::GetSelectedCharacterID() const
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		return m_characterList[m_selectedCharacterIndex].characterID;
 	}
-	return GOID_NONE; // ±âº»°ª
+	return GOID_NONE; // ê¸°ë³¸ê°’
 }
 
 void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
@@ -411,7 +411,7 @@ void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 		m_isLockedCharacterSelected = !charInfo.isUnlocked;
 		m_currentState = CharacterSelectionState::CHARACTER_INFO;
 		
-		// UI º¸ÀÌ±â
+		// UI í‘œì‹œ
 		UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
 		if (selectedPortrait) {
 			selectedPortrait->SetActive(true);
@@ -434,10 +434,10 @@ void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 		
 		UpdateCharacterSelection();
 		
-		// Àá½Ã ÈÄ CONFIRM_SELECT »óÅÂ·Î ÀüÈ¯
+		// ìƒíƒœë¥¼ CONFIRM_SELECT ìƒíƒœë¡œ ì „í™˜
 		m_currentState = CharacterSelectionState::CONFIRM_SELECT;
 		
-		// ¼±ÅÃ ¹öÆ° »óÅÂ ¾÷µ¥ÀÌÆ®
+		// ì„ íƒ ë²„íŠ¼ ìƒíƒœ ì—…ë°ì´íŠ¸
 		UpdateSelectButtonState();
 	}
 }
@@ -449,7 +449,7 @@ void CharacterSelectScene::OnSelectButtonClicked()
 		return;
 	}
 	
-	// Àá±ä Ä³¸¯ÅÍ´Â ¼±ÅÃÇÒ ¼ö ¾øÀ½
+	// ì ê¸ˆ ìºë¦­í„°ëŠ” ì„ íƒí•  ìˆ˜ ì—†ìŒ
 	if (m_isLockedCharacterSelected) {
 		OutputDebugStringW(L"Cannot select locked character!\n");
 		return;
@@ -460,7 +460,7 @@ void CharacterSelectScene::OnSelectButtonClicked()
 	OutputDebugStringW((L"Character Confirmed! Loading Game Scene with: " + selectedCharacterName + L" (ID: " + std::to_wstring(selectedCharacterID) + L")\n").c_str());
 	
 	m_currentState = CharacterSelectionState::CLICK_GAME;
-	// ¼±ÅÃµÈ Ä³¸¯ÅÍ Á¤º¸¸¦ SceneManager¿¡ Àü´ŞÇÏ¿© °ÔÀÓ ¾ÀÀ¸·Î ÀüÈ¯
+	// ì„ íƒëœ ìºë¦­í„° ì •ë³´ë¥¼ SceneManagerì— ì „ë‹¬í•˜ì—¬ ê²Œì„ ì”¬ìœ¼ë¡œ ì „í™˜
 	SceneManager::GetInstance()->LoadGameScene(L"../MapData/00_map.dsm", selectedCharacterID);
 }
 
@@ -468,13 +468,13 @@ void CharacterSelectScene::OnCancelButtonClicked()
 {
 	OutputDebugStringW(L"Character Selection Cancelled!\n");
 	
-	// Ä³¸¯ÅÍ ¼±ÅÃ ÃÊ±âÈ­, ºê¶ó¿ìÂ¡ »óÅÂ·Î µ¹¾Æ°¡±â
+	// ìºë¦­í„° ì„ íƒ ì´ˆê¸°í™”, ë¸Œë¼ìš°ì§• ìƒíƒœë¡œ ë˜ëŒë¦¬ê¸°
 	m_selectedCharacterIndex = -1;
 	m_isLockedCharacterSelected = false;
 	m_isSelectButtonDisabled = false;
 	m_currentState = CharacterSelectionState::BROWSING;
 	
-	// UI ¼û±â±â
+	// UI ìˆ¨ê¹€
 	UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
 	if (selectedPortrait) {
 		selectedPortrait->SetActive(false);
@@ -495,7 +495,7 @@ void CharacterSelectScene::OnCancelButtonClicked()
 		cancelButton->SetActive(false);
 	}
 	
-	// ¼±ÅÃ ¹öÆ° »óÅÂ ÃÊ±âÈ­
+	// ì„ íƒ ë²„íŠ¼ ìƒíƒœ ì´ˆê¸°í™”
 	UpdateSelectButtonState();
 }
 
@@ -503,7 +503,7 @@ void CharacterSelectScene::OnBackButtonClicked()
 {
 	OutputDebugStringW(L"Back button clicked! Returning to Title Scene\n");
 	
-	// UI ¼û±â±â
+	// UI ìˆ¨ê¹€
 	UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
 	if (selectedPortrait) {
 		selectedPortrait->SetActive(false);
@@ -524,22 +524,22 @@ void CharacterSelectScene::OnBackButtonClicked()
 		cancelButton->SetActive(false);
 	}
 	
-	// Å¸ÀÌÆ² ¾ÀÀ¸·Î µ¹¾Æ°¡±â
+	// íƒ€ì´í‹€ ì”¬ìœ¼ë¡œ ë˜ëŒë¦¬ê¸°
 	SceneManager::GetInstance()->ReturnToTitle();
 }
 
 void CharacterSelectScene::UpdateSelectButtonState()
 {
-	// Àá±ä Ä³¸¯ÅÍ°¡ ¼±ÅÃµÇ¾úÀ¸¸é ¼±ÅÃ ¹öÆ° ºñÈ°¼ºÈ­
+	// ì ê¸ˆ ìºë¦­í„°ê°€ ì„ íƒë˜ì—ˆë‹¤ë©´ ì„ íƒ ë²„íŠ¼ ë¹„í™œì„±í™”
 	m_isSelectButtonDisabled = m_isLockedCharacterSelected;
 	
 	UIButton* selectButton = UIManager::GetInstance()->FindUIButton(GOID_SELECT_BUTTON);
 	if (selectButton) {
 		if (m_isSelectButtonDisabled) {
-			// ¹öÆ°À» ºñÈ°¼ºÈ­ »óÅÂ·Î º¯°æ
+			// ë²„íŠ¼ì„ ë¹„í™œì„±í™” ìƒíƒœë¡œ ì„¤ì •
 			selectButton->SetDisabled(true);
 		} else {
-			// ¹öÆ°À» È°¼ºÈ­ »óÅÂ·Î º¯°æ
+			// ë²„íŠ¼ì„ í™œì„±í™” ìƒíƒœë¡œ ì„¤ì •
 			selectButton->SetDisabled(false);
 		}
 	}
@@ -547,60 +547,60 @@ void CharacterSelectScene::UpdateSelectButtonState()
 
 void CharacterSelectScene::UpdateCharacterUnlockStatus()
 {
-	// °ÔÀÓ ÁøÇà »óÈ²¿¡ µû¶ó Ä³¸¯ÅÍ ÇØ±İ »óÅÂ ¾÷µ¥ÀÌÆ®
+	// í˜„ì¬ ì§„í–‰ ìƒí™©ì— ë”°ë¼ ìºë¦­í„° í•´ê¸ˆ ìƒíƒœ ì—…ë°ì´íŠ¸
 	for (auto& charInfo : m_characterList) {
 		charInfo.isUnlocked = m_gameProgress.IsCharacterUnlocked(charInfo.characterID);
 	}
 	
-	// UI ¿ä¼Òµé Àç»ı¼º
+	// UI ìš”ì†Œë“¤ ì¬ìƒì„±
 	CreateUI();
 }
 
 void CharacterSelectScene::UpdateManagers(float deltaTime)
 {
-	// CharacterSelectScene¿¡¼­´Â UIManager¿Í InputManager ¾÷µ¥ÀÌÆ®
+	// CharacterSelectSceneì—ì„œ UIManagerì™€ InputManager ì—…ë°ì´íŠ¸
 	UIManager::GetInstance()->Update(deltaTime);
 	InputManager::GetInstance()->Update(deltaTime);
 }
 
 void CharacterSelectScene::LateUpdateManagers()
 {
-	// CharacterSelectScene¿¡¼­´Â UIManager¿Í InputManager LateUpdate
+	// CharacterSelectSceneì—ì„œ UIManagerì™€ InputManager LateUpdate
 	UIManager::GetInstance()->LateUpdate();
 	InputManager::GetInstance()->LateUpdate();
 }
 
 void CharacterSelectScene::RenderManagers()
 {
-	// CharacterSelectScene¿¡¼­´Â UIManager¿Í InputManager ·»´õ¸µ
+	// CharacterSelectSceneì—ì„œ UIManagerì™€ InputManager ë Œë”ë§
 	UIManager::GetInstance()->Render();
 	InputManager::GetInstance()->Render();
 }
 
 void CharacterSelectScene::ReleaseManagers()
 {
-	// CharacterSelectScene¿¡¼­´Â UIManager¸¸ ÇØÁ¦
+	// CharacterSelectSceneì—ì„œ UIManager í•´ì œ
 	UIManager::GetInstance()->Release();
 }
 
 void CharacterSelectScene::InitializeManagers()
 {
-	OutputDebugStringW(L"CharacterSelectScene: ¸Å´ÏÀú ÃÊ±âÈ­ ½ÃÀÛ\n");
+	OutputDebugStringW(L"CharacterSelectScene: ë§¤ë‹ˆì € ì´ˆê¸°í™” ì‹œì‘\n");
 	
-	// CharacterSelectScene¿¡¼­´Â UIManager¿Í InputManager¸¸ ÃÊ±âÈ­
+	// CharacterSelectSceneì—ì„œ UIManagerì™€ InputManagerë¥¼ ì´ˆê¸°í™”
 	UIManager::GetInstance()->Init();
 	InputManager::GetInstance()->Init();
 	
-	OutputDebugStringW(L"CharacterSelectScene: ¸Å´ÏÀú ÃÊ±âÈ­ ¿Ï·á\n");
+	OutputDebugStringW(L"CharacterSelectScene: ë§¤ë‹ˆì € ì´ˆê¸°í™” ì™„ë£Œ\n");
 }
 
 void CharacterSelectScene::ReleaseAllManagers()
 {
-	OutputDebugStringW(L"CharacterSelectScene: ¸Å´ÏÀú ÇØÁ¦ ½ÃÀÛ\n");
+	OutputDebugStringW(L"CharacterSelectScene: ë§¤ë‹ˆì € í•´ì œ ì‹œì‘\n");
 	
-	// CharacterSelectScene¿¡¼­ »ç¿ëÇÑ ¸Å´ÏÀúµé ÇØÁ¦
+	// CharacterSelectSceneì—ì„œ ì‚¬ìš©í•œ ë§¤ë‹ˆì €ë“¤ í•´ì œ
 	InputManager::GetInstance()->Release();
 	UIManager::GetInstance()->Release();
 	
-	OutputDebugStringW(L"CharacterSelectScene: ¸Å´ÏÀú ÇØÁ¦ ¿Ï·á\n");
+	OutputDebugStringW(L"CharacterSelectScene: ë§¤ë‹ˆì € í•´ì œ ì™„ë£Œ\n");
 }

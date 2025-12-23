@@ -9,5 +9,4 @@ public:
 
     virtual void Init() override;
     virtual void OnInteraction(GameObject* obj) override;
-
 };

@@ -1,6 +1,6 @@
 #include "../../../99_Default/pch.h"
 #include "Player.h"
-#include "../../../03_Animation/Animator.h"
+
 #include "../../../01_Manager/InputManager/InputManager.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
@@ -11,6 +11,7 @@
 
 #include "../../../02_GameObject/UI/Inventory.h"
 
+#include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../../../03_Animation/SpriteSheet.h"
 
@@ -32,28 +33,63 @@ Player::~Player() { Release(); }
 
 void Player::Init()
 {
-	// Unity 스타일: Animator 컴포넌트 추가
-	Animator* animator = AddComponent<Animator>();
-	m_inventory = new Inventory();
+	// 부모 클래스(Entity)의 Init 호출 - Animator가 자동으로 생성됨
+	Entity::Init();
 
-	// Unity Animator 스타일 - 이벤트 콜백 설정
-	/*if (animator) {
-		animator->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-			this->OnAnimationEvent(frameIndex, eventName);
-		});
-	}*/
+	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 패턴 제거)
+	if (!m_animator) {
+		m_animator = AddComponent<Animator>();
+	}
+	if (m_animator) {
+		ResourceManager* pRM = ResourceManager::GetInstance();
+
+		// IDLE
+		m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN,  pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Down.png"),
+			126, 189, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP,    pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Up.png"),
+			128, 193, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT,  pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
+			135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
+			135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
+
+		// WALK(RUN)
+		m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN,  pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Down.png"),
+			139, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP,    pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Up.png"),
+			133, 231, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT,  pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
+			141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
+		m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
+			141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
+
+		// PICKUP
+		std::wstring pickupPath = pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png");
+		for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
+				127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
+		}
+
+		// CHOP (이벤트 포함)
+		std::map<int, std::wstring> chopEvents = { {4, L"chop_hit"} };
+		std::wstring chopPath = pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png");
+		for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)PlayerState::CHOP, (Direction)dir, chopPath,
+				284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
+		}
+	}
 	
-	RegisterAllAnimations(); // Unity Animator 스타일 애니메이션 등록
+	m_inventory = new Inventory();
+	
 	UpdateAnimatorState(); // 초기 상태 설정
 	
-	// 초기 크기 설정 (애니메이션 클립에서 첫 번째 프레임으로 크기 설정)
-	if (animator) {
-		const AnimationFrame& frame = animator->GetCurrentFrame();
+	// 초기 크기 설정
+	if (m_animator) {
+		const AnimationFrame& frame = m_animator->GetCurrentFrame();
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 		
-		// Animator 초기화 확인
-		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
+		const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
 		if (spriteSheet) {
 			OutputDebugStringW(L"Player: Animator 초기화 완료 - SpriteSheet 로드됨\n");
 		} else {
@@ -142,106 +178,17 @@ void Player::Damaged(int damage)
 //	}
 //}
 
-void Player::RegisterAllAnimations() {
-    OutputDebugStringW(L"Player: RegisterAllAnimations 시작\n");
-    
-    // Unity Animator 스타일 - Animator에 모든 애니메이션 등록
-    
-    // ResourceManager를 사용하여 리소스 로드
-	ResourceManager* pRM = ResourceManager::GetInstance();
-    
-    // IDLE 애니메이션들
-    std::wstring idleDownPath = pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Down.png");
-
-    Animator* animator = GetComponent<Animator>();
-    if (!animator) return;
-    
-    animator->RegisterAnimation(PlayerState::IDLE, DIR_DOWN,
-        idleDownPath,
-        126, 189, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
-        
-    OutputDebugStringW(L"Player: IDLE_DOWN 애니메이션 등록 완료\n");
-        
-    animator->RegisterAnimation(PlayerState::IDLE, DIR_UP,
-        pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Up.png"),
-        128, 193, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
-        
-    animator->RegisterAnimation(PlayerState::IDLE, DIR_LEFT,
-        pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
-		135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
-        
-    animator->RegisterAnimation(PlayerState::IDLE, DIR_RIGHT,
-        pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
-        135, 194, 7, 64, 0.03f, m_pivotX, m_pivotY, true);
-
-    // WALK 애니메이션들
-    animator->RegisterAnimation(PlayerState::WALK, DIR_DOWN,
-        pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Down.png"),
-        139, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
-        
-    animator->RegisterAnimation(PlayerState::WALK, DIR_UP,
-        pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Up.png"),
-        133, 231, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
-        
-    animator->RegisterAnimation(PlayerState::WALK, DIR_LEFT,
-        pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
-        141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
-        
-    animator->RegisterAnimation(PlayerState::WALK, DIR_RIGHT,
-        pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
-        141, 226, 6, 33, 0.03f, m_pivotX, m_pivotY, true);
-
-    // PICKUP 애니메이션들 (모든 방향에서 동일한 이미지 사용)
-    animator->RegisterAnimation(PlayerState::PICKUP, DIR_DOWN,
-        pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
-        127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
-        
-    animator->RegisterAnimation(PlayerState::PICKUP, DIR_UP,
-        pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
-        127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
-        
-    animator->RegisterAnimation(PlayerState::PICKUP, DIR_LEFT,
-        pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
-        127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
-        
-    animator->RegisterAnimation(PlayerState::PICKUP, DIR_RIGHT,
-        pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png"),
-        127, 201, 6, 20, 0.03f, m_pivotX, m_pivotY, false);
-
-    // CHOP 애니메이션 (이벤트 포함)
-    std::map<int, std::wstring> chopEvents = {{4, L"chop_hit"}};
-    animator->RegisterAnimation(PlayerState::CHOP, DIR_DOWN,
-        pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
-        284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
-        
-    animator->RegisterAnimation(PlayerState::CHOP, DIR_UP,
-        pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
-        284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
-        
-    animator->RegisterAnimation(PlayerState::CHOP, DIR_LEFT,
-        pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
-        284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
-        
-    animator->RegisterAnimation(PlayerState::CHOP, DIR_RIGHT,
-        pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png"),
-        284, 248, 6, 54, 0.03f, m_pivotX + 0.1f, m_pivotY, false, chopEvents);
-}
-
 void Player::UpdateAnimatorState() {
-    // Unity Animator 스타일 - 상태와 방향만 설정하면 자동으로 애니메이션 전환
-	Animator* animator = GetComponent<Animator>();
-	if (animator) {
-		animator->SetState(m_state, m_direction);	
+	if (m_animator) {
+		m_animator->SetState(static_cast<int>(m_state), m_direction);	
 	}
 
-	if (animator) {
-		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
+	if (m_animator) {
+		const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
 		if(spriteSheet != nullptr)
 			m_orignalBitmap = spriteSheet->GetBitmap();
 	}
 }
-
-
 
 void Player::SetTargetPosition(float worldX, float worldY) {
 	m_targetWorldPos = Gdiplus::PointF(worldX, worldY);
@@ -271,14 +218,18 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 
 void Player::Update(float deltaTime) 
 {
+	HandleMovement();
+	
 	float moveSpeedThisFrame = m_playerSpeed * deltaTime;
 
-	if ((m_state == PlayerState::WALK && isMoveToGoal) || isMoveToGoal) {
+	if ((m_state == PlayerState::WALK && isMoveToGoal) || isMoveToGoal)
+	{
 		float dx = m_targetWorldPos.X - this->m_x;
 		float dy = m_targetWorldPos.Y - this->m_y;
 		float distance = std::sqrt(dx * dx + dy * dy);
 		isMoveToGoal = true;
 		correctValue = 0;
+
 		if (distance <= m_stopThreshold) { 
 			this->m_x = m_targetWorldPos.X;
 			this->m_y = m_targetWorldPos.Y;
@@ -315,22 +266,17 @@ void Player::Update(float deltaTime)
 			this->m_x += moveX;
 			this->m_y += moveY;
 			m_state = PlayerState::WALK; 
-			UpdateAnimatorState(); // WALK 애니메이션으로 전환
-
-			// 이동 중에 방향 변경 (SetTargetPosition에서 이미 처리한 경우)
-			// 방향 변경은 SetTargetPosition에서 이미 처리됨
-			// 여기서는 애니메이션 상태만 업데이트
-		}
-	}
-	else if (m_state == PlayerState::CHOP || m_state == PlayerState::PICKUP) { 
-		// PICKUP 애니메이션 완료 대기 (애니메이션이 끝나면 상호작용 완료)
-		Animator* animator = GetComponent<Animator>();
-		if (m_state == PlayerState::PICKUP && animator && animator->IsAnimationDone()) {
-			FinalizeInteraction();
-			m_state = PlayerState::IDLE;
 			UpdateAnimatorState(); 
 		}
-		// CHOP 같은 애니메이션은 이벤트로 처리되기 때문에 여기서 상태만 유지
+	}
+	else if (m_state == PlayerState::CHOP || m_state == PlayerState::PICKUP) 		
+	{
+		if (m_state == PlayerState::PICKUP && m_animator && m_animator->IsAnimationDone()) 
+		{
+			FinalizeInteraction();
+			m_state = PlayerState::IDLE;
+			UpdateAnimatorState();
+		}
 	}
 
 	// 건물 제작 코드 주석
@@ -366,9 +312,8 @@ void Player::Update(float deltaTime)
 	// 애니메이션 업데이트는 GameObject::Update()에서 컴포넌트의 Update()를 통해 자동으로 처리됨
 	
 	// 현재 프레임의 크기로 크기 업데이트
-	Animator* animator = GetComponent<Animator>();
-	if (animator) {
-		const AnimationFrame& frame = animator->GetCurrentFrame();
+	if (m_animator) {
+		const AnimationFrame& frame = m_animator->GetCurrentFrame();
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 	}
@@ -387,10 +332,7 @@ void Player::FinalizeInteraction() {
 	GameObjectID objID = m_currentInteractionTarget->GetID();
 	GameObjectType objType = m_currentInteractionTarget->GetType();
 	
-	// 오브젝트 타입과 ID에 따라 상호작용 처리 방법
 	if (objType == GOBJ_ITEM) {
-		// 일반 Ingredient 아이템 처리
-		// 인벤토리 아이템은 ObjectManager에 추가하지 않음 (addToManager = false)
 		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(objID, 0.0f, 0.0f, nullptr, false);
 		Item* item = dynamic_cast<Item*>(itemObj);
 		if (item && m_inventory->AddItem(item, 1)) 
@@ -400,17 +342,12 @@ void Player::FinalizeInteraction() {
 		}
 	}
 	else if (objType == GOBJ_NATURAL_ENVIR) {
-		// 자연 환경 오브젝트 처리 (BerryBush, Grass, Sapling)
-		// Entity의 가상 함수를 사용하여 드롭 아이템 정보 가져오기
 		Entity* entity = dynamic_cast<Entity*>(m_currentInteractionTarget);
 		if (entity) {
 			GameObjectID itemID = entity->GetDropItemID();
 			int itemCount = entity->GetDropItemCount();
 			
-			// 드롭 아이템이 설정되어 있는 경우에만 처리
 			if (itemID != GOID_NONE && itemCount > 0) {
-				// 해당 아이템을 생성하여 인벤토리에 추가
-				// 인벤토리 아이템은 ObjectManager에 추가하지 않음 (addToManager = false)
 				GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(itemID, 0.0f, 0.0f, nullptr, false);
 				Item* item = dynamic_cast<Item*>(itemObj);
 				if (item && m_inventory->AddItem(item, itemCount)) 
@@ -422,9 +359,7 @@ void Player::FinalizeInteraction() {
 		}
 	}
 
-	m_currentInteractionTarget = nullptr; // 상호작용 대상 초기화
-	
-	// pickup 완료 후 Direction을 DIR_DOWN으로 설정
+	m_currentInteractionTarget = nullptr; 
 	m_direction = DIR_DOWN;
 	UpdateAnimatorState();
 }
@@ -447,30 +382,24 @@ void Player::OnInteraction(GameObject* obj)
 		return;
 	}
 
-	// m_currentInteractionTarget는 이미 SetInteractionTarget에서 설정됨
-	// 여기서 다시 설정하지 않음
-
-	// 오브젝트 타입에 따라 상호작용 처리
 	GameObjectID objID = obj->GetID();
 	GameObjectType objType = obj->GetType();
 	
-	// 나무 타입인지 확인 (ID 기반으로 정확히 체크)
 	if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) { 
-		m_state = PlayerState::CHOP; // 상태 변경
+		m_state = PlayerState::CHOP; 
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator에서 자동으로 애니메이션 전환
+		UpdateAnimatorState();
 	}
 	else if (objType == GOBJ_NATURAL_ENVIR) {
-		// 자연 환경 오브젝트는 (BerryBush, Grass, Sapling)은 PICKUP
-		m_state = PlayerState::PICKUP; // 상태 변경  
+
+		m_state = PlayerState::PICKUP; 	
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator에서 자동으로 애니메이션 전환
+		UpdateAnimatorState();
 	}
 	else {
-		// 기타 상호작용 가능한 오브젝트는 PICKUP
-		m_state = PlayerState::PICKUP; // 상태 변경  
+		m_state = PlayerState::PICKUP;  
 		correctValue = 10;
-		UpdateAnimatorState(); // Unity Animator에서 자동으로 애니메이션 전환
+		UpdateAnimatorState();
 	}
 }
 
@@ -536,9 +465,8 @@ void Player::HandleMovement()
 		// 화면 좌표를 월드 좌표로 변환
 		CameraManager* cameraManager = CameraManager::GetInstance();
 		if (cameraManager) {
-			Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(mouseX, mouseY);
+			Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(mouseX, mouseY);		
 			
-			// 클릭 상호작용 처리
 			HandleClickInteraction(worldPos.X, worldPos.Y);
 		}
 	}

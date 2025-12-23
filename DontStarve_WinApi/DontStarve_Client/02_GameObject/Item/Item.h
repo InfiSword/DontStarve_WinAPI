@@ -11,5 +11,5 @@ public:
     virtual ~Item(); 
 
 private:
-    void LoadBitmap();  // ��Ʈ�� �ε� �Լ�
+    void LoadBitmap();  
 };

@@ -1,10 +1,12 @@
 #include "../../99_Default/pch.h"
 #include "Entity.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
+#include "../../03_Animation/Animator.h"
 
 Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
 	const std::wstring& resourcePath, const std::wstring& imageName, bool isActive, bool isInteractive)
-    :GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, isActive, isInteractive)
+    :GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, isActive, isInteractive),
+     m_animator(nullptr)
 {
 
 }
@@ -13,7 +15,14 @@ Entity::~Entity()
 {
 }
 
-// ë°©í–¥ ê´€ë ¨ ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
+void Entity::Init()
+{
+    // ÇÏÀ§ Å¬·¡½º¿¡¼­ ÇÊ¿ä½Ã Animator¸¦ »ý¼ºÇÏ°í RegisterAnimationÀ» Á÷Á¢ È£ÃâÇÏµµ·Ï º¯°æ
+    // GetAnimationDefinitions ÆÐÅÏ Á¦°Å
+    GameObject::Init();
+}
+
+// ¹æÇâ °ü·Ã À¯Æ¿¸®Æ¼ ÇÔ¼öµé
 Direction Entity::GetOppositeDirection(Direction dir)
 {
     switch (dir)
@@ -26,7 +35,7 @@ Direction Entity::GetOppositeDirection(Direction dir)
     }
 }
 
-// ê±°ë¦¬ ê³„ì‚° ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
+// °Å¸® °è»ê À¯Æ¿¸®Æ¼ ÇÔ¼öµé
 float Entity::CalculateDistance(float x1, float y1, float x2, float y2)
 {
     float dx = x2 - x1;
@@ -39,7 +48,7 @@ Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, floa
     float dx = toX - fromX;
     float dy = toY - fromY;
     
-    // ì ˆëŒ“ê°’ì´ ë” í° ë°©í–¥ì„ ìš°ì„ ì ìœ¼ë¡œ ì„ íƒ
+    // Àý´ñ°ªÀÌ ´õ Å« ¹æÇâÀ» ¿ì¼±ÀûÀ¸·Î ¼±ÅÃ
     if (abs(dx) > abs(dy))
     {
         return (dx > 0) ? DIR_RIGHT : DIR_LEFT;
@@ -50,10 +59,10 @@ Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, floa
     }
 }
 
-// í™”ë©´ ë²”ìœ„ í™•ì¸ í•¨ìˆ˜
+// È­¸é ¹üÀ§ È®ÀÎ ÇÔ¼ö
 bool Entity::IsPositionInScreenBounds(float x, float y)
 {
-    // í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜í•˜ì—¬ í™•ì¸
+    // È­¸é ÁÂÇ¥·Î º¯È¯ÇÏ¿© È®ÀÎ
     Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(x, y);
     
     return (screenPos.X >= 0 && screenPos.X <= WINCX && 

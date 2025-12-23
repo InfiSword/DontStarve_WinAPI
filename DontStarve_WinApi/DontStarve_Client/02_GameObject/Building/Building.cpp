@@ -21,10 +21,10 @@ void Building::Init()
     m_buildingState = BUILDING_NOON;
     m_direction = DIR_DOWN;
     
-    // ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½Îµï¿½
+    // ºñÆ®¸Ê ·Îµå
     LoadBitmap();
     
-    // ï¿½ï¿½Æ®ï¿½Ê¿ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    // ºñÆ®¸Ê Å©±â ¼³Á¤
     if (m_orignalBitmap) {
         this->m_width = static_cast<float>(m_orignalBitmap->GetWidth());
         this->m_height = static_cast<float>(m_orignalBitmap->GetHeight());
@@ -37,7 +37,7 @@ void Building::LateInit()
 
 void Building::Update(float deltaTime)
 {
-    // ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+    // ÇÊ¿ä ½Ã »óÅÂ¿¡ µû¸¥ ¾÷µ¥ÀÌÆ®
 }
 
 void Building::LateUpdate()

@@ -1,20 +1,20 @@
 #pragma once
 
-// BaseScene: ¸ğµç SceneÀÇ ºÎ¸ğ°¡ µÇ´Â Ãß»ó Å¬·¡½º
+// BaseScene: ëª¨ë“  Sceneì˜ ë¶€ëª¨ê°€ ë˜ëŠ” ì¶”ìƒ í´ë˜ìŠ¤
 class BaseScene
 {
 public:
 	BaseScene() = default;
 	virtual ~BaseScene() = default;
 
-	// ±âº» ÇÊ¼ö ÇÔ¼öµé - ¸ğµç Scene¿¡¼­ ±¸ÇöÇØ¾ß ÇÔ
+	// ê¸°ë³¸ í•„ìˆ˜ í•¨ìˆ˜ë“¤ - ëª¨ë“  Sceneì—ì„œ êµ¬í˜„í•´ì•¼ í•¨
 	virtual void Init() = 0;
 	virtual void Update(float deltaTime) = 0;
 	virtual void LateUpdate() = 0;
 	virtual void Render() = 0;
 	virtual void Release() = 0;
 
-	// ¾ÀÀÇ SceneType ¹İÈ¯ (UI/°ÔÀÓ ¾À ÀüÈ¯ ½Ã »ç¿ë, °¢ Enum¿¡¼­ Á¤ÀÇ)
+	// í˜„ì¬ SceneType ë°˜í™˜ (UI/ì”¬ ì „í™˜ ì‹œ í•„ìš”, ì´ Enumì€ ë‹¤ë¥¸ ê³³ì—ì„œ ì •ì˜)
 	virtual SceneType GetSceneType() const = 0;
 	
 	virtual void UpdateManagers(float deltaTime) = 0;
@@ -22,7 +22,7 @@ public:
 	virtual void RenderManagers() = 0;
 	virtual void ReleaseManagers() = 0;
 
-	// ¸Å´ÏÀú ÃÊ±âÈ­/ÇØÁ¦ ÇÔ¼öµé
+	// ë§¤ë‹ˆì € ì´ˆê¸°í™”/í•´ì œ í•¨ìˆ˜ë“¤
 	virtual void InitializeManagers() = 0;
 	virtual void ReleaseAllManagers() = 0;
 
