@@ -17,12 +17,10 @@ Entity::~Entity()
 
 void Entity::Init()
 {
-    // ÇÏÀ§ Å¬·¡½º¿¡¼­ ÇÊ¿ä½Ã Animator¸¦ »ý¼ºÇÏ°í RegisterAnimationÀ» Á÷Á¢ È£ÃâÇÏµµ·Ï º¯°æ
-    // GetAnimationDefinitions ÆÐÅÏ Á¦°Å
     GameObject::Init();
 }
 
-// ¹æÇâ °ü·Ã À¯Æ¿¸®Æ¼ ÇÔ¼öµé
+// ë°©í–¥ ê´€ë ¨ ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
 Direction Entity::GetOppositeDirection(Direction dir)
 {
     switch (dir)
@@ -35,7 +33,7 @@ Direction Entity::GetOppositeDirection(Direction dir)
     }
 }
 
-// °Å¸® °è»ê À¯Æ¿¸®Æ¼ ÇÔ¼öµé
+// ê±°ë¦¬ ê³„ì‚° ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
 float Entity::CalculateDistance(float x1, float y1, float x2, float y2)
 {
     float dx = x2 - x1;
@@ -48,7 +46,7 @@ Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, floa
     float dx = toX - fromX;
     float dy = toY - fromY;
     
-    // Àý´ñ°ªÀÌ ´õ Å« ¹æÇâÀ» ¿ì¼±ÀûÀ¸·Î ¼±ÅÃ
+    // ì ˆëŒ“ê°’ì´ ë” í° ë°©í–¥ì„ ìš°ì„ ì ìœ¼ë¡œ ì„ íƒ
     if (abs(dx) > abs(dy))
     {
         return (dx > 0) ? DIR_RIGHT : DIR_LEFT;
@@ -59,10 +57,10 @@ Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, floa
     }
 }
 
-// È­¸é ¹üÀ§ È®ÀÎ ÇÔ¼ö
+// í™”ë©´ ë²”ìœ„ í™•ì¸ í•¨ìˆ˜
 bool Entity::IsPositionInScreenBounds(float x, float y)
 {
-    // È­¸é ÁÂÇ¥·Î º¯È¯ÇÏ¿© È®ÀÎ
+    // í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜í•˜ì—¬ í™•ì¸
     Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(x, y);
     
     return (screenPos.X >= 0 && screenPos.X <= WINCX && 

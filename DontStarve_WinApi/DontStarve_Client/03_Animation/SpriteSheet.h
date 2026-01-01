@@ -14,7 +14,9 @@ public:
     
     ~SpriteSheet();
     
-    // 원본 비트맵 접근자 (렌더링용)
+
+
+	// 원본 비트맵 접근자 (렌더링용)
     Gdiplus::Bitmap* GetBitmap() const { return m_pSheetBitmap.get(); }
     
     // 프레임 추출
