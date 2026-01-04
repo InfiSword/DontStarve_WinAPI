@@ -226,7 +226,7 @@ void GameScene::CreateGameObjectsFromMapData()
 
 	int createdCount = 0;
 	for (const auto& objData : m_mapData.gameObjects) {
-		// 맵 데이터의 GameObjectData를 GameObjectData로 변환
+		// 맵 파일의 콜라이더 정보를 포함한 resourceData 생성
 		GameObjectData resourceData;
 		resourceData.id = objData.id;
 		resourceData.type = objData.type;
@@ -236,6 +236,11 @@ void GameScene::CreateGameObjectsFromMapData()
 		resourceData.assetImageName = objData.assetImageName;
 		resourceData.pivotX = objData.pivotX;
 		resourceData.pivotY = objData.pivotY;
+		resourceData.hasCollider = objData.hasCollider;
+		resourceData.colliderOffsetX = objData.colliderOffsetX;
+		resourceData.colliderOffsetY = objData.colliderOffsetY;
+		resourceData.colliderWidth = objData.colliderWidth;
+		resourceData.colliderHeight = objData.colliderHeight;
 		
 		// 리소스 데이터와 함께 게임 오브젝트 생성
 		GameObject* obj = objectManager->CreateGameObject(objData.id, objData.x, objData.y, &resourceData);

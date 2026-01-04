@@ -9,7 +9,4 @@ public:
         float x = 0.0f, float y = 0.0f, float pivotX = 0.5f, float pivotY = 0.5f,
         Direction dir = DIR_DOWN, bool isActive = true, bool isInteractive = false);
     virtual ~Item(); 
-
-private:
-    void LoadBitmap();  
 };

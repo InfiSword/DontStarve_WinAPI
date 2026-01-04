@@ -34,11 +34,9 @@ public:
 	float GetInteractionRadius() const { return m_stopThreshold + 10.0f; }
 	Item* GetEquippedItem() const { return m_equippedItem; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
-
 	GameObject* GetInteractionTarget() const { return m_currentInteractionTarget; }
 
 	void ToggleEquipItem(int slotIndex);
-	//void OnAnimationEvent(int frameIndex, const std::wstring& eventName);
 
 	virtual void Damaged(int damage) override;
 

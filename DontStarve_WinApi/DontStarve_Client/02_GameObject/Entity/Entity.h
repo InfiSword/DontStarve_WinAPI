@@ -2,13 +2,21 @@
 #include "../GameObject.h"
 
 class Animator;
+class Transform;
+class SpriteRenderer;
+class Collider;
 
 class Entity : public GameObject
 {
 protected:
-    GameObjectID m_dropItemID;  // 드랍 아이템의 ID
+    GameObjectID m_dropItemID;  // 드롭 아이템 ID
     int m_dropItemCount;
     Animator* m_animator;       // 애니메이션을 위한 Animator 컴포넌트
+
+	// Component 캐싱( 최적화 )
+	Transform* transform;
+	SpriteRenderer* spriteRenderer;
+	Collider* collider;
 
 public:
     Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
@@ -16,27 +24,17 @@ public:
            bool isActive = true, bool isInteractive = false);
     virtual ~Entity();
 
-    // 초기화 - Animator 생성
+    // 초기화 - Animator 설정
     virtual void Init() override;
 
     // 데미지 처리
     virtual void Damaged(int damage) = 0;
 
-    // 드랍 아이템 관련 함수
+    // 드롭 아이템 관련 가상 함수들
     virtual GameObjectID GetDropItemID() const { return GOID_NONE; }
     virtual int GetDropItemCount() const { return 0; }
-    virtual void SetDropItem(GameObjectID itemID, int count = 1) {}
-    
-    // 방향 관련 유틸리티 함수들
-    Direction GetOppositeDirection(Direction dir);
+    virtual void SetDropItem(GameObjectID itemID, int count = 1) {}   
 
-    // 거리 계산 유틸리티 함수들
-    float CalculateDistance(float x1, float y1, float x2, float y2);
-    Direction GetDirectionToTarget(float fromX, float fromY, float toX, float toY);
-
-    // 화면 범위 확인 함수
-    bool IsPositionInScreenBounds(float x, float y);
-    
     // Animator 접근자
     Animator* GetAnimator() const { return m_animator; }
 };

@@ -2,6 +2,7 @@
 #include "ColliderManager.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../02_GameObject/GameObject.h"
+#include "../../02_GameObject/Component/Collider.h"
 
 ColliderManager::ColliderManager()
 {
@@ -23,40 +24,25 @@ void ColliderManager::LateInit()
 
 void ColliderManager::Update(float deltaTime)
 {
-    // ëª¨ë“  ê²Œìž„ì˜¤ë¸Œì íŠ¸ì˜ ì½œë¼ì´ë” ìœ„ì¹˜ ì—…ë°ì´íŠ¸ 
+    // ¸ðµç °ÔÀÓ¿ÀºêÁ§Æ®ÀÇ ÄÝ¶óÀÌ´õ À§Ä¡ ¾÷µ¥ÀÌÆ® 
 }
 
 void ColliderManager::LateUpdate()
 {
-    // ëª¨ë“  ì˜¤ë¸Œì íŠ¸ì˜ ì¶©ëŒ ê²€ì‚¬ ì²˜ë¦¬ 
+    // ¸ðµç ¿ÀºêÁ§Æ®ÀÇ Ãæµ¹ °Ë»ç Ã³¸® 
 }
 
-void ColliderManager::Render(Gdiplus::Graphics* pGraphics)
+void ColliderManager::RenderGizmos()
 {
-    // ë””ë²„ê·¸ìš© ì½œë¼ì´ë” ë°•ìŠ¤ ê·¸ë¦¬ê¸° 
-    if (!pGraphics || !CameraManager::GetInstance()) return;
-
-    Gdiplus::Pen debugPen(Gdiplus::Color(255, 255, 0, 0), 1); 
-
+    // ¸ðµç ÄÝ¶óÀÌ´õÀÇ Gizmo ·»´õ¸µ (°¢ Collider°¡ È°¼ºÈ­ ¿©ºÎ¸¦ È®ÀÎÇÔ)
     for (Collider* pCollider : m_colliders) {
-        if (pCollider && pCollider->m_pOwner) {
-            // ì½œë¼ì´ë”ì˜ ì›”ë“œ ì¢Œí‘œë¥¼ í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜
-            Gdiplus::PointF screenTopLeft = CameraManager::GetInstance()->WorldToScreen(pCollider->m_boundingBox.left, pCollider->m_boundingBox.top);
-            Gdiplus::PointF screenBottomRight = CameraManager::GetInstance()->WorldToScreen(pCollider->m_boundingBox.right, pCollider->m_boundingBox.bottom);
-
-            float scaledWidth = screenBottomRight.X - screenTopLeft.X;
-            float scaledHeight = screenBottomRight.Y - screenTopLeft.Y;
-
-            pGraphics->DrawRectangle(&debugPen, Gdiplus::RectF(screenTopLeft.X, screenTopLeft.Y, scaledWidth, scaledHeight));
-        }
+        pCollider->RenderGizmo();
     }
 }
 
 void ColliderManager::Release()
 {
-    for (Collider* pCollider : m_colliders) {
-        SafeDelete(pCollider); 
-    }
+    // Collider »èÁ¦´Â Component »ý¸íÁÖ±â¿¡¼­ Ã³¸®ÇÏ¹Ç·Î ¿©±â¼­´Â ¸®½ºÆ®¸¸ ºñ¿ò
     m_colliders.clear();
 }
 
@@ -69,34 +55,31 @@ void ColliderManager::AddCollider(Collider* pCollider)
 
 void ColliderManager::RemoveCollider(Collider* pCollider)
 {
-    // ë¦¬ìŠ¤íŠ¸ì—ì„œ ì½œë¼ì´ë” ì œê±° ë° ì‚­ì œ
+    // ¸®½ºÆ®¿¡¼­ ÄÝ¶óÀÌ´õ Á¦°Å¸¸ ¼öÇà (»èÁ¦´Â Component »ý¸íÁÖ±â¿¡¼­ Ã³¸®)
     m_colliders.erase(std::remove(m_colliders.begin(), m_colliders.end(), pCollider), m_colliders.end());
-    SafeDelete(pCollider);
 }
 
-GameObject* ColliderManager::CheckPointCollision(POINT screenPos)
+bool ColliderManager::CheckCollision(GameObject* obj1, GameObject* obj2)
 {
-    if (!CameraManager::GetInstance()) return nullptr;
-
-    // í™”ë©´ ì¢Œí‘œë¥¼ ì›”ë“œ ì¢Œí‘œë¡œ ë³€í™˜
-    Gdiplus::PointF worldPos = CameraManager::GetInstance()->ScreenToWorld(screenPos.x, screenPos.y);
-
-    for (Collider* pCollider : m_colliders) {
-        if (pCollider && pCollider->m_pOwner) {
-
-            RECT worldBoundingBox = pCollider->m_boundingBox;
-
-            RECT actualWorldRect = {
-                (int)pCollider->m_pOwner->GetX() + worldBoundingBox.left,
-                (int)pCollider->m_pOwner->GetY() + worldBoundingBox.top,
-                (int)pCollider->m_pOwner->GetX() + worldBoundingBox.right,
-                (int)pCollider->m_pOwner->GetY() + worldBoundingBox.bottom
-            };
-
-            if (PtInRect(&actualWorldRect, { (int)worldPos.X, (int)worldPos.Y })) {
-                return pCollider->m_pOwner;
-            }
-        }
+    // À¯È¿¼º °Ë»ç
+    if (!obj1 || !obj2 || obj1 == obj2) {
+        return false;
     }
-    return nullptr;
+
+    // µÎ ¿ÀºêÁ§Æ®°¡ ¸ðµÎ È°¼ºÈ­µÇ¾î ÀÖ¾î¾ß ÇÔ
+    if (!obj1->IsEnabled() || !obj2->IsEnabled()) {
+        return false;
+    }
+
+    // µÎ ¿ÀºêÁ§Æ®ÀÇ Collider Component °¡Á®¿À±â
+    Collider* collider1 = obj1->GetComponent<Collider>();
+    Collider* collider2 = obj2->GetComponent<Collider>();
+
+    // µÎ ¿ÀºêÁ§Æ® ¸ðµÎ Collider°¡ ÀÖ¾î¾ß Ãæµ¹ °Ë»ç °¡´É
+    if (!collider1 || !collider2) {
+        return false;
+    }
+
+    // µÎ ÄÝ¶óÀÌ´õ °£ÀÇ Ãæµ¹ °Ë»ç (Á¢ÃËÇÑ µÎ ¿ÀºêÁ§Æ®¸¸ Ã³¸®)
+    return collider1->IntersectsCollider(collider2);
 }

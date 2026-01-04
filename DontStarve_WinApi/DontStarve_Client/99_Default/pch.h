@@ -15,6 +15,7 @@
 #include <fstream>   
 #include <algorithm> 
 #include <sstream>   
+#include <cmath>
 #include <mmsystem.h> 
 #pragma comment(lib, "winmm.lib") 
 

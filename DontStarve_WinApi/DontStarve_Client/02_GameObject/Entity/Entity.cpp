@@ -2,13 +2,32 @@
 #include "Entity.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../03_Animation/Animator.h"
+#include "../../02_GameObject/Component/Transform/Transform.h"
+#include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
+#include "../../02_GameObject/Component/Collider/BoxCollider.h"
+#include "../../02_GameObject/Component/Collider/CircleCollider.h"
+#include "../../01_Manager/ResourceManager/ResourceManager.h"
 
 Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
 	const std::wstring& resourcePath, const std::wstring& imageName, bool isActive, bool isInteractive)
-    :GameObject(type, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, isActive, isInteractive),
-     m_animator(nullptr)
+	:GameObject(type, id, resourcePath, imageName, isActive, isInteractive),
+	m_animator(nullptr)
 {
+	// Transform 컴포넌트 추가
+	Transform* transform = AddComponent<Transform>();
+	transform->SetPosition(x, y);
+	transform->SetPivot(pivotX, pivotY);
+	transform->SetDirection(_dir);
 
+	// SpriteRenderer 컴포넌트 추가
+	SpriteRenderer* spriteRenderer = AddComponent<SpriteRenderer>();
+	spriteRenderer->SetLayer(LAYER_WORLD_OBJECT);
+	if (!imageName.empty())
+	{
+		spriteRenderer->LoadSprite(id, imageName);
+		// Transform은 이제 Scale만 관리 (기본값 1.0f)
+		// 크기는 sprite의 실제 크기를 사용하므로 Transform에 설정할 필요 없음
+	}
 }
 
 Entity::~Entity()
@@ -17,52 +36,61 @@ Entity::~Entity()
 
 void Entity::Init()
 {
-    GameObject::Init();
-}
+	GameObject::Init();
 
-// 방향 관련 유틸리티 함수들
-Direction Entity::GetOppositeDirection(Direction dir)
-{
-    switch (dir)
-    {
-    case DIR_UP:    return DIR_DOWN;
-    case DIR_DOWN:  return DIR_UP;
-    case DIR_LEFT:  return DIR_RIGHT;
-    case DIR_RIGHT: return DIR_LEFT;
-    default:        return DIR_NONE;
-    }
-}
+	// Transform 컴포넌트 캐싱
+	transform = GetComponent<Transform>();
+	spriteRenderer = GetComponent<SpriteRenderer>();
+	if (!transform || !spriteRenderer) return;
 
-// 거리 계산 유틸리티 함수들
-float Entity::CalculateDistance(float x1, float y1, float x2, float y2)
-{
-    float dx = x2 - x1;
-    float dy = y2 - y1;
-    return sqrtf(dx * dx + dy * dy);
-}
+	// ResourceManager에서 콜라이더 정보 가져오기
+	ResourceManager* resourceManager = ResourceManager::GetInstance();
+	const GameObjectData* resourceData = resourceManager ? resourceManager->GetObjectResourceInfo(m_id) : nullptr;
 
-Direction Entity::GetDirectionToTarget(float fromX, float fromY, float toX, float toY)
-{
-    float dx = toX - fromX;
-    float dy = toY - fromY;
-    
-    // 절댓값이 더 큰 방향을 우선적으로 선택
-    if (abs(dx) > abs(dy))
-    {
-        return (dx > 0) ? DIR_RIGHT : DIR_LEFT;
-    }
-    else
-    {
-        return (dy > 0) ? DIR_DOWN : DIR_UP;
-    }
-}
+	ColliderType colliderType = COLLIDER_BOX; // 기본값
+	if (resourceData && resourceData->hasCollider) {
+		colliderType = resourceData->colliderType;
+	}
 
-// 화면 범위 확인 함수
-bool Entity::IsPositionInScreenBounds(float x, float y)
-{
-    // 화면 좌표로 변환하여 확인
-    Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(x, y);
-    
-    return (screenPos.X >= 0 && screenPos.X <= WINCX && 
-            screenPos.Y >= 0 && screenPos.Y <= WINCY);
+	if (colliderType == COLLIDER_BOX) {
+		// BoxCollider 컴포넌트 추가
+		BoxCollider* collider = AddComponent<BoxCollider>();
+
+		if (collider && resourceData && resourceData->hasCollider) {
+			// ResourceManager의 GameObjectData에서 콜라이더 정보를 BoxCollider에 설정
+			collider->SetMapColliderData(
+				resourceData->hasCollider,
+				resourceData->colliderOffsetX,
+				resourceData->colliderOffsetY,
+				resourceData->colliderWidth,
+				resourceData->colliderHeight
+			);
+			collider->SetBoundingBox(
+				resourceData->colliderOffsetX,
+				resourceData->colliderOffsetY,
+				resourceData->colliderWidth,
+				resourceData->colliderHeight
+			);
+		}
+	}
+	else if (colliderType == COLLIDER_CIRCLE) {
+		// CircleCollider 컴포넌트 추가
+		CircleCollider* collider = AddComponent<CircleCollider>();
+
+		if (collider && resourceData && resourceData->hasCollider) {
+			// ResourceManager의 GameObjectData에서 콜라이더 정보를 CircleCollider에 설정
+			collider->SetMapColliderData(
+				resourceData->hasCollider,
+				(int)resourceData->colliderCenterX,
+				(int)resourceData->colliderCenterY,
+				(int)(resourceData->colliderRadius * 2.0f),
+				(int)(resourceData->colliderRadius * 2.0f)
+			);
+			collider->SetCircle(
+				resourceData->colliderCenterX,
+				resourceData->colliderCenterY,
+				resourceData->colliderRadius
+			);
+		}
+	}
 }

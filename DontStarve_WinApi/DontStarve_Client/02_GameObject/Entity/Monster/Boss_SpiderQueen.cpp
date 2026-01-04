@@ -5,6 +5,7 @@
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
+#include "../../Component/Transform/Transform.h"
 #include "Boss_SpiderQueen.h"
 
 Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
@@ -21,13 +22,22 @@ void Boss_SpiderQueen::Init()
 {
 	Monster::Init(); // 부모 클래스 초기화
 	
+	// Transform 컴포넌트 확인
+	if (!transform) {
+		transform = GetComponent<Transform>();
+		if (!transform) {
+			OutputDebugStringW(L"Boss_SpiderQueen: Transform component not found!\n");
+			return;
+		}
+	}
+	
 	// 보스 특성 초기화
 	m_bossPhase = 1;
 	m_specialAttackCooldown = 0.0f;
 	
-	OutputDebugStringW((L"Boss_SpiderQueen: 보스 초기화 완료 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Boss_SpiderQueen: 보스 초기화 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 
-	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 패턴 제거)
+	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 클래스 제거)
 	if (!m_animator) {
 		m_animator = AddComponent<Animator>();
 	}
@@ -39,7 +49,7 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,
 					pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-					120, 120, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
+					120, 120, 1, 1, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 			}
 
 			// WALK
@@ -47,7 +57,7 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_WALK, (Direction)dir,
 					walkPath,
-					120, 120, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+					120, 120, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 			}
 
 			// ATTACK
@@ -55,26 +65,26 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_ATTACK, (Direction)dir,
 					attackPath,
-					140, 140, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+					140, 140, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 			}
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_hit_side.png"),
-				120, 120, 3, 3, 0.1f, m_pivotX, m_pivotY, false);
+				120, 120, 3, 3, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 
 			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_death.png"),
-				120, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				120, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 		}
 
-		m_animator->SetState((int)m_state, m_direction);
+		m_animator->SetState((int)m_state, transform->GetDirection());
 	}
 }
 
 void Boss_SpiderQueen::OnInteraction(GameObject* obj)
 {
-    // 보스 상호작용 처리 (추후 확장 가능)
+    // 보스 상호작용 처리 (추후 구현 예정)
 }
 
 void Boss_SpiderQueen::Damaged(int damage)
@@ -91,7 +101,7 @@ void Boss_SpiderQueen::Damaged(int damage)
 	if (m_hp <= 0) {
 		m_state = MONSTER_DEATH;
 		
-		// 보스 처치 시 특수 연출
+		// 보스 처치 시 특수 보상
 		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다!\n");
 	}
 }

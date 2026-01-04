@@ -264,49 +264,82 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			int deltaY = m_rawMousePos.y - m_colliderEditStartMousePos.y;
 
 			// 맵 좌표계로 변환된 이동량 (줌 팩터 고려)
-			// g_displayScaleFactor도 적용되어야 합니다.
-			int unzoomedDeltaX = (int)(deltaX / (m_zoomFactor));
-			int unzoomedDeltaY = (int)(deltaY / (m_zoomFactor));
+			float unzoomedDeltaX = deltaX / m_zoomFactor;
+			float unzoomedDeltaY = deltaY / m_zoomFactor;
 
-			if (m_draggingHandle == 4) { // 중앙 이동 핸들 (콜라이더 전체 이동)
-				m_editingColliderObject->colliderOffsetX = m_initialColliderRect.left + unzoomedDeltaX;
-				m_editingColliderObject->colliderOffsetY = m_initialColliderRect.top + unzoomedDeltaY;
+			if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
+				// BoxCollider 처리
+				int unzoomedDeltaXInt = (int)unzoomedDeltaX;
+				int unzoomedDeltaYInt = (int)unzoomedDeltaY;
+
+				if (m_draggingHandle == 4) { // 중앙 이동 핸들 (콜라이더 전체 이동)
+					m_editingColliderObject->colliderOffsetX = m_initialColliderRect.left + unzoomedDeltaXInt;
+					m_editingColliderObject->colliderOffsetY = m_initialColliderRect.top + unzoomedDeltaYInt;
+				}
+				else { // 크기 조절 (모서리 핸들 드래그)
+					int newLeft = m_initialColliderRect.left;
+					int newTop = m_initialColliderRect.top;
+					int newRight = m_initialColliderRect.right;
+					int newBottom = m_initialColliderRect.bottom;
+
+					// 드래그하는 핸들에 따라 새로운 경계 계산
+					if (m_draggingHandle == 0 || m_draggingHandle == 2) { // 좌측 핸들 (좌상단, 좌하단)
+						newLeft = m_initialColliderRect.left + unzoomedDeltaXInt;
+					}
+					if (m_draggingHandle == 0 || m_draggingHandle == 1) { // 상단 핸들 (좌상단, 우상단)
+						newTop = m_initialColliderRect.top + unzoomedDeltaYInt;
+					}
+					if (m_draggingHandle == 1 || m_draggingHandle == 3) { // 우측 핸들 (우상단, 우하단)
+						newRight = m_initialColliderRect.right + unzoomedDeltaXInt;
+					}
+					if (m_draggingHandle == 2 || m_draggingHandle == 3) { // 하단 핸들 (좌하단, 우하단)
+						newBottom = m_initialColliderRect.bottom + unzoomedDeltaYInt;
+					}
+
+					// 너비/높이가 최소값 이하로 줄어들지 않도록 제한
+					if (newRight - newLeft < MIN_COLLIDER_SIZE) {
+						if (m_draggingHandle == 0 || m_draggingHandle == 2) newLeft = newRight - MIN_COLLIDER_SIZE; // 좌측 핸들이면 좌측 경계 조정
+						else newRight = newLeft + MIN_COLLIDER_SIZE; // 우측 핸들이면 우측 경계 조정
+					}
+					if (newBottom - newTop < MIN_COLLIDER_SIZE) {
+						if (m_draggingHandle == 0 || m_draggingHandle == 1) newTop = newBottom - MIN_COLLIDER_SIZE; // 상단 핸들이면 상단 경계 조정
+						else newBottom = newTop + MIN_COLLIDER_SIZE; // 하단 핸들이면 하단 경계 조정
+					}
+
+					// 콜라이더 정보 업데이트
+					m_editingColliderObject->colliderOffsetX = newLeft;
+					m_editingColliderObject->colliderOffsetY = newTop;
+					m_editingColliderObject->colliderWidth = newRight - newLeft;
+					m_editingColliderObject->colliderHeight = newBottom - newTop;
+				}
 			}
-			else { // 크기 조절 (모서리 핸들 드래그)
-				int newLeft = m_initialColliderRect.left;
-				int newTop = m_initialColliderRect.top;
-				int newRight = m_initialColliderRect.right;
-				int newBottom = m_initialColliderRect.bottom;
+			else if (m_editingColliderObject->colliderType == COLLIDER_CIRCLE) {
+				// CircleCollider 처리
+				if (m_draggingHandle == 4) { // 중앙 이동 핸들 (원의 중심점 이동)
+					m_editingColliderObject->colliderCenterX = m_initialColliderCenterX + unzoomedDeltaX;
+					m_editingColliderObject->colliderCenterY = m_initialColliderCenterY + unzoomedDeltaY;
+				}
+				else if (m_draggingHandle == 5) { // 반지름 조절 핸들
+					// 마우스 위치에서 원의 중심까지의 거리를 계산하여 반지름으로 설정
+					float objRenderX = (float)m_editingColliderObject->x * m_zoomFactor + m_mapOffset.x;
+					float objRenderY = (float)m_editingColliderObject->y * m_zoomFactor + m_mapOffset.y;
+					float worldCenterX = m_editingColliderObject->x + m_initialColliderCenterX;
+					float worldCenterY = m_editingColliderObject->y + m_initialColliderCenterY;
+					float screenCenterX = worldCenterX * m_zoomFactor + m_mapOffset.x;
+					float screenCenterY = worldCenterY * m_zoomFactor + m_mapOffset.y;
 
-				// 드래그하는 핸들에 따라 새로운 경계 계산
-				if (m_draggingHandle == 0 || m_draggingHandle == 2) { // 좌측 핸들 (좌상단, 좌하단)
-					newLeft = m_initialColliderRect.left + unzoomedDeltaX;
-				}
-				if (m_draggingHandle == 0 || m_draggingHandle == 1) { // 상단 핸들 (좌상단, 우상단)
-					newTop = m_initialColliderRect.top + unzoomedDeltaY;
-				}
-				if (m_draggingHandle == 1 || m_draggingHandle == 3) { // 우측 핸들 (우상단, 우하단)
-					newRight = m_initialColliderRect.right + unzoomedDeltaX;
-				}
-				if (m_draggingHandle == 2 || m_draggingHandle == 3) { // 하단 핸들 (좌하단, 우하단)
-					newBottom = m_initialColliderRect.bottom + unzoomedDeltaY;
-				}
+					float dx = (float)m_rawMousePos.x - screenCenterX;
+					float dy = (float)m_rawMousePos.y - screenCenterY;
+					float screenDistance = sqrtf(dx * dx + dy * dy);
+					float newRadius = screenDistance / m_zoomFactor;
 
-				// 너비/높이가 최소값 이하로 줄어들지 않도록 제한
-				if (newRight - newLeft < MIN_COLLIDER_SIZE) {
-					if (m_draggingHandle == 0 || m_draggingHandle == 2) newLeft = newRight - MIN_COLLIDER_SIZE; // 좌측 핸들이면 좌측 경계 조정
-					else newRight = newLeft + MIN_COLLIDER_SIZE; // 우측 핸들이면 우측 경계 조정
-				}
-				if (newBottom - newTop < MIN_COLLIDER_SIZE) {
-					if (m_draggingHandle == 0 || m_draggingHandle == 1) newTop = newBottom - MIN_COLLIDER_SIZE; // 상단 핸들이면 상단 경계 조정
-					else newBottom = newTop + MIN_COLLIDER_SIZE; // 하단 핸들이면 하단 경계 조정
-				}
+					// 최소 반지름 제한
+					if (newRadius < MIN_COLLIDER_RADIUS) {
+						newRadius = MIN_COLLIDER_RADIUS;
+					}
 
-				// 콜라이더 정보 업데이트
-				m_editingColliderObject->colliderOffsetX = newLeft;
-				m_editingColliderObject->colliderOffsetY = newTop;
-				m_editingColliderObject->colliderWidth = newRight - newLeft;
-				m_editingColliderObject->colliderHeight = newBottom - newTop;
+					m_editingColliderObject->colliderRadius = newRadius;
+				}
 			}
 			m_objectLayerDirty = true; // 콜라이더 변경 -> 레이어 다시 그려야 함
 			InvalidateRect(hWnd, NULL, FALSE);
@@ -403,12 +436,19 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			if (m_draggingHandle != -1) {
 				m_isDraggingCollider = true;
 				m_colliderEditStartMousePos = clickPoint;
-				m_initialColliderRect = {
-					m_editingColliderObject->colliderOffsetX,
-					m_editingColliderObject->colliderOffsetY,
-					m_editingColliderObject->colliderOffsetX + m_editingColliderObject->colliderWidth,
-					m_editingColliderObject->colliderOffsetY + m_editingColliderObject->colliderHeight
-				};
+				if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
+					m_initialColliderRect = {
+						m_editingColliderObject->colliderOffsetX,
+						m_editingColliderObject->colliderOffsetY,
+						m_editingColliderObject->colliderOffsetX + m_editingColliderObject->colliderWidth,
+						m_editingColliderObject->colliderOffsetY + m_editingColliderObject->colliderHeight
+					};
+				}
+				else if (m_editingColliderObject->colliderType == COLLIDER_CIRCLE) {
+					m_initialColliderCenterX = m_editingColliderObject->colliderCenterX;
+					m_initialColliderCenterY = m_editingColliderObject->colliderCenterY;
+					m_initialColliderRadius = m_editingColliderObject->colliderRadius;
+				}
 				SetCapture(hWnd); // 마우스 캡처 (드래그 중에도 메시지 받기 위함)
 				m_objectLayerDirty = true; // 선택 변경
 				InvalidateRect(hWnd, NULL, FALSE);
@@ -999,6 +1039,50 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			return 0;
 		}
 
+		// B key for Collider Type toggle (Box <-> Circle)
+		if (wParam == 'B') {
+			if (m_isColliderEditMode && m_editingColliderObject) {
+				// Box <-> Circle 전환
+				if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
+					m_editingColliderObject->colliderType = COLLIDER_CIRCLE;
+					// CircleCollider 초기화: 중심점을 이미지 중심으로, 반지름을 이미지 크기의 절반으로
+					const ObjectVariant* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
+					if (ov) {
+						float imageWidth = ov->sourceRect.Width;
+						float imageHeight = ov->sourceRect.Height;
+						// 이미지 중심 계산: (width * (0.5f - pivotX), height * (0.5f - pivotY))
+						m_editingColliderObject->colliderCenterX = imageWidth * (0.5f - ov->pivotX);
+						m_editingColliderObject->colliderCenterY = imageHeight * (0.5f - ov->pivotY);
+						// 반지름을 이미지 크기의 작은 쪽의 절반으로 설정
+						float smallerSize = (imageWidth < imageHeight) ? imageWidth : imageHeight;
+						m_editingColliderObject->colliderRadius = smallerSize * 0.5f;
+					}
+					std::wstringstream debugSS;
+					debugSS << L"Collider Type: CIRCLE\n";
+					OutputDebugStringW(debugSS.str().c_str());
+				}
+				else {
+					m_editingColliderObject->colliderType = COLLIDER_BOX;
+					// BoxCollider 초기화: 기존 로직 사용
+					const ObjectVariant* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
+					if (ov) {
+						int imageWidth = (int)ov->sourceRect.Width;
+						int imageHeight = (int)ov->sourceRect.Height;
+						m_editingColliderObject->colliderOffsetX = -(int)(ov->pivotX * imageWidth);
+						m_editingColliderObject->colliderOffsetY = -(int)(ov->pivotY * imageHeight);
+						m_editingColliderObject->colliderWidth = imageWidth;
+						m_editingColliderObject->colliderHeight = imageHeight;
+					}
+					std::wstringstream debugSS;
+					debugSS << L"Collider Type: BOX\n";
+					OutputDebugStringW(debugSS.str().c_str());
+				}
+				m_objectLayerDirty = true;
+				InvalidateRect(hWnd, NULL, FALSE);
+			}
+			return 0;
+		}
+
 		// R key for Delete selected object
 		if (wParam == 'R') {
 			if (m_selectedObjectPtr) {
@@ -1181,12 +1265,16 @@ bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 			<< obj.objectAssetBaseDirectory << L","
 			<< obj.pivotX << L"," << obj.pivotY << L"\n";
 
-		// 콜라이더 정보 저장
-		outFile << obj.hasCollider << L","
+		// 콜라이더 정보 저장 (Collider 라벨 추가)
+		outFile << L"Collider," << obj.hasCollider << L","
+			<< (int)obj.colliderType << L","
 			<< obj.colliderOffsetX << L","
 			<< obj.colliderOffsetY << L","
 			<< obj.colliderWidth << L","
-			<< obj.colliderHeight << L"\n";
+			<< obj.colliderHeight << L","
+			<< obj.colliderCenterX << L","
+			<< obj.colliderCenterY << L","
+			<< obj.colliderRadius << L"\n";
 	}
 	outFile << L"\n";
 
@@ -1358,21 +1446,146 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 					// 다음 줄에서 콜라이더 정보 읽기
 					if (std::getline(inFile, line)) {
 						std::wstringstream colliderStream(line);
-						std::wstring hasColliderStr, offsetXStr, offsetYStr, widthStr, heightStr;
+						std::wstring labelStr, hasColliderStr, colliderTypeStr, offsetXStr, offsetYStr, widthStr, heightStr, centerXStr, centerYStr, radiusStr;
 
-						std::getline(colliderStream, hasColliderStr, L',');
-						std::getline(colliderStream, offsetXStr, L',');
-						std::getline(colliderStream, offsetYStr, L',');
-						std::getline(colliderStream, widthStr, L',');
-						std::getline(colliderStream, heightStr);
+						// 첫 번째 필드가 "Collider" 라벨인지 확인
+						std::getline(colliderStream, labelStr, L',');
+						
+						// 공백 제거
+						labelStr.erase(0, labelStr.find_first_not_of(L" \t"));
+						labelStr.erase(labelStr.find_last_not_of(L" \t") + 1);
+
+						// "Collider" 라벨이 있으면 다음 필드부터 읽기, 없으면 기존 방식 (호환성)
+						if (labelStr == L"Collider") {
+							// "Collider" 라벨이 있는 경우 (새 형식)
+							std::getline(colliderStream, hasColliderStr, L',');
+							std::getline(colliderStream, colliderTypeStr, L',');
+							std::getline(colliderStream, offsetXStr, L',');
+							std::getline(colliderStream, offsetYStr, L',');
+							std::getline(colliderStream, widthStr, L',');
+							std::getline(colliderStream, heightStr, L',');
+							std::getline(colliderStream, centerXStr, L',');
+							std::getline(colliderStream, centerYStr, L',');
+							std::getline(colliderStream, radiusStr);
+						}
+						else {
+							// 기존 형식 (호환성을 위해 "Collider" 라벨이 없는 경우)
+							hasColliderStr = labelStr;
+							std::getline(colliderStream, offsetXStr, L',');
+							std::getline(colliderStream, offsetYStr, L',');
+							std::getline(colliderStream, widthStr, L',');
+							std::getline(colliderStream, heightStr);
+							colliderTypeStr = L"0"; // 기본값 BOX
+							centerXStr = L"0";
+							centerYStr = L"0";
+							radiusStr = L"0";
+						}
+
+						// 공백 제거
+						hasColliderStr.erase(0, hasColliderStr.find_first_not_of(L" \t"));
+						hasColliderStr.erase(hasColliderStr.find_last_not_of(L" \t") + 1);
+						if (!colliderTypeStr.empty()) {
+							colliderTypeStr.erase(0, colliderTypeStr.find_first_not_of(L" \t"));
+							colliderTypeStr.erase(colliderTypeStr.find_last_not_of(L" \t") + 1);
+						}
+						offsetXStr.erase(0, offsetXStr.find_first_not_of(L" \t"));
+						offsetXStr.erase(offsetXStr.find_last_not_of(L" \t") + 1);
+						offsetYStr.erase(0, offsetYStr.find_first_not_of(L" \t"));
+						offsetYStr.erase(offsetYStr.find_last_not_of(L" \t") + 1);
+						widthStr.erase(0, widthStr.find_first_not_of(L" \t"));
+						widthStr.erase(widthStr.find_last_not_of(L" \t") + 1);
+						heightStr.erase(0, heightStr.find_first_not_of(L" \t"));
+						heightStr.erase(heightStr.find_last_not_of(L" \t") + 1);
+						if (!centerXStr.empty()) {
+							centerXStr.erase(0, centerXStr.find_first_not_of(L" \t"));
+							centerXStr.erase(centerXStr.find_last_not_of(L" \t") + 1);
+						}
+						if (!centerYStr.empty()) {
+							centerYStr.erase(0, centerYStr.find_first_not_of(L" \t"));
+							centerYStr.erase(centerYStr.find_last_not_of(L" \t") + 1);
+						}
+						if (!radiusStr.empty()) {
+							radiusStr.erase(0, radiusStr.find_first_not_of(L" \t"));
+							radiusStr.erase(radiusStr.find_last_not_of(L" \t") + 1);
+						}
 
 						if (!hasColliderStr.empty()) {
 							newObj.hasCollider = (hasColliderStr == L"1");
 							if (newObj.hasCollider) {
-								newObj.colliderOffsetX = std::stoi(offsetXStr);
-								newObj.colliderOffsetY = std::stoi(offsetYStr);
-								newObj.colliderWidth = std::stoi(widthStr);
-								newObj.colliderHeight = std::stoi(heightStr);
+
+								int colliderTypeValue = 0;
+								if (!colliderTypeStr.empty()) {
+									colliderTypeValue = std::stoi(colliderTypeStr);
+								}
+								
+								// 이전 형식 호환성 처리
+								// colliderType이 음수이거나 유효하지 않으면 이전 형식 (colliderType 필드가 없음)
+								// 이 경우 colliderTypeStr이 실제로는 offsetX입니다
+								if (colliderTypeValue < 0 || colliderTypeValue > COLLIDER_COUNT) {
+									// 이전 형식: Collider,hasCollider,offsetX,offsetY,width,height
+									newObj.colliderType = COLLIDER_BOX; // 기본값
+									if (!colliderTypeStr.empty()) {
+										newObj.colliderOffsetX = std::stoi(colliderTypeStr); // 실제로는 offsetX
+									}
+									newObj.colliderOffsetY = std::stoi(offsetXStr); // 실제로는 offsetY
+									newObj.colliderWidth = std::stoi(offsetYStr); // 실제로는 width
+									newObj.colliderHeight = std::stoi(widthStr); // 실제로는 height
+									// CircleCollider 데이터는 없음
+									newObj.colliderCenterX = 0.0f;
+									newObj.colliderCenterY = 0.0f;
+									newObj.colliderRadius = 0.0f;
+								}
+								else {
+									// 새 형식: Collider,hasCollider,colliderType,offsetX,offsetY,width,height,centerX,centerY,radius
+									// colliderType이 0 (COLLIDER_NONE)이지만 BoxCollider 데이터가 있으면 COLLIDER_BOX로 변경
+									if (colliderTypeValue == 0) {
+										// BoxCollider 데이터가 있는지 확인
+										if (!offsetXStr.empty() || !offsetYStr.empty() || !widthStr.empty() || !heightStr.empty()) {
+											colliderTypeValue = COLLIDER_BOX;
+										}
+									}
+									
+									newObj.colliderType = (ColliderType)colliderTypeValue;
+									
+									// CircleCollider 데이터가 유효한지 먼저 확인
+									bool hasCircleData = false;
+									float centerX = 0.0f, centerY = 0.0f, radius = 0.0f;
+									if (!centerXStr.empty() && !centerYStr.empty() && !radiusStr.empty()) {
+										centerX = std::stof(centerXStr);
+										centerY = std::stof(centerYStr);
+										radius = std::stof(radiusStr);
+										hasCircleData = (radius > 0.0f);
+									}
+									
+									// BoxCollider 데이터가 유효한지 확인
+									bool hasBoxData = false;
+									if (!offsetXStr.empty() || !offsetYStr.empty() || !widthStr.empty() || !heightStr.empty()) {
+										hasBoxData = true;
+									}
+									
+									// CircleCollider 데이터가 있으면 CircleCollider로 처리
+									if (hasCircleData) {
+										newObj.colliderType = COLLIDER_CIRCLE;
+										newObj.colliderCenterX = centerX;
+										newObj.colliderCenterY = centerY;
+										newObj.colliderRadius = radius;
+									}
+									// BoxCollider 데이터가 있으면 BoxCollider로 처리
+									else if (hasBoxData && newObj.colliderType == COLLIDER_BOX) {
+										if (!offsetXStr.empty()) newObj.colliderOffsetX = std::stoi(offsetXStr);
+										if (!offsetYStr.empty()) newObj.colliderOffsetY = std::stoi(offsetYStr);
+										if (!widthStr.empty()) newObj.colliderWidth = std::stoi(widthStr);
+										if (!heightStr.empty()) newObj.colliderHeight = std::stoi(heightStr);
+									}
+									else if (newObj.colliderType == COLLIDER_CIRCLE) {
+										// CircleCollider 타입이지만 데이터가 없으면 기본값 사용
+										if (!hasCircleData) {
+											newObj.colliderCenterX = 0.0f;
+											newObj.colliderCenterY = 0.0f;
+											newObj.colliderRadius = 0.0f;
+										}
+									}
+								}
 							}
 						}
 					}
@@ -2476,30 +2689,56 @@ void DontStarve_EditorMain::StartColliderEdit(GameObjectData* obj)
 	m_isColliderEditMode = true;
 	m_editingColliderObject = obj;
 	if (m_editingColliderObject) {
-		// 콜라이더가 없으면 오브젝트 크기로 초기화 (기본 Box Collider)
+		// 콜라이더가 없으면 오브젝트 이미지 크기에 맞게 초기화 (피벗을 고려한 렌더링 영역과 동일하게)
 		if (!m_editingColliderObject->hasCollider) {
 			m_editingColliderObject->hasCollider = true;
-			m_editingColliderObject->colliderOffsetX = 0; // 오브젝트 좌상단에 맞춰 0
-			m_editingColliderObject->colliderOffsetY = 0;
+			m_editingColliderObject->colliderType = COLLIDER_BOX; // 기본값은 BOX
 
-			// ObjectVariant에서 실제 오브젝트 크기 가져오기
+			// ObjectVariant에서 오브젝트 이미지 크기 가져오기
 			const ObjectVariant* ov = GetObjectVariant(obj->type, obj->id);
 			if (!ov) {
 				OutputDebugStringW(L"Error: ObjectVariant not found for collider edit.\n");
-				m_isColliderEditMode = false; // Variant 없으면 편집 시작 못하게
+				m_isColliderEditMode = false; // Variant 없으면 모드 종료
 				m_editingColliderObject = nullptr;
 				return;
 			}
-			m_editingColliderObject->colliderWidth = (int)ov->sourceRect.Width;
-			m_editingColliderObject->colliderHeight = (int)ov->sourceRect.Height;
+
+			// 오브젝트 이미지 크기
+			int imageWidth = (int)ov->sourceRect.Width;
+			int imageHeight = (int)ov->sourceRect.Height;
+
+			// 피벗을 고려한 렌더링 영역의 왼쪽 상단 오프셋 계산
+			// objRenderLeftWorld = obj.x - (ov->pivotX * ov->sourceRect.Width)
+			// 따라서 colliderOffsetX = -pivotX * imageWidth
+			m_editingColliderObject->colliderOffsetX = -(int)(ov->pivotX * imageWidth);
+			m_editingColliderObject->colliderOffsetY = -(int)(ov->pivotY * imageHeight);
+
+			// 콜라이더 크기를 이미지 크기에 맞게 설정
+			m_editingColliderObject->colliderWidth = imageWidth;
+			m_editingColliderObject->colliderHeight = imageHeight;
+
+			// CircleCollider 초기화 (이미지 중심에 위치)
+			// 이미지 중심 계산: (width * (0.5f - pivotX), height * (0.5f - pivotY))
+			m_editingColliderObject->colliderCenterX = imageWidth * (0.5f - ov->pivotX);
+			m_editingColliderObject->colliderCenterY = imageHeight * (0.5f - ov->pivotY);
+			// 반지름을 이미지 크기의 작은 쪽의 절반으로 설정
+			float smallerSize = (imageWidth < imageHeight) ? (float)imageWidth : (float)imageHeight;
+			m_editingColliderObject->colliderRadius = smallerSize * 0.5f;
 		}
 		// 편집 시작 시 콜라이더의 초기 상태 저장 (오브젝트 로컬 좌표계 기준)
-		m_initialColliderRect = {
-			m_editingColliderObject->colliderOffsetX,
-			m_editingColliderObject->colliderOffsetY,
-			m_editingColliderObject->colliderOffsetX + m_editingColliderObject->colliderWidth,
-			m_editingColliderObject->colliderOffsetY + m_editingColliderObject->colliderHeight
-		};
+		if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
+			m_initialColliderRect = {
+				m_editingColliderObject->colliderOffsetX,
+				m_editingColliderObject->colliderOffsetY,
+				m_editingColliderObject->colliderOffsetX + m_editingColliderObject->colliderWidth,
+				m_editingColliderObject->colliderOffsetY + m_editingColliderObject->colliderHeight
+			};
+		}
+		else if (m_editingColliderObject->colliderType == COLLIDER_CIRCLE) {
+			m_initialColliderCenterX = m_editingColliderObject->colliderCenterX;
+			m_initialColliderCenterY = m_editingColliderObject->colliderCenterY;
+			m_initialColliderRadius = m_editingColliderObject->colliderRadius;
+		}
 	}
 	m_objectLayerDirty = true; // 콜라이더 편집 모드 시작 시 레이어 갱신 (선택 표시 등)
 }
@@ -2538,41 +2777,77 @@ void DontStarve_EditorMain::EndColliderEdit() {
 }
 
 // 마우스 위치에 콜라이더 핸들이 있는지 확인하는 함수
-// 반환값: 0:좌상단, 1:우상단, 2:좌하단, 3:우하단, 4:중앙(이동), -1:없음
+// 반환값: 0:좌상단, 1:우상단, 2:좌하단, 3:우하단, 4:중앙(이동), 5:반지름조절(CircleCollider), -1:없음
 int DontStarve_EditorMain::GetColliderHandleAt(POINT screenPos) {
 	if (!m_isColliderEditMode || !m_editingColliderObject || !m_editingColliderObject->hasCollider) return -1;
-
-	float objRenderX = (float)m_editingColliderObject->x * m_zoomFactor + m_mapOffset.x;
-	float objRenderY = (float)m_editingColliderObject->y * m_zoomFactor + m_mapOffset.y;
-
-	float colliderRenderX = objRenderX + (m_editingColliderObject->colliderOffsetX * m_zoomFactor);
-	float colliderRenderY = objRenderY + (m_editingColliderObject->colliderOffsetY * m_zoomFactor);
-	float colliderRenderWidth = (float)m_editingColliderObject->colliderWidth * m_zoomFactor;
-	float colliderRenderHeight = (float)m_editingColliderObject->colliderHeight * m_zoomFactor;
 
 	float handleSize = 8.0f; // 핸들 크기 (화면 픽셀)
 	float halfHandle = handleSize / 2.0f;
 	float clickTolerance = handleSize / 2.0f; // 클릭 허용 오차 (핸들 중심으로부터)
 
-	// 핸들 영역 (좌상단, 우상단, 좌하단, 우하단)
-	Gdiplus::PointF handleCenters[4];
-	handleCenters[0] = Gdiplus::PointF(colliderRenderX, colliderRenderY); // 좌상단
-	handleCenters[1] = Gdiplus::PointF(colliderRenderX + colliderRenderWidth, colliderRenderY); // 우상단
-	handleCenters[2] = Gdiplus::PointF(colliderRenderX, colliderRenderY + colliderRenderHeight); // 좌하단
-	handleCenters[3] = Gdiplus::PointF(colliderRenderX + colliderRenderWidth, colliderRenderY + colliderRenderHeight); // 우하단
+	if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
+		// BoxCollider 처리
+		float objRenderX = (float)m_editingColliderObject->x * m_zoomFactor + m_mapOffset.x;
+		float objRenderY = (float)m_editingColliderObject->y * m_zoomFactor + m_mapOffset.y;
 
-	for (int i = 0; i < 4; ++i) {
-		// 마우스 클릭이 핸들 중심으로부터 허용 오차 범위 내에 있는지 확인
-		if (abs(screenPos.x - handleCenters[i].X) < clickTolerance &&
-			abs(screenPos.y - handleCenters[i].Y) < clickTolerance) {
-			return i; // 핸들 인덱스 반환
+		float colliderRenderX = objRenderX + (m_editingColliderObject->colliderOffsetX * m_zoomFactor);
+		float colliderRenderY = objRenderY + (m_editingColliderObject->colliderOffsetY * m_zoomFactor);
+		float colliderRenderWidth = (float)m_editingColliderObject->colliderWidth * m_zoomFactor;
+		float colliderRenderHeight = (float)m_editingColliderObject->colliderHeight * m_zoomFactor;
+
+		// 핸들 영역 (좌상단, 우상단, 좌하단, 우하단)
+		Gdiplus::PointF handleCenters[4];
+		handleCenters[0] = Gdiplus::PointF(colliderRenderX, colliderRenderY); // 좌상단
+		handleCenters[1] = Gdiplus::PointF(colliderRenderX + colliderRenderWidth, colliderRenderY); // 우상단
+		handleCenters[2] = Gdiplus::PointF(colliderRenderX, colliderRenderY + colliderRenderHeight); // 좌하단
+		handleCenters[3] = Gdiplus::PointF(colliderRenderX + colliderRenderWidth, colliderRenderY + colliderRenderHeight); // 우하단
+
+		for (int i = 0; i < 4; ++i) {
+			// 마우스 클릭이 핸들 중심으로부터 허용 오차 범위 내에 있는지 확인
+			if (abs(screenPos.x - handleCenters[i].X) < clickTolerance &&
+				abs(screenPos.y - handleCenters[i].Y) < clickTolerance) {
+				return i; // 핸들 인덱스 반환
+			}
+		}
+
+		// 중앙 이동 핸들 또는 콜라이더 내부 (이동)
+		Gdiplus::RectF colliderBounds(colliderRenderX, colliderRenderY, colliderRenderWidth, colliderRenderHeight);
+		if (colliderBounds.Contains((float)screenPos.x, (float)screenPos.y)) {
+			return 4; // 중앙 (이동) 핸들
 		}
 	}
+	else if (m_editingColliderObject->colliderType == COLLIDER_CIRCLE) {
+		// CircleCollider 처리
+		float worldCenterX = m_editingColliderObject->x + m_editingColliderObject->colliderCenterX;
+		float worldCenterY = m_editingColliderObject->y + m_editingColliderObject->colliderCenterY;
+		float radius = m_editingColliderObject->colliderRadius;
 
-	// 중앙 이동 핸들 또는 콜라이더 내부 (이동)
-	Gdiplus::RectF colliderBounds(colliderRenderX, colliderRenderY, colliderRenderWidth, colliderRenderHeight);
-	if (colliderBounds.Contains((float)screenPos.x, (float)screenPos.y)) {
-		return 4; // 중앙 (이동) 핸들
+		float screenCenterX = worldCenterX * m_zoomFactor + m_mapOffset.x;
+		float screenCenterY = worldCenterY * m_zoomFactor + m_mapOffset.y;
+		float screenRadius = radius * m_zoomFactor;
+
+		// 반지름 조절 핸들 (원의 오른쪽 중앙)
+		float radiusHandleX = screenCenterX + screenRadius;
+		float radiusHandleY = screenCenterY;
+		float dx = (float)screenPos.x - radiusHandleX;
+		float dy = (float)screenPos.y - radiusHandleY;
+		float distance = sqrtf(dx * dx + dy * dy);
+		if (distance < clickTolerance) {
+			return 5; // 반지름 조절 핸들
+		}
+
+		// 중심점 이동 핸들 (원의 중심)
+		dx = (float)screenPos.x - screenCenterX;
+		dy = (float)screenPos.y - screenCenterY;
+		distance = sqrtf(dx * dx + dy * dy);
+		if (distance < clickTolerance) {
+			return 4; // 중심점 이동 핸들
+		}
+
+		// 원 내부 클릭 (이동)
+		if (distance <= screenRadius) {
+			return 4; // 중앙 (이동) 핸들
+		}
 	}
 
 	return -1; // 핸들 없음
@@ -2715,57 +2990,58 @@ void DontStarve_EditorMain::DrawColliders(Gdiplus::Graphics* pGraphics) {
 	const ObjectVariant* ov = GetObjectVariant(obj.type, obj.id);
 	if (!ov || !ov->pAtlasBitmap) return;
 
-	// 콜라이더의 월드 좌표와 크기
-	// obj.x, obj.y (오브젝트의 발 밑 중심)을 기준으로 colliderOffsetX,Y만큼 오프셋된 콜라이더의 월드 좌표 좌상단
-	float colliderWorldX_top_left = (float)obj.x + obj.colliderOffsetX;
-	float colliderWorldY_top_left = (float)obj.y + obj.colliderOffsetY;
-	float colliderWidth = (float)obj.colliderWidth;
-	float colliderHeight = (float)obj.colliderHeight;
-
-	// 콜라이더의 화면상 좌상단 및 크기
-	float colliderScreenX = colliderWorldX_top_left * m_zoomFactor + m_mapOffset.x;
-	float colliderScreenY = colliderWorldY_top_left * m_zoomFactor + m_mapOffset.y;
-	float colliderScaledWidth = colliderWidth * m_zoomFactor;
-	float colliderScaledHeight = colliderHeight * m_zoomFactor;
-
-	// 콜라이더 사각형 그리기
-	Gdiplus::Pen colliderPen(Gdiplus::Color(255, 255, 0, 0), 2.0f);
-	pGraphics->DrawRectangle(&colliderPen,
-		colliderScreenX, colliderScreenY, colliderScaledWidth, colliderScaledHeight);
-
-	// 크기 조절 핸들 그리기
-	Gdiplus::SolidBrush handleBrush(Gdiplus::Color(255, 0, 255, 255));
+	Gdiplus::Pen colliderPen(Gdiplus::Color(255, 0, 255, 0), 2.0f); // 초록색
+	Gdiplus::SolidBrush handleBrush(Gdiplus::Color(255, 0, 255, 255)); // 청록색
 	int handleSize = 8;
 	Gdiplus::REAL handleSizeReal = (Gdiplus::REAL)handleSize;
 	Gdiplus::REAL halfHandleReal = handleSizeReal / 2.0f;
 
-	// 좌상단 핸들
-	pGraphics->FillRectangle(&handleBrush,
-		colliderScreenX - halfHandleReal,
-		colliderScreenY - halfHandleReal,
-		handleSizeReal,
-		handleSizeReal);
+	if (obj.colliderType == COLLIDER_BOX) {
+		// BoxCollider 그리기
+		float colliderWorldX_top_left = (float)obj.x + obj.colliderOffsetX;
+		float colliderWorldY_top_left = (float)obj.y + obj.colliderOffsetY;
+		float colliderWidth = (float)obj.colliderWidth;
+		float colliderHeight = (float)obj.colliderHeight;
 
-	// 우상단 핸들
-	pGraphics->FillRectangle(&handleBrush,
-		colliderScreenX + colliderScaledWidth - halfHandleReal,
-		colliderScreenY - halfHandleReal,
-		handleSizeReal,
-		handleSizeReal);
+		float colliderScreenX = colliderWorldX_top_left * m_zoomFactor + m_mapOffset.x;
+		float colliderScreenY = colliderWorldY_top_left * m_zoomFactor + m_mapOffset.y;
+		float colliderScaledWidth = colliderWidth * m_zoomFactor;
+		float colliderScaledHeight = colliderHeight * m_zoomFactor;
 
-	// 좌하단 핸들
-	pGraphics->FillRectangle(&handleBrush,
-		colliderScreenX - halfHandleReal,
-		colliderScreenY + colliderScaledHeight - halfHandleReal,
-		handleSizeReal,
-		handleSizeReal);
+		// 콜라이더 사각형 그리기
+		pGraphics->DrawRectangle(&colliderPen,
+			colliderScreenX, colliderScreenY, colliderScaledWidth, colliderScaledHeight);
 
-	// 우하단 핸들
-	pGraphics->FillRectangle(&handleBrush,
-		colliderScreenX + colliderScaledWidth - halfHandleReal,
-		colliderScreenY + colliderScaledHeight - halfHandleReal,
-		handleSizeReal,
-		handleSizeReal);
+		// 크기 조절 핸들 그리기 (4개 모서리)
+		pGraphics->FillRectangle(&handleBrush, colliderScreenX - halfHandleReal, colliderScreenY - halfHandleReal, handleSizeReal, handleSizeReal);
+		pGraphics->FillRectangle(&handleBrush, colliderScreenX + colliderScaledWidth - halfHandleReal, colliderScreenY - halfHandleReal, handleSizeReal, handleSizeReal);
+		pGraphics->FillRectangle(&handleBrush, colliderScreenX - halfHandleReal, colliderScreenY + colliderScaledHeight - halfHandleReal, handleSizeReal, handleSizeReal);
+		pGraphics->FillRectangle(&handleBrush, colliderScreenX + colliderScaledWidth - halfHandleReal, colliderScreenY + colliderScaledHeight - halfHandleReal, handleSizeReal, handleSizeReal);
+	}
+	else if (obj.colliderType == COLLIDER_CIRCLE) {
+		// CircleCollider 그리기
+		float worldCenterX = obj.x + obj.colliderCenterX;
+		float worldCenterY = obj.y + obj.colliderCenterY;
+		float radius = obj.colliderRadius;
+
+		float screenCenterX = worldCenterX * m_zoomFactor + m_mapOffset.x;
+		float screenCenterY = worldCenterY * m_zoomFactor + m_mapOffset.y;
+		float screenRadius = radius * m_zoomFactor;
+
+		// 원 그리기
+		Gdiplus::RectF circleRect(screenCenterX - screenRadius, screenCenterY - screenRadius, screenRadius * 2.0f, screenRadius * 2.0f);
+		pGraphics->DrawEllipse(&colliderPen, circleRect);
+
+		// 중심점 이동 핸들 (원의 중심)
+		float centerHandleX = screenCenterX - halfHandleReal;
+		float centerHandleY = screenCenterY - halfHandleReal;
+		pGraphics->FillRectangle(&handleBrush, centerHandleX, centerHandleY, handleSizeReal, handleSizeReal);
+
+		// 반지름 조절 핸들 (원의 오른쪽 중앙)
+		float radiusHandleX = screenCenterX + screenRadius - halfHandleReal;
+		float radiusHandleY = screenCenterY - halfHandleReal;
+		pGraphics->FillRectangle(&handleBrush, radiusHandleX, radiusHandleY, handleSizeReal, handleSizeReal);
+	}
 }
 
 // AddObject 함수 (오브젝트 추가)

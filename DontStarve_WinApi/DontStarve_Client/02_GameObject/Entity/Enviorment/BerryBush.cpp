@@ -14,14 +14,6 @@ BerryBush::~BerryBush() {}
 
 void BerryBush::Init()
 {
-	// 이미지 로드
-	LoadBitmap();
-	
-	// 스프라이트 크기 설정
-	if (m_orignalBitmap) {
-		this->m_width = static_cast<float>(m_orignalBitmap->GetWidth());
-		this->m_height = static_cast<float>(m_orignalBitmap->GetHeight());
-	}
 }
 
 void BerryBush::LateInit()

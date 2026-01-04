@@ -5,6 +5,7 @@
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
+#include "../../Component/Transform/Transform.h"
 #include "Boss_Hound.h"
 
 Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
@@ -28,13 +29,22 @@ void Boss_Hound::Init()
 {
 	Monster::Init(); // 부모 클래스 초기화
 	
+	// Transform 컴포넌트 확인
+	if (!transform) {
+		transform = GetComponent<Transform>();
+		if (!transform) {
+			OutputDebugStringW(L"Boss_Hound: Transform component not found!\n");
+			return;
+		}
+	}
+	
 	// 보스 특성 초기화
 	m_bossPhase = 1;
 	m_specialAttackCooldown = 0.0f;
 	
-	OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" 보스 초기화 완료 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" 보스 초기화 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 
-	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 패턴 제거)
+	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 클래스 제거)
 	if (!m_animator) {
 		m_animator = AddComponent<Animator>();
 	}
@@ -44,65 +54,65 @@ void Boss_Hound::Init()
 		if (m_id == GOID_MONSTER_REDHOUNDDOG) {
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_down.png"),
-				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_up.png"),
-				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_down.png"),
-				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_up.png"),
-				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 		}
 		else if (m_id == GOID_MONSTER_ICEHOUNDDOG) {
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_down.png"),
-				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_up.png"),
-				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, m_pivotX, m_pivotY, true);
+				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
 
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_down.png"),
-				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_up.png"),
-				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, m_pivotX, m_pivotY, false);
+				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
 		}
 
-		m_animator->SetState((int)m_state, m_direction);
+		m_animator->SetState((int)m_state, transform->GetDirection());
 	}
 }
 
 void Boss_Hound::OnInteraction(GameObject* obj)
 {
-    // 보스 상호작용 처리 (추후 확장 가능)
+    // 보스 상호작용 처리 (추후 구현 예정)
 }
 
 void Boss_Hound::Damaged(int damage)
@@ -119,7 +129,7 @@ void Boss_Hound::Damaged(int damage)
 	if (m_hp <= 0) {
 		m_state = MONSTER_DEATH;
 		
-		// 보스 처치 시 특수 연출
+		// 보스 처치 시 특수 보상
 		OutputDebugStringW((L"Boss_Hound: " + m_houndType + L" 보스가 처치되었습니다!\n").c_str());
 	}
 }

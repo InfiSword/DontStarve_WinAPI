@@ -1,6 +1,9 @@
 #pragma once
 #include "../GameObject.h"
 
+// Forward declarations
+class RectTransform;
+
 class UIImage : public GameObject
 {
 
@@ -21,6 +24,6 @@ public:
     Gdiplus::Bitmap* GetBitmap() const;
 
 private:
-    RenderLayer m_layer;
-    float m_sortKey;
+    RectTransform* m_rectTransform;
+    ::Image* m_image;
 }; 

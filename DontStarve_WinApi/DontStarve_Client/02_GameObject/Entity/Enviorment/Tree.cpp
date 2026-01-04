@@ -14,12 +14,6 @@ Tree::~Tree() {}
 
 void Tree::Init()
 {
-	// 비트맵은 생성자에서 이미 로드됨
-	// 비트맵의 크기 설정 (생성자에서 설정했지만, 혹시 모를 경우를 대비해 재설정)
-	if (m_orignalBitmap) {
-		this->m_width = static_cast<float>(m_orignalBitmap->GetWidth());
-		this->m_height = static_cast<float>(m_orignalBitmap->GetHeight());
-	}
 }
 
 void Tree::LateInit()

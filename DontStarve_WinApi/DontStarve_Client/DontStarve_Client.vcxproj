@@ -146,6 +146,13 @@
     <ClInclude Include="01_Manager\StageManager\StageManager.h" />
     <ClInclude Include="02_GameObject\Building\Building.h" />
     <ClInclude Include="02_GameObject\Component\Component.h" />
+    <ClInclude Include="02_GameObject\Component\Collider\Collider.h" />
+    <ClInclude Include="02_GameObject\Component\Collider\BoxCollider.h" />
+    <ClInclude Include="02_GameObject\Component\Collider\CircleCollider.h" />
+    <ClInclude Include="02_GameObject\Component\Sprite\Image.h" />
+    <ClInclude Include="02_GameObject\Component\Sprite\SpriteRenderer.h" />
+    <ClInclude Include="02_GameObject\Component\Transform\RectTransform.h" />
+    <ClInclude Include="02_GameObject\Component\Transform\Transform.h" />
     <ClInclude Include="02_GameObject\Entity\Entity.h" />
     <ClInclude Include="02_GameObject\Item\Item.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Monster.h" />
@@ -153,6 +160,7 @@
     <ClInclude Include="02_GameObject\Entity\Enviorment\Tree.h" />
     <ClInclude Include="02_GameObject\Item\Tool\Axe\Axe.h" />
     <ClInclude Include="02_GameObject\Item\Tool\Tool.h" />
+    <ClInclude Include="02_GameObject\Object.h" />
     <ClInclude Include="02_GameObject\UI\UIButton.h" />
     <ClInclude Include="02_GameObject\UI\UIImage.h" />
     <ClInclude Include="03_Animation\AnimationClip.h" />
@@ -197,6 +205,13 @@
     <ClCompile Include="01_Manager\SceneManager\TitleScene.cpp" />
     <ClCompile Include="02_GameObject\Building\Building.cpp" />
     <ClCompile Include="02_GameObject\Component\Component.cpp" />
+    <ClCompile Include="02_GameObject\Component\Collider\Collider.cpp" />
+    <ClCompile Include="02_GameObject\Component\Collider\BoxCollider.cpp" />
+    <ClCompile Include="02_GameObject\Component\Collider\CircleCollider.cpp" />
+    <ClCompile Include="02_GameObject\Component\Sprite\Image.cpp" />
+    <ClCompile Include="02_GameObject\Component\Sprite\SpriteRenderer.cpp" />
+    <ClCompile Include="02_GameObject\Component\Transform\RectTransform.cpp" />
+    <ClCompile Include="02_GameObject\Component\Transform\Transform.cpp" />
     <ClCompile Include="02_GameObject\Entity\Entity.cpp" />
     <ClCompile Include="02_GameObject\Item\Item.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Monster.cpp" />
@@ -204,6 +219,7 @@
     <ClCompile Include="02_GameObject\Entity\Enviorment\Tree.cpp" />
     <ClCompile Include="02_GameObject\Item\Tool\Axe\Axe.cpp" />
     <ClCompile Include="02_GameObject\Item\Tool\Tool.cpp" />
+    <ClCompile Include="02_GameObject\Object.cpp" />
     <ClCompile Include="02_GameObject\UI\UIButton.cpp" />
     <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
     <ClCompile Include="03_Animation\AnimationClip.cpp" />

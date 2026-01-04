@@ -1,6 +1,6 @@
 #pragma once
 
-// íƒ€ì¼ ìºì‹œ ë°ì´í„° êµ¬ì¡°ì²´
+// Å¸ÀÏ Ä³½Ã µ¥ÀÌÅÍ ±¸Á¶Ã¼
 struct TileCacheData {
 	TileID id;
 	Gdiplus::Bitmap* bitmap;
@@ -30,79 +30,82 @@ public:
 	void Render();
 	void Release();
 
-	// ì›”ë“œ ì¢Œí‘œ <-> í™”ë©´ ì¢Œí‘œ ë³€í™˜ í•¨ìˆ˜
+	// ¿ùµå ÁÂÇ¥ <-> È­¸é ÁÂÇ¥ º¯È¯ ÇÔ¼ö
 	Gdiplus::PointF WorldToScreen(float worldX, float worldY);
 	Gdiplus::PointF ScreenToWorld(float screenX, float screenY);
 	
-	// ë·°í¬íŠ¸ ì˜ì—­ ê´€ë ¨ í•¨ìˆ˜
+	// ºäÆ÷Æ® ¿µ¿ª °ü·Ã ÇÔ¼ö
 	Gdiplus::RectF GetViewportWorldRect() const;
 	
 	Gdiplus::PointF GetCameraPos();
 
-	// í”Œë ˆì´ì–´ ì¶”ì  ê¸°ëŠ¥
+	// Ä«¸Ş¶ó ÃßÀû ±â´É
 	void SetTarget(GameObject* target);
 	const GameObject* GetTarget();
 	void FollowTarget(float deltaTime);
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 	bool IsFollowMode() const { return m_followMode; }
 	
-	// ì¹´ë©”ë¼ ìœ„ì¹˜ ì§ì ‘ ì„¤ì •
+	// Ä«¸Ş¶ó À§Ä¡ Á÷Á¢ ¼³Á¤
 	void SetCameraPosition(float x, float y);
 
-	// === í™”ë©´ì— ë³´ì´ëŠ” ê²Œì„ì˜¤ë¸Œì íŠ¸ ê´€ë¦¬ ê¸°ëŠ¥ (ViewportManager ì—­í• ) ===
-	// í™”ë©´ì— ë³´ì´ëŠ” ê²Œì„ì˜¤ë¸Œì íŠ¸ ì—…ë°ì´íŠ¸ (ObjectManagerì˜ ê²Œì„ì˜¤ë¸Œì íŠ¸ë“¤ì„ í•„í„°ë§)
+	// === È­¸é¿¡ º¸ÀÌ´Â °ÔÀÓ¿ÀºêÁ§Æ® °ü¸® ±â´É (ViewportManager ¿ªÇÒ) ===
+	// È­¸é¿¡ º¸ÀÌ´Â °ÔÀÓ¿ÀºêÁ§Æ® ¾÷µ¥ÀÌÆ® (ObjectManagerÀÇ °ÔÀÓ¿ÀºêÁ§Æ®µéÀ» ±â¹İÀ¸·Î)
 	void UpdateVisibleObjects();
 	const std::vector<GameObject*>& GetVisibleObjects() const { return m_visibleObjects; }
 	
-	// íŠ¹ì • ìœ„ì¹˜ì˜ ê²Œì„ì˜¤ë¸Œì íŠ¸ ì°¾ê¸° (í™”ë©´ì— ë³´ì´ëŠ” ê²Œì„ì˜¤ë¸Œì íŠ¸ë§Œ ê²€ìƒ‰)
+	// Æ¯Á¤ À§Ä¡ÀÇ °ÔÀÓ¿ÀºêÁ§Æ® Ã£±â (È­¸é¿¡ º¸ÀÌ´Â °ÔÀÓ¿ÀºêÁ§Æ®¸¸ °Ë»ö)
 	GameObject* FindObjectAtPosition(float worldX, float worldY);
 	
-	// í™”ë©´ì— ë³´ì´ëŠ” ê²Œì„ì˜¤ë¸Œì íŠ¸ì¸ì§€ í™•ì¸
+	// È­¸é¿¡ º¸ÀÌ´Â °ÔÀÓ¿ÀºêÁ§Æ®ÀÎÁö È®ÀÎ
 	bool IsObjectVisible(GameObject* obj) const;
 	
-	// ë·°í¬íŠ¸ ë³€ê²½ í™•ì¸
+	// ºäÆ÷Æ® º¯°æ È®ÀÎ
 	bool HasViewportChanged() const { return m_viewportChanged; }
-	void ClearViewportChanged() { m_viewportChanged = false; }	
+	void ClearViewportChanged() { m_viewportChanged = false; }
+	
+	// Sprite Å©±â ±â¹İ ¹Ù¿îµù ¹Ú½º °¡Á®¿À±â (Animator/SpriteRenderer¿¡¼­ sprite Å©±â »ç¿ë)
+	Gdiplus::RectF GetSpriteBoundingBox(GameObject* obj) const;
 
-	// === íƒ€ì¼ ë Œë”ë§ ê´€ë¦¬ ê¸°ëŠ¥ ===
-	// í™”ë©´ì— ë³´ì´ëŠ” íƒ€ì¼ ë Œë”ë§ (ë§µ ë°ì´í„°ë¥¼ íŒŒë¼ë¯¸í„°ë¡œ ë°›ìŒ)
+	// === Å¸ÀÏ ·»´õ¸µ °ü¸® ±â´É ===
+	// È­¸é¿¡ º¸ÀÌ´Â Å¸ÀÏ ·»´õ¸µ (¸Ê µ¥ÀÌÅÍ¸¦ ÆÄ¶ó¹ÌÅÍ·Î ¹ŞÀ½)
 	void RenderVisibleTiles(RenderManager* renderManager, const MapData* mapData);
 	
-	// íƒ€ì¼ ìºì‹œ í•´ì œ
+	// Å¸ÀÏ Ä³½Ã ºñ¿ì±â
 	void ClearTileCache();
 
 private:
     GameObject* m_target;
 	Gdiplus::PointF m_cameraPos;
 
-	float m_zoomFactor;             // ì¤Œ ë°°ìœ¨ ì„¤ì •
+	float m_zoomFactor;             // ÁÜ ¹èÀ² ¼³Á¤
 	
-	bool m_followMode;              // í”Œë ˆì´ì–´ ì¶”ì  ëª¨ë“œ
+	bool m_followMode;              // Ä«¸Ş¶ó ÃßÀû ¸ğµå
 	
-	// === í™”ë©´ì— ë³´ì´ëŠ” ê²Œì„ì˜¤ë¸Œì íŠ¸ ê´€ë¦¬ (ViewportManager ì—­í• ) ===
+	// === È­¸é¿¡ º¸ÀÌ´Â °ÔÀÓ¿ÀºêÁ§Æ® °ü¸® (ViewportManager ¿ªÇÒ) ===
 	std::vector<GameObject*> m_visibleObjects;
-	std::unordered_set<GameObject*> m_visibleObjectSet; // ë¹ ë¥¸ ê²€ìƒ‰ì„ ìœ„í•œ í•´ì‹œì…‹
+	std::unordered_set<GameObject*> m_visibleObjectSet; // ºü¸¥ °Ë»öÀ» À§ÇÑ ÇØ½Ã¼Â
 	
-	// ë·°í¬íŠ¸ ì˜ì—­
+	// ºäÆ÷Æ® »óÅÂ
 	Gdiplus::RectF m_lastViewportRect;
 	bool m_viewportChanged;
 	
-	// í™”ë©´ì— ë³´ì´ëŠ” ê²Œì„ì˜¤ë¸Œì íŠ¸ì¸ì§€ í™•ì¸í•˜ëŠ” ë‚´ë¶€ í•¨ìˆ˜
+	// È­¸é¿¡ º¸ÀÌ´Â °ÔÀÓ¿ÀºêÁ§Æ®ÀÎÁö È®ÀÎÇÏ´Â ³»ºÎ ÇÔ¼ö
 	bool IsObjectInViewport(GameObject* obj) const;
 	
-	// ë·°í¬íŠ¸ ë³€ê²½ í™•ì¸
+	// ºäÆ÷Æ® º¯°æ È®ÀÎ
 	void CheckViewportChanged();
 	
-	// === íƒ€ì¼ ë Œë”ë§ ê´€ë¦¬ ===
+	// === Å¸ÀÏ ·»´õ¸µ °ü¸® ===
 	std::map<UINT, TileCacheData> m_tileCache;
 	std::vector<std::pair<int, int>> m_visibleTileIndices;
 	
-	// íƒ€ì¼ ë Œë”ë§ ìµœì í™” ê´€ë ¨ ë³€ìˆ˜
+	// Å¸ÀÏ ·»´õ¸µ ÃÖÀûÈ­ °ü·Ã º¯¼ö
 	int m_lastStartTileX, m_lastStartTileY, m_lastEndTileX, m_lastEndTileY;
 	bool m_tileViewportChanged;
 	
-	// íƒ€ì¼ ë Œë”ë§ ê´€ë ¨ í•¨ìˆ˜ë“¤
+	// Å¸ÀÏ ·»´õ¸µ °ü·Ã ÇÔ¼öµé
 	void LoadTileBitmap(TileID tileID, TileCacheData& cacheData);
 	void RenderSingleTile(RenderManager* renderManager, const MapData* mapData, int x, int y, float worldY);
-	// bool IsTileInViewport(int tileX, int tileY) const; // í˜„ì¬ ë¯¸ì‚¬ìš©
+	// bool IsTileInViewport(int tileX, int tileY) const; // ÇöÀç ¹Ì»ç¿ë
 };

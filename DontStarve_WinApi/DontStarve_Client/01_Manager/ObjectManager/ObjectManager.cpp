@@ -22,6 +22,8 @@
 #include "../../02_GameObject/Item/Ingredient.h"
 #include "../../02_GameObject/Item/Tool/Axe/Axe.h"
 
+#include "../../02_GameObject/Component/Transform/Transform.h"
+
 ObjectManager::ObjectManager()
 {
 	m_cachedPlayer = nullptr;
@@ -55,7 +57,7 @@ void ObjectManager::Update(float deltaTime)
 	// 모든 게임오브젝트 업데이트
 	for (GameObject* obj : m_gameObjects)
 	{
-		if (obj && obj->GetActive())
+		if (obj && obj->IsEnabled())
 		{
 			obj->Update(deltaTime);
 		}
@@ -67,7 +69,7 @@ void ObjectManager::LateUpdate()
 	// 모든 게임오브젝트에 LateUpdate 호출
 	for (GameObject* obj : m_gameObjects)
 	{
-		if (obj && obj->GetActive())
+		if (obj && obj->IsEnabled())
 		{
 			obj->LateUpdate();
 		}
@@ -76,10 +78,10 @@ void ObjectManager::LateUpdate()
 
 void ObjectManager::Render()
 {
-	// 카메라에 보이는 게임오브젝트 렌더링 (플레이어 우선)
+	// 카메라에 보이는 게임오브젝트 렌더링 (렌더매니저 위임)
 	RenderManager::GetInstance()->RenderVisibleGameObjects();
 	
-	// 바운드 표시가 활성화되면 모든 게임오브젝트의 바운드를 그림
+	// 바운드 표시가 활성화되어 있으면 모든 게임오브젝트의 바운드를 그림
 	if (m_showBounds) {
 		RenderBounds();
 	}
@@ -162,26 +164,17 @@ GameObject* ObjectManager::FindObjectAtPositionWithBounds(float x, float y)
 {
 	for (GameObject* obj : m_gameObjects)
 	{
-		if (obj && obj->GetActive() && obj->CanInteract())
+		if (obj && obj->IsEnabled())
 		{
-			// 오브젝트의 실제 바운드 박스 크기 계산
-			float objWidth = obj->GetWidth();
-			float objHeight = obj->GetHeight();
-			float objX = obj->GetX();
-			float objY = obj->GetY();
+			// Sprite 크기 기반 바운딩 박스 사용
+			CameraManager* cameraManager = CameraManager::GetInstance();
+			if (!cameraManager) continue;
 			
-			// 오브젝트의 피벗 값 가져오기
-			float pivotX = obj->GetPivotX();
-			float pivotY = obj->GetPivotY();
-			
-			// 피벗을 고려한 바운드 박스 경계 계산
-			float left = objX - (objWidth * pivotX);                                                 
-			float right = objX + (objWidth * (1.0f - pivotX));
-			float top = objY - (objHeight * pivotY);
-			float bottom = objY + (objHeight * (1.0f - pivotY));
+			Gdiplus::RectF objBounds = cameraManager->GetSpriteBoundingBox(obj);
 			
 			// 클릭한 위치가 오브젝트의 실제 바운드 박스 안에 있는지 확인
-			if (x >= left && x <= right && y >= top && y <= bottom)
+			if (x >= objBounds.X && x <= objBounds.X + objBounds.Width && 
+				y >= objBounds.Y && y <= objBounds.Y + objBounds.Height)
 			{
 				return obj;
 			}
@@ -266,7 +259,7 @@ void ObjectManager::InitializeFactories()
 	m_gameObjectFactories[GOID_BUILDING_SPIDER_TALLEGG] = m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG];
 
 	// 아이템 팩토리 등록 (GameObjectFactory에 통합)
-	// 인벤토리 아이템은 x, y 좌표를 사용하지 않지만 통합을 위해 파라미터로 받음
+	// 인벤토리 아이템들은 x, y 좌표를 사용하지 않으므로 무시하고 파라미터로 받음
 	m_gameObjectFactories[GOID_ITEM_NORMAL_TREE_LOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new Item(GOBJ_ITEM, id, L"LOG", L"A Log.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
@@ -315,6 +308,7 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 		
 		// 생성된 게임오브젝트를 오브젝트매니저에 추가 (GameObject 생명주기 관리)
 		if (newObj) {
+			
 			if (addToManager) {
 				AddGameObject(newObj);
 				OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 완료 - ID: " + std::to_wstring(id) + L" at (" + std::to_wstring(x) + L", " + std::to_wstring(y) + L")\n").c_str());
@@ -346,27 +340,16 @@ void ObjectManager::RenderBounds()
 	
 	for (GameObject* obj : m_gameObjects)
 	{
-		if (obj && obj->GetActive() && obj->CanInteract())
+		if (obj && obj->IsEnabled())
 		{
-			// 오브젝트의 실제 바운드 박스 크기 계산
-			float objWidth = obj->GetWidth();
-			float objHeight = obj->GetHeight();
-			float objX = obj->GetX();
-			float objY = obj->GetY();
-			
-			// 오브젝트의 피벗 값 가져오기
-			float pivotX = obj->GetPivotX();
-			float pivotY = obj->GetPivotY();
-			
-			// 피벗을 고려한 바운드 박스 경계 계산
-			float left = objX - (objWidth * pivotX);
-			float right = objX + (objWidth * (1.0f - pivotX));
-			float top = objY - (objHeight * pivotY);
-			float bottom = objY + (objHeight * (1.0f - pivotY));
+			// Sprite 크기 기반 바운딩 박스 사용
+			Gdiplus::RectF objBounds = cameraManager->GetSpriteBoundingBox(obj);
 			
 			// 월드 좌표를 스크린 좌표로 변환
-			Gdiplus::PointF screenLeft = cameraManager->WorldToScreen(left, top);
-			Gdiplus::PointF screenRight = cameraManager->WorldToScreen(right, bottom);
+			Gdiplus::PointF screenLeft = cameraManager->WorldToScreen(objBounds.X, objBounds.Y);
+			Gdiplus::PointF screenRight = cameraManager->WorldToScreen(
+				objBounds.X + objBounds.Width, 
+				objBounds.Y + objBounds.Height);
 			
 			// 바운드 사각형 생성
 			Gdiplus::RectF boundsRect(

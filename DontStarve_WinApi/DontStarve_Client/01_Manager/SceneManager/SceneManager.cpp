@@ -13,7 +13,6 @@
 #include "../ResourceManager/ResourceManager.h"
 #include <codecvt>
 #include <locale>
-#include <memory>
 
 SceneManager::SceneManager()
 	: m_currentScene(nullptr), m_nextScene(nullptr),

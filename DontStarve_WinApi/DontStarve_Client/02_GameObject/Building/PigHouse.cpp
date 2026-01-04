@@ -16,17 +16,8 @@ PigHouse::~PigHouse()
 
 void PigHouse::Init()
 {
-    m_buildingState = BUILDING_NOON;
-    m_direction = DIR_DOWN;
-    
-    // ºñÆ®¸Ê ·Îµå
-    LoadBitmap();
-    
-    // ºñÆ®¸Ê Å©±â ¼³Á¤
-    if (m_orignalBitmap) {
-        this->m_width = static_cast<float>(m_orignalBitmap->GetWidth());
-        this->m_height = static_cast<float>(m_orignalBitmap->GetHeight());
-    }
+	m_buildingState = BUILDING_NOON;
+
 }
 
 void PigHouse::LateInit()
@@ -35,7 +26,7 @@ void PigHouse::LateInit()
 
 void PigHouse::Update(float deltaTime)
 {
-    // ÇÊ¿ä ½Ã »óÅÂ¿¡ µû¸¥ ¾÷µ¥ÀÌÆ®
+    // í•„ìš” ì‹œ ìƒíƒœì— ë”°ë¥¸ ì—…ë°ì´íŠ¸
 }
 
 void PigHouse::LateUpdate()
@@ -54,12 +45,12 @@ void PigHouse::Damaged(int damage)
     {
         m_hp = 0;
         m_buildingState = BUILDING_DESTROYED;
-        OutputDebugStringW(L"PigHouse: ÆÄ±«µÊ\n");
+        OutputDebugStringW(L"PigHouse: íŒŒê´´ë¨\n");
     }
     else if (m_hp <= m_maxHp / 2)
     {
         m_buildingState = BUILDING_DAMAGED;
-        OutputDebugStringW(L"PigHouse: ¼Õ»óµÊ\n");
+        OutputDebugStringW(L"PigHouse: ì†ìƒë¨\n");
     }
 }
 

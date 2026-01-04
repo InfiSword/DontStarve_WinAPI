@@ -142,7 +142,9 @@ void CharacterSelectScene::CreateUI()
 		L"../Resource/UI/wilson.png",
 		1.0f
 	);
+
 	selectedPortrait->SetActive(false);  // 초기에는 비활성화
+
 	UIManager::GetInstance()->AddUIImage(selectedPortrait);
 
 	// 캐릭터 정보창 (UI4.png) - 초기에는 숨김

@@ -25,7 +25,7 @@ namespace EnumUtils {
 	struct EnumTraits;
 
 	// EnumTraits 특수화
-	// 배열 대신 std::vector 사용 → GetPairsArray()는 vector의 raw data 반환
+	// 배열 대신 std::vector 사용 가능 GetPairsArray()는 vector의 raw data 반환
 
 	// TileType 특수화
 	template<> struct EnumTraits<TileType>
@@ -170,7 +170,7 @@ namespace EnumUtils {
 }
 
 
-// ====================== 자료 구조 =======================
+// ====================== 데이터 구조 =======================
 
 struct PaletteItem {
 	ItemCategory category;     // CATEGORY_TILE, CATEGORY_OBJECT
@@ -211,13 +211,21 @@ struct GameObjectData {
 
 	float pivotX;
 	float pivotY;
-	// 표시 기준점
+	// 렌더링 기준점
 
-	bool hasCollider = false; // 콜라이더 사용 여부
-	int colliderOffsetX = 0;  // 콜라이더 오프셋 X
-	int colliderOffsetY = 0;  // 콜라이더 오프셋 Y
-	int colliderWidth = 0;    // 콜라이더 너비
-	int colliderHeight = 0;   // 콜라이더 높이
+	bool hasCollider = false; // 에디터 사용 여부
+	ColliderType colliderType = COLLIDER_BOX;  // 콜라이더 타입 (BOX 또는 CIRCLE)
+	
+	// BoxCollider용 필드
+	int colliderOffsetX = 0;  // 에디터 오프셋 X
+	int colliderOffsetY = 0;  // 에디터 오프셋 Y
+	int colliderWidth = 0;    // 에디터 너비
+	int colliderHeight = 0;   // 에디터 높이
+	
+	// CircleCollider용 필드
+	float colliderCenterX = 0.0f;  // 로컬 좌표 기준 중심 X
+	float colliderCenterY = 0.0f;  // 로컬 좌표 기준 중심 Y
+	float colliderRadius = 0.0f;   // 반지름
 
 	GameObjectData()
 		: type(GOBJ_NONE), id(GOID_NONE), x(0), y(0), pivotX(0.5f), pivotY(1.0f)
@@ -225,11 +233,15 @@ struct GameObjectData {
 
 	GameObjectData(GameObjectType type_val, GameObjectID id_val, float x_val, float y_val,
 		const std::wstring& objectAssetBaseDirectory_val, float pivotX_val, float pivotY_val,
-		bool hasCollider_val = false, int colliderOffsetX_val = 0, int colliderOffsetY_val = 0,
-		int colliderWidth_val = 0, int colliderHeight_val = 0)
+		bool hasCollider_val = false, ColliderType colliderType_val = COLLIDER_BOX,
+		int colliderOffsetX_val = 0, int colliderOffsetY_val = 0,
+		int colliderWidth_val = 0, int colliderHeight_val = 0,
+		float colliderCenterX_val = 0.0f, float colliderCenterY_val = 0.0f, float colliderRadius_val = 0.0f)
 		: type(type_val), id(id_val), x(x_val), y(y_val), objectAssetBaseDirectory(objectAssetBaseDirectory_val),
-		pivotX(pivotX_val), pivotY(pivotY_val), hasCollider(hasCollider_val), colliderOffsetX(colliderOffsetX_val),
-		colliderOffsetY(colliderOffsetY_val), colliderWidth(colliderWidth_val), colliderHeight(colliderHeight_val)
+		pivotX(pivotX_val), pivotY(pivotY_val), hasCollider(hasCollider_val), colliderType(colliderType_val),
+		colliderOffsetX(colliderOffsetX_val), colliderOffsetY(colliderOffsetY_val),
+		colliderWidth(colliderWidth_val), colliderHeight(colliderHeight_val),
+		colliderCenterX(colliderCenterX_val), colliderCenterY(colliderCenterY_val), colliderRadius(colliderRadius_val)
 	{}
 };
 
@@ -306,10 +318,10 @@ struct MapData {
 
 	int mapWidth;
 	int mapHeight;
-	PlayerSpawnData playerSpawn; // 플레이어 시작 위치
+	PlayerSpawnData playerSpawn; // 플레이어 스폰 시작 위치
 
 	TileData tiles[MAP_WIDTH][MAP_HEIGHT];        // 타일 데이터
-	std::vector<GameObjectData> gameObjects;      // 게임 오브젝트 목록
+	std::vector<GameObjectData> gameObjects;      // 게임 오브젝트 리스트
 	bool walkableAreas[MAP_WIDTH][MAP_HEIGHT];    // 이동 가능 영역
 
 	MapData()
@@ -333,7 +345,7 @@ struct MapData {
 	}
 };
 
-// 장면(맵) 클리어 정보 구조체
+// 씬(맵) 클리어 정보 구조체
 struct SceneClearInfo
 {
 	SceneType sceneType;
@@ -344,7 +356,7 @@ struct SceneClearInfo
 		: sceneType(type), isCleared(cleared), clearDate(date) {}
 };
 
-// 장면 클리어 조건 정보 구조체
+// 씬 클리어 조건 정보 구조체
 struct SceneClearCondition
 {
 	SceneType sceneType;
@@ -365,7 +377,7 @@ struct CharacterUnlockInfo
 {
 	GameObjectID characterID;
 	bool isUnlocked;
-	SceneType requiredScene;  // 해금에 필요한 장면
+	SceneType requiredScene;  // 해금에 필요한 씬
 
 	CharacterUnlockInfo(GameObjectID id, bool unlocked = false, SceneType scene = SCENE_NONE)
 		: characterID(id), isUnlocked(unlocked), requiredScene(scene) {}
@@ -394,7 +406,7 @@ struct GameProgress
 		InitializeSceneClearConditions();
 	}
 
-	// 장면별 클리어 조건 초기화
+	// 씬별 클리어 조건 초기화
 	void InitializeSceneClearConditions()
 	{
 		sceneClearConditions.emplace_back(
@@ -410,14 +422,14 @@ struct GameProgress
 
 		sceneClearConditions.emplace_back(
 			SCENE_GAME_SPIDER_QUEEN_HOUSE,
-			L"거미 여왕을 처치하고 특정 아이템을 모으세요.",
+			L"거미여왕을 처치하고 특정 아이템을 모으세요.",
 			std::vector<GameObjectID>{ GOID_MONSTER_QUEEN_SPIDER },
 			std::vector<GameObjectID>{ GOID_ITEM_MEAT, GOID_ITEM_BERRY },
 			5
 		);
 	}
 
-	// 특정 장면 클리어 조건 가져오기
+	// 특정 씬 클리어 조건 가져오기
 	const SceneClearCondition* GetSceneClearCondition(SceneType sceneType) const
 	{
 		for (const auto& condition : sceneClearConditions)
@@ -426,7 +438,7 @@ struct GameProgress
 		return nullptr;
 	}
 
-	// 장면 클리어 여부 확인
+	// 씬 클리어 여부 확인
 	bool IsSceneCleared(SceneType sceneType) const
 	{
 		for (const auto& sceneInfo : sceneClearInfos)
@@ -444,7 +456,7 @@ struct GameProgress
 		return false;
 	}
 
-	// 장면 클리어 처리
+	// 씬 클리어 처리
 	void ClearScene(SceneType sceneType)
 	{
 		for (auto& sceneInfo : sceneClearInfos)
@@ -458,7 +470,7 @@ struct GameProgress
 		}
 	}
 
-	// 캐릭터 해금 갱신
+	// 캐릭터 해금 업데이트
 	void UpdateCharacterUnlocks()
 	{
 		for (auto& charInfo : characterUnlockInfos)
@@ -474,8 +486,8 @@ template<typename StateType>
 struct AnimInfo {
 	StateType state;
 	Direction dir;
-	std::wstring sheetFilePath; // 스프라이트 시트 경로
-	std::wstring sheetKey;      // AnimationClip 식별 키
+	std::wstring sheetFilePath; // 스프라이트시트 파일 경로
+	std::wstring sheetKey;      // AnimationClip 템플릿 키
 	FLOAT frameWidth;
 	FLOAT frameHeight;
 	UINT framesPerRow;

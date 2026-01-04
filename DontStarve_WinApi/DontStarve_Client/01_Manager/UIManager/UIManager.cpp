@@ -26,7 +26,7 @@ void UIManager::Update(float deltaTime)
 
 	for (size_t i = 0; i < m_uiImages.size(); ++i) {
 		auto* image = m_uiImages[i];
-		if (image && image->GetActive()) {
+		if (image && image->IsEnabled()) {
 			image->Update(deltaTime);
 		}
 	}
@@ -34,7 +34,7 @@ void UIManager::Update(float deltaTime)
 
 	for (size_t i = 0; i < m_uiButtons.size(); ++i) {
 		auto* button = m_uiButtons[i];
-		if (button && button->GetActive()) {
+		if (button && button->IsEnabled()) {
 			button->Update(deltaTime);
 		}
 	}
@@ -51,14 +51,14 @@ void UIManager::Render()
 
 
 	for (auto* image : m_uiImages) {
-		if (image && image->GetActive()) {
+		if (image && image->IsEnabled()) {
 			image->Render();
 		}
 	}
 
 
 	for (auto* button : m_uiButtons) {
-		if (button && button->GetActive()) {
+		if (button && button->IsEnabled()) {
 			button->Render();
 		}
 	}

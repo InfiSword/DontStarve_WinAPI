@@ -37,6 +37,8 @@ void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
 
 		std::wstringstream ss(line);
 		std::wstring type, id, resourcePath, imageName;
+		std::wstring hasColliderStr, colliderTypeStr, offsetXStr, offsetYStr, widthStr, heightStr;
+		std::wstring centerXStr, centerYStr, radiusStr;
 
 		if (std::getline(ss, type, L',') &&
 			std::getline(ss, id, L',') &&
@@ -44,6 +46,17 @@ void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
 
 			// 이미지 파일명을 선택적으로 읽기 (플레이어와 같은 경우에는 없을 수 있음)
 			std::getline(ss, imageName, L',');
+
+			// 콜라이더 정보 읽기 (선택적)
+			std::getline(ss, hasColliderStr, L',');
+			std::getline(ss, colliderTypeStr, L',');  // 콜라이더 타입 (BOX 또는 CIRCLE)
+			std::getline(ss, offsetXStr, L',');
+			std::getline(ss, offsetYStr, L',');
+			std::getline(ss, widthStr, L',');
+			std::getline(ss, heightStr, L',');
+			std::getline(ss, centerXStr, L',');  // CircleCollider 중심 X
+			std::getline(ss, centerYStr, L',');  // CircleCollider 중심 Y
+			std::getline(ss, radiusStr, L',');  // CircleCollider 반지름
 
 			// 공백 제거
 			type.erase(0, type.find_first_not_of(L" \t"));
@@ -54,6 +67,24 @@ void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
 			resourcePath.erase(resourcePath.find_last_not_of(L" \t") + 1);
 			imageName.erase(0, imageName.find_first_not_of(L" \t"));
 			imageName.erase(imageName.find_last_not_of(L" \t") + 1);
+			hasColliderStr.erase(0, hasColliderStr.find_first_not_of(L" \t"));
+			hasColliderStr.erase(hasColliderStr.find_last_not_of(L" \t") + 1);
+			colliderTypeStr.erase(0, colliderTypeStr.find_first_not_of(L" \t"));
+			colliderTypeStr.erase(colliderTypeStr.find_last_not_of(L" \t") + 1);
+			offsetXStr.erase(0, offsetXStr.find_first_not_of(L" \t"));
+			offsetXStr.erase(offsetXStr.find_last_not_of(L" \t") + 1);
+			offsetYStr.erase(0, offsetYStr.find_first_not_of(L" \t"));
+			offsetYStr.erase(offsetYStr.find_last_not_of(L" \t") + 1);
+			widthStr.erase(0, widthStr.find_first_not_of(L" \t"));
+			widthStr.erase(widthStr.find_last_not_of(L" \t") + 1);
+			heightStr.erase(0, heightStr.find_first_not_of(L" \t"));
+			heightStr.erase(heightStr.find_last_not_of(L" \t") + 1);
+			centerXStr.erase(0, centerXStr.find_first_not_of(L" \t"));
+			centerXStr.erase(centerXStr.find_last_not_of(L" \t") + 1);
+			centerYStr.erase(0, centerYStr.find_first_not_of(L" \t"));
+			centerYStr.erase(centerYStr.find_last_not_of(L" \t") + 1);
+			radiusStr.erase(0, radiusStr.find_first_not_of(L" \t"));
+			radiusStr.erase(radiusStr.find_last_not_of(L" \t") + 1);
 
 			if (type.find(L"TILE_") == 0) {
 				// 타일 리소스
@@ -76,6 +107,51 @@ void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
 				objData.assetImageName = imageName;
 				objData.pivotX = 0.5f;
 				objData.pivotY = 1.0f;
+				
+				// 콜라이더 정보 파싱 (선택적)
+				if (!hasColliderStr.empty() && (hasColliderStr == L"1" || hasColliderStr == L"true" || hasColliderStr == L"True")) {
+					objData.hasCollider = true;
+					
+					// 콜라이더 타입 파싱 (기본값: COLLIDER_BOX)
+					if (!colliderTypeStr.empty()) {
+						if (colliderTypeStr == L"CIRCLE" || colliderTypeStr == L"circle" || colliderTypeStr == L"Circle") {
+							objData.colliderType = COLLIDER_CIRCLE;
+						}
+						else {
+							objData.colliderType = COLLIDER_BOX;
+						}
+					}
+					else {
+						objData.colliderType = COLLIDER_BOX;  // 기본값
+					}
+					
+					// BoxCollider 정보 파싱
+					if (!offsetXStr.empty() && !offsetYStr.empty() && !widthStr.empty() && !heightStr.empty()) {
+						objData.colliderOffsetX = std::stoi(offsetXStr);
+						objData.colliderOffsetY = std::stoi(offsetYStr);
+						objData.colliderWidth = std::stoi(widthStr);
+						objData.colliderHeight = std::stoi(heightStr);
+					}
+					
+					// CircleCollider 정보 파싱
+					if (!centerXStr.empty() && !centerYStr.empty() && !radiusStr.empty()) {
+						objData.colliderCenterX = std::stof(centerXStr);
+						objData.colliderCenterY = std::stof(centerYStr);
+						objData.colliderRadius = std::stof(radiusStr);
+					}
+				}
+				else {
+					objData.hasCollider = false;
+					objData.colliderType = COLLIDER_BOX;  // 기본값
+					objData.colliderOffsetX = 0;
+					objData.colliderOffsetY = 0;
+					objData.colliderWidth = 0;
+					objData.colliderHeight = 0;
+					objData.colliderCenterX = 0.0f;
+					objData.colliderCenterY = 0.0f;
+					objData.colliderRadius = 0.0f;
+				}
+				
 				m_objectResources[objID] = objData;
 
 			}

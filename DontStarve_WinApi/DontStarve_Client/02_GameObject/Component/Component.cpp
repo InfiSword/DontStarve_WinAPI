@@ -2,7 +2,7 @@
 #include "Component.h"
 
 Component::Component(GameObject* owner)
-	: m_owner(owner), m_enabled(true)
+	: Object(), m_owner(owner)
 {
 }
 

@@ -41,7 +41,7 @@ void Ingredient::Release()
 
 void Ingredient::OnInteraction(GameObject* obj)
 {
-    if (GetActive()) {
+    if (IsEnabled()) {
         obj->OnInteraction(this);
     }
 }

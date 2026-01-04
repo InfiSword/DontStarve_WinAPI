@@ -1,36 +1,32 @@
 #pragma once
 
+#include "Object.h"
 #include "Component/Component.h"
 
-class GameObject
+class Transform;
+class SpriteRenderer;
+
+class GameObject : public Object
 {
 protected:
-    float m_x, m_y;					
-    float m_width, m_height;	    // 비트맵(스프라이트시트) 크기
 	GameObjectID m_id;				// 오브젝트 아이디
 	GameObjectType m_type;			// 오브젝트 타입
-	RenderLayer m_layer;			// 레이어
-	Direction m_direction;			// 오브젝트 방향
 
-	std::wstring m_name;			// 해당 게임 오브젝트 이름
-    std::wstring m_resourcePath;	// 해당 리소스 경로
-    std::wstring m_imageName;		// ~~~.png
-	std::wstring m_description;		// 해당 오브젝트 설명 (필요시)
-	Gdiplus::Bitmap* m_orignalBitmap;
+	std::wstring m_name;					// 해당 게임 오브젝트 이름
+    std::wstring m_resourcePath;			// 해당 리소스 경로
+    std::wstring m_spriteResourceName;		// ~~~.png
+	std::wstring m_description;				// 해당 오브젝트 설명 (필요시)
 									
     // 컴포넌트 관리					
     std::vector<Component*> m_components;
-						
-	float m_pivotX;
-	float m_pivotY;
 
-	bool m_isActive;
-	bool m_isInteractive;
+	bool m_isInteractive;			// 상호작용 가능 여부 (Object의 m_enabled와는 독립)
 
 public:
     
-	GameObject(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
-		const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", bool isActive = true, bool isInteractive = false);
+	GameObject(GameObjectType type, GameObjectID id, 
+		const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", 
+		bool isActive = true, bool isInteractive = false);
  
 	virtual ~GameObject();
 
@@ -41,9 +37,6 @@ public:
 	virtual void Release();
 
 	virtual void OnInteraction(GameObject* obj);
-	
-	// 비트맵 로드
-	virtual void LoadBitmap();
 	
     template <typename T>
     T* AddComponent() {
@@ -64,30 +57,11 @@ public:
         return nullptr;
     }
 
-	// Getters
-	virtual Gdiplus::RectF GetWorldBoundingBox() const { return Gdiplus::RectF(m_x - m_width * m_pivotX, m_y - m_height * m_pivotY, m_width, m_height); }
-	virtual float GetSortKey(RenderLayer layer) const { return static_cast<float>(layer) + m_y; }
-	
-	Gdiplus::Bitmap* GetBitmap() const { return m_orignalBitmap; }
-	RenderLayer GetRenderLayer() const { return m_layer; }
-	std::wstring GetImageName() const { return m_imageName; }
-	GameObjectID GetID() const { return m_id; }
-	GameObjectType GetType() const { return m_type; }
-	const std::wstring& GetName() const { return m_name; }
-	const std::wstring& GetDescription() const { return m_description; }
-	bool GetActive() const { return m_isActive; }
-	float GetX() const { return m_x; }
-	float GetY() const { return m_y; }
-	float GetWidth() const { return m_width; }
-	float GetHeight() const { return m_height; }
-	float GetPivotX() const { return m_pivotX; }
-	float GetPivotY() const { return m_pivotY; }
-	Direction GetDir() const { return m_direction; }
-
-	// 상태 제어
-	void SetActive(bool active) { m_isActive = active; }
-	
-	// 상호작용 관련 메서드들
-	bool IsInteractive() const { return m_isInteractive; }
-	virtual bool CanInteract() const { return m_isActive && m_isInteractive; }
+	// inline 함수
+	inline std::wstring GetSpriteResourceName() const { return m_spriteResourceName; }
+	inline GameObjectID GetID() const { return m_id; }
+	inline GameObjectType GetType() const { return m_type; }
+	inline const std::wstring& GetName() const { return m_name; }
+	inline const std::wstring& GetDescription() const { return m_description; }
+	inline bool IsInteractive() const { return m_isInteractive; }
 };

@@ -1,12 +1,19 @@
 #include "../../99_Default/pch.h"
 #include "UIButton.h"
+#include "../Component/Transform/RectTransform.h"
+#include "../Component/Sprite/Image.h"
 #include "../../01_Manager/InputManager/InputManager.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
 
+// UIButton 헬퍼 함수
+static RectTransform* GetRectTransform(const UIButton* button) {
+	return button->GetComponent<RectTransform>();
+}
+
 UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 	const std::wstring& normalImagePath, const std::wstring& hoverImagePath, const std::wstring buttonText)
-	: GameObject(GOBJ_UI, id, x, y, 0.5f, 0.5f, DIR_DOWN, L"", L""),
+	: GameObject(GOBJ_UI, id, L"", L"", true, false),
 	m_buttonState(ButtonState::NORMAL),
 	m_hoverBitmap(nullptr),
 	m_isMouseOver(false),
@@ -17,9 +24,25 @@ UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 	m_textBrush(nullptr),
 	m_stringFormat(nullptr)
 {
-	m_width = width;
-	m_height = height;
+	// RectTransform 컴포넌트 추가
+	RectTransform* rectTransform = AddComponent<RectTransform>();
+	rectTransform->SetPosition(x, y);
+	rectTransform->SetPivot(0.5f, 0.5f);
 	LoadBitmaps(normalImagePath, hoverImagePath);
+	
+	// 비트맵 로드 후 크기에 맞춰 scale 계산
+	::Image* image = GetComponent<::Image>();
+	if (image && image->GetSprite()) {
+		Gdiplus::Bitmap* bitmap = image->GetSprite();
+		float bitmapWidth = static_cast<float>(bitmap->GetWidth());
+		float bitmapHeight = static_cast<float>(bitmap->GetHeight());
+		if (bitmapWidth > 0 && bitmapHeight > 0) {
+			float scaleX = width / bitmapWidth;
+			float scaleY = height / bitmapHeight;
+			rectTransform->SetScale(scaleX, scaleY);
+		}
+	}
+	
 	InitializeText();
 }
 
@@ -30,13 +53,17 @@ UIButton::~UIButton()
 
 void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstring& hoverImagePath)
 {
+	// Image 컴포넌트 가져오기
+	::Image* image = GetComponent<::Image>();
+	if (!image) {
+		// Image 컴포넌트가 없으면 추가
+		image = AddComponent<::Image>();
+		image->SetLayer(LAYER_UI_FOREGROUND);
+	}
+
 	// Normal 비트맵 로드
 	if (!normalImagePath.empty()) {
-		m_orignalBitmap = new Gdiplus::Bitmap(normalImagePath.c_str());
-		if (m_orignalBitmap && m_orignalBitmap->GetLastStatus() != Gdiplus::Ok) {
-			delete m_orignalBitmap;
-			m_orignalBitmap = nullptr;
-		}
+		image->LoadSprite(normalImagePath);
 	}
 
 	// Hover 비트맵 로드
@@ -71,13 +98,13 @@ void UIButton::InitializeText()
 	// 기본 브러시 생성 (검은색)
 	m_textBrush = new Gdiplus::SolidBrush(Gdiplus::Color::Black);
 
-	// 기본 문자열 정렬 설정 (중앙 정렬)
+	// 기본 문자열 포맷 생성 (중앙 정렬)
 	m_stringFormat = new Gdiplus::StringFormat();
 
 	m_stringFormat->SetAlignment(Gdiplus::StringAlignmentCenter);
 	m_stringFormat->SetLineAlignment(Gdiplus::StringAlignmentCenter);
 
-	// 폰트 패밀리 유효성 재확인
+	// 폰트 유효성을 확인하고 설정
 	Gdiplus::FontFamily fontFamily;
 	if (m_font->GetFamily(&fontFamily) != Gdiplus::Ok) {
 		Release();
@@ -89,7 +116,7 @@ void UIButton::InitializeText()
 
 void UIButton::Update(float deltaTime)
 {
-	if (!GetActive()) return;
+	if (!IsEnabled()) return;
 
 	CheckMouseInteraction();
 }
@@ -129,17 +156,35 @@ void UIButton::CheckMouseInteraction()
 
 bool UIButton::IsPointInside(float x, float y) const
 {
-	float left = m_x - (m_width * m_pivotX);
-	float top = m_y - (m_height * m_pivotY);
-	float right = left + m_width;
-	float bottom = top + m_height;
+	RectTransform* rectTransform = GetComponent<RectTransform>();
+	if (!rectTransform) return false;
+
+	// Sprite 크기 * scale 계산
+	::Image* image = GetComponent<::Image>();
+	if (!image || !image->GetSprite()) return false;
+	
+	Gdiplus::Bitmap* bitmap = image->GetSprite();
+	float bitmapWidth = static_cast<float>(bitmap->GetWidth());
+	float bitmapHeight = static_cast<float>(bitmap->GetHeight());
+	float width = bitmapWidth * rectTransform->GetScaleX();
+	float height = bitmapHeight * rectTransform->GetScaleY();
+	
+	float rectX = rectTransform->GetX();
+	float rectY = rectTransform->GetY();
+	float pivotX = rectTransform->GetPivotX();
+	float pivotY = rectTransform->GetPivotY();
+
+	float left = rectX - (width * pivotX);
+	float top = rectY - (height * pivotY);
+	float right = left + width;
+	float bottom = top + height;
 
 	return (x >= left && x <= right && y >= top && y <= bottom);
 }
 
 void UIButton::Render()
 {
-	if (!GetActive()) return;
+	if (!IsEnabled()) return;
 
 	// 비활성화된 버튼은 비활성화 스타일로 렌더링
 	if (m_isDisabled) {
@@ -150,13 +195,27 @@ void UIButton::Render()
 	Gdiplus::Bitmap* currentBitmap = GetBitmap();
 	if (!currentBitmap) return;
 
+	RectTransform* rectTransform = GetComponent<RectTransform>();
+	if (!rectTransform) return;
+
+	// Sprite 크기 * scale 계산
+	float bitmapWidth = static_cast<float>(currentBitmap->GetWidth());
+	float bitmapHeight = static_cast<float>(currentBitmap->GetHeight());
+	float width = bitmapWidth * rectTransform->GetScaleX();
+	float height = bitmapHeight * rectTransform->GetScaleY();
+	
+	float x = rectTransform->GetX();
+	float y = rectTransform->GetY();
+	float pivotX = rectTransform->GetPivotX();
+	float pivotY = rectTransform->GetPivotY();
+
 	// RenderManager를 통해 UI 이미지 렌더링
 	RenderManager::GetInstance()->RenderUIImage(
 		currentBitmap,
-		m_x - (m_pivotX * m_width),  // destLeft
-		m_y - (m_pivotY * m_height), // destTop
-		m_width,
-		m_height,
+		x - (pivotX * width),  // destLeft
+		y - (pivotY * height), // destTop
+		width,
+		height,
 		LAYER_UI_FOREGROUND,
 		static_cast<float>(m_buttonState)  // 버튼 상태를 sortKey로 사용
 	);
@@ -168,31 +227,52 @@ void UIButton::Render()
 		Gdiplus::FontFamily fontFamily;
 		if (m_font->GetFamily(&fontFamily) == Gdiplus::Ok) {
 			// 텍스트가 비어있지 않고 모든 텍스트 리소스가 유효한 경우에만 렌더링
-			RenderManager::GetInstance()->RenderUIText(
-				m_buttonText,
-				m_font,
-				m_textBrush,
-				m_x - (m_pivotX * m_width),  // x
-				m_y - (m_pivotY * m_height), // y
-				m_width,
-				m_height,
-				LAYER_UI_FOREGROUND,
-				static_cast<float>(m_buttonState) + 0.1f  // 이미지보다 위에 표시
-			);
+			RectTransform* rectTransform = GetComponent<RectTransform>();
+			if (rectTransform) {
+				// Sprite 크기 * scale 계산
+				::Image* image = GetComponent<::Image>();
+				if (!image || !image->GetSprite()) return;
+				
+				Gdiplus::Bitmap* bitmap = image->GetSprite();
+				float bitmapWidth = static_cast<float>(bitmap->GetWidth());
+				float bitmapHeight = static_cast<float>(bitmap->GetHeight());
+				float width = bitmapWidth * rectTransform->GetScaleX();
+				float height = bitmapHeight * rectTransform->GetScaleY();
+				
+				float x = rectTransform->GetX();
+				float y = rectTransform->GetY();
+				float pivotX = rectTransform->GetPivotX();
+				float pivotY = rectTransform->GetPivotY();
+
+				RenderManager::GetInstance()->RenderUIText(
+					m_buttonText,
+					m_font,
+					m_textBrush,
+					x - (pivotX * width),  // x
+					y - (pivotY * height), // y
+					width,
+					height,
+					LAYER_UI_FOREGROUND,
+					static_cast<float>(m_buttonState) + 0.1f  // 이미지보다 위에 표시
+				);
+			}
 		}
 	}
 }
 
 Gdiplus::Bitmap* UIButton::GetBitmap() const
 {
+	::Image* image = GetComponent<::Image>();
+	Gdiplus::Bitmap* normalBitmap = image ? image->GetSprite() : nullptr;
+
 	switch (m_buttonState) {
 	case ButtonState::HOVER:
 	case ButtonState::CLICKED:
-		return (m_hoverBitmap) ? m_hoverBitmap : m_orignalBitmap;
+		return (m_hoverBitmap) ? m_hoverBitmap : normalBitmap;
 	case ButtonState::DISABLED:
 	case ButtonState::NORMAL:
 	default:
-		return m_orignalBitmap;
+		return normalBitmap;
 	}
 }
 
@@ -208,10 +288,7 @@ ButtonState UIButton::GetButtonState() const
 
 void UIButton::Release()
 {
-	if (m_orignalBitmap) {
-		delete m_orignalBitmap;
-		m_orignalBitmap = nullptr;
-	}
+	// Image 컴포넌트는 GameObject의 Release에서 자동으로 해제됨
 	if (m_hoverBitmap) {
 		delete m_hoverBitmap;
 		m_hoverBitmap = nullptr;
@@ -237,7 +314,7 @@ void UIButton::SetDisabled(bool disabled)
     m_isDisabled = disabled;
     if (disabled) {
         m_buttonState = ButtonState::DISABLED;
-        // 비활성화 상태에서는 마우스 이벤트를 받지 않음
+        // 비활성화된 버튼은 마우스 이벤트를 받지 않음
     } else {
         m_buttonState = ButtonState::NORMAL;
     }
@@ -245,28 +322,43 @@ void UIButton::SetDisabled(bool disabled)
 
 void UIButton::RenderDisabled()
 {
-    if (!m_orignalBitmap) return;
+	::Image* image = GetComponent<::Image>();
+	Gdiplus::Bitmap* normalBitmap = image ? image->GetSprite() : nullptr;
+    if (!normalBitmap) return;
     
-    // 비활성화된 버튼을 어둡게 렌더링 (색상을 30%로 줄임)
+    // 비활성화된 버튼의 색상을 어둡게 (밝기를 30%로 줄임)
     Gdiplus::ColorMatrix colorMatrix = {
         0.3f, 0.0f, 0.0f, 0.0f, 0.0f,  // Red (30%)
         0.0f, 0.3f, 0.0f, 0.0f, 0.0f,  // Green (30%)
         0.0f, 0.0f, 0.3f, 0.0f, 0.0f,  // Blue (30%)
-        0.0f, 0.0f, 0.0f, 0.7f, 0.0f,  // Alpha (70% 투명도)
+        0.0f, 0.0f, 0.0f, 0.7f, 0.0f,  // Alpha (70% 불투명도)
         0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Additional
     };
     
     Gdiplus::ImageAttributes imgAttr;
     imgAttr.SetColorMatrix(&colorMatrix, Gdiplus::ColorMatrixFlagsDefault, Gdiplus::ColorAdjustTypeBitmap);
     
-    Gdiplus::RectF destRect(GetX() - GetWidth() / 2.0f, GetY() - GetHeight() / 2.0f, GetWidth(), GetHeight());
+	RectTransform* rectTransform = GetComponent<RectTransform>();
+	if (!rectTransform) return;
+
+	// Sprite 크기 * scale 계산
+	float bitmapWidth = static_cast<float>(normalBitmap->GetWidth());
+	float bitmapHeight = static_cast<float>(normalBitmap->GetHeight());
+	float width = bitmapWidth * rectTransform->GetScaleX();
+	float height = bitmapHeight * rectTransform->GetScaleY();
+	
+	float x = rectTransform->GetX();
+	float y = rectTransform->GetY();
+	float pivotX = rectTransform->GetPivotX();
+	float pivotY = rectTransform->GetPivotY();
+    Gdiplus::RectF destRect(x - width / 2.0f, y - height / 2.0f, width, height);
 
 	RenderManager::GetInstance()->RenderUIImage(
-		m_orignalBitmap,
-		m_x - (m_pivotX * m_width),  // destLeft
-		m_y - (m_pivotY * m_height), // destTop
-		m_width,
-		m_height,
+		normalBitmap,
+		x - (pivotX * width),  // destLeft
+		y - (pivotY * height), // destTop
+		width,
+		height,
 		LAYER_UI_FOREGROUND,
 		static_cast<float>(m_buttonState)  // 버튼 상태를 sortKey로 사용
 	);

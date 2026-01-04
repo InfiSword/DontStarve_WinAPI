@@ -14,7 +14,6 @@ struct AnimationParameters {
     AnimationParameters(int s, int d) : state(s), direction(d) {}
 };
 
-// Unity Animator를 모방한 Animator 클래스 (Component 상속)
 class Animator : public Component {
 public:
     Animator(GameObject* owner);

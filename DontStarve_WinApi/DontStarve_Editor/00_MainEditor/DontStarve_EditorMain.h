@@ -71,12 +71,16 @@ private:
 	GameObjectData* m_editingObject;            // 편집 중인 오브젝트
 
 	const int MIN_COLLIDER_SIZE = 4;
+	const float MIN_COLLIDER_RADIUS = 2.0f;    // CircleCollider 최소 반지름
 	bool m_isColliderEditMode = false;          // 콜라이더 편집 모드 여부
 	GameObjectData* m_editingColliderObject = nullptr; // 현재 콜라이더를 편집 중인 오브젝트
 	bool m_isDraggingCollider = false;          // 콜라이더 드래그 중인지 여부
 	POINT m_colliderEditStartMousePos;          // 콜라이더 크기/위치 조절 시작 마우스 위치 (화면 좌표)
-	RECT m_initialColliderRect;                 // 콜라이더 편집 시작 시 콜라이더의 초기 위치/크기 (오브젝트 로컬 좌표계)
-	int m_draggingHandle = -1;                  // 드래그 중인 핸들 인덱스 (0:좌상단, 1:우상단, 2:좌하단, 3:우하단, 4:이동)
+	RECT m_initialColliderRect;                 // 콜라이더 편집 시작 시 콜라이더의 초기 위치/크기 (오브젝트 로컬 좌표계) - BoxCollider용
+	float m_initialColliderCenterX;            // 콜라이더 편집 시작 시 CircleCollider의 초기 중심 X
+	float m_initialColliderCenterY;            // 콜라이더 편집 시작 시 CircleCollider의 초기 중심 Y
+	float m_initialColliderRadius;             // 콜라이더 편집 시작 시 CircleCollider의 초기 반지름
+	int m_draggingHandle = -1;                  // 드래그 중인 핸들 인덱스 (0:좌상단, 1:우상단, 2:좌하단, 3:우하단, 4:이동, 5:반지름조절)
 
 	// 맵 스크롤 오프셋 관련 멤버 변수
 	POINT m_mapOffset;                          // 맵 렌더링 오프셋 (스크롤 위치)

@@ -1,0 +1,110 @@
+#include "../../../99_Default/pch.h"
+#include "BoxCollider.h"
+#include "CircleCollider.h"
+#include "../Transform/Transform.h"
+#include "../../../01_Manager/RenderManager/RenderManager.h"
+#include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../GameObject.h"
+
+
+BoxCollider::BoxCollider(GameObject* owner)
+	: Collider(owner)
+{
+	// 기본 boundingBox는 나중에 Entity::Init()에서 설정됨
+	m_boundingBox = { 0, 0, 0, 0 };
+}
+
+bool BoxCollider::IntersectsCollider(const Collider* other) const
+{
+	// Unity 스타일: 비활성화된 콜라이더는 충돌 검사에서 제외
+	if (!IsEnabled() || !other || !other->IsEnabled()) {
+		return false;
+	}
+
+	// 다른 콜라이더가 BoxCollider인지 CircleCollider인지 확인
+	const BoxCollider* boxCollider = dynamic_cast<const BoxCollider*>(other);
+	const CircleCollider* circleCollider = dynamic_cast<const CircleCollider*>(other);
+
+	if (boxCollider) {
+		// BoxCollider와의 충돌 검사
+		RECT thisBox = GetWorldBoundingBox();
+		RECT otherBox = boxCollider->GetWorldBoundingBox();
+		return !(thisBox.right < otherBox.left || thisBox.left > otherBox.right ||
+			thisBox.bottom < otherBox.top || thisBox.top > otherBox.bottom);
+	}
+	else if (circleCollider) {
+		// CircleCollider와의 충돌 검사
+		// 원과 사각형의 충돌: 사각형에서 원의 중심에 가장 가까운 점을 찾아 거리 계산
+		RECT thisBox = GetWorldBoundingBox();
+		float worldCenterX, worldCenterY, worldRadius;
+		circleCollider->GetWorldCircle(worldCenterX, worldCenterY, worldRadius);
+
+		// 사각형에서 가장 가까운 점 찾기
+		float closestX = (std::max)((float)thisBox.left, (std::min)(worldCenterX, (float)thisBox.right));
+		float closestY = (std::max)((float)thisBox.top, (std::min)(worldCenterY, (float)thisBox.bottom));
+
+		// 원의 중심과 가장 가까운 점 사이의 거리
+		float dx = worldCenterX - closestX;
+		float dy = worldCenterY - closestY;
+		float distance = sqrtf(dx * dx + dy * dy);
+
+		return distance <= worldRadius;
+	}
+
+	// 알 수 없는 타입이면 boundingBox로 검사
+	RECT thisBox = GetWorldBoundingBox();
+	RECT otherBox = other->GetWorldBoundingBox();
+	return !(thisBox.right < otherBox.left || thisBox.left > otherBox.right ||
+		thisBox.bottom < otherBox.top || thisBox.top > otherBox.bottom);
+}
+
+RECT BoxCollider::GetWorldBoundingBox() const
+{
+	return m_boundingBox;
+}
+
+void BoxCollider::SetBoundingBox(int offsetX, int offsetY, int width, int height)
+{
+	m_boundingBox = {
+		offsetX,
+		offsetY,
+		offsetX + width,
+		offsetY + height
+	};
+}
+
+void BoxCollider::RenderGizmo()
+{
+	if (!IsEnabled()) {
+		return;
+	}
+
+	RenderManager* renderManager = RenderManager::GetInstance();
+	CameraManager* cameraManager = CameraManager::GetInstance();
+
+	if (!renderManager || !cameraManager) {
+		return;
+	}
+
+	// 월드 좌표로 변환된 boundingBox 가져오기
+	RECT worldBox = GetWorldBoundingBox();
+
+	// 월드 좌표를 화면 좌표로 변환
+	Gdiplus::PointF screenTopLeft = cameraManager->WorldToScreen((float)worldBox.left, (float)worldBox.top);
+	Gdiplus::PointF screenBottomRight = cameraManager->WorldToScreen((float)worldBox.right, (float)worldBox.bottom);
+
+	// 화면 좌표로 변환된 사각형 크기 계산
+	float width = screenBottomRight.X - screenTopLeft.X;
+	float height = screenBottomRight.Y - screenTopLeft.Y;
+
+	// Gizmo 사각형 생성 (반투명 외곽선)
+	Gdiplus::RectF gizmoRect(screenTopLeft.X, screenTopLeft.Y, width, height);
+	Gdiplus::Color gizmoColor(255, 255, 0, 0); // 빨간색, 두께 2.0f
+
+	// 반투명 배경 추가 (반투명)
+	Gdiplus::Color bgColor(30, 255, 0, 0); // 반투명 빨간색
+	renderManager->AddFillRectangleCommand(gizmoRect, bgColor, LAYER_DEBUG_OVERLAY, 9998.0f);
+
+	// 외곽선 그리기
+	renderManager->AddDrawCommand(gizmoRect, gizmoColor, 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
+}

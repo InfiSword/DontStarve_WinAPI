@@ -14,14 +14,10 @@ Sapling::~Sapling() {}
 
 void Sapling::Init()
 {
-	// 이미지 로드
-	LoadBitmap();
-	
-	// 스프라이트 크기 설정
-	if (m_orignalBitmap) {
-		this->m_width = static_cast<float>(m_orignalBitmap->GetWidth());
-		this->m_height = static_cast<float>(m_orignalBitmap->GetHeight());
-	}
+	Entity::Init();
+	// 비트맵은 생성자에서 이미 로드됨
+	// Transform은 이제 Scale만 관리 (기본값 1.0f)
+	// 크기는 sprite의 실제 크기를 사용하므로 Transform에 설정할 필요 없음
 }
 
 void Sapling::LateInit()
@@ -30,7 +26,7 @@ void Sapling::LateInit()
 
 void Sapling::Update(float deltaTime)
 {
-	// 필요한 컴포넌트 업데이트가 있다면 여기서 추가
+	// 필요한 컴포넌트 업데이트 로직을 여기서 추가
 }
 
 void Sapling::LateUpdate()
@@ -44,7 +40,7 @@ void Sapling::Release()
 
 void Sapling::OnInteraction(GameObject* obj)
 {
-	if (GetActive() && CanInteract()) {
+	if (IsEnabled()) {
 		obj->OnInteraction(this);
 	}
 }

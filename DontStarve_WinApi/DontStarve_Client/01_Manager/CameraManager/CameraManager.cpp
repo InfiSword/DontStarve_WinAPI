@@ -1,5 +1,9 @@
 #include "../../99_Default/pch.h"
 #include "CameraManager.h"
+#include "../../02_GameObject/Component/Transform/Transform.h"
+#include "../../02_GameObject/Component/Transform/RectTransform.h"
+#include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
+#include "../../02_GameObject/Component/Sprite/Image.h"
 #include "../InputManager/InputManager.h" 
 #include "../ObjectManager/ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
@@ -140,9 +144,9 @@ void CameraManager::FollowTarget(float deltaTime)
 {
 	if (!m_target)
 		return;
-	// 플레이어의 (x, y)를 그대로 카메라 위치로 설정
-	m_cameraPos.X = m_target->GetX();
-	m_cameraPos.Y = m_target->GetY();
+	Transform* transform = m_target->GetComponent<Transform>();
+	m_cameraPos.X = transform->GetX();
+	m_cameraPos.Y = transform->GetY();
 }
 
 void CameraManager::SetCameraPosition(float x, float y)
@@ -180,28 +184,29 @@ void CameraManager::UpdateVisibleObjects()
 	
 	// 활성화된 게임오브젝트 중에서 화면에 보이는 것만 추가
 	for (GameObject* obj : allObjects) {
-		if (!obj || !obj->GetActive()) {
+		if (!obj || !obj->IsEnabled()) {
 			continue;
 		}
-		
+		SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>();
+		Transform* transform = obj->GetComponent<Transform>();
 		// 렌더링 가능한 게임오브젝트인지 확인
 		// Player는 항상 Animator를 가지고 있으므로 항상 확인
-		if (!obj->GetBitmap() && !obj->GetComponent<Animator>()) {
+		if (!spriteRenderer->GetSprite() && !obj->GetComponent<Animator>()) {
 			continue;
 		}
 		
 		// Ingredient의 중복 체크
 		if (obj->GetType() == GOBJ_ITEM) {
 			std::wstring ingredientKey = std::to_wstring(obj->GetID()) + L"_" + 
-				std::to_wstring(obj->GetX()) + L"_" + std::to_wstring(obj->GetY());
+				std::to_wstring(transform->GetX()) + L"_" + std::to_wstring(transform->GetY());
 			if (addedIngredients.find(ingredientKey) != addedIngredients.end()) {
 				continue;
 			}
 			addedIngredients.insert(ingredientKey);
 		}
 		
-		// 게임오브젝트의 실제 바운드 박스 계산
-		Gdiplus::RectF objBounds = obj->GetWorldBoundingBox();
+		// Sprite 크기 기반 바운딩 박스 계산
+		Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
 		
 		// 화면 영역과 위치 겹침 확인 (AABB 충돌 검사)
 		if (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
@@ -232,12 +237,11 @@ GameObject* CameraManager::FindObjectAtPosition(float worldX, float worldY)
 		}
 		
 		// 상호작용 가능한 게임오브젝트만 확인
-		if (!obj->CanInteract()) {
+		if (!obj->IsEnabled()) {
 			continue;
 		}
-		
-		// 게임오브젝트의 실제 바운드 박스 계산
-		Gdiplus::RectF objBounds = obj->GetWorldBoundingBox();
+		// Sprite 크기 기반 바운딩 박스 계산
+		Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
 		
 		// 클릭한 위치가 게임오브젝트 영역 안에 있는지 확인
 		if (objBounds.Contains(worldX, worldY)) {
@@ -253,12 +257,65 @@ bool CameraManager::IsObjectVisible(GameObject* obj) const
 	return m_visibleObjectSet.find(obj) != m_visibleObjectSet.end();
 }
 
+Gdiplus::RectF CameraManager::GetSpriteBoundingBox(GameObject* obj) const
+{
+	if (!obj || !obj->IsEnabled()) {
+		return Gdiplus::RectF(0, 0, 0, 0);
+	}
+	
+	Transform* transform = obj->GetComponent<Transform>();
+	if (!transform) {
+		return Gdiplus::RectF(0, 0, 0, 0);
+	}
+	
+	float worldX = transform->GetX();
+	float worldY = transform->GetY();
+	float width = 0.0f;
+	float height = 0.0f;
+	float pivotX = 0.5f;
+	float pivotY = 0.5f;
+	
+	// Animator가 있으면 currentFrame의 크기 사용
+	Animator* animator = obj->GetComponent<Animator>();
+	if (animator && animator->GetClip()) {
+		const AnimationFrame& currentFrame = animator->GetCurrentFrame();
+		width = static_cast<float>(currentFrame.width);
+		height = static_cast<float>(currentFrame.height);
+		pivotX = currentFrame.pivotX;
+		pivotY = currentFrame.pivotY;
+	}
+	// SpriteRenderer만 있으면 비트맵 크기 사용
+	else {
+		SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>();
+		if (spriteRenderer && spriteRenderer->GetSprite()) {
+			Gdiplus::Bitmap* bitmap = spriteRenderer->GetSprite();
+			width = static_cast<float>(bitmap->GetWidth());
+			height = static_cast<float>(bitmap->GetHeight());
+			pivotX = transform->GetPivotX();
+			pivotY = transform->GetPivotY();
+		}
+		// 둘 다 없으면 기본값 사용 (fallback)
+		else {
+			width = 32.0f;  // 기본 크기
+			height = 32.0f;
+			pivotX = transform->GetPivotX();
+			pivotY = transform->GetPivotY();
+		}
+	}
+	
+	// 피벗을 고려한 바운딩 박스 계산
+	float left = worldX - width * pivotX;
+	float top = worldY - height * pivotY;
+	
+	return Gdiplus::RectF(left, top, width, height);
+}
+
 bool CameraManager::IsObjectInViewport(GameObject* obj) const
 {
-	if (!obj || !obj->GetActive()) return false;
+	if (!obj || !obj->IsEnabled()) return false;
 	
-	// 게임오브젝트의 실제 바운드 박스 계산
-	Gdiplus::RectF objBounds = obj->GetWorldBoundingBox();
+	// Sprite 크기 기반 바운딩 박스 사용
+	Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
 	
 	// 현재 뷰포트 영역 계산하기
 	Gdiplus::RectF viewportRect = GetViewportWorldRect();

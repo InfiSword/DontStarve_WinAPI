@@ -1,22 +1,7 @@
 #pragma once
+
 class GameObject;    
-class CameraManager;
-
-class Collider {
-public:
-    enum Type { RECTANGLE, CIRCLE };
-    Type m_type;
-    GameObject* m_pOwner; // 이 콜라이더를 소유하는 GameObject
-    RECT m_boundingBox;   // AABB 
-
-    Collider(GameObject* owner, RECT boundingBox) : m_pOwner(owner), m_boundingBox(boundingBox), m_type(RECTANGLE) {}
-    virtual ~Collider() = default;
-
-    // 충돌 검사 메서드
-    virtual bool Intersects(const POINT& point) {
-        return PtInRect(&m_boundingBox, point); 
-    }
-};
+class Collider;
 
 class ColliderManager : public CSingleTon<ColliderManager>
 {
@@ -27,21 +12,18 @@ public:
 
     void Init();
     void LateInit();                     
-    void Update(float deltaTime);         // 모든 게임오브젝트 콜라이더 위치 업데이트
+    void Update(float deltaTime);         // 모든 게임오브젝트의 콜라이더 위치 업데이트
     void LateUpdate();                    // 충돌 검사 처리 
-    void Render(Gdiplus::Graphics* pGraphics); 
-    // 디버그용 콜라이더 박스 그리기
+    void RenderGizmos();                  // 디버그용 콜라이더 Gizmo 그리기 (RenderManager 명령 큐 사용)
     void Release();                    
 
     void AddCollider(Collider* pCollider);
     void RemoveCollider(Collider* pCollider);
 
     // 충돌 처리
-    GameObject* CheckPointCollision(POINT screenPos); 
-    // 화면 좌표에서 클릭한 GameObject 찾기
-    
-    // GameObject* CheckRectCollision(RECT screenRect); 
-    // 사각형 영역과 충돌하는 GameObject 찾기
+    // 두 오브젝트 간 충돌 검사 (접촉한 두 오브젝트만 처리)
+    bool CheckCollision(GameObject* obj1, GameObject* obj2);
+    // 두 오브젝트가 실제로 접촉했는지 확인
 
 private:
     std::vector<Collider*> m_colliders; // 등록된 콜라이더들

@@ -262,3 +262,10 @@ enum Time {
 	NIGHT,
 	TIME_COUNT
 };
+
+// 콜라이더 타입 정의
+enum ColliderType {
+	COLLIDER_BOX = 0,      // 사각형 콜라이더
+	COLLIDER_CIRCLE,       // 원형 콜라이더
+	COLLIDER_COUNT
+};
