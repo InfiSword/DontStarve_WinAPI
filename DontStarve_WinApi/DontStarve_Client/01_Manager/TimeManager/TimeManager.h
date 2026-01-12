@@ -14,7 +14,7 @@ public:
     void Update();
     float GetDeltaTime() const { return m_deltaTime; }
 
-    // ´ÜÀÏ FPS ¼³Á¤
+    // ï¿½ï¿½ï¿½ï¿½ FPS ï¿½ï¿½ï¿½ï¿½
     void SetFPS(int fps);
     int GetFPS() const { return m_fps; }
     float GetCurrentFPS() const { return m_currentFPS; }
@@ -24,12 +24,12 @@ private:
     std::chrono::high_resolution_clock::time_point m_lastTime;
     float m_deltaTime;
 
-    // ´ÜÀÏ FPS °ü·Ã º¯¼öµé
-    int m_fps;                // ¼³Á¤µÈ FPS
-    float m_frameTime;        // 1/fps (¸ñÇ¥ ÇÁ·¹ÀÓ ½Ã°£)
-    float m_maxDeltaTime;     // 1/fps (ÃÖ´ë deltaTime)
+    // ï¿½ï¿½ï¿½ï¿½ FPS ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    int m_fps;                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FPS
+    float m_frameTime;        // 1/fps (ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½)
+    float m_maxDeltaTime;     // 1/fps (ï¿½Ö´ï¿½ deltaTime)
 
-    // FPS °è»ê¿ë
+    // FPS ï¿½ï¿½ï¿½ï¿½
     float m_currentFPS;
     std::chrono::high_resolution_clock::time_point m_frameStartTime;
     int m_frameCount;

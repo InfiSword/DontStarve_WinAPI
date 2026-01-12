@@ -1,4 +1,4 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "BerryBush.h"
@@ -14,6 +14,7 @@ BerryBush::~BerryBush() {}
 
 void BerryBush::Init()
 {
+	Entity::Init();
 }
 
 void BerryBush::LateInit()

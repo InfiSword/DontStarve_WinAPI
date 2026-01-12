@@ -1,4 +1,4 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../RenderManager/RenderManager.h"
@@ -62,6 +62,9 @@ void ObjectManager::Update(float deltaTime)
 			obj->Update(deltaTime);
 		}
 	}
+	
+	// 루프 종료 후 삭제 지연 처리
+	ProcessPendingDeletions();
 }
 
 void ObjectManager::LateUpdate()
@@ -74,6 +77,9 @@ void ObjectManager::LateUpdate()
 			obj->LateUpdate();
 		}
 	}
+	
+	// 루프 종료 후 삭제 지연 처리
+	ProcessPendingDeletions();
 }
 
 void ObjectManager::Render()
@@ -85,6 +91,9 @@ void ObjectManager::Render()
 	if (m_showBounds) {
 		RenderBounds();
 	}
+	
+	// 루프 종료 후 삭제 지연 처리
+	ProcessPendingDeletions();
 }
 
 void ObjectManager::Release()
@@ -94,40 +103,67 @@ void ObjectManager::Release()
 
 void ObjectManager::AddGameObject(GameObject* pObj)
 {
-	if (pObj)
-	{
-		m_gameObjects.push_back(pObj);
+	if (!pObj) return;
 
-		Player* player = dynamic_cast<Player*>(pObj);
-		if (player) {
-			m_cachedPlayer = player;
-			OutputDebugStringW((L"ObjectManager: 플레이어 캐싱 완료 - ID: " + std::to_wstring(player->GetID()) + L"\n").c_str());
-		}
+	// 중복 추가 체크
+	auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), pObj);
+	if (it != m_gameObjects.end()) return;
 
-		OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 추가 완료 - ID: " + std::to_wstring(pObj->GetID()) + L", 전체 게임오브젝트 수: " + std::to_wstring(m_gameObjects.size()) + L"\n").c_str());
+	// 삭제 대기 중인지 확인
+	auto pendingIt = std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj);
+	if (pendingIt != m_pendingDeletions.end()) return;
+
+	m_gameObjects.push_back(pObj);
+
+	Player* player = dynamic_cast<Player*>(pObj);
+	if (player) {
+		m_cachedPlayer = player;
 	}
 }
 
 void ObjectManager::RemoveGameObject(GameObject* pObj)
 {
 	if (!pObj) return;
+	auto pendingIt = std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj);
+	if (pendingIt != m_pendingDeletions.end()) return;
+	m_pendingDeletions.push_back(pObj);
+}
 
-	auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), pObj);
-	if (it != m_gameObjects.end())
-	{
-		// 플레이어 캐시 해제
-		if (pObj == m_cachedPlayer) {
-			m_cachedPlayer = nullptr;
-		}
-
-		(*it)->Release();
-		SafeDelete(*it);
-		m_gameObjects.erase(it);
+void ObjectManager::ProcessPendingDeletions()
+{
+	if (m_pendingDeletions.empty()) {
+		return;
 	}
+
+	// 삭제 대기 중인 모든 객체 처리
+	for (GameObject* obj : m_pendingDeletions)
+	{
+		if (!obj) continue;
+
+		// m_gameObjects에서 찾아서 제거
+		auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), obj);
+		if (it != m_gameObjects.end())
+		{
+			// 플레이어 캐시 해제
+			if (obj == m_cachedPlayer) {
+				m_cachedPlayer = nullptr;
+			}
+
+			(*it)->Release();
+			SafeDelete(*it);
+			m_gameObjects.erase(it);
+		}
+	}
+
+	// 삭제 지연 큐 비우기
+	m_pendingDeletions.clear();
 }
 
 void ObjectManager::ClearAllObjects()
 {
+	// 삭제 지연 큐도 함께 처리
+	ProcessPendingDeletions();
+
 	for (GameObject* obj : m_gameObjects)
 	{
 		if (obj)
@@ -137,6 +173,7 @@ void ObjectManager::ClearAllObjects()
 		}
 	}
 	m_gameObjects.clear();
+	m_pendingDeletions.clear();
 }
 
 void ObjectManager::InitializeObjects()
@@ -149,8 +186,7 @@ void ObjectManager::InitializeObjects()
 			obj->Init();
 		}
 	}
-	if (m_cachedPlayer)
-		m_cachedPlayer->Init();
+	// m_cachedPlayer는 이미 m_gameObjects에 포함되어 있으므로 중복 초기화 불필요
 }
 
 // 플레이어 캐시된 포인터 반환 함수
@@ -183,83 +219,100 @@ GameObject* ObjectManager::FindObjectAtPositionWithBounds(float x, float y)
 	return nullptr;
 }
 
-// 팩토리 맵 초기화: GameObjectID -> 생성 함수 등록
 void ObjectManager::InitializeFactories()
 {
 	// 플레이어 타입
 	m_gameObjectFactories[GOID_PLAYER_WILSON] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Player(x, y, id, data->objectAssetBaseDirectory, data->assetImageName);
+		return new Player(x, y, id, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
-	m_gameObjectFactories[GOID_PLAYER_WILLOW] = m_gameObjectFactories[GOID_PLAYER_WILSON];
-	m_gameObjectFactories[GOID_PLAYER_WOLFGANG] = m_gameObjectFactories[GOID_PLAYER_WILSON];
+	m_gameObjectFactories[GOID_PLAYER_WILLOW] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Player(x, y, id, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_PLAYER_WOLFGANG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Player(x, y, id, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
 
 	// 나무 타입
 	m_gameObjectFactories[GOID_NORMAL_TREE_SHORT] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new Tree(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
 			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
-	m_gameObjectFactories[GOID_NORMAL_TREE_NORMAL] = m_gameObjectFactories[GOID_NORMAL_TREE_SHORT];
-	m_gameObjectFactories[GOID_NORMAL_TREE_TALL] = m_gameObjectFactories[GOID_NORMAL_TREE_SHORT];
+	m_gameObjectFactories[GOID_NORMAL_TREE_NORMAL] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Tree(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_NORMAL_TREE_TALL] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Tree(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
 
 	// 돌 타입
 	m_gameObjectFactories[GOID_NORMAL_ROCK] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new Rock(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
 			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
-	m_gameObjectFactories[GOID_GOLD_ROCK] = m_gameObjectFactories[GOID_NORMAL_ROCK];
+	m_gameObjectFactories[GOID_GOLD_ROCK] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Rock(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
 
 	// 풀 타입 - 환경 오브젝트
 	m_gameObjectFactories[GOID_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new Grass(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data->objectAssetBaseDirectory, data->assetImageName);
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
 	m_gameObjectFactories[GOID_NORMAL_SAPLING] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new Sapling(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data->objectAssetBaseDirectory, data->assetImageName);
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
 	m_gameObjectFactories[GOID_BERRY_TREE] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new BerryBush(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data->objectAssetBaseDirectory, data->assetImageName);
+			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
 
 	// 몬스터 타입
 	m_gameObjectFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Pig(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Pig(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
+	
 	m_gameObjectFactories[GOID_MONSTER_SPIDER] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
-	m_gameObjectFactories[GOID_MONSTER_WARRIOR_SPIDER] = m_gameObjectFactories[GOID_MONSTER_SPIDER];
+	m_gameObjectFactories[GOID_MONSTER_WARRIOR_SPIDER] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	
 	m_gameObjectFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Boss_SpiderQueen(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Boss_SpiderQueen(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
+	
 	m_gameObjectFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
+	
 	m_gameObjectFactories[GOID_MONSTER_REDHOUNDDOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
-	m_gameObjectFactories[GOID_MONSTER_ICEHOUNDDOG] = m_gameObjectFactories[GOID_MONSTER_REDHOUNDDOG];
+	m_gameObjectFactories[GOID_MONSTER_ICEHOUNDDOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
 
 	// 건물 타입
 	m_gameObjectFactories[GOID_BUILDING_PIGHOUSE] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new PigHouse(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new PigHouse(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
+	
 	m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new SpiderEgg(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f,
-			DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new SpiderEgg(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
 	};
-	m_gameObjectFactories[GOID_BUILDING_SPIDER_NORMALEGG] = m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG];
-	m_gameObjectFactories[GOID_BUILDING_SPIDER_TALLEGG] = m_gameObjectFactories[GOID_BUILDING_SPIDER_SMALLEGG];
+	m_gameObjectFactories[GOID_BUILDING_SPIDER_NORMALEGG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new SpiderEgg(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
+	m_gameObjectFactories[GOID_BUILDING_SPIDER_TALLEGG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
+		return new SpiderEgg(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, DIR_DOWN, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+	};
 
-	// 아이템 팩토리 등록 (GameObjectFactory에 통합)
-	// 인벤토리 아이템들은 x, y 좌표를 사용하지 않으므로 무시하고 파라미터로 받음
+	// 아이템 팩토리 등록
 	m_gameObjectFactories[GOID_ITEM_NORMAL_TREE_LOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
 		return new Item(GOBJ_ITEM, id, L"LOG", L"A Log.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
@@ -285,7 +338,6 @@ void ObjectManager::InitializeFactories()
 		return new Item(GOBJ_ITEM, id, L"Berry", L"Sweet and nutritious.", data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"", x, y);
 	};
 	m_gameObjectFactories[GOID_ITEM_AXE] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		// Axe는 Tool을 상속받아 x, y를 받지 않으므로 무시하고 생성
 		return new Axe(id, L"Axe", L"Cuts down trees.", data ? (data->objectAssetBaseDirectory + L"/" + data->assetImageName) : L"", 100.0f, 1.0f);
 	};
 }

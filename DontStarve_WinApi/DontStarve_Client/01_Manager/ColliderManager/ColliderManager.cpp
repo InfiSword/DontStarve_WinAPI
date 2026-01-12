@@ -1,8 +1,8 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "ColliderManager.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../02_GameObject/GameObject.h"
-#include "../../02_GameObject/Component/Collider.h"
+#include "../../02_GameObject/Component/Collider/Collider.h"
 
 ColliderManager::ColliderManager()
 {
@@ -24,17 +24,17 @@ void ColliderManager::LateInit()
 
 void ColliderManager::Update(float deltaTime)
 {
-    // ¸ðµç °ÔÀÓ¿ÀºêÁ§Æ®ÀÇ ÄÝ¶óÀÌ´õ À§Ä¡ ¾÷µ¥ÀÌÆ® 
+    // ëª¨ë“  ê²Œìž„ì˜¤ë¸Œì íŠ¸ì˜ ì½œë¼ì´ë” ìœ„ì¹˜ ì—…ë°ì´íŠ¸ 
 }
 
 void ColliderManager::LateUpdate()
 {
-    // ¸ðµç ¿ÀºêÁ§Æ®ÀÇ Ãæµ¹ °Ë»ç Ã³¸® 
+    // ëª¨ë“  ê²Œìž„ì˜¤ë¸Œì íŠ¸ì˜ ì¶©ëŒ ê²€ì‚¬ ì²˜ë¦¬ 
 }
 
 void ColliderManager::RenderGizmos()
 {
-    // ¸ðµç ÄÝ¶óÀÌ´õÀÇ Gizmo ·»´õ¸µ (°¢ Collider°¡ È°¼ºÈ­ ¿©ºÎ¸¦ È®ÀÎÇÔ)
+    // ëª¨ë“  ì½œë¼ì´ë”ì˜ Gizmo ë Œë”ë§ (ê° Colliderê°€ í™œì„±í™” ìƒíƒœì¸ì§€ í™•ì¸)
     for (Collider* pCollider : m_colliders) {
         pCollider->RenderGizmo();
     }
@@ -42,7 +42,7 @@ void ColliderManager::RenderGizmos()
 
 void ColliderManager::Release()
 {
-    // Collider »èÁ¦´Â Component »ý¸íÁÖ±â¿¡¼­ Ã³¸®ÇÏ¹Ç·Î ¿©±â¼­´Â ¸®½ºÆ®¸¸ ºñ¿ò
+    // Collider í•´ì œëŠ” Component í•´ì œì‹œì— ì²˜ë¦¬ë˜ë¯€ë¡œ ì—¬ê¸°ì„œëŠ” ë¦¬ìŠ¤íŠ¸ë§Œ ì •ë¦¬
     m_colliders.clear();
 }
 
@@ -55,31 +55,31 @@ void ColliderManager::AddCollider(Collider* pCollider)
 
 void ColliderManager::RemoveCollider(Collider* pCollider)
 {
-    // ¸®½ºÆ®¿¡¼­ ÄÝ¶óÀÌ´õ Á¦°Å¸¸ ¼öÇà (»èÁ¦´Â Component »ý¸íÁÖ±â¿¡¼­ Ã³¸®)
+    // ë¦¬ìŠ¤íŠ¸ì—ì„œ ì½œë¼ì´ë” í¬ì¸í„° ì œê±° (ì‹¤ì œ Component í•´ì œì‹œì— ì²˜ë¦¬)
     m_colliders.erase(std::remove(m_colliders.begin(), m_colliders.end(), pCollider), m_colliders.end());
 }
 
 bool ColliderManager::CheckCollision(GameObject* obj1, GameObject* obj2)
 {
-    // À¯È¿¼º °Ë»ç
+    // ìœ íš¨ì„± ê²€ì‚¬
     if (!obj1 || !obj2 || obj1 == obj2) {
         return false;
     }
 
-    // µÎ ¿ÀºêÁ§Æ®°¡ ¸ðµÎ È°¼ºÈ­µÇ¾î ÀÖ¾î¾ß ÇÔ
+    // ë‘ ê²Œìž„ì˜¤ë¸Œì íŠ¸ê°€ ëª¨ë‘ í™œì„±í™”ë˜ì–´ ìžˆëŠ”ì§€
     if (!obj1->IsEnabled() || !obj2->IsEnabled()) {
         return false;
     }
 
-    // µÎ ¿ÀºêÁ§Æ®ÀÇ Collider Component °¡Á®¿À±â
+    // ë‘ ê²Œìž„ì˜¤ë¸Œì íŠ¸ì˜ Collider Component ê°€ì ¸ì˜¤ê¸°
     Collider* collider1 = obj1->GetComponent<Collider>();
     Collider* collider2 = obj2->GetComponent<Collider>();
 
-    // µÎ ¿ÀºêÁ§Æ® ¸ðµÎ Collider°¡ ÀÖ¾î¾ß Ãæµ¹ °Ë»ç °¡´É
+    // ë‘ ê²Œìž„ì˜¤ë¸Œì íŠ¸ ëª¨ë‘ Colliderê°€ ìžˆì–´ì•¼ ì¶©ëŒ ê²€ì‚¬ ê°€ëŠ¥
     if (!collider1 || !collider2) {
         return false;
     }
 
-    // µÎ ÄÝ¶óÀÌ´õ °£ÀÇ Ãæµ¹ °Ë»ç (Á¢ÃËÇÑ µÎ ¿ÀºêÁ§Æ®¸¸ Ã³¸®)
+    // ê° ì½œë¼ì´ë” ê°„ì˜ ì¶©ëŒ ê²€ì‚¬ (ì‹¤ì œë¡œëŠ” ê° ê²Œìž„ì˜¤ë¸Œì íŠ¸ì—ì„œ ì²˜ë¦¬)
     return collider1->IntersectsCollider(collider2);
 }

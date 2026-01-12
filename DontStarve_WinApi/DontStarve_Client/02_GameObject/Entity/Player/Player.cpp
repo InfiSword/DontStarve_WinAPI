@@ -1,4 +1,4 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "Player.h"
 
 #include "../../../01_Manager/InputManager/InputManager.h"
@@ -45,27 +45,27 @@ void Player::Init()
 	ResourceManager* pRM = ResourceManager::GetInstance();
 
 	// IDLE
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN, pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Down.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Down.png"),
 		126, 189, 7, 64, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP, pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Up.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Up.png"),
 		128, 193, 7, 64, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT, pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Side.png"),
 		135, 194, 7, 64, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, pRM->BuildResourcePath(m_resourcePath, L"Idle", L"Wilson_Idle_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Side.png"),
 		135, 194, 7, 64, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
 
 	// WALK(RUN)
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN, pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Down.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Down.png"),
 		139, 226, 6, 33, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP, pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Up.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Up.png"),
 		133, 231, 6, 33, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Side.png"),
 		141, 226, 6, 33, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, pRM->BuildResourcePath(m_resourcePath, L"Run", L"Wilson_Run_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Side.png"),
 		141, 226, 6, 33, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
 
 	// PICKUP
-	std::wstring pickupPath = pRM->BuildResourcePath(m_resourcePath, L"Interact", L"Interact_wilson_pickup_pst_down.png");
+	std::wstring pickupPath = pRM->BuildObjectResourcePath(GetID(), L"Interact", L"Interact_wilson_pickup_pst_down.png");
 	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
 			127, 201, 6, 20, 0.03f, transform->GetPivotX(), transform->GetPivotY(), false);
@@ -73,7 +73,7 @@ void Player::Init()
 
 	// CHOP (이벤트 적용)
 	std::map<int, std::wstring> chopEvents = { {4, L"chop_hit"} };
-	std::wstring chopPath = pRM->BuildResourcePath(m_resourcePath, L"Axe", L"axe_wilson_chop_loop_down.png");
+	std::wstring chopPath = pRM->BuildObjectResourcePath(GetID(), L"Axe", L"axe_wilson_chop_loop_down.png");
 	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::CHOP, (Direction)dir, chopPath,
 			284, 248, 6, 54, 0.03f, transform->GetPivotX() + 0.1f, transform->GetPivotY(), false, chopEvents);

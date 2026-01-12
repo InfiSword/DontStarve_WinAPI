@@ -1,6 +1,6 @@
 #pragma once
 
-// е╦юо е╦ют а╓юг
+// е╦О©╫О©╫ е╦О©╫О©╫ О©╫О©╫О©╫О©╫
 enum TileType
 {
 	TILE_NONE = 0,
@@ -31,38 +31,38 @@ enum TileID
 
 };
 
-// ╨╦╫╨ е╦ют а╓юг
+// О©╫О©╫О©╫О©╫ е╦О©╫О©╫ О©╫О©╫О©╫О©╫
 enum BossType
 {
 	BOSS_NONE = 0,
-	BOSS_HOUND,           // Hound ╨╦╫╨
-	BOSS_SPIDER_QUEEN,    // Spider Queen ╨╦╫╨
+	BOSS_HOUND,           // Hound О©╫О©╫О©╫О©╫
+	BOSS_SPIDER_QUEEN,    // Spider Queen О©╫О©╫О©╫О©╫
 	BOSS_COUNT
 };
 
-// дЁ╦╞ем е╦ют а╓юг
+// дЁО©╫О©╫О©╫О©╫ е╦О©╫О©╫ О©╫О©╫О©╫О©╫
 enum CharacterType
 {
-	CHARACTER_WILSON = 0,     // ╠Б╨╩ дЁ╦╞ем (гв╩С гь╠щ╣й)
-	CHARACTER_WILLOW = 1,     // Hound ╨╦╫╨ е╛╦╝╬Н ╫ц гь╠щ
-	CHARACTER_WOLFGANG = 2,   // Spider Queen ╨╦╫╨ е╛╦╝╬Н ╫ц гь╠щ
+	CHARACTER_WILSON = 0,     // О©╫Б╨╩ дЁО©╫О©╫О©╫О©╫ (О©╫в╩О©╫ О©╫ь╠щ╣О©╫)
+	CHARACTER_WILLOW = 1,     // Hound О©╫О©╫О©╫О©╫ е╛О©╫О©╫О©╫О©╫ О©╫О©╫ О©╫ь╠О©╫
+	CHARACTER_WOLFGANG = 2,   // Spider Queen О©╫О©╫О©╫О©╫ е╛О©╫О©╫О©╫О©╫ О©╫О©╫ О©╫ь╠О©╫
 	CHARACTER_COUNT
 };
 
-// ╟тюс аЬгЮ ╢э╟Х ╧в UI ╬юю╩ ╦П╣н фВгтго╢б еКгу SceneType а╓юг
-// (е╦юлф╡, дЁ╦╞ем ╪╠ец, ╟тюс, ╟╒ ╟тюс ╬ю ╣Н)
+// О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫э╟О©╫ О©╫О©╫ UI О©╫О©╫О©╫О©╫ О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫о╢О©╫ О©╫О©╫О©╫О©╫ SceneType О©╫О©╫О©╫О©╫
+// (е╦О©╫О©╫ф╡, дЁО©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫, О©╫О©╫О©╫О©╫, О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫ О©╫О©╫)
 enum SceneType
 {
 	SCENE_NONE = 0,
-	SCENE_TITLE,               // е╦юлф╡ ╬ю
-	SCENE_CHARACTER_SELECT,    // дЁ╦╞ем ╪╠ец ╬ю
-	SCENE_GAME_FARMING_AREA,        // 1╧Ьб╟: фд╧ж ©║╦╝╬Н (╟тюс Ё╩ ╠╦©╙)
-	SCENE_GAME_HOUND_FOREST,        // 2╧Ьб╟: го©Н╣Е ╫ё (╟тюс Ё╩ ╠╦©╙)
-	SCENE_GAME_SPIDER_QUEEN_HOUSE,  // 3╧Ьб╟: ╟е╧л©╘©уюг аЩ (╟тюс Ё╩ ╠╦©╙)
+	SCENE_TITLE,               // е╦О©╫О©╫ф╡ О©╫О©╫
+	SCENE_CHARACTER_SELECT,    // дЁО©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫
+	SCENE_GAME_FARMING_AREA,        // 1О©╫О©╫б╟: О©╫д╧О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ (О©╫О©╫О©╫О©╫ О©╫О©╫ О©╫О©╫О©╫О©╫)
+	SCENE_GAME_HOUND_FOREST,        // 2О©╫О©╫б╟: О©╫о©О©╫О©╫ О©╫О©╫ (О©╫О©╫О©╫О©╫ О©╫О©╫ О©╫О©╫О©╫О©╫)
+	SCENE_GAME_SPIDER_QUEEN_HOUSE,  // 3О©╫О©╫б╟: О©╫е╧л©О©╫О©╫О©╫О©╫О©╫ О©╫О©╫ (О©╫О©╫О©╫О©╫ О©╫О©╫ О©╫О©╫О©╫О©╫)
 	SCENE_COUNT
 };
 
-// ╟тюс ╬ю ╥н╣Ы ╩Себ ╟Э╦╝
+// О©╫О©╫О©╫О©╫ О©╫О©╫ О©╫н╣О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
 enum class LoadingState
 {
 	NOT_STARTED,
@@ -73,29 +73,29 @@ enum class LoadingState
 	FAILED
 };
 
-// ©ю╨Йа╖ф╝ е╦ют а╓юг
+// О©╫О©╫О©╫О©╫О©╫О©╫ф╝ е╦О©╫О©╫ О©╫О©╫О©╫О©╫
 enum GameObjectType {
 	GOBJ_NONE = 0,
 
 	GOBJ_PLAYER,
-	// юГ╥А, юЕ╨Я ╬фюлеш╣И
+	// О©╫О©╫О©╫, О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫ш╣О©╫
 	GOBJ_ITEM,
-	// х╞╟Ф ©ю╨Йа╖ф╝ (Ё╙╧╚, г╝, ╧ыю╖)
+	// х╞О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ф╝ (О©╫О©╫О©╫О©╫, г╝, О©╫О©╫О©╫О©╫)
 	GOBJ_NATURAL_ENVIR,
-	// ╦С╫╨ем 
+	// О©╫О©╫О©╫О©╫ 
 	GOBJ_MONSTER,
-	// ╨Т╣Ы
+	// О©╫О©╫О©╫О©╫
 	GOBJ_BUILDING,
-	// UI ©Д╪р (╧Жф╟, юл╧лаЖ ╣Н)
+	// UI О©╫О©╫О©╫ (О©╫О©╫ф╟, О©╫л╧О©╫О©╫О©╫ О©╫О©╫)
 	GOBJ_UI,
 
-	GOBJ_COUNT      // ©ю╨Йа╖ф╝ ╟Ё╪Ж
+	GOBJ_COUNT      // О©╫О©╫О©╫О©╫О©╫О©╫ф╝ О©╫О©╫О©╫О©╫
 };
 
 enum GameObjectID : UINT {
 	GOID_NONE = 0,
 
-	// х╞╟Ф ©ю╨Йа╖ф╝
+	// х╞О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ф╝
 	GOID_NORMAL_GRASS = 1,
 	GOID_NORMAL_TREE_SHORT = 2,
 	GOID_NORMAL_TREE_NORMAL = 3,
@@ -105,7 +105,7 @@ enum GameObjectID : UINT {
 	GOID_NORMAL_SAPLING = 7,
 	GOID_BERRY_TREE = 8,
 
-	// ╦С╫╨ем
+	// О©╫О©╫О©╫О©╫
 	GOID_MONSTER_PIG = 101,
 	GOID_MONSTER_SPIDER = 102,
 	GOID_MONSTER_WARRIOR_SPIDER = 103,
@@ -114,13 +114,13 @@ enum GameObjectID : UINT {
 	GOID_MONSTER_REDHOUNDDOG = 106,
 	GOID_MONSTER_ICEHOUNDDOG = 107,
 
-	// ╟гцЮ╧╟
+	// О©╫О©╫О©╫Ю╧╟
 	GOID_BUILDING_PIGHOUSE = 201,
 	GOID_BUILDING_SPIDER_SMALLEGG = 202,
 	GOID_BUILDING_SPIDER_NORMALEGG = 203,
 	GOID_BUILDING_SPIDER_TALLEGG = 204,
 
-	// юГ╥А (╬фюлеш)
+	// О©╫О©╫О©╫ (О©╫О©╫О©╫О©╫О©╫О©╫)
 	GOID_ITEM_CUT_NORMAL_GRASS = 301,
 	GOID_ITEM_NORMAL_TREE_LOG = 302,
 	GOID_ITEM_NORMAL_TWIGS = 303,
@@ -131,16 +131,16 @@ enum GameObjectID : UINT {
 	GOID_ITEM_MEAT = 308,
 	GOID_ITEM_BERRY = 309,
 
-	// ╣╣╠╦ (╬фюлеш)
+	// О©╫О©╫О©╫О©╫ (О©╫О©╫О©╫О©╫О©╫О©╫)
 	GOID_ITEM_AXE = 401,
 	GOID_ITEM_PICKAXE = 402,
 
-	// гц╥╧юл╬Н дЁ╦╞ем
+	// О©╫ц╥О©╫О©╫л╬О©╫ дЁО©╫О©╫О©╫О©╫
 	GOID_PLAYER_WILSON = 1001,
 	GOID_PLAYER_WILLOW = 1002,
 	GOID_PLAYER_WOLFGANG = 1003,
 
-	// UI ╟Э╥ц
+	// UI О©╫О©╫О©╫О©╫
 	GOID_MAIN_BG = 3001,
 	GOID_GAME_LOGO = 3002,
 	GOID_BUTTON1 = 3003,
@@ -152,7 +152,7 @@ enum GameObjectID : UINT {
 	GOID_PLAYER_INFO = 3009,
 };
 
-// фх╥╧ф╝ ╬фюлеш д╚ев╟М╦╝ а╓юг ( ©║╣Пем юЭ©К )
+// О©╫х╥О©╫ф╝ О©╫О©╫О©╫О©╫О©╫О©╫ д╚О©╫в╟О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ ( О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ )
 enum ItemCategory {
 	CATEGORY_NONE = -1,
 	CATEGORY_TILE,
@@ -160,7 +160,7 @@ enum ItemCategory {
 };
 
 
-// GameObject ╧ФгБ ©╜╟егЭ
+// GameObject О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
 enum Direction {
 	DIR_NONE = 0,
 	DIR_UP,
@@ -171,17 +171,17 @@ enum Direction {
 };
 
 enum PlayerState {
-	IDLE,               // ╢К╠Б ╩Себ (©РаВюлаЖ ╬йю╫)
-	WALK,               // ╟х╠Б ╩Себ (юл╣© аъ)
-	MOVING_TO_TARGET,   // е╛╦╞╣х аЖа║ю╦╥н юл╣© аъ
-	PICKUP,             // ©ю╨Йа╖ф╝©м ╩Схёюш©К 
+	IDLE,               // О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ (О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫)
+	WALK,               // О©╫х╠О©╫ О©╫О©╫О©╫О©╫ (О©╫л╣О©╫ О©╫О©╫)
+	MOVING_TO_TARGET,   // е╛О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫л╣О©╫ О©╫О©╫
+	PICKUP,             // О©╫О©╫О©╫О©╫О©╫О©╫ф╝О©╫О©╫ О©╫О©╫хёО©╫ш©О©╫ 
 	CHOP,
 	ATTACK,
 	HIT,
 	COUNT,
 };
 
-// Monster юЭ©К ╩Себ
+// Monster О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
 enum MonsterState
 {
 	MONSTER_IDLE = 0,
@@ -195,33 +195,33 @@ enum MonsterState
 	MONSTER_STATE_COUNT
 };
 
-// Tree юЭ©К ╩Себ  
+// Tree О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫  
 enum TreeState {
-	TREE_IDLE = 0,    // юо╧щ ╩Себ (хГ╣И╦╡)
-	TREE_CHOP,        // ╨ё╬НаЖ╢б аъ
-	TREE_FALL,        // ╬╡╥╞аЖ╢б аъ
-	TREE_FALLEN,      // ©оюЭхВ ╬╡╥╞аЬ ╩Себ
+	TREE_IDLE = 0,    // О©╫о╧О©╫ О©╫О©╫О©╫О©╫ (О©╫О©╫И╦╡)
+	TREE_CHOP,        // О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫
+	TREE_FALL,        // О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫
+	TREE_FALLEN,      // О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
 	TREE_STATE_COUNT
 };
 
-// Rock юЭ©К ╩Себ (фд╠╚ ╢э╟Х)
+// Rock О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ (О©╫д╠О©╫ О©╫э╟О©╫)
 enum RockState {
-	ROCK_INTACT = 0,   // ©бюЭгя ╩Себ (level1)
-	ROCK_CRACKED,      // ╠щюл ╟ё ╩Себ (level2)  
-	ROCK_BROKEN,       // ╟еюг ╨н╪╜аЬ ╩Себ (level3)
-	ROCK_DESTROYED,    // ©оюЭхВ фд╠╚╣х ╩Себ
+	ROCK_INTACT = 0,   // О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ (level1)
+	ROCK_CRACKED,      // О©╫О©╫О©╫О©╫ О©╫О©╫ О©╫О©╫О©╫О©╫ (level2)  
+	ROCK_BROKEN,       // О©╫О©╫О©╫О©╫ О©╫н╪О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ (level3)
+	ROCK_DESTROYED,    // О©╫О©╫О©╫О©╫О©╫О©╫ О©╫д╠О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
 	ROCK_STATE_COUNT
 };
 
-// Grass юЭ©К ╩Себ
+// Grass О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
 enum GrassState {
-	GRASS_IDLE = 0,    // юо╧щ ╩Себ
-	GRASS_PICKED,      // ц╓аЩ╣х ╩Себ
-	GRASS_REGROWING,   // юГ╪╨юЕ аъ
+	GRASS_IDLE = 0,    // О©╫о╧О©╫ О©╫О©╫О©╫О©╫
+	GRASS_PICKED,      // ц╓О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
+	GRASS_REGROWING,   // О©╫Г╪╨О©╫О©╫ О©╫О©╫
 	GRASS_STATE_COUNT
 };
 
-// Building юЭ©К ╩Себ (╫ц╟ё ╠Б╧щ)
+// Building О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ (О©╫ц╟О©╫ О©╫О©╫О©╫)
 enum BuildingState {
 	BUILDING_NOON = 0,
 	BUILDING_NIGHT,
@@ -232,14 +232,14 @@ enum BuildingState {
 
 enum RenderLayer {
 	LAYER_NONE = -1,
-	LAYER_TILE_BACKGROUND = 0,   // е╦юо (╟║юЕ ╬ф╥║)
+	LAYER_TILE_BACKGROUND = 0,   // е╦О©╫О©╫ (О©╫О©╫О©╫О©╫ О©╫ф╥О©╫)
 	LAYER_WORLD_TILE,
-	LAYER_WORLD_OBJECT,          // ©Ы╣Е ©ю╨Йа╖ф╝ (╦П╣Г ╟тюс ©ю╨Йа╖ф╝)
-	LAYER_UI_BACKGROUND,         // UI ╧Х╟Ф
-	LAYER_UI_FOREGROUND,         // UI ╬фюлдэ, еь╫╨ф╝
-	LAYER_DEBUG_OVERLAY,         // ╣П╧Ж╠К а╓╨╦ (╟║юЕ ю╖)
+	LAYER_WORLD_OBJECT,          // О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ф╝ (О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ф╝)
+	LAYER_UI_BACKGROUND,         // UI О©╫О©╫О©╫
+	LAYER_UI_FOREGROUND,         // UI О©╫О©╫О©╫О©╫О©╫О©╫, О©╫ь╫О©╫ф╝
+	LAYER_DEBUG_OVERLAY,         // О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ (О©╫О©╫О©╫О©╫ О©╫О©╫)
 
-	LAYER_COUNT                  // ╥╧юл╬Н ╟Ё╪Ж
+	LAYER_COUNT                  // О©╫О©╫О©╫л╬О©╫ О©╫О©╫О©╫О©╫
 };
 
 enum class ButtonState
@@ -263,9 +263,17 @@ enum Time {
 	TIME_COUNT
 };
 
-// дщ╤Сюл╢У е╦ют а╓юг
+// К═▄К█■К╖│ К╙┘К═╧ Л╒┘К╔≤
+enum DrawCommandType {
+	DRAW_COMMAND_IMAGE,
+	DRAW_COMMAND_TEXT,
+	DRAW_COMMAND_RECTANGLE,
+	DRAW_COMMAND_FILL_RECTANGLE
+};
+
+// О©╫щ╤О©╫О©╫л╢О©╫ е╦О©╫О©╫ О©╫О©╫О©╫О©╫
 enum ColliderType {
-	COLLIDER_BOX = 0,      // ╩Г╟╒гЭ дщ╤Сюл╢У
-	COLLIDER_CIRCLE,       // ©ЬгЭ дщ╤Сюл╢У
+	COLLIDER_BOX = 0,      // О©╫Г╟╒О©╫О©╫ О©╫щ╤О©╫О©╫л╢О©╫
+	COLLIDER_CIRCLE,       // О©╫О©╫О©╫О©╫ О©╫щ╤О©╫О©╫л╢О©╫
 	COLLIDER_COUNT
 };

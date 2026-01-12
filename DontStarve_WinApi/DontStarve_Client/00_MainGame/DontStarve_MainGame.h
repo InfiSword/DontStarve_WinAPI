@@ -3,7 +3,7 @@
 class DontStarve_MainGame
 {
 private:
-    // °ÔÀÓ ÃÊ±âÈ­ »óÅÂ °ü¸® º¯¼ö
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     bool m_bIsInitialized;
     
 public:
@@ -11,20 +11,20 @@ public:
     virtual ~DontStarve_MainGame();
 
 public:
-    // °ÔÀÓ ÃÊ±âÈ­ °ü·Ã ¸Þ¼­µå
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½
     void Init();
     void LateInit();
     
-    // °ÔÀÓ ·çÇÁ °ü·Ã ¸Þ¼­µå
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½
     void Update();
     void LateUpdate();
     void Render();
     
-    // ¸®¼Ò½º ÇØÁ¦
+    // ï¿½ï¿½ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½
     void Release();
 
 private:
-    // ³»ºÎ ÃÊ±âÈ­ ¸Þ¼­µåµé
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Þ¼ï¿½ï¿½ï¿½ï¿½
     void InitializeManagers();   
    
 }; 

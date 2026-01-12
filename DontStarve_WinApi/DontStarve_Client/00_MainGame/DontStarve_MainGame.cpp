@@ -1,4 +1,4 @@
-#include "../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "DontStarve_MainGame.h"
 
 // Manager includes
@@ -29,15 +29,15 @@ void DontStarve_MainGame::Init()
     if (m_bIsInitialized)
         return;
 
-    // ±âº» ½Ã½ºÅÛ ¸Å´ÏÀúµé¸¸ ÃÊ±âÈ­ (¾À°ú ¹«°üÇÑ ½Ã½ºÅÛ)
+    // ï¿½âº» ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½é¸¸ ï¿½Ê±ï¿½È­ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½)
     TimeManager::GetInstance()->Init();
     TimeManager::GetInstance()->SetFPS(20);
     
     GraphicsManager::GetInstance()->Init();
     RenderManager::GetInstance()->Init();
-    ResourceManager::GetInstance()->Init(); // ¸®¼Ò½º´Â ¾À°ú ¹«°üÇÏ°Ô À¯Áö
+    ResourceManager::GetInstance()->Init(); // ï¿½ï¿½ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½
     
-    // SceneManager ÃÊ±âÈ­ (Ã¹ ¹øÂ° ¾À ·Îµå)
+    // SceneManager ï¿½Ê±ï¿½È­ (Ã¹ ï¿½ï¿½Â° ï¿½ï¿½ ï¿½Îµï¿½)
     SceneManager::GetInstance()->Init();
      
     m_bIsInitialized = true;
@@ -55,14 +55,14 @@ void DontStarve_MainGame::Update()
     if (!m_bIsInitialized)
         return;
 
-    // TimeManager ¾÷µ¥ÀÌÆ® (±âº» ½Ã°£ °ü¸®)
+    // TimeManager ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® (ï¿½âº» ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½)
     TimeManager::GetInstance()->Update();
-    float deltaTime = TimeManager::GetInstance()->GetDeltaTime(); // ÀÌ¹Ì Á¦ÇÑµÈ deltaTime
+    float deltaTime = TimeManager::GetInstance()->GetDeltaTime(); // ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½Ñµï¿½ deltaTime
     
-    // SceneManager¸¦ ÅëÇÑ ¾À ¾÷µ¥ÀÌÆ®
+    // SceneManagerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     SceneManager::GetInstance()->Update(deltaTime);
     
-    // ÇÁ·¹ÀÓ Á¦ÇÑ Àû¿ë (FPS °è»ê Æ÷ÇÔ)
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (FPS ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     TimeManager::GetInstance()->UpdateFrameLimit();
 }
 
@@ -71,7 +71,7 @@ void DontStarve_MainGame::LateUpdate()
     if (!m_bIsInitialized)
         return;
 
-    // SceneManager¸¦ ÅëÇÑ ¾À LateUpdate
+    // SceneManagerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ LateUpdate
     SceneManager::GetInstance()->LateUpdate();
 }
 
@@ -80,17 +80,17 @@ void DontStarve_MainGame::Render()
     if (!m_bIsInitialized)
         return;
 
-    // Graphics °´Ã¼ ¾ò±â
+    // Graphics ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½
     Gdiplus::Graphics* pGraphics = GraphicsManager::GetInstance()->GetGraphics();
     if (!pGraphics) return;
 
-    // SceneManager¸¦ ÅëÇÑ ¾À ·»´õ¸µ
+    // SceneManagerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     SceneManager::GetInstance()->Render();
 
-    // RenderManager¿¡¼­ ´©Àû ·»´õ¸µ ½ÇÇà
+    // RenderManagerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     RenderManager::GetInstance()->Flush(pGraphics);
 
-    // ¹é¹öÆÛ¿¡ ±×·ÁÁø ³»¿ëÀ» È­¸é¿¡ Ç¥½Ã
+    // ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½×·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½é¿¡ Ç¥ï¿½ï¿½
     GraphicsManager::GetInstance()->Render();
 }
 
@@ -99,10 +99,10 @@ void DontStarve_MainGame::Release()
     if (!m_bIsInitialized)
         return;
 
-    // SceneManager ÇØÁ¦ (¾Àº° ¸Å´ÏÀúµéÀº SceneManager¿¡¼­ ÇØÁ¦µÊ)
+    // SceneManager ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SceneManagerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
     SceneManager::GetInstance()->Release();
     
-    // ±âº» ½Ã½ºÅÛ ¸Å´ÏÀúµé ÇØÁ¦
+    // ï¿½âº» ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     ResourceManager::DestroyInstance();
     RenderManager::DestroyInstance();
     GraphicsManager::DestroyInstance();
@@ -113,7 +113,7 @@ void DontStarve_MainGame::Release()
 
 void DontStarve_MainGame::InitializeManagers()
 {
-    // ÀÌ ÇÔ¼ö´Â ´õ ÀÌ»ó »ç¿ëÇÏÁö ¾ÊÀ½
-    // ¸Å´ÏÀú ÃÊ±âÈ­´Â °¢ ¾À¿¡¼­ ´ã´ç
+    // ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    // ï¿½Å´ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 }
 

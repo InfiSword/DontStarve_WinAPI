@@ -1,4 +1,4 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "ResourceManager.h"
 
 ResourceManager::ResourceManager()
@@ -20,6 +20,7 @@ void ResourceManager::Release()
 {
 	m_objectResources.clear();
 	m_tileResources.clear();
+	m_spriteCache.clear();
 }
 
 // 파일 로드 함수 (기본 구현)
@@ -237,4 +238,52 @@ std::wstring ResourceManager::BuildTileResourcePath(TileID id, const std::wstrin
 	}
 
 	return BuildResourcePath(resourceData->tileAssetBaseDirectory, subFolder, filename);
+}
+
+std::wstring ResourceManager::BuildUIResourcePath(const std::wstring& subFolder, const std::wstring& filename) const
+{
+	return BuildResourcePath(L"Resource\\UI", subFolder, filename);
+}
+
+std::shared_ptr<Sprite> ResourceManager::LoadSprite(const std::wstring& fullPath)
+{
+	if (fullPath.empty()) return nullptr;
+
+	auto found = m_spriteCache.find(fullPath);
+	if (found != m_spriteCache.end()) {
+		if (std::shared_ptr<Sprite> cached = found->second.lock()) {
+			return cached;
+		}
+	}
+
+	std::shared_ptr<Gdiplus::Bitmap> bmp = std::make_shared<Gdiplus::Bitmap>(fullPath.c_str());
+	if (!bmp || bmp->GetLastStatus() != Gdiplus::Ok) {
+		return nullptr;
+	}
+	Gdiplus::RectF src(0, 0, static_cast<float>(bmp->GetWidth()), static_cast<float>(bmp->GetHeight()));
+	std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(bmp, src, 0.5f, 0.5f, fullPath, false);
+	m_spriteCache[fullPath] = sprite;
+	return sprite;
+}
+
+std::shared_ptr<Sprite> ResourceManager::LoadSpriteFromAtlas(const std::wstring& atlasPath, const Gdiplus::RectF& srcRect, float pivotX, float pivotY)
+{
+	std::wstring key = atlasPath + L"|" +
+		std::to_wstring(srcRect.X) + L"," + std::to_wstring(srcRect.Y) + L"," +
+		std::to_wstring(srcRect.Width) + L"," + std::to_wstring(srcRect.Height);
+
+	auto found = m_spriteCache.find(key);
+	if (found != m_spriteCache.end()) {
+		if (auto cached = found->second.lock()) {
+			return cached;
+		}
+	}
+
+	auto bmp = std::make_shared<Gdiplus::Bitmap>(atlasPath.c_str());
+	if (!bmp || bmp->GetLastStatus() != Gdiplus::Ok) {
+		return nullptr;
+	}
+	auto sprite = std::make_shared<Sprite>(bmp, srcRect, pivotX, pivotY, key, true);
+	m_spriteCache[key] = sprite;
+	return sprite;
 }

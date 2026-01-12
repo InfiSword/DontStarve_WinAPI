@@ -1,12 +1,12 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
+#include "Boss_SpiderQueen.h"
+#include "../Player/Player.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
-#include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
-#include "Boss_SpiderQueen.h"
 
 Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)

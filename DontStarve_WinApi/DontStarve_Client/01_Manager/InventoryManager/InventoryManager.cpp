@@ -1,4 +1,4 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "InventoryManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/GameObject.h"

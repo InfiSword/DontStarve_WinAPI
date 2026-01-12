@@ -1,4 +1,4 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include  "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../03_Animation/Animator.h"
@@ -16,6 +16,7 @@ Monster::~Monster() {}
 
 void Monster::Init()
 {
+	Entity::Init();
 	//AddComponent<Animator>();
 	//RegisterAllAnimations(); // Unity Animator 스타일
 	//UpdateAnimatorState(); // 초기 상태 설정

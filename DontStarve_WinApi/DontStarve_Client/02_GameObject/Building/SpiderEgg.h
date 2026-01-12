@@ -17,8 +17,8 @@ public:
 
     // Building 특화 메서드
     virtual void Damaged(int damage) override;
-    virtual void SetTimeState(BuildingState buildingState) override;
-    virtual BuildingState GetTimeState() const override;
+    void SetTimeState(BuildingState buildingState) override;
+    BuildingState GetTimeState() const override;
 
 private:
 

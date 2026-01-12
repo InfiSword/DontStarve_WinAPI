@@ -54,6 +54,8 @@
     <ClCompile Include="02_GameObject\Component\Sprite\Image.cpp" />
     <ClCompile Include="02_GameObject\Component\Sprite\SpriteRenderer.cpp" />
     <ClCompile Include="02_GameObject\Object.cpp" />
+    <ClCompile Include="02_GameObject\Component\Button\Button.cpp" />
+    <ClCompile Include="02_GameObject\Component\Text\Text.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -115,6 +117,8 @@
     <ClInclude Include="02_GameObject\Component\Sprite\Image.h" />
     <ClInclude Include="02_GameObject\Component\Sprite\SpriteRenderer.h" />
     <ClInclude Include="02_GameObject\Object.h" />
+    <ClInclude Include="02_GameObject\Component\Button\Button.h" />
+    <ClInclude Include="02_GameObject\Component\Text\Text.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

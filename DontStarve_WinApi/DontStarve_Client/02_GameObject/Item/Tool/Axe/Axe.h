@@ -12,5 +12,5 @@ public:
 	//void UseTarget(Entity* entity, int useDurability);
 
 protected:
-	int m_damage;           // µµ³¢ µ¥¹ÌÁö
+	int m_damage;           // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 };

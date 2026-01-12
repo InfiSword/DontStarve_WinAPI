@@ -11,9 +11,6 @@ using namespace Gdiplus;
 
 struct AnimationFrame;
 
-// 아래 전역 유틸 함수들은 에디터와 클라이언트(게임) 모두에서 필요한 인라인 함수
-// 만약 에디터 전용/클라이언트 전용 함수가 추가되었다면, 별도 파일로 분리하거나 주석으로 명확히 표시해주세요.
-
 template<typename T>
 inline void SafeDelete(T& obj)
 {

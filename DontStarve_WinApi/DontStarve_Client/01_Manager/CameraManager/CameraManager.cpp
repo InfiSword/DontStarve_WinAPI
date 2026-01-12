@@ -1,4 +1,4 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "CameraManager.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Transform/RectTransform.h"
@@ -189,9 +189,17 @@ void CameraManager::UpdateVisibleObjects()
 		}
 		SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>();
 		Transform* transform = obj->GetComponent<Transform>();
+		
+		// Transform이 없으면 스킵
+		if (!transform) {
+			continue;
+		}
+		
 		// 렌더링 가능한 게임오브젝트인지 확인
-		// Player는 항상 Animator를 가지고 있으므로 항상 확인
-		if (!spriteRenderer->GetSprite() && !obj->GetComponent<Animator>()) {
+		// SpriteRenderer 또는 Animator가 있어야 렌더링 가능
+		bool hasSprite = (spriteRenderer && spriteRenderer->GetSprite());
+		bool hasAnimator = (obj->GetComponent<Animator>() != nullptr);
+		if (!hasSprite && !hasAnimator) {
 			continue;
 		}
 		

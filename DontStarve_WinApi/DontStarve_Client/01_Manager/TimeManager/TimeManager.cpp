@@ -1,4 +1,4 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "TimeManager.h"
 #include <thread>
 
@@ -16,7 +16,7 @@ void TimeManager::Init()
     m_lastTime = std::chrono::high_resolution_clock::now();
     m_deltaTime = 0.0f;
 
-    // ±âº» 60 FPS·Î ¼³Á¤
+    // ï¿½âº» 60 FPSï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     SetFPS(60);
 
     m_currentFPS = 0.0f;
@@ -29,9 +29,9 @@ void TimeManager::Update()
 {
     auto currentTime = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - m_lastTime);
-    m_deltaTime = duration.count() / 1000000.0f; // ¸¶ÀÌÅ©·ÎÃÊ¸¦ ÃÊ·Î º¯È¯
+    m_deltaTime = duration.count() / 1000000.0f; // ï¿½ï¿½ï¿½ï¿½Å©ï¿½ï¿½ï¿½Ê¸ï¿½ ï¿½Ê·ï¿½ ï¿½ï¿½È¯
 
-    // ¼³Á¤µÈ FPS·Î deltaTime Á¦ÇÑ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FPSï¿½ï¿½ deltaTime ï¿½ï¿½ï¿½ï¿½
     if (m_maxDeltaTime > 0.0f) {
         m_deltaTime = min(m_deltaTime, m_maxDeltaTime);
     }
@@ -43,19 +43,19 @@ void TimeManager::SetFPS(int fps)
 {
     if (fps > 0) {
         m_fps = fps;
-        m_frameTime = 1.0f / m_fps;      // ÇÁ·¹ÀÓ Á¦ÇÑ¿ë
-        m_maxDeltaTime = 1.0f / m_fps;   // deltaTime Á¦ÇÑ¿ë
+        m_frameTime = 1.0f / m_fps;      // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¿ï¿½
+        m_maxDeltaTime = 1.0f / m_fps;   // deltaTime ï¿½ï¿½ï¿½Ñ¿ï¿½
 
-        // µð¹ö±× Ãâ·Â
-        OutputDebugStringW((L"TimeManager: FPS ¼³Á¤ - " + std::to_wstring(fps) + L" FPS\n").c_str());
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+        OutputDebugStringW((L"TimeManager: FPS ï¿½ï¿½ï¿½ï¿½ - " + std::to_wstring(fps) + L" FPS\n").c_str());
     }
     else if (fps == 0) {
-        // ¹«Á¦ÇÑ FPS (VSync³ª ÇÏµå¿þ¾î Á¦ÇÑ¿¡¸¸ ÀÇÁ¸)
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FPS (VSyncï¿½ï¿½ ï¿½Ïµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
         m_fps = 0;
         m_frameTime = 0.0f;
-        m_maxDeltaTime = 1.0f / 30.0f; // deltaTimeÀº ¿©ÀüÈ÷ Á¦ÇÑ (30fps ±âÁØ)
+        m_maxDeltaTime = 1.0f / 30.0f; // deltaTimeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (30fps ï¿½ï¿½ï¿½ï¿½)
 
-        OutputDebugStringW(L"TimeManager: ¹«Á¦ÇÑ FPS ¼³Á¤\n");
+        OutputDebugStringW(L"TimeManager: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FPS ï¿½ï¿½ï¿½ï¿½\n");
     }
 }
 
@@ -63,29 +63,29 @@ void TimeManager::UpdateFrameLimit()
 {
     auto currentTime = std::chrono::high_resolution_clock::now();
 
-    // fps°¡ 0ÀÌ ¾Æ´Ï¸é ÇÁ·¹ÀÓ Á¦ÇÑ Àû¿ë
+    // fpsï¿½ï¿½ 0ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     if (m_frameTime > 0.0f) {
         auto frameElapsed = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - m_frameStartTime);
         float frameTime = frameElapsed.count() / 1000000.0f;
 
-        // ¸ñÇ¥ ÇÁ·¹ÀÓ ½Ã°£º¸´Ù ºü¸£¸é ´ë±â
+        // ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         if (frameTime < m_frameTime) {
-            float sleepTime = (m_frameTime - frameTime) * 1000000.0f; // ¸¶ÀÌÅ©·ÎÃÊ·Î º¯È¯
+            float sleepTime = (m_frameTime - frameTime) * 1000000.0f; // ï¿½ï¿½ï¿½ï¿½Å©ï¿½ï¿½ï¿½Ê·ï¿½ ï¿½ï¿½È¯
             if (sleepTime > 0) {
                 std::this_thread::sleep_for(std::chrono::microseconds(static_cast<long long>(sleepTime)));
             }
         }
     }
 
-    // FPS °è»ê (1ÃÊ¸¶´Ù)
+    // FPS ï¿½ï¿½ï¿½ (1ï¿½Ê¸ï¿½ï¿½ï¿½)
     m_frameCount++;
     auto timeSinceLastCalculation = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - m_lastFPSCalculationTime);
-    if (timeSinceLastCalculation.count() >= 1000) { // 1ÃÊ¸¶´Ù FPS °è»ê
+    if (timeSinceLastCalculation.count() >= 1000) { // 1ï¿½Ê¸ï¿½ï¿½ï¿½ FPS ï¿½ï¿½ï¿½
         m_currentFPS = (float)m_frameCount / (timeSinceLastCalculation.count() / 1000.0f);
         m_frameCount = 0;
         m_lastFPSCalculationTime = currentTime;
     }
 
-    // ´ÙÀ½ ÇÁ·¹ÀÓ ½ÃÀÛ ½Ã°£ ¼³Á¤
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
     m_frameStartTime = std::chrono::high_resolution_clock::now();
 }

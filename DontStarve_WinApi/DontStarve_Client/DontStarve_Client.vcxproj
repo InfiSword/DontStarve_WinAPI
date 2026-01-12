@@ -108,9 +108,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PrecompiledHeaderFile />
+      <AdditionalIncludeDirectories>../Header;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>99_Default/pch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>4819;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -125,7 +126,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../Header;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>99_Default/pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,12 +148,14 @@
     <ClInclude Include="01_Manager\SceneManager\TitleScene.h" />
     <ClInclude Include="01_Manager\StageManager\StageManager.h" />
     <ClInclude Include="02_GameObject\Building\Building.h" />
+    <ClInclude Include="02_GameObject\Component\Button\Button.h" />
     <ClInclude Include="02_GameObject\Component\Component.h" />
     <ClInclude Include="02_GameObject\Component\Collider\Collider.h" />
     <ClInclude Include="02_GameObject\Component\Collider\BoxCollider.h" />
     <ClInclude Include="02_GameObject\Component\Collider\CircleCollider.h" />
     <ClInclude Include="02_GameObject\Component\Sprite\Image.h" />
     <ClInclude Include="02_GameObject\Component\Sprite\SpriteRenderer.h" />
+    <ClInclude Include="02_GameObject\Component\Text\Text.h" />
     <ClInclude Include="02_GameObject\Component\Transform\RectTransform.h" />
     <ClInclude Include="02_GameObject\Component\Transform\Transform.h" />
     <ClInclude Include="02_GameObject\Entity\Entity.h" />
@@ -204,12 +209,14 @@
     <ClCompile Include="01_Manager\SceneManager\SceneManager.cpp" />
     <ClCompile Include="01_Manager\SceneManager\TitleScene.cpp" />
     <ClCompile Include="02_GameObject\Building\Building.cpp" />
+    <ClCompile Include="02_GameObject\Component\Button\Button.cpp" />
     <ClCompile Include="02_GameObject\Component\Component.cpp" />
     <ClCompile Include="02_GameObject\Component\Collider\Collider.cpp" />
     <ClCompile Include="02_GameObject\Component\Collider\BoxCollider.cpp" />
     <ClCompile Include="02_GameObject\Component\Collider\CircleCollider.cpp" />
     <ClCompile Include="02_GameObject\Component\Sprite\Image.cpp" />
     <ClCompile Include="02_GameObject\Component\Sprite\SpriteRenderer.cpp" />
+    <ClCompile Include="02_GameObject\Component\Text\Text.cpp" />
     <ClCompile Include="02_GameObject\Component\Transform\RectTransform.cpp" />
     <ClCompile Include="02_GameObject\Component\Transform\Transform.cpp" />
     <ClCompile Include="02_GameObject\Entity\Entity.cpp" />
@@ -226,7 +233,9 @@
     <ClCompile Include="03_Animation\Animator.cpp" />
     <ClCompile Include="03_Animation\SpriteSheet.cpp" />
     <ClCompile Include="99_Default\Client.cpp" />
-    <ClCompile Include="99_Default\pch.cpp" />
+    <ClCompile Include="99_Default\pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="00_MainGame\DontStarve_MainGame.cpp" />
     <ClCompile Include="01_Manager\TimeManager\TimeManager.cpp" />
     <ClCompile Include="01_Manager\InputManager\InputManager.cpp" />

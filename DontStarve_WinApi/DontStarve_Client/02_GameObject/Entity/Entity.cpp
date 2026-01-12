@@ -1,4 +1,4 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "Entity.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../03_Animation/Animator.h"
@@ -24,9 +24,14 @@ Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float piv
 	spriteRenderer->SetLayer(LAYER_WORLD_OBJECT);
 	if (!imageName.empty())
 	{
-		spriteRenderer->LoadSprite(id, imageName);
-		// Transform은 이제 Scale만 관리 (기본값 1.0f)
-		// 크기는 sprite의 실제 크기를 사용하므로 Transform에 설정할 필요 없음
+		ResourceManager* pRM = ResourceManager::GetInstance();
+		std::wstring fullPath = pRM->BuildObjectResourcePath(id, L"", imageName);
+
+		if (!fullPath.empty()) {
+			if (auto sprite = pRM->LoadSprite(fullPath)) {
+				spriteRenderer->SetSprite(sprite);
+			}
+		}
 	}
 }
 
@@ -41,56 +46,20 @@ void Entity::Init()
 	// Transform 컴포넌트 캐싱
 	transform = GetComponent<Transform>();
 	spriteRenderer = GetComponent<SpriteRenderer>();
-	if (!transform || !spriteRenderer) return;
+}
 
-	// ResourceManager에서 콜라이더 정보 가져오기
-	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	const GameObjectData* resourceData = resourceManager ? resourceManager->GetObjectResourceInfo(m_id) : nullptr;
+GameObjectID Entity::GetDropItemID() const
+{
+	return m_dropItemID;
+}
 
-	ColliderType colliderType = COLLIDER_BOX; // 기본값
-	if (resourceData && resourceData->hasCollider) {
-		colliderType = resourceData->colliderType;
-	}
+int Entity::GetDropItemCount() const
+{
+	return m_dropItemCount;
+}
 
-	if (colliderType == COLLIDER_BOX) {
-		// BoxCollider 컴포넌트 추가
-		BoxCollider* collider = AddComponent<BoxCollider>();
-
-		if (collider && resourceData && resourceData->hasCollider) {
-			// ResourceManager의 GameObjectData에서 콜라이더 정보를 BoxCollider에 설정
-			collider->SetMapColliderData(
-				resourceData->hasCollider,
-				resourceData->colliderOffsetX,
-				resourceData->colliderOffsetY,
-				resourceData->colliderWidth,
-				resourceData->colliderHeight
-			);
-			collider->SetBoundingBox(
-				resourceData->colliderOffsetX,
-				resourceData->colliderOffsetY,
-				resourceData->colliderWidth,
-				resourceData->colliderHeight
-			);
-		}
-	}
-	else if (colliderType == COLLIDER_CIRCLE) {
-		// CircleCollider 컴포넌트 추가
-		CircleCollider* collider = AddComponent<CircleCollider>();
-
-		if (collider && resourceData && resourceData->hasCollider) {
-			// ResourceManager의 GameObjectData에서 콜라이더 정보를 CircleCollider에 설정
-			collider->SetMapColliderData(
-				resourceData->hasCollider,
-				(int)resourceData->colliderCenterX,
-				(int)resourceData->colliderCenterY,
-				(int)(resourceData->colliderRadius * 2.0f),
-				(int)(resourceData->colliderRadius * 2.0f)
-			);
-			collider->SetCircle(
-				resourceData->colliderCenterX,
-				resourceData->colliderCenterY,
-				resourceData->colliderRadius
-			);
-		}
-	}
+void Entity::SetDropItem(GameObjectID itemID, int count)
+{
+	m_dropItemID = itemID;
+	m_dropItemCount = count;
 }

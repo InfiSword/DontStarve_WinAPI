@@ -1,5 +1,6 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "CharacterSelectScene.h"
+#include "../../02_GameObject/Component/Sprite/Image.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
 #include "SceneManager.h"
@@ -369,6 +370,7 @@ void CharacterSelectScene::UpdateCharacterSelection()
 		
 		// 선택된 캐릭터의 포트레이트 이미지 업데이트
 		UIImage* selectedPortrait = UIManager::GetInstance()->FindUIImage(GOID_PLAYER_PORTRAIT);
+
 		if (selectedPortrait)
 		{
 			// 잠금 캐릭터는 lock.png, 해금된 캐릭터는 해당 포트레이트 경로
@@ -381,7 +383,7 @@ void CharacterSelectScene::UpdateCharacterSelection()
 			}
 			
 			// UIImage의 LoadBitmap 함수를 사용하여 포트레이트 이미지 업데이트
-			selectedPortrait->LoadBitmap(portraitPath);
+			selectedPortrait->GetImageComponent()->LoadSprite(portraitPath);
 		}
 	}
 }

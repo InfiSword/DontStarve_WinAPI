@@ -1,10 +1,11 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "Inventory.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../02_GameObject/Item/Item.h"
+#include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 
 Inventory::Inventory() : m_slots(INVENTORY_SLOT_COUNT) {
 	m_inventoryBgBitmap = nullptr;
@@ -210,55 +211,58 @@ void Inventory::Render(int equippedSlotIndex) {
 
 		// 슬롯에 아이템이 있으면 아이템 이미지를 그림
 		if (!slot.IsEmpty()) {
-			Gdiplus::Bitmap* itemBitmap = slot.item->GetBitmap();
-			if (itemBitmap) {
-				Gdiplus::RectF destRect = m_slotRects[i];
+			SpriteRenderer* spriteRenderer = slot.item->GetComponent<SpriteRenderer>();
+			if (spriteRenderer) {
+				Gdiplus::Bitmap* itemBitmap = spriteRenderer->GetSprite();
+				if (itemBitmap) {
+					Gdiplus::RectF destRect = m_slotRects[i];
 
-				float itemImageWidth = (float)itemBitmap->GetWidth();
-				float itemImageHeight = (float)itemBitmap->GetHeight();
+					float itemImageWidth = (float)itemBitmap->GetWidth();
+					float itemImageHeight = (float)itemBitmap->GetHeight();
 
-				float scaleFactor = min(destRect.Width / itemImageWidth, destRect.Height / itemImageHeight);
-				float renderWidth = itemImageWidth * scaleFactor;
-				float renderHeight = itemImageHeight * scaleFactor;
+					float scaleFactor = min(destRect.Width / itemImageWidth, destRect.Height / itemImageHeight);
+					float renderWidth = itemImageWidth * scaleFactor;
+					float renderHeight = itemImageHeight * scaleFactor;
 
-				Gdiplus::RectF itemRenderRect(
-					destRect.X + (destRect.Width - renderWidth) / 2.0f,
-					destRect.Y + (destRect.Height - renderHeight) / 2.0f,
-					renderWidth,
-					renderHeight
-				);
-
-				pRM->AddDrawCommand(
-					itemBitmap,
-					itemRenderRect,
-					Gdiplus::RectF(0, 0, itemImageWidth, itemImageHeight),
-					Gdiplus::UnitPixel,
-					Gdiplus::PointF(itemRenderRect.X, itemRenderRect.Y),
-					LAYER_UI_FOREGROUND,
-					0.f + 2.0f + (float)i * 0.001f,
-					DIR_DOWN
-				);
-
-				// 아이템 개수 텍스트 그리기
-				if (slot.count >= 1) {
-
-					wchar_t countStr[16];
-					swprintf_s(countStr, 16, L"%u", slot.count);
-
-					Gdiplus::RectF textRect(
-						itemRenderRect.X,
-						itemRenderRect.Y,
-						itemRenderRect.Width,
-						itemRenderRect.Height
+					Gdiplus::RectF itemRenderRect(
+						destRect.X + (destRect.Width - renderWidth) / 2.0f,
+						destRect.Y + (destRect.Height - renderHeight) / 2.0f,
+						renderWidth,
+						renderHeight
 					);
 
-					pRM->AddTextCommand(countStr, m_font, m_shadowBrush, m_stringFormat,
-						Gdiplus::RectF(textRect.X + 1, textRect.Y + 1, textRect.Width, textRect.Height),
-						LAYER_UI_FOREGROUND, 0.f + 3.0f + (float)i * 0.001f);
+					pRM->AddDrawCommand(
+						itemBitmap,
+						itemRenderRect,
+						Gdiplus::RectF(0, 0, itemImageWidth, itemImageHeight),
+						Gdiplus::UnitPixel,
+						Gdiplus::PointF(itemRenderRect.X, itemRenderRect.Y),
+						LAYER_UI_FOREGROUND,
+						0.f + 2.0f + (float)i * 0.001f,
+						DIR_DOWN
+					);
 
-					pRM->AddTextCommand(countStr, m_font, m_solidBrush, m_stringFormat,
-						textRect,
-						LAYER_UI_FOREGROUND, 0.f + 3.1f + (float)i * 0.001f);
+					// 아이템 개수 텍스트 그리기
+					if (slot.count >= 1) {
+
+						wchar_t countStr[16];
+						swprintf_s(countStr, 16, L"%u", slot.count);
+
+						Gdiplus::RectF textRect(
+							itemRenderRect.X,
+							itemRenderRect.Y,
+							itemRenderRect.Width,
+							itemRenderRect.Height
+						);
+
+						pRM->AddTextCommand(countStr, m_font, m_shadowBrush, m_stringFormat,
+							Gdiplus::RectF(textRect.X + 1, textRect.Y + 1, textRect.Width, textRect.Height),
+							LAYER_UI_FOREGROUND, 0.f + 3.0f + (float)i * 0.001f);
+
+						pRM->AddTextCommand(countStr, m_font, m_solidBrush, m_stringFormat,
+							textRect,
+							LAYER_UI_FOREGROUND, 0.f + 3.1f + (float)i * 0.001f);
+					}
 				}
 			}
 		}
@@ -314,11 +318,11 @@ void Inventory::LoadUIBitmaps()
 	auto* pRM = ResourceManager::GetInstance();
 	
 	if (!m_inventoryBgBitmap) {
-		std::wstring invenPath = pRM->BuildResourcePath(L"Resource\\UI", L"", L"Inven.png");
+		std::wstring invenPath = pRM->BuildUIResourcePath(L"", L"Inven.png");
 		m_inventoryBgBitmap = BitmapUtils::LoadBitmapFromFile(invenPath.c_str());
 	}
 	if (!m_slotBgBitmap) {
-		std::wstring slotPath = pRM->BuildResourcePath(L"Resource\\UI", L"", L"slot.png");
+		std::wstring slotPath = pRM->BuildUIResourcePath(L"", L"slot.png");
 		m_slotBgBitmap = BitmapUtils::LoadBitmapFromFile(slotPath.c_str());
 	}
 

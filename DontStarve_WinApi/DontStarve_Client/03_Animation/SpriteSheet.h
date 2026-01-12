@@ -1,11 +1,17 @@
 #pragma once
+#include <memory>
+#include <vector>
+#include <string>
+#include <gdiplus.h>
+#include <Struct.h>
 
+// SpriteSheet í´ë˜ìŠ¤: ìŠ¤í”„ë¼ì´íŠ¸ ì‹œíŠ¸ ì´ë¯¸ì§€ë¥¼ ê´€ë¦¬í•˜ê³  í”„ë ˆì„ ì¶”ì¶œ
 class SpriteSheet {
 public:
-    // ÆÄÀÏ °æ·Î·Î Á÷Á¢ »ı¼ºÇÏ´Â Á¤Àû ÆÑÅä¸® ¸Ş¼Òµå¿¡¼­ »ç¿ëÇÏ´Â »ı¼ºÀÚ (unique_ptr ¹öÀü)
+    // unique_ptrì„ ë°›ëŠ” ìƒì„±ì
     SpriteSheet(std::unique_ptr<Gdiplus::Bitmap> sheet, UINT fw, UINT fh, UINT fpr, UINT tf);
     
-    // ÆÄÀÏ °æ·Î·Î Á÷Á¢ »ı¼ºÇÏ´Â Á¤Àû ÆÑÅä¸® ¸Ş¼Òµå
+    // íŒŒì¼ë¡œë¶€í„° SpriteSheet ìƒì„±í•˜ëŠ” íŒ©í† ë¦¬ ë©”ì„œë“œ
     static std::unique_ptr<SpriteSheet> CreateFromFile(
         const std::wstring& imagePath,
         UINT frameWidth, UINT frameHeight,
@@ -13,13 +19,11 @@ public:
     );
     
     ~SpriteSheet();
-    
 
-
-	// ¿øº» ºñÆ®¸Ê Á¢±ÙÀÚ (·»´õ¸µ¿ë)
+    // ë¹„íŠ¸ë§µ í¬ì¸í„° ë°˜í™˜ (ì½ê¸° ì „ìš©)
     Gdiplus::Bitmap* GetBitmap() const { return m_pSheetBitmap.get(); }
     
-    // ÇÁ·¹ÀÓ ÃßÃâ
+    // í”„ë ˆì„ ì¶”ì¶œ
     std::vector<AnimationFrame> ExtractFrames(float frameDuration = 0.1f, float pivotX = 0.5f, float pivotY = 1.0f) const;
 
 private:
@@ -28,4 +32,4 @@ private:
     UINT m_frameHeight;
     UINT m_framesPerRow;
     UINT m_totalFrames;
-}; 
+};

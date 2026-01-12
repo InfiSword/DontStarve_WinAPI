@@ -182,6 +182,27 @@ struct PaletteItem {
 	Gdiplus::RectF iconSourceRect;
 };
 
+// 화면에 그릴 정보를 담는 렌더 명령 데이터
+struct DrawCommand {
+	DrawCommandType type = DRAW_COMMAND_IMAGE;
+	Gdiplus::Bitmap* pBitmap = nullptr;
+	Gdiplus::RectF destRect = Gdiplus::RectF(0, 0, 0, 0);
+	Gdiplus::RectF sourceRect = Gdiplus::RectF(0, 0, 0, 0);
+	Gdiplus::Unit srcUnit = Gdiplus::UnitPixel;
+	Gdiplus::PointF objectScreenPos = Gdiplus::PointF(0, 0);
+	RenderLayer layer = LAYER_NONE;
+	float sortKey = 0.0f;
+	Direction direction = DIR_DOWN;
+
+	std::wstring text;
+	Gdiplus::Font* pFont = nullptr;
+	Gdiplus::Brush* pBrush = nullptr;
+	Gdiplus::StringFormat* pStringFormat = nullptr;
+
+	Gdiplus::Color color = Gdiplus::Color(0, 0, 0, 0);
+	float thickness = 0.0f;
+};
+
 struct TileData
 {
 	TileType type;
@@ -481,21 +502,15 @@ struct GameProgress
 	}
 };
 
-
-template<typename StateType>
-struct AnimInfo {
-	StateType state;
-	Direction dir;
-	std::wstring sheetFilePath; // 스프라이트시트 파일 경로
-	std::wstring sheetKey;      // AnimationClip 템플릿 키
-	FLOAT frameWidth;
-	FLOAT frameHeight;
-	UINT framesPerRow;
-	UINT totalFrames;
-	BOOL isLoop;
-	std::map<int, std::wstring> animation_Events;
+// 애니메이션 파라미터 구조체
+struct AnimationParameters {
+    int state = 0;
+    int direction = 0;
+    bool trigger = false;
+    
+    AnimationParameters() = default;
+    AnimationParameters(int s, int d) : state(s), direction(d) {}
 };
-
 
 struct AnimationFrame {
 	Gdiplus::RectF sourceRect;

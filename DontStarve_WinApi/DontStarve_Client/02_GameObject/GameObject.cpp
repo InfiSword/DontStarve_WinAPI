@@ -1,4 +1,4 @@
-#include "../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "GameObject.h"
 #include "Component/Transform/Transform.h"
 #include "Component/Sprite/SpriteRenderer.h"

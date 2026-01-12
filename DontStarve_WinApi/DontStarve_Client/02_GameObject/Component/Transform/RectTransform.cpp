@@ -1,6 +1,7 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "RectTransform.h"
 #include "../Sprite/Image.h"
+#include "../Sprite/SpriteRenderer.h"
 #include "../../GameObject.h"
 
 RectTransform::RectTransform(GameObject* owner, float x, float y,
@@ -21,11 +22,24 @@ Gdiplus::RectF RectTransform::GetScreenBoundingBox() const
 	float width = 0.0f;
 	float height = 0.0f;
 	
-	// Image 컴포넌트에서 비트맵 크기 가져오기
+	// Image 또는 SpriteRenderer 컴포넌트에서 비트맵 크기 가져오기
 	if (m_owner) {
-		::Image* image = m_owner->GetComponent<::Image>();
+		Gdiplus::Bitmap* bitmap = nullptr;
+		
+		// Image 컴포넌트 우선 확인 (UI)
+		ComponentElement::Image* image = m_owner->GetComponent<ComponentElement::Image>();
 		if (image && image->GetSprite()) {
-			Gdiplus::Bitmap* bitmap = image->GetSprite();
+			bitmap = image->GetSprite();
+		}
+		// SpriteRenderer 컴포넌트 확인 (월드 오브젝트)
+		else {
+			SpriteRenderer* spriteRenderer = m_owner->GetComponent<SpriteRenderer>();
+			if (spriteRenderer && spriteRenderer->GetSprite()) {
+				bitmap = spriteRenderer->GetSprite();
+			}
+		}
+		
+		if (bitmap) {
 			width = static_cast<float>(bitmap->GetWidth()) * m_scaleX;
 			height = static_cast<float>(bitmap->GetHeight()) * m_scaleY;
 		}

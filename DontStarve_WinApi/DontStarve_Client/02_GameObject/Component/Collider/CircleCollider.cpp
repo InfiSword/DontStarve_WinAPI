@@ -1,4 +1,4 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "CircleCollider.h"
 #include "BoxCollider.h"
 #include "../Transform/Transform.h"
@@ -55,21 +55,7 @@ bool CircleCollider::IntersectsCollider(const Collider* other) const
 		return distance <= (thisRadius + otherRadius);
 	}
 
-	// 알 수 없는 타입이면 boundingBox로 검사 (원과 사각형 충돌 검사)
-	RECT otherBox = other->GetWorldBoundingBox();
-	float thisCenterX, thisCenterY, thisRadius;
-	GetWorldCircle(thisCenterX, thisCenterY, thisRadius);
-
-	// 사각형에서 가장 가까운 점 찾기
-	float closestX = (std::max)((float)otherBox.left, (std::min)(thisCenterX, (float)otherBox.right));
-	float closestY = (std::max)((float)otherBox.top, (std::min)(thisCenterY, (float)otherBox.bottom));
-
-	// 원의 중심과 가장 가까운 점 사이의 거리
-	float dx = thisCenterX - closestX;
-	float dy = thisCenterY - closestY;
-	float distance = sqrtf(dx * dx + dy * dy);
-
-	return distance <= thisRadius;
+	return false;
 }
 
 RECT CircleCollider::GetWorldBoundingBox() const
@@ -92,13 +78,6 @@ void CircleCollider::SetCircle(float centerX, float centerY, float radius)
 void CircleCollider::GetWorldCircle(float& centerX, float& centerY, float& radius) const
 {
 	GameObject* owner = GetOwner();
-	if (!owner) {
-		centerX = m_centerX;
-		centerY = m_centerY;
-		radius = m_radius;
-		return;
-	}
-
 	Transform* transform = owner->GetComponent<Transform>();
 	centerX = transform->GetX() + m_centerX;
 	centerY = transform->GetY() + m_centerY;
@@ -114,10 +93,6 @@ void CircleCollider::RenderGizmo()
 
 	RenderManager* renderManager = RenderManager::GetInstance();
 	CameraManager* cameraManager = CameraManager::GetInstance();
-
-	if (!renderManager || !cameraManager) {
-		return;
-	}
 
 	// 월드 좌표로 변환된 원의 중심점과 반지름
 	float worldCenterX, worldCenterY, worldRadius;

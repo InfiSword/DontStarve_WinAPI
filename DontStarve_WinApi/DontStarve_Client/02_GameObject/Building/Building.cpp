@@ -1,4 +1,4 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "Building.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
@@ -18,6 +18,7 @@ Building::~Building()
 
 void Building::Init()
 {
+    Entity::Init();
     m_buildingState = BUILDING_NOON;
 }
 

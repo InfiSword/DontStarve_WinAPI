@@ -2,6 +2,7 @@
 
 #include "Object.h"
 #include "Component/Component.h"
+#include <utility>
 
 class Transform;
 class SpriteRenderer;
@@ -38,9 +39,9 @@ public:
 
 	virtual void OnInteraction(GameObject* obj);
 	
-    template <typename T>
-    T* AddComponent() {
-        T* newComponent = new T(this);
+    template <typename T, typename... Args>
+    T* AddComponent(Args&&... args) {
+        T* newComponent = new T(this, std::forward<Args>(args)...);
         m_components.push_back(newComponent);
         newComponent->Init();
         return newComponent;

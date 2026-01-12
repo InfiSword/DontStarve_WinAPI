@@ -1,9 +1,9 @@
 #pragma once
 
-// 필수 전방 선언만 유지 (실제로 헤더에서 사용하는 타입만)
 class GameObject;
 class Player;
 class Item;
+struct GameObjectData;  // 전방 선언
 
 class ObjectManager : public CSingleTon<ObjectManager>
 {
@@ -30,9 +30,8 @@ public:
 	// 플레이어 캐시된 포인터 반환 함수
 	Player* GetPlayer() const;
 
-	// 게임오브젝트 반환
+	// 게임오브젝트 반환 (읽기 전용, 안전성 보장)
 	const std::vector<GameObject*>& GetGameObjects() const { return m_gameObjects; }
-	std::vector<GameObject*>& GetGameObjects() { return m_gameObjects; }
 	
 	// 실제 바운드 박스를 이용한 정확한 충돌 검사
 	GameObject* FindObjectAtPositionWithBounds(float x, float y);
@@ -58,6 +57,10 @@ private:
 	void InitializeFactories();
 	
 	std::vector<GameObject*> m_gameObjects;
+	std::vector<GameObject*> m_pendingDeletions; // 삭제 지연 큐
 	Player* m_cachedPlayer; // 플레이어 캐시
 	bool m_showBounds; // 바운드 표시 여부
+
+	// 삭제 지연 처리
+	void ProcessPendingDeletions();
 };

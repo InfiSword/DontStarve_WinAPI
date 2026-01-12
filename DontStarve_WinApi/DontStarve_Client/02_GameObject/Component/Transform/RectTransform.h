@@ -48,6 +48,6 @@ public:
 	void SetPivot(float pivotX, float pivotY) { m_pivotX = pivotX; m_pivotY = pivotY; }
 
 	// 바운딩 박스 계산 (화면 좌표 기준)
-	// 주의: sprite 크기 * scale을 사용하므로, Image 컴포넌트가 필요합니다
+	// 주의: sprite 크기 * scale을 사용하므로, Image 또는 SpriteRenderer 컴포넌트가 필요합니다
 	Gdiplus::RectF GetScreenBoundingBox() const;
 };

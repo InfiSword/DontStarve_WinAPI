@@ -31,9 +31,9 @@ public:
     virtual void Damaged(int damage) = 0;
 
     // 드롭 아이템 관련 가상 함수들
-    virtual GameObjectID GetDropItemID() const { return GOID_NONE; }
-    virtual int GetDropItemCount() const { return 0; }
-    virtual void SetDropItem(GameObjectID itemID, int count = 1) {}   
+    virtual GameObjectID GetDropItemID() const;
+    virtual int GetDropItemCount() const;
+    virtual void SetDropItem(GameObjectID itemID, int count = 1);   
 
     // Animator 접근자
     Animator* GetAnimator() const { return m_animator; }

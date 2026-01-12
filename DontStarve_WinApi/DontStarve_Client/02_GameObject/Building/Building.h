@@ -1,13 +1,13 @@
 #pragma once
 #include "../Entity/Entity.h"
 
-// BuildingÀº °Ç¹°ÀÇ ±âº» Å¬·¡½º
+// Building - ê±´ë¬¼ì„ ì˜ë¯¸í•˜ëŠ” ê¸°ë³¸ í´ë˜ìŠ¤
 class Building : public Entity
 {
 protected:
     int m_hp;
     int m_maxHp;
-    BuildingState m_buildingState;  // EntityÀÇ m_state¿Í µ¿±âÈ­µÇ´Â °Ç¹°»óÅÂ °ü¸®
+    BuildingState m_buildingState;  // ê±´ë¬¼ ìƒíƒœ
     
 public:
     Building(GameObjectID id, float x, float y, float pivotX, float pivotY, 
@@ -15,7 +15,7 @@ public:
              const std::wstring& imageName = L"", int hp = 100);
     virtual ~Building();
 
-    // GameObject ÀÎÅÍÆäÀÌ½º ±¸Çö
+    // GameObject ê¸°ë³¸ ì´ˆê¸°í™”
     virtual void Init() override;
     virtual void LateInit() override;
     virtual void Update(float deltaTime) override;
@@ -26,7 +26,7 @@ public:
     virtual void SetTimeState(BuildingState buildingState);
     virtual BuildingState GetTimeState() const;
 
-    // HP °ü¸®
+    // HP ê´€ë ¨
     int GetHP() const { return m_hp; }
     int GetMaxHP() const { return m_maxHp; }
     bool IsDestroyed() const { return m_hp <= 0; }

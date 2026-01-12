@@ -1,4 +1,4 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "Transform.h"
 
 Transform::Transform(GameObject* owner, float x, float y, 

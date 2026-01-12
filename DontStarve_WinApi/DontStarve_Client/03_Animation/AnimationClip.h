@@ -1,9 +1,5 @@
 #pragma once
 #include "SpriteSheet.h" 
-#include <functional>
-#include <memory>
-#include <vector>
-#include <map>
 
 // 애니메이션 이벤트 콜백 타입 정의
 using AnimationEventCallback = std::function<void(int, const std::wstring&)>;

@@ -1,4 +1,4 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "Tool.h"
 
 Tool::Tool(UINT id, const std::wstring& name, const std::wstring& desc, const std::wstring& imagePath, float maxDurability, float effectiveness)

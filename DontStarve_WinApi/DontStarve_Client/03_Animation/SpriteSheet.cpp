@@ -1,12 +1,12 @@
-#include "../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "SpriteSheet.h"
 
-// »ı¼ºÀÚ (unique_ptr ¹öÀü)
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (unique_ptr ï¿½ï¿½ï¿½ï¿½)
 SpriteSheet::SpriteSheet(std::unique_ptr<Gdiplus::Bitmap> sheet, UINT fw, UINT fh, UINT fpr, UINT tf)
     : m_pSheetBitmap(std::move(sheet)),
     m_frameWidth(fw), m_frameHeight(fh), m_framesPerRow(fpr), m_totalFrames(tf) {}
 
-// Á¤Àû ÆÑÅä¸® ¸Ş¼Òµå - ÆÄÀÏ °æ·Î·Î Á÷Á¢ SpriteSheet »ı¼º
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ä¸® ï¿½Ş¼Òµï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Î·ï¿½ ï¿½ï¿½ï¿½ï¿½ SpriteSheet ï¿½ï¿½ï¿½ï¿½
 std::unique_ptr<SpriteSheet> SpriteSheet::CreateFromFile(
     const std::wstring& imagePath,
     UINT frameWidth, UINT frameHeight,
@@ -14,7 +14,7 @@ std::unique_ptr<SpriteSheet> SpriteSheet::CreateFromFile(
     
     auto bitmap = std::make_unique<Gdiplus::Bitmap>(imagePath.c_str());
     if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok) {
-        OutputDebugStringW((L"SpriteSheet: ÀÌ¹ÌÁö ·Îµå ½ÇÆĞ - " + imagePath + L"\n").c_str());
+        OutputDebugStringW((L"SpriteSheet: íŒŒì¼ ë¡œë“œ ì‹¤íŒ¨ - " + imagePath + L"\n").c_str());
         return nullptr;
     }
     
@@ -30,17 +30,17 @@ std::vector<AnimationFrame> SpriteSheet::ExtractFrames(float frameDuration, floa
     }
 
     for (UINT i = 0; i < m_totalFrames; ++i) {
-        UINT row = i / m_framesPerRow; // ÇöÀç ÇÁ·¹ÀÓÀÌ ¸î ¹øÂ° ÁÙÀÎÁö
-        UINT col = i % m_framesPerRow; // ÇöÀç ÇÁ·¹ÀÓÀÌ ¸î ¹øÂ° ¿­ÀÎÁö
+        UINT row = i / m_framesPerRow; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        UINT col = i % m_framesPerRow; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-        // ½ºÇÁ¶óÀÌÆ® ½ÃÆ® ³»¿¡¼­ ÇØ´ç ÇÁ·¹ÀÓÀÇ ÁÂ»ó´Ü ÇÈ¼¿ ÁÂÇ¥
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Â»ï¿½ï¿½ ï¿½È¼ï¿½ ï¿½ï¿½Ç¥
         float x = (float)(col * m_frameWidth);
         float y = (float)(row * m_frameHeight);
 
-        // ½ºÇÁ¶óÀÌÆ® ½ÃÆ® ³»ÀÇ ¼Ò½º »ç°¢Çü Á¤º¸ »ı¼º
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ò½ï¿½ ï¿½ç°¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         Gdiplus::RectF sourceRect(x, y, (float)m_frameWidth, (float)m_frameHeight);
 
-        // AnimationFrame °´Ã¼ »ı¼º ½Ã, ¾À¿¡¼­ ·»´õ¸µÇÒ Å©±â ÀÇ¹Ì·Î ÇØ¼®
+        // AnimationFrame ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½Ç¹Ì·ï¿½ ï¿½Ø¼ï¿½
         AnimationFrame frame(
             sourceRect,
             frameDuration,
@@ -54,4 +54,4 @@ std::vector<AnimationFrame> SpriteSheet::ExtractFrames(float frameDuration, floa
     return frames;
 }
 
-// ·»´õ¸µÀº Animator/RenderManager¿¡¼­ Ã³¸®
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Animator/RenderManagerï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½

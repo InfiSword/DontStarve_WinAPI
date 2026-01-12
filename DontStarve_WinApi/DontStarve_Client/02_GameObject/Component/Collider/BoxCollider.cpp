@@ -1,4 +1,4 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "BoxCollider.h"
 #include "CircleCollider.h"
 #include "../Transform/Transform.h"
@@ -51,11 +51,7 @@ bool BoxCollider::IntersectsCollider(const Collider* other) const
 		return distance <= worldRadius;
 	}
 
-	// 알 수 없는 타입이면 boundingBox로 검사
-	RECT thisBox = GetWorldBoundingBox();
-	RECT otherBox = other->GetWorldBoundingBox();
-	return !(thisBox.right < otherBox.left || thisBox.left > otherBox.right ||
-		thisBox.bottom < otherBox.top || thisBox.top > otherBox.bottom);
+	return false;
 }
 
 RECT BoxCollider::GetWorldBoundingBox() const
@@ -81,10 +77,6 @@ void BoxCollider::RenderGizmo()
 
 	RenderManager* renderManager = RenderManager::GetInstance();
 	CameraManager* cameraManager = CameraManager::GetInstance();
-
-	if (!renderManager || !cameraManager) {
-		return;
-	}
 
 	// 월드 좌표로 변환된 boundingBox 가져오기
 	RECT worldBox = GetWorldBoundingBox();

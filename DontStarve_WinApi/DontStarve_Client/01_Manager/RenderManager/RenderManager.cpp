@@ -1,8 +1,10 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "RenderManager.h"
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
+#include "../../02_GameObject/Component/Transform/RectTransform.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
+#include "../../02_GameObject/Component/Sprite/Image.h"
 #include "../../03_Animation/Animator.h"
 #include "../CameraManager/CameraManager.h"
 #include "../ObjectManager/ObjectManager.h"
@@ -61,35 +63,75 @@ void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::Rect
 		return;
 	}
 
-	m_drawCommands.emplace_back(DrawCommand(pBitmap, destRect, sourceRect, srcUnit, objectScreenPos, layer, sortKey, direction));
+	DrawCommand command{};
+	command.type = DRAW_COMMAND_IMAGE;
+	command.pBitmap = pBitmap;
+	command.destRect = destRect;
+	command.sourceRect = sourceRect;
+	command.srcUnit = srcUnit;
+	command.objectScreenPos = objectScreenPos;
+	command.layer = layer;
+	command.sortKey = sortKey;
+	command.direction = direction;
+
+	m_drawCommands.emplace_back(std::move(command));
 }
 
 void RenderManager::AddTextCommand(const std::wstring& text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey)
 {
-	m_drawCommands.emplace_back(DrawCommand(text, pFont, pBrush, pStringFormat, destRect, layer, sortKey));
+	DrawCommand command{};
+	command.type = DRAW_COMMAND_TEXT;
+	command.text = text;
+	command.pFont = pFont;
+	command.pBrush = pBrush;
+	command.pStringFormat = pStringFormat;
+	command.destRect = destRect;
+	command.objectScreenPos = Gdiplus::PointF(destRect.X, destRect.Y);
+	command.layer = layer;
+	command.sortKey = sortKey;
+
+	m_drawCommands.emplace_back(std::move(command));
 }
 
 // 사각형 외곽선 명령 추가
 void RenderManager::AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey) {
-	m_drawCommands.emplace_back(DrawCommand(rect, color, thickness, layer, sortKey));
+	DrawCommand command{};
+	command.type = DRAW_COMMAND_RECTANGLE;
+	command.destRect = rect;
+	command.color = color;
+	command.thickness = thickness;
+	command.layer = layer;
+	command.sortKey = sortKey;
+	command.objectScreenPos = Gdiplus::PointF(rect.X, rect.Y);
+
+	m_drawCommands.emplace_back(std::move(command));
 }
 
 void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float sortKey) {
-	m_drawCommands.emplace_back(DrawCommand(rect, color, layer, sortKey, true));
+	DrawCommand command{};
+	command.type = DRAW_COMMAND_FILL_RECTANGLE;
+	command.destRect = rect;
+	command.color = color;
+	command.layer = layer;
+	command.sortKey = sortKey;
+	command.objectScreenPos = Gdiplus::PointF(rect.X, rect.Y);
+
+	m_drawCommands.emplace_back(std::move(command));
 }
 
 // === UI 전용 명령 큐 함수 ===
 
-void RenderManager::RenderUIImage(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height,
+void RenderManager::RenderUIImageWithPivot(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height,
+	float pivotX, float pivotY,
 	RenderLayer layer, float sortKey)
 {
 	if (!bitmap) return;
 
-	Gdiplus::RectF destRect(x, y, width, height);
+	Gdiplus::RectF destRect(x - (pivotX * width), y - (pivotY * height), width, height);
 	Gdiplus::RectF sourceRect(0, 0, static_cast<float>(bitmap->GetWidth()), static_cast<float>(bitmap->GetHeight()));
 
 	AddDrawCommand(bitmap, destRect, sourceRect, Gdiplus::UnitPixel,
-		Gdiplus::PointF(x + width / 2, y + height / 2), layer, sortKey, DIR_DOWN);
+		Gdiplus::PointF(x, y), layer, sortKey, DIR_DOWN);
 }
 
 void RenderManager::RenderUIText(const std::wstring& text, Gdiplus::Font* font, Gdiplus::Brush* brush,
@@ -112,7 +154,7 @@ void RenderManager::RenderUIText(const std::wstring& text, Gdiplus::Font* font, 
 	Gdiplus::RectF textRect(x, y, width, height);
 	AddTextCommand(text, font, brush, stringFormat, textRect, layer, sortKey);
 
-	// StringFormat은 DrawCommand 내부에서 관리되므로 삭제하지 않는다
+	// TODO: StringFormat 수명 관리가 필요하면 별도 해제 로직 추가
 }
 
 // === GameObject 렌더링 ===
@@ -123,18 +165,27 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 		return;
 	}
 
-	// Transform과 SpriteRenderer 컴포넌트 가져오기
+	// Transform 또는 RectTransform 컴포넌트 가져오기
 	Transform* transform = pObject->GetComponent<Transform>();
-	SpriteRenderer* spriteRenderer = pObject->GetComponent<SpriteRenderer>();
-
-	// Transform이 없으면 렌더링 불가
-	if (!transform) {
+	RectTransform* rectTransform = pObject->GetComponent<RectTransform>();
+	
+	// Transform이 없으면 렌더링 불가 (UI는 자체 Render() 사용)
+	if (!transform && !rectTransform) {
 		return;
 	}
+
+	// SpriteRenderer 또는 Image 컴포넌트 가져오기
+	SpriteRenderer* spriteRenderer = pObject->GetComponent<SpriteRenderer>();
+	ComponentElement::Image* image = pObject->GetComponent<ComponentElement::Image>();
 
 	Animator* anim = pObject->GetComponent<Animator>();
 
 	if (anim != nullptr) {
+		// Animator는 Transform만 지원 (월드 오브젝트)
+		if (!transform) {
+			return;
+		}
+
 		// 월드 좌표를 화면 좌표로 변환
 		Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(transform->GetX(), transform->GetY());
 
@@ -147,42 +198,92 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 	}
 	else 
 	{
-		// SpriteRenderer가 없으면 렌더링 불가
-		if (!spriteRenderer) {
+		// SpriteRenderer 또는 Image 중 하나라도 있어야 렌더링 가능
+		Gdiplus::Bitmap* pBitmap = nullptr;
+		std::shared_ptr<Sprite> spriteHandle = nullptr;
+		Gdiplus::RectF srcRect(0, 0, 0, 0);
+		RenderLayer layer = LAYER_WORLD_OBJECT;
+		float sortKey = 0.0f;
+		float x = 0.0f, y = 0.0f;
+		float width = 0.0f, height = 0.0f;
+		float pivotX = 0.5f, pivotY = 0.5f;
+		Direction direction = DIR_DOWN;
+		Gdiplus::PointF screenPos;
+
+		// SpriteRenderer 우선 확인 (월드 오브젝트)
+		if (spriteRenderer && transform) {
+			spriteHandle = spriteRenderer->GetSpriteHandle();
+			if (!spriteHandle || !spriteHandle->bitmap) {
+				return;
+			}
+			pBitmap = spriteHandle->bitmap.get();
+			srcRect = spriteHandle->sourceRect;
+
+			// 월드 좌표 -> 화면 좌표
+			screenPos = CameraManager::GetInstance()->WorldToScreen(transform->GetX(), transform->GetY());
+
+			// Sprite의 실제 크기 사용 (비트맵 크기)
+			width = srcRect.Width;
+			height = srcRect.Height;
+
+			// 피벗을 고려한 렌더 위치
+			x = screenPos.X - width * transform->GetPivotX();
+			y = screenPos.Y - height * transform->GetPivotY();
+			pivotX = transform->GetPivotX();
+			pivotY = transform->GetPivotY();
+			direction = transform->GetDirection();
+
+			// 레이어 및 정렬 키 계산
+			layer = spriteRenderer->GetLayer();
+			sortKey = transform->GetSortKey(layer);
+		}
+		// Image 컴포넌트 확인 (UI 오브젝트)
+		else if (image && rectTransform) {
+			spriteHandle = image->GetSpriteHandle();
+			if (!spriteHandle || !spriteHandle->bitmap) {
+				return;
+			}
+			pBitmap = spriteHandle->bitmap.get();
+			srcRect = spriteHandle->sourceRect;
+
+			// UI는 화면 좌표를 직접 사용
+			x = rectTransform->GetX();
+			y = rectTransform->GetY();
+			pivotX = rectTransform->GetPivotX();
+			pivotY = rectTransform->GetPivotY();
+
+			// Sprite 크기 * scale 계산
+			float bitmapWidth = srcRect.Width;
+			float bitmapHeight = srcRect.Height;
+			width = bitmapWidth * rectTransform->GetScaleX();
+			height = bitmapHeight * rectTransform->GetScaleY();
+
+			// 피벗을 고려한 렌더 위치
+			x = x - (pivotX * width);
+			y = y - (pivotY * height);
+
+			// 레이어 및 정렬 키는 Image 컴포넌트에서 가져오기
+			layer = image->GetLayer();
+			sortKey = image->GetSortKey();
+
+			// UI는 화면 좌표 중심점 계산
+			screenPos = Gdiplus::PointF(x + width / 2, y + height / 2);
+		}
+		else {
+			// 렌더링할 수 없음
 			return;
 		}
-
-		// 비트맵 가져오기
-		Gdiplus::Bitmap* pBitmap = spriteRenderer->GetSprite();
-		if (!pBitmap) {
-			return;
-		}
-		
-		// 월드 좌표 -> 화면 좌표
-		Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(transform->GetX(), transform->GetY());
-
-		// Sprite의 실제 크기 사용 (비트맵 크기)
-		float width = static_cast<float>(pBitmap->GetWidth());
-		float height = static_cast<float>(pBitmap->GetHeight());
-
-		// 피벗을 고려한 렌더 위치
-		float renderX = screenPos.X - width * transform->GetPivotX();
-		float renderY = screenPos.Y - height * transform->GetPivotY();
-
-		// 레이어 및 정렬 키 계산
-		RenderLayer layer = spriteRenderer->GetLayer();
-		float sortKey = transform->GetSortKey(layer);
 
 		// RenderManager 큐에 직접 명령 추가
 		AddDrawCommand(
 			pBitmap,
-			Gdiplus::RectF(renderX, renderY, width, height),
-			Gdiplus::RectF(0, 0, width, height),
+			Gdiplus::RectF(x, y, width, height),
+			srcRect,
 			Gdiplus::UnitPixel,
 			screenPos,
 			layer,
 			sortKey,
-			transform->GetDirection()
+			direction
 		);
 	}
 }
@@ -259,70 +360,54 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics || m_drawCommands.empty()) return;
 
 	// 1. 레이어 높이 sortKey 순서로 정렬하여 Z-order를 보장
-	std::sort(m_drawCommands.begin(), m_drawCommands.end(), CompareDrawCommands);
+	std::sort(m_drawCommands.begin(), m_drawCommands.end(), RenderManager::CompareDrawCommands);
 
-	Gdiplus::Bitmap* currentBitmap = nullptr;
-	Gdiplus::GraphicsState originalGraphicsState; // Flush 시작 시점의 그래픽 상태
-
-	int commandIndex = 0;
 	for (const auto& cmd : m_drawCommands) {
 		Gdiplus::GraphicsState commandSpecificState = pGraphics->Save(); // 명령 별도로 상태 저장
-
-		float currentScaledWidth = cmd.destRect.Width;
-		float currentScaledHeight = cmd.destRect.Height;
 
 		if (cmd.type == DRAW_COMMAND_IMAGE) {
 			// 비트맵 유효성 확인
 			if (!cmd.pBitmap) {
 				pGraphics->Restore(commandSpecificState);
-				commandIndex++;
 				continue;
 			}
 
 			// 비트맵 상태 확인
 			if (cmd.pBitmap->GetLastStatus() != Gdiplus::Ok) {
 				pGraphics->Restore(commandSpecificState);
-				commandIndex++;
 				continue;
 			}
 
 			// 소스/대상 사각형 유효성
 			if (cmd.sourceRect.Width <= 0 || cmd.sourceRect.Height <= 0) {
 				pGraphics->Restore(commandSpecificState);
-				commandIndex++;
 				continue;
 			}
 
 			if (cmd.destRect.Width <= 0 || cmd.destRect.Height <= 0) {
 				pGraphics->Restore(commandSpecificState);
-				commandIndex++;
 				continue;
 			}
 
 			ApplyGdiTransform(pGraphics, cmd, cmd.destRect.Width, cmd.destRect.Height);
 			pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
 				cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
-
 		}
 		else if (cmd.type == DRAW_COMMAND_TEXT) {
 			if (cmd.pFont && cmd.pBrush && cmd.pStringFormat) {
-
 				pGraphics->DrawString(cmd.text.c_str(), -1, cmd.pFont, cmd.destRect, cmd.pStringFormat, cmd.pBrush);
 			}
 		}
 		else if (cmd.type == DRAW_COMMAND_RECTANGLE) {
-
 			Gdiplus::Pen pen(cmd.color, cmd.thickness);
 			pGraphics->DrawRectangle(&pen, cmd.destRect);
-
 		}
 		else if (cmd.type == DRAW_COMMAND_FILL_RECTANGLE) {
 			Gdiplus::SolidBrush brush(cmd.color);
 			pGraphics->FillRectangle(&brush, cmd.destRect);
-
 		}
+		
 		pGraphics->Restore(commandSpecificState);
-		commandIndex++;
 	}
 	Clear(); // 모든 명령을 처리한 뒤 큐를 초기화
 }

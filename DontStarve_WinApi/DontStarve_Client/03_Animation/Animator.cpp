@@ -1,23 +1,20 @@
-#include "../99_Default/pch.h"
-#include "../01_Manager/RenderManager/RenderManager.h"
+#include "99_Default/pch.h"
 #include "Animator.h"
 #include "AnimationClip.h"
-#include "SpriteSheet.h"  
+#include "SpriteSheet.h"
+#include "../01_Manager/RenderManager/RenderManager.h"
 
 Animator::Animator(GameObject* owner)
     : Component(owner), m_currentClip(nullptr), m_currentState(-1), m_currentDirection(-1), 
       m_elapsed(0.0f), m_isPlaying(false), m_lastTriggeredFrame(-1) {}
 
 Animator::~Animator() { 
-    m_animations.clear(); // unique_ptr이므로 소멸 시 자동으로 정리됨
+    m_animations.clear(); 
     m_currentClip = nullptr; 
 }
 
 void Animator::Init() {
     Component::Init();
-    
-    // 애니메이션 등록은 Entity::Init()에서 직접 처리하도록 변경
-    // GetComponent를 통한 로직을 건너뛰기 위해 여기서는 기본 초기화만 수행
 }
 
 // 애니메이션 등록 구현
@@ -30,52 +27,28 @@ void Animator::RegisterAnimation(int state, Direction dir,
                                 bool loop,
                                 const std::map<int, std::wstring>& events) 
 {
-    OutputDebugStringW((L"Animator: RegisterAnimation 시작 - State: " + std::to_wstring(state) + 
-                       L", Direction: " + std::to_wstring(static_cast<int>(dir)) + L"\n").c_str());
-    
     int key = GetAnimationKey(state, static_cast<int>(dir));
     
-    OutputDebugStringW((L"Animator: 애니메이션 키 생성 - Key: " + std::to_wstring(key) + L"\n").c_str());
-    
-    // SpriteSheet를 먼저 생성하고, 생성자로 Clip을 초기화
-    auto spriteSheet = SpriteSheet::CreateFromFile(
-        imagePath,
-        frameWidth,
-        frameHeight,
-        framesPerRow,
-        totalFrames
-    );
+    // SpriteSheet 생성
+    auto sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames);
+    if (!sheet) return;
 
-    if (!spriteSheet) {
-        OutputDebugStringW((L"Animator: SpriteSheet 생성 실패 - " + imagePath + L"\n").c_str());
-        return;
-    }
-
-    auto clip = std::make_unique<AnimationClip>(
-        L"", // 이름은 현재 사용하지 않으므로 빈 문자열 전달
-        std::move(spriteSheet),
-        frameDuration,
-        pivotX,
-        pivotY,
-        loop
-    );
+    // AnimationClip 생성
+    auto clip = std::make_unique<AnimationClip>(L"", std::move(sheet), frameDuration, pivotX, pivotY, loop);
     
-    if (clip) {
-        // 이벤트 프레임 등록
-        for (const auto& eventPair : events) {
-            clip->AddEventFrame(eventPair.first, eventPair.second);
-        }
-        
-        // 전역 이벤트 콜백 설정
-        if (m_globalEventCallback) {
-            clip->SetEventCallback(m_globalEventCallback);
-        }
-        
-        m_animations[key] = std::move(clip);
-        OutputDebugStringW((L"Animator: 애니메이션 등록 완료 - Key: " + std::to_wstring(key) + L"\n").c_str());
-    } else {
-        OutputDebugStringW(L"Animator: AnimationClip 생성 실패\n");
+    if (!clip) return;
+    
+    // 이벤트 프레임 등록
+    for (const auto& eventPair : events) {
+        clip->AddEventFrame(eventPair.first, eventPair.second);
     }
+    
+    // 전역 이벤트 콜백 설정
+    if (m_globalEventCallback) {
+        clip->SetEventCallback(m_globalEventCallback);
+    }
+    
+    m_animations[key] = std::move(clip);
 }
 
 // SetState 구현

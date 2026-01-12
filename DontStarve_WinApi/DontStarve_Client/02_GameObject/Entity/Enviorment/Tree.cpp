@@ -1,4 +1,4 @@
-#include "../../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "Tree.h"
@@ -14,6 +14,7 @@ Tree::~Tree() {}
 
 void Tree::Init()
 {
+	Entity::Init();
 }
 
 void Tree::LateInit()

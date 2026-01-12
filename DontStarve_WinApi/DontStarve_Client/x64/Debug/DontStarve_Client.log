@@ -1,839 +1,693 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(524,5): warning MSB8004: Output 디렉터리가 슬래시로 끝나지 않습니다. Output 디렉터리의 적절한 평가를 허용하는 데 필요하므로 이 빌드 인스턴스에서 슬래시를 추가합니다.
+  pch.cpp
   UIManager.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39):
+      'Sprite' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,71): error C2027: 정의되지 않은 형식 'ComponentElement::Image'을(를) 사용했습니다.
+  (소스 파일 '/01_Manager/UIManager/UIManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(5,36):
+      'ComponentElement::Image' 선언을 참조하십시오.
+  
   InventoryManager.cpp
+  ResourceManager.cpp
+  CharacterSelectScene.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\SceneManager\CharacterSelectScene.cpp(386,43): error C2662: 'void ComponentElement::Image::LoadSprite(const std::wstring &)': 'this' 포인터를 'const ComponentElement::Image'에서 'ComponentElement::Image &'(으)로 변환할 수 없습니다.
+  (소스 파일 '/01_Manager/SceneManager/CharacterSelectScene.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\SceneManager\CharacterSelectScene.cpp(386,39):
+      변환하면서 한정자가 손실됩니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\Image.h(42,8):
+      'ComponentElement::Image::LoadSprite' 선언을 참조하십시오.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\SceneManager\CharacterSelectScene.cpp(386,43):
+      인수 목록 '(std::wstring)'을(를) 일치시키는 동안
+  
   GameScene.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/SceneManager/GameScene.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/SceneManager/GameScene.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39):
+      'Sprite' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,71): error C2027: 정의되지 않은 형식 'ComponentElement::Image'을(를) 사용했습니다.
+  (소스 파일 '/01_Manager/SceneManager/GameScene.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(5,36):
+      'ComponentElement::Image' 선언을 참조하십시오.
+  
   SceneManager.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/SceneManager/SceneManager.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/SceneManager/SceneManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39):
+      'Sprite' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,71): error C2027: 정의되지 않은 형식 'ComponentElement::Image'을(를) 사용했습니다.
+  (소스 파일 '/01_Manager/SceneManager/SceneManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(5,36):
+      'ComponentElement::Image' 선언을 참조하십시오.
+  
+  TitleScene.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/SceneManager/TitleScene.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/SceneManager/TitleScene.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39):
+      'Sprite' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,71): error C2027: 정의되지 않은 형식 'ComponentElement::Image'을(를) 사용했습니다.
+  (소스 파일 '/01_Manager/SceneManager/TitleScene.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(5,36):
+      'ComponentElement::Image' 선언을 참조하십시오.
+  
   Building.cpp
+  Button.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Button\Button.h(26,45): warning C4838: 'Gdiplus::Color::<unnamed-enum-AliceBlue>'에서 'Gdiplus::Color'(으)로의 변환에는 축소 변환이 필요합니다.
+  (소스 파일 '/02_GameObject/Component/Button/Button.cpp'을(를) 컴파일하는 중)
+  
+  Component.cpp
   Collider.cpp
   BoxCollider.cpp
   CircleCollider.cpp
   Image.cpp
   SpriteRenderer.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\Image.cpp(9,11): error C2872: 'Image': 모호한 기호입니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\Image.h(6,7):
-      'Image'일 수 있습니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      또는       'Gdiplus::Image'
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57): error C2675: 단항 '->': 'const std::shared_ptr'이(가) 이 연산자를 정의하지 않거나 미리 정의된 연산자에 허용되는 형식으로의 변환을 정의하지 않습니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1772,22):
+      '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57):
+          '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const': '__formal'의 템플릿 인수를 추론할 수 없습니다.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,67): error C2039: 'bitmap': 'std::shared_ptr'의 멤버가 아닙니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1565,7):
+      'std::shared_ptr' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58): error C2678: 이항 '=': 왼쪽 피연산자로 'std::shared_ptr' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1704,17):
+      'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1693,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1727,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)': 'const std::shared_ptr'에서 'std::unique_ptr<_Ux,_Dx> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1717,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)': 'const std::shared_ptr'에서 'std::auto_ptr<_Other> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1710,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept': 'const std::shared_ptr'에서 'std::shared_ptr<_Ty2> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1699,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept': 'const std::shared_ptr'에서 'const std::shared_ptr<_Ty2> &'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+      인수 목록 '(std::shared_ptr, const std::shared_ptr)'을(를) 일치시키는 동안
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,67): error C2582: 'operator =' 함수는 'std::shared_ptr'에서 사용할 수 없습니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52): error C2440: 'return': 'const std::shared_ptr'에서 'std::shared_ptr'(으)로 변환할 수 없습니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52):
+      복사 생성자가 모호하거나 사용할 수 있는 복사 생성자가 없어서 class 'std::shared_ptr'을(를) 복사 생성할 수 없습니다.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.cpp(8,10): error C1083: 포함 파일을 열 수 없습니다. '../../Header/Struct.h': No such file or directory
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.cpp(22,11): error C2662: 'void std::shared_ptr<_Ty>::reset(void) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+  (소스 파일 '/02_GameObject/Component/Sprite/SpriteRenderer.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.cpp(22,2):
+      원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.cpp(22,2):
+      변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1736,10):
+      'std::shared_ptr<_Ty>::reset' 선언을 참조하십시오.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1760,10):
+      'void std::shared_ptr<_Ty>::reset(_Ux *,_Dx,_Alloc)'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.cpp(22,11):
+          'void std::shared_ptr<_Ty>::reset(_Ux *,_Dx,_Alloc)': 3개의 인수가 필요합니다. 0개가 제공되었습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1752,10):
+      또는       'void std::shared_ptr<_Ty>::reset(_Ux *,_Dx)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.cpp(22,11):
+          'void std::shared_ptr<_Ty>::reset(_Ux *,_Dx)': 2개의 인수가 필요합니다. 0개가 제공되었습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1744,10):
+      또는       'void std::shared_ptr<_Ty>::reset(_Ux *)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.cpp(22,11):
+          'void std::shared_ptr<_Ty>::reset(_Ux *)': 1개의 인수가 필요합니다. 0개가 제공되었습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.cpp(22,11):
+      인수 목록 '()'을(를) 일치시키는 동안
+  
+  Text.cpp
   RectTransform.cpp
   Transform.cpp
   Entity.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57): error C2675: 단항 '->': 'const std::shared_ptr'이(가) 이 연산자를 정의하지 않거나 미리 정의된 연산자에 허용되는 형식으로의 변환을 정의하지 않습니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1772,22):
+      '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57):
+          '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const': '__formal'의 템플릿 인수를 추론할 수 없습니다.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,67): error C2039: 'bitmap': 'std::shared_ptr'의 멤버가 아닙니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1565,7):
+      'std::shared_ptr' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58): error C2678: 이항 '=': 왼쪽 피연산자로 'std::shared_ptr' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1704,17):
+      'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1693,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1727,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)': 'const std::shared_ptr'에서 'std::unique_ptr<_Ux,_Dx> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1717,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)': 'const std::shared_ptr'에서 'std::auto_ptr<_Other> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1710,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept': 'const std::shared_ptr'에서 'std::shared_ptr<_Ty2> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1699,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept': 'const std::shared_ptr'에서 'const std::shared_ptr<_Ty2> &'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+      인수 목록 '(std::shared_ptr, const std::shared_ptr)'을(를) 일치시키는 동안
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,67): error C2582: 'operator =' 함수는 'std::shared_ptr'에서 사용할 수 없습니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(47,42): error C2065: 'resourceManager': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(47,60): error C2065: 'resourceManager': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(53,5): error C2059: 구문 오류: 'if'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(53,39): error C2143: 구문 오류: ';'이(가) '{' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(53,39): error C2447: '{': 함수 헤더가 없습니다. 이전 스타일의 형식 목록입니까?
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(115,5): error C2059: 구문 오류: 'else'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(115,47): error C2143: 구문 오류: ';'이(가) '{' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(115,47): error C2447: '{': 함수 헤더가 없습니다. 이전 스타일의 형식 목록입니까?
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(171,1): error C2059: 구문 오류: '}'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(171,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52): error C2440: 'return': 'const std::shared_ptr'에서 'std::shared_ptr'(으)로 변환할 수 없습니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52):
+      복사 생성자가 모호하거나 사용할 수 있는 복사 생성자가 없어서 class 'std::shared_ptr'을(를) 복사 생성할 수 없습니다.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(40,21): error C2664: 'void SpriteRenderer::SetSprite(const std::shared_ptr &)': 인수 1을(를) 'std::shared_ptr<Sprite>'에서 'const std::shared_ptr &'(으)로 변환할 수 없습니다.
+  (소스 파일 '/02_GameObject/Entity/Entity.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(40,31):
+      원인: 'std::shared_ptr<Sprite>'에서 'const std::shared_ptr'(으)로 변환할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(40,31):
+      이 변환을 수행할 수 있는 사용 가능한 사용자 정의 변환 연산자가 없거나 연산자를 호출할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,7):
+      'SpriteRenderer::SetSprite' 선언을 참조하십시오.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.cpp(40,21):
+      인수 목록 '(std::shared_ptr<Sprite>)'을(를) 일치시키는 동안
+  
   Item.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Item\Item.cpp(27,17): error C2039: 'LoadSprite': 'SpriteRenderer'의 멤버가 아닙니다.
+  (소스 파일 '/02_GameObject/Item/Item.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(6,7):
+      'SpriteRenderer' 선언을 참조하십시오.
+  
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
   Monster.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Monster.cpp'을(를) 컴파일하는 중)
-  
   Rock.cpp
   Tree.cpp
   Axe.cpp
   Tool.cpp
   Object.cpp
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
   UIButton.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIButton.cpp(31,19): warning C4838: 'Gdiplus::Color::<unnamed-enum-AliceBlue>'에서 'Gdiplus::Color'(으)로의 변환에는 축소 변환이 필요합니다.
+  (소스 파일 '/02_GameObject/UI/UIButton.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIButton.cpp(39,19): warning C4838: 'Gdiplus::Color::<unnamed-enum-AliceBlue>'에서 'Gdiplus::Color'(으)로의 변환에는 축소 변환이 필요합니다.
+  (소스 파일 '/02_GameObject/UI/UIButton.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIButton.cpp(112,17): error C2660: 'Button::UpdateState': 함수는 0개의 인수를 사용하지 않습니다.
+  (소스 파일 '/02_GameObject/UI/UIButton.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Button\Button.h(48,7):
+      'Button::UpdateState' 선언을 참조하십시오.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIButton.cpp(112,17):
+      인수 목록 '()'을(를) 일치시키는 동안
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIButton.cpp(135,21): error C2653: 'ResourceManager': 클래스 또는 네임스페이스 이름이 아닙니다.
+  (소스 파일 '/02_GameObject/UI/UIButton.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIButton.cpp(135,38): error C3861: 'GetInstance': 식별자를 찾을 수 없습니다.
+  (소스 파일 '/02_GameObject/UI/UIButton.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIButton.cpp(135,12): error C3536: 'sprite': 초기화되기 전에 사용할 수 없습니다.
+  (소스 파일 '/02_GameObject/UI/UIButton.cpp'을(를) 컴파일하는 중)
+  
   UIImage.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(16,33): error C2440: '=': 'T *'에서 'Gdiplus::Image *'(으)로 변환할 수 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(16,33): error C2440:         with
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(16,33): error C2440:         [
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(16,33): error C2440:             T=Image
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(16,33): error C2440:         ]
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(16,33):
-      가리킨 형식이 관련이 없습니다. 변환하려면 reinterpret_cast, C 스타일 캐스트 또는 괄호가 있는 함수 스타일 캐스트가 필요합니다.
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/UI/UIImage.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(17,11): error C2039: 'SetLayer': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/UI/UIImage.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(18,11): error C2039: 'SetSortKey': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(24,26): error C2039: 'GetSprite': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(25,38): error C2039: 'GetSprite': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(44,12): error C2039: 'LoadSprite': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(57,37): error C2039: 'GetSprite': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(78,12): error C2039: 'GetLayer': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(79,12): error C2039: 'GetSortKey': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.cpp(85,28): error C2039: 'GetSprite': 'Gdiplus::Image'의 멤버가 아닙니다.
-      C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um\GdiplusHeaders.h(384,7):
-      'Gdiplus::Image' 선언을 참조하십시오.
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,71): error C2027: 정의되지 않은 형식 'ComponentElement::Image'을(를) 사용했습니다.
+  (소스 파일 '/02_GameObject/UI/UIImage.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(5,36):
+      'ComponentElement::Image' 선언을 참조하십시오.
   
   AnimationClip.cpp
   Animator.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '03_Animation/Animator.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(12,5): error C2065: 'm_animations': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(22,45): error C2061: 구문 오류: 식별자 'Direction'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(22,16): error C2511: 'void Animator::RegisterAnimation(int)': 오버로드된 멤버 함수가 'Animator'에 없습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(16,7):
-      'Animator' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(32,76): error C2065: 'dir': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(34,55): error C2065: 'dir': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(34,15): error C3861: 'GetAnimationKey': 식별자를 찾을 수 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(39,9): error C2065: 'imagePath': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(40,9): error C2065: 'frameWidth': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(41,9): error C2065: 'frameHeight': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(42,9): error C2065: 'framesPerRow': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(43,9): error C2065: 'totalFrames': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(44,5): error C2059: 구문 오류: ')'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(46,10): error C2065: 'spriteSheet': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(47,75): error C2065: 'imagePath': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(53,19): error C2065: 'spriteSheet': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(54,9): error C2065: 'frameDuration': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(55,9): error C2065: 'pivotX': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(56,9): error C2065: 'pivotY': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(57,9): error C2065: 'loop': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(60,9): error C3536: 'clip': 초기화되기 전에 사용할 수 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(62,38): error C2065: 'events': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(62,26): error C2530: 'eventPair': 참조를 초기화해야 합니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(62,26): error C3531: 'eventPair': 형식에 'auto'이(가) 포함된 기호에는 이니셜라이저가 있어야 합니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(62,36): error C2143: 구문 오류: ';'이(가) ':' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(62,44): error C2143: 구문 오류: ';'이(가) ')' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(67,13): error C2597: 비정적 멤버 'Animator::m_globalEventCallback'에 대한 참조가 잘못되었습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(71,28):
-      'Animator::m_globalEventCallback' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(67,13): error C2451: 'unknown' 형식의 조건식은 유효하지 않습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(67,13):
-      비정적 멤버에 대한 잘못된 형식의 참조
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(68,36): error C2597: 비정적 멤버 'Animator::m_globalEventCallback'에 대한 참조가 잘못되었습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(71,28):
-      'Animator::m_globalEventCallback' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(71,9): error C2065: 'm_animations': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(79,36): error C2061: 구문 오류: 식별자 'Direction'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(79,16): error C2511: 'void Animator::SetState(int)': 오버로드된 멤버 함수가 'Animator'에 없습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(16,7):
-      'Animator' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(82,9): error C2597: 비정적 멤버 'Animator::m_currentState'에 대한 참조가 잘못되었습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(82,9):
-      'Animator::m_currentState' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(82,9): error C3867: 'Animator::m_currentState': 비표준 구문입니다. '&'를 사용하여 멤버 포인터를 만드세요.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(82,9): error C2568: '!=': 함수 오버로드를 확인할 수 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(82,36): error C2597: 비정적 멤버 'Animator::m_currentDirection'에 대한 참조가 잘못되었습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(82,36):
-      'Animator::m_currentDirection' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(82,36): error C3867: 'Animator::m_currentDirection': 비표준 구문입니다. '&'를 사용하여 멤버 포인터를 만드세요.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(82,36): error C2568: '!=': 함수 오버로드를 확인할 수 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(83,9): error C2597: 비정적 멤버 'Animator::m_currentState'에 대한 참조가 잘못되었습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(64,9):
-      'Animator::m_currentState' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(84,9): error C2597: 비정적 멤버 'Animator::m_currentDirection'에 대한 참조가 잘못되었습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(65,9):
-      'Animator::m_currentDirection' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(85,9): error C2352: 'Animator::SelectAndPlayAnimation': 비정적 멤버 함수를 호출하려면 개체가 필요합니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(74,10):
-      'Animator::SelectAndPlayAnimation' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(90,15): error C3861: 'GetAnimationKey': 식별자를 찾을 수 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(94,15): error C2065: 'm_animations': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(96,9): error C3536: 'it': 초기화되기 전에 사용할 수 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(96,15): error C2065: 'm_animations': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(115,33): error C2065: 'm_animations': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(115,26): error C2530: 'pair': 참조를 초기화해야 합니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(115,26): error C3531: 'pair': 형식에 'auto'이(가) 포함된 기호에는 이니셜라이저가 있어야 합니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(115,31): error C2143: 구문 오류: ';'이(가) ':' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(115,45): error C2143: 구문 오류: ';'이(가) ')' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(153,16): error C2039: 'Draw': 'Animator'의 멤버가 아닙니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(16,7):
-      'Animator' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(156,10): error C2065: 'm_currentClip': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(160,42): error C3861: 'GetCurrentFrame': 식별자를 찾을 수 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.cpp(161,39): error C2065: 'm_currentClip': 선언되지 않은 식별자입니다.
   SpriteSheet.cpp
+  Client.cpp
   DontStarve_MainGame.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/00_MainGame/DontStarve_MainGame.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/00_MainGame/DontStarve_MainGame.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,39):
+      'Sprite' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(23,71): error C2027: 정의되지 않은 형식 'ComponentElement::Image'을(를) 사용했습니다.
+  (소스 파일 '/00_MainGame/DontStarve_MainGame.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\UIImage.h(5,36):
+      'ComponentElement::Image' 선언을 참조하십시오.
+  
+  TimeManager.cpp
   InputManager.cpp
   CameraManager.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57): error C2675: 단항 '->': 'const std::shared_ptr'이(가) 이 연산자를 정의하지 않거나 미리 정의된 연산자에 허용되는 형식으로의 변환을 정의하지 않습니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1772,22):
+      '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57):
+          '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const': '__formal'의 템플릿 인수를 추론할 수 없습니다.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,67): error C2039: 'bitmap': 'std::shared_ptr'의 멤버가 아닙니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1565,7):
+      'std::shared_ptr' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58): error C2678: 이항 '=': 왼쪽 피연산자로 'std::shared_ptr' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1704,17):
+      'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1693,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1727,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)': 'const std::shared_ptr'에서 'std::unique_ptr<_Ux,_Dx> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1717,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)': 'const std::shared_ptr'에서 'std::auto_ptr<_Other> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1710,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept': 'const std::shared_ptr'에서 'std::shared_ptr<_Ty2> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1699,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept': 'const std::shared_ptr'에서 'const std::shared_ptr<_Ty2> &'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+      인수 목록 '(std::shared_ptr, const std::shared_ptr)'을(를) 일치시키는 동안
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,67): error C2582: 'operator =' 함수는 'std::shared_ptr'에서 사용할 수 없습니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52): error C2440: 'return': 'const std::shared_ptr'에서 'std::shared_ptr'(으)로 변환할 수 없습니다.
+  (소스 파일 '/01_Manager/CameraManager/CameraManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52):
+      복사 생성자가 모호하거나 사용할 수 있는 복사 생성자가 없어서 class 'std::shared_ptr'을(를) 복사 생성할 수 없습니다.
   
   GameObject.cpp
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18):
+      'Sprite' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39):
+      'Sprite' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18):
+      'Sprite' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57): error C2675: 단항 '->': 'const std::shared_ptr'이(가) 이 연산자를 정의하지 않거나 미리 정의된 연산자에 허용되는 형식으로의 변환을 정의하지 않습니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1772,22):
+      '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57):
+          '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const': '__formal'의 템플릿 인수를 추론할 수 없습니다.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,67): error C2039: 'bitmap': 'std::shared_ptr'의 멤버가 아닙니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1565,7):
+      'std::shared_ptr' 선언을 참조하십시오.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58): error C2678: 이항 '=': 왼쪽 피연산자로 'std::shared_ptr' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1704,17):
+      'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1693,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1727,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)': 'const std::shared_ptr'에서 'std::unique_ptr<_Ux,_Dx> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1717,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)': 'const std::shared_ptr'에서 'std::auto_ptr<_Other> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1710,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept': 'const std::shared_ptr'에서 'std::shared_ptr<_Ty2> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1699,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept': 'const std::shared_ptr'에서 'const std::shared_ptr<_Ty2> &'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+      인수 목록 '(std::shared_ptr, const std::shared_ptr)'을(를) 일치시키는 동안
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,67): error C2582: 'operator =' 함수는 'std::shared_ptr'에서 사용할 수 없습니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52): error C2440: 'return': 'const std::shared_ptr'에서 'std::shared_ptr'(으)로 변환할 수 없습니다.
+  (소스 파일 '/02_GameObject/GameObject.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52):
+      복사 생성자가 모호하거나 사용할 수 있는 복사 생성자가 없어서 class 'std::shared_ptr'을(를) 복사 생성할 수 없습니다.
+  
   ObjectManager.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Enviorment\Grass.h(19,26): error C3668: 'Grass::GetDropItemID': 재정의 지정자 'override'가 있는 메서드가 기본 클래스 메서드를 재정의하지 않았습니다.
-  (소스 파일 '01_Manager/ObjectManager/ObjectManager.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Enviorment\BerryBush.h(18,26): error C3668: 'BerryBush::GetDropItemID': 재정의 지정자 'override'가 있는 메서드가 기본 클래스 메서드를 재정의하지 않았습니다.
-  (소스 파일 '01_Manager/ObjectManager/ObjectManager.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Enviorment\Sapling.h(19,26): error C3668: 'Sapling::GetDropItemID': 재정의 지정자 'override'가 있는 메서드가 기본 클래스 메서드를 재정의하지 않았습니다.
-  (소스 파일 '01_Manager/ObjectManager/ObjectManager.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(145,7): error C2065: 'obj': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(147,4): error C2065: 'obj': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(188,21): error C2065: 'x': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(188,24): error C2065: 'y': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(188,27): error C2065: 'id': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,44): error C2440: '초기화 중': 'int'에서 'int [1002]'(으)로 변환할 수 없습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,44):
-      참조 또는 배열에 대한 포인터로의 변환은 있지만 배열 형식으로의 변환은 없습니다.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(191,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(191,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(194,3): error C2059: 구문 오류: 'return'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(194,51): error C2059: 구문 오류: '상수'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(194,79): error C2059: 구문 오류: '상수'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(195,44): error C2059: 구문 오류: '문자열'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(195,79): error C2059: 구문 오류: '문자열'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(195,82): error C2059: 구문 오류: ')'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(196,2): error C2059: 구문 오류: '}'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(196,2): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(197,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(197,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(198,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(198,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(201,3): error C2059: 구문 오류: 'return'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(201,51): error C2059: 구문 오류: '상수'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(201,79): error C2059: 구문 오류: '상수'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(202,44): error C2059: 구문 오류: '문자열'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(202,79): error C2059: 구문 오류: '문자열'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(202,82): error C2059: 구문 오류: ')'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(203,2): error C2059: 구문 오류: '}'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(203,2): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(204,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(204,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(207,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(207,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(211,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(211,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(215,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(215,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(221,3): error C2059: 구문 오류: 'return'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(221,50): error C2059: 구문 오류: '상수'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(221,78): error C2059: 구문 오류: '상수'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(222,44): error C2059: 구문 오류: '문자열'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(222,79): error C2059: 구문 오류: '문자열'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(222,82): error C2059: 구문 오류: ')'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(223,2): error C2059: 구문 오류: '}'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(223,2): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(224,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(224,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(228,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(228,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(229,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(229,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(233,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(233,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(237,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(237,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(241,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(241,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(244,3): error C2059: 구문 오류: 'return'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(244,55): error C2059: 구문 오류: '상수'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(244,83): error C2059: 구문 오류: '상수'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(245,54): error C2059: 구문 오류: '문자열'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(245,89): error C2059: 구문 오류: '문자열'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(245,92): error C2059: 구문 오류: ')'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(246,2): error C2059: 구문 오류: '}'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(246,2): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(247,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(247,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(251,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(251,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(252,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(252,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(256,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(256,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(259,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(259,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(262,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(262,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(265,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(265,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(268,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(268,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(271,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(271,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(274,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(274,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(277,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(277,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(280,2): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(280,2): error C2369: 'm_gameObjectFactories': 재정의. 첨자가 다릅니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(190,2):
-      'm_gameObjectFactories' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(284,1): error C2059: 구문 오류: '}'
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(284,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(290,1): error C2143: 구문 오류: ';'이(가) '{' 앞에 없습니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(290,1): error C2447: '{': 함수 헤더가 없습니다. 이전 스타일의 형식 목록입니까?
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(347,5): error C2065: 'screenLeft': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(348,5): error C2065: 'screenLeft': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(349,21): error C2065: 'screenLeft': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(350,21): error C2065: 'screenLeft': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ObjectManager\ObjectManager.cpp(371,55): error C2065: 'bgColor': 선언되지 않은 식별자입니다.
   ColliderManager.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\ColliderManager\ColliderManager.cpp(5,10): error C1083: 포함 파일을 열 수 없습니다. '../../02_GameObject/Component/Collider.h': No such file or directory
+  GraphicsManager.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
   Player.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(190,19): error C2664: 'void SpriteRenderer::SetSprite(const std::shared_ptr<Sprite> &)': 인수 1을(를) 'Gdiplus::Bitmap *'에서 'const std::shared_ptr<Sprite> &'(으)로 변환할 수 없습니다.
+  (소스 파일 '/02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(190,51):
+      원인: 'Gdiplus::Bitmap *'에서 'const std::shared_ptr<Sprite>'(으)로 변환할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(190,51):
+      'std::shared_ptr<Sprite>::shared_ptr': 모든 인수 형식을 변환할 수 있는 오버로드된 함수가 없습니다.
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1578,5):
+          'std::shared_ptr<Sprite>::shared_ptr(std::nullptr_t) noexcept'일 수 있습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(190,51):
+              'std::shared_ptr<Sprite>::shared_ptr(std::nullptr_t) noexcept': 인수 1을(를) 'Gdiplus::Bitmap *'에서 'std::nullptr_t'(으)로 변환할 수 없습니다.
+                  C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(190,51):
+                  nullptr는 포인터 또는 핸들 형식으로만 변환할 수 있습니다.
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1673,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(std::unique_ptr<_Ux,_Dx> &&)'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1662,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(std::auto_ptr<_Other> &&)'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1649,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(std::shared_ptr<_Ty2> &&) noexcept'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1639,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(const std::shared_ptr<_Ty2> &) noexcept'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1629,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(std::shared_ptr<_Ty2> &&,Sprite *) noexcept'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1623,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(const std::shared_ptr<_Ty2> &,Sprite *) noexcept'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1618,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(std::nullptr_t,_Dx,_Alloc)'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1612,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(std::nullptr_t,_Dx)'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1606,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(_Ux *,_Dx,_Alloc)'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1598,5):
+          또는       'std::shared_ptr<Sprite>::shared_ptr(_Ux *,_Dx)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(190,51):
+          인수 목록 '(Gdiplus::Bitmap *)'을(를) 일치시키는 동안
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,7):
+      'SpriteRenderer::SetSprite' 선언을 참조하십시오.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(190,19):
+      인수 목록 '(Gdiplus::Bitmap *)'을(를) 일치시키는 동안
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(126,7): error C2065: 'toolItem': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(334,34): error C2039: 'GetDropItemID': 'Entity'의 멤버가 아닙니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Entity.h(9,7):
-      'Entity' 선언을 참조하십시오.
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(418,7): error C2065: 'cameraManager': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(420,29): error C2065: 'cameraManager': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(423,27): error C2065: 'cameraManager': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(468,7): error C2065: 'cameraManager': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Player\Player.cpp(469,31): error C2065: 'cameraManager': 선언되지 않은 식별자입니다.
   Ingredient.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Item/Ingredient.cpp'을(를) 컴파일하는 중)
-  
   Grass.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Enviorment\Grass.h(19,26): error C3668: 'Grass::GetDropItemID': 재정의 지정자 'override'가 있는 메서드가 기본 클래스 메서드를 재정의하지 않았습니다.
-  (소스 파일 '02_GameObject/Entity/Enviorment/Grass.cpp'을(를) 컴파일하는 중)
-  
   RenderManager.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(9,18):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,28): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,39):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18): error C2065: 'Sprite': 선언되지 않은 식별자입니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,7): error C2923: 'std::shared_ptr': 'Sprite'은(는) '_Ty' 매개 변수에 대한 올바른 템플릿 형식 인수가 아닙니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,18):
+      'Sprite' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57): error C2675: 단항 '->': 'const std::shared_ptr'이(가) 이 연산자를 정의하지 않거나 미리 정의된 연산자에 허용되는 형식으로의 변환을 정의하지 않습니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1772,22):
+      '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,57):
+          '_Ty2 *std::shared_ptr<_Ty>::operator ->(void) noexcept const': '__formal'의 템플릿 인수를 추론할 수 없습니다.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(21,67): error C2039: 'bitmap': 'std::shared_ptr'의 멤버가 아닙니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1565,7):
+      'std::shared_ptr' 선언을 참조하십시오.
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58): error C2678: 이항 '=': 왼쪽 피연산자로 'std::shared_ptr' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1704,17):
+      'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty> &&) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1693,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty> &) noexcept': 'this' 포인터를 'std::shared_ptr'에서 'std::shared_ptr<_Ty> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<_Ty>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+              변환하려면 둘째 사용자 정의 변환 연산자 또는 생성자가 있어야 합니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1727,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::unique_ptr<_Ux,_Dx> &&)': 'const std::shared_ptr'에서 'std::unique_ptr<_Ux,_Dx> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1717,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::auto_ptr<_Other> &&)': 'const std::shared_ptr'에서 'std::auto_ptr<_Other> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1710,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(std::shared_ptr<_Ty2> &&) noexcept': 'const std::shared_ptr'에서 'std::shared_ptr<_Ty2> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1699,17):
+      또는       'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+          'std::shared_ptr<_Ty> &std::shared_ptr<_Ty>::operator =(const std::shared_ptr<_Ty2> &) noexcept': 'const std::shared_ptr'에서 'const std::shared_ptr<_Ty2> &'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,58):
+      인수 목록 '(std::shared_ptr, const std::shared_ptr)'을(를) 일치시키는 동안
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(22,67): error C2582: 'operator =' 함수는 'std::shared_ptr'에서 사용할 수 없습니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
   
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(146,9): error C2039: 'Draw': 'Animator'의 멤버가 아닙니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(16,7):
-      'Animator' 선언을 참조하십시오.
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52): error C2440: 'return': 'const std::shared_ptr'에서 'std::shared_ptr'(으)로 변환할 수 없습니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Component\Sprite\SpriteRenderer.h(23,52):
+      복사 생성자가 모호하거나 사용할 수 있는 복사 생성자가 없어서 class 'std::shared_ptr'을(를) 복사 생성할 수 없습니다.
+  
+C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,4): error C2679: 이항 '=': 오른쪽 피연산자로 'std::shared_ptr' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
+  (소스 파일 '/01_Manager/RenderManager/RenderManager.cpp'을(를) 컴파일하는 중)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1704,17):
+      'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(std::shared_ptr<Sprite> &&) noexcept'일 수 있습니다.
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,4):
+          'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(std::shared_ptr<Sprite> &&) noexcept': 인수 2을(를) 'std::shared_ptr'에서 'std::shared_ptr<Sprite> &&'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,50):
+              원인: 'std::shared_ptr'에서 'std::shared_ptr<Sprite>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,50):
+              이 변환을 수행할 수 있는 사용 가능한 사용자 정의 변환 연산자가 없거나 연산자를 호출할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1693,17):
+      또는       'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(const std::shared_ptr<Sprite> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,4):
+          'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(const std::shared_ptr<Sprite> &) noexcept': 인수 2을(를) 'std::shared_ptr'에서 'const std::shared_ptr<Sprite> &'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,50):
+              원인: 'std::shared_ptr'에서 'const std::shared_ptr<Sprite>'(으)로 변환할 수 없습니다.
+              C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,50):
+              이 변환을 수행할 수 있는 사용 가능한 사용자 정의 변환 연산자가 없거나 연산자를 호출할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1727,17):
+      또는       'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(std::unique_ptr<_Ux,_Dx> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,4):
+          'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(std::unique_ptr<_Ux,_Dx> &&)': 'std::shared_ptr'에서 'std::unique_ptr<_Ux,_Dx> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1717,17):
+      또는       'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(std::auto_ptr<_Other> &&)'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,4):
+          'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(std::auto_ptr<_Other> &&)': 'std::shared_ptr'에서 'std::auto_ptr<_Other> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1710,17):
+      또는       'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(std::shared_ptr<_Ty2> &&) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,4):
+          'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(std::shared_ptr<_Ty2> &&) noexcept': 'std::shared_ptr'에서 'std::shared_ptr<_Ty2> &&'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(1699,17):
+      또는       'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(const std::shared_ptr<_Ty2> &) noexcept'
+          C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,4):
+          'std::shared_ptr<Sprite> &std::shared_ptr<Sprite>::operator =(const std::shared_ptr<_Ty2> &) noexcept': 'std::shared_ptr'에서 'const std::shared_ptr<_Ty2> &'에 대한 템플릿 인수를 추론할 수 없습니다.
+      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\01_Manager\RenderManager\RenderManager.cpp(215,4):
+      인수 목록 '(std::shared_ptr<Sprite>, std::shared_ptr)'을(를) 일치시키는 동안
   
   PigHouse.cpp
   Inventory.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\UI\Inventory.cpp(213,45): error C2039: 'GetBitmap': 'Item'의 멤버가 아닙니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Item\Item.h(4,7):
-      'Item' 선언을 참조하십시오.
-  
   BerryBush.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Enviorment\BerryBush.h(18,26): error C3668: 'BerryBush::GetDropItemID': 재정의 지정자 'override'가 있는 메서드가 기본 클래스 메서드를 재정의하지 않았습니다.
-  (소스 파일 '02_GameObject/Entity/Enviorment/BerryBush.cpp'을(를) 컴파일하는 중)
-  
   Sapling.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Enviorment\Sapling.h(19,26): error C3668: 'Sapling::GetDropItemID': 재정의 지정자 'override'가 있는 메서드가 기본 클래스 메서드를 재정의하지 않았습니다.
-  (소스 파일 '02_GameObject/Entity/Enviorment/Sapling.cpp'을(를) 컴파일하는 중)
-  
   Boss_Hound.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_Hound.cpp'을(를) 컴파일하는 중)
-  
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
   Boss_SpiderQueen.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Boss_SpiderQueen.cpp'을(를) 컴파일하는 중)
-  
   Hound.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Hound.cpp'을(를) 컴파일하는 중)
-  
   Pig.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Pig.cpp'을(를) 컴파일하는 중)
-  
   Spider.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Entity/Monster/Spider.cpp'을(를) 컴파일하는 중)
-  
   SpiderEgg.cpp
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(12,29): error C2610: 'int AnimationParameters(void)': 기본값으로 설정될 수 있는 특수 멤버 함수 또는 비교 연산자가 아닙니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,5): error C4430: 형식 지정자가 없습니다. int로 가정합니다. 참고: C++에서는 기본 int를 지원하지 않습니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,64): error C2550: 'AnimationParameters': 생성자 이니셜라이저 목록은 생성자 정의에만 사용할 수 있습니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(13,65): warning C4508: 'AnimationParameters': 함수는 값을 반환해야 하므로 'void' 반환 형식으로 간주됩니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2059: 구문 오류: '}'
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(14,1): error C2143: 구문 오류: ';'이(가) '}' 앞에 없습니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,43): error C3646: 'currentDir': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,67): error C3646: 'layer': 알 수 없는 재정의 지정자입니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\03_Animation\Animator.h(44,74): error C2062: 예기치 않은 'float' 형식입니다.
-  (소스 파일 '02_GameObject/Building/SpiderEgg.cpp'을(를) 컴파일하는 중)
-  
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Building\SpiderEgg.cpp(25,5): error C2065: 'm_direction': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Building\SpiderEgg.cpp(47,37): error C2065: 'm_pivotX': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Building\SpiderEgg.cpp(47,47): error C2065: 'm_pivotY': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Building\SpiderEgg.cpp(48,56): error C2065: 'm_direction': 선언되지 않은 식별자입니다.
-C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Building\SpiderEgg.cpp(72,17): error C2509: 'Damaged': 멤버 함수를 'SpiderEgg'에서 선언하지 않았습니다.
-      C:\Users\seif4\Documents\GitHub\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Building\SpiderEgg.h(4,7):
-      'SpiderEgg' 선언을 참조하십시오.
-  
   코드를 생성하고 있습니다...

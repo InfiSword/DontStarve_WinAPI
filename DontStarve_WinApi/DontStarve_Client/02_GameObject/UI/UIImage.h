@@ -1,8 +1,8 @@
 #pragma once
 #include "../GameObject.h"
 
-// Forward declarations
 class RectTransform;
+namespace ComponentElement { class Image; }
 
 class UIImage : public GameObject
 {
@@ -11,7 +11,6 @@ public:
     UIImage(GameObjectID id, float x, float y, float width, float height, RenderLayer layer, const std::wstring& imagePath, float sortKey);
     virtual ~UIImage();
 
-    // GameObject 인터페이스 구현
     virtual void Init() override {}
     virtual void LateInit() override {}
     virtual void Update(float deltaTime) override;
@@ -19,11 +18,10 @@ public:
     virtual void Render();
     virtual void Release() override;
 
-    // UIImage 전용 메서드
-    void LoadBitmap(const std::wstring& imagePath);
     Gdiplus::Bitmap* GetBitmap() const;
-
+	const ComponentElement::Image* GetImageComponent() const { return m_image; }
+	void SetSprite(const std::shared_ptr<Sprite>& sprite) { if (m_image) m_image->SetSprite(sprite); }
 private:
     RectTransform* m_rectTransform;
-    ::Image* m_image;
+    ComponentElement::Image* m_image;
 }; 

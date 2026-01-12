@@ -1,9 +1,10 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "SpiderEgg.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../03_Animation/Animator.h"
 #include "../../03_Animation/AnimationClip.h"
+#include "../../02_GameObject/Component/Transform/Transform.h"
 
 SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivotY, 
     Direction _dir, const std::wstring& resourcePath,
@@ -20,15 +21,23 @@ SpiderEgg::~SpiderEgg()
 
 void SpiderEgg::Init()
 {
+    Building::Init(); // 부모 클래스 초기화
+    
     OutputDebugStringW(L"SpiderEgg: Init 시작\n");
     m_buildingState = BUILDING_NOON;
-    m_direction = DIR_DOWN;
+    
+    // Transform 컴포넌트 가져오기
+    Transform* transform = GetComponent<Transform>();
+    if (!transform) {
+        OutputDebugStringW(L"SpiderEgg: Transform component not found!\n");
+        return;
+    }
     
     // Animator 생성 및 애니메이션 등록 (AnimationDefinition 패턴 제거)
     if (!m_animator) {
         m_animator = AddComponent<Animator>();
     }
-    if (m_animator) {
+    if (m_animator && transform) {
         ResourceManager* pRM = ResourceManager::GetInstance();
         std::wstring imagePath;
         
@@ -44,8 +53,8 @@ void SpiderEgg::Init()
 
         if (!imagePath.empty()) {
             m_animator->RegisterAnimation((int)BUILDING_NOON, DIR_DOWN, imagePath,
-                80, 80, 1, 1, 0.1f, m_pivotX, m_pivotY, true);
-            m_animator->SetState((int)m_buildingState, m_direction);
+                80, 80, 1, 1, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+            m_animator->SetState((int)m_buildingState, transform->GetDirection());
         }
     }
     

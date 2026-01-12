@@ -49,6 +49,8 @@ GOBJ_BUILDING,GOID_BUILDING_SPIDER_SMALLEGG,Resource/Objects/Building/Egg,Egg_sp
 GOBJ_BUILDING,GOID_BUILDING_SPIDER_NORMALEGG,Resource/Objects/Building/Egg,Egg_spider_cocoon_medium_Image.png
 GOBJ_BUILDING,GOID_BUILDING_SPIDER_TALLEGG,Resource/Objects/Building/Egg,Egg_spider_cocoon_large_Image.png
 
+GOBJ_UI,GOID_UI_SLOT,Resource/UI,Egg_spider_cocoon_large_Image.png
+
 # PLAYERS
 
 GOBJ_PLAYER,GOID_PLAYER_WILSON,Resource/Objects/Player/Wilson,

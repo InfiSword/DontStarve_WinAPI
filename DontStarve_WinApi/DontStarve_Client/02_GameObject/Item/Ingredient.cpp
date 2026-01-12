@@ -1,4 +1,4 @@
-#include "../../99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../03_Animation/Animator.h"
@@ -20,6 +20,7 @@ Ingredient::~Ingredient()
 
 void Ingredient::Init()
 {
+    Item::Init();
 }
 
 void Ingredient::LateInit()
