@@ -1,5 +1,7 @@
 #include "../99_Default/pch.h"
 #include "../01_Manager/RenderManager/RenderManager.h"
+#include "../02_GameObject/Component/Sprite/SpriteRenderer.h"
+#include "../02_GameObject/GameObject.h"
 #include "Animator.h"
 #include "AnimationClip.h"
 #include "SpriteSheet.h"  
@@ -150,7 +152,23 @@ void Animator::Update(float deltaTime)
                     m_lastTriggeredFrame = currentFrameIndex;
                 }
             }
-        }       
+        }
+
+        // === 현재 프레임 정보를 SpriteRenderer에 반영 (Unity 스타일) ===
+        GameObject* owner = GetOwner();
+        if (owner)
+        {
+            SpriteRenderer* spriteRenderer = owner->GetComponent<SpriteRenderer>();
+            if (spriteRenderer)
+            {
+                const SpriteSheet* sheet = m_currentClip->GetSpriteSheet();
+                if (sheet && sheet->GetBitmap())
+                {
+                    const AnimationFrame& frame = m_currentClip->GetCurrentFrame(m_elapsed);
+                    spriteRenderer->SetSprite(sheet->GetBitmap(), frame.sourceRect, frame.pivotX, frame.pivotY);
+                }
+            }
+        }
     }
 }
 

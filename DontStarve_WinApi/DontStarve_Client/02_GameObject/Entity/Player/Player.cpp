@@ -184,11 +184,6 @@ void Player::UpdateAnimatorState() {
 	if (m_animator == nullptr) return;
 
 	m_animator->SetState(static_cast<int>(m_state), transform->GetDirection());
-
-	const SpriteSheet* spriteSheet = m_animator->GetSpriteSheet();
-	if (spriteSheet != nullptr)
-		spriteRenderer->SetSprite(spriteSheet->GetBitmap());
-
 }
 
 void Player::SetTargetPosition(float worldX, float worldY) {

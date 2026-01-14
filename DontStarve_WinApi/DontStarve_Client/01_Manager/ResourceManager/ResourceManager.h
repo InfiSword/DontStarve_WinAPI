@@ -27,7 +27,11 @@ public:
     std::wstring BuildObjectResourcePath(GameObjectID id, const std::wstring& subFolder, const std::wstring& filename) const;
     std::wstring BuildTileResourcePath(TileID id, const std::wstring& subFolder, const std::wstring& filename) const;
 
+	// 비트맵 로드/캐시 (SpriteRenderer 등은 lifetime을 소유하지 않고 포인터만 참조)
+	Gdiplus::Bitmap* LoadBitmap(const std::wstring& fullPath);
+
 private:
     std::map<GameObjectID, GameObjectData> m_objectResources;
     std::map<TileID, TileData> m_tileResources;
+	std::map<std::wstring, std::unique_ptr<Gdiplus::Bitmap>> m_bitmapCache;
 }; 

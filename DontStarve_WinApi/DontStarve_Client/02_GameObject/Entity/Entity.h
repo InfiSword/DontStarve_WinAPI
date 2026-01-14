@@ -13,11 +13,6 @@ protected:
     int m_dropItemCount;
     Animator* m_animator;       // 애니메이션을 위한 Animator 컴포넌트
 
-	// Component 캐싱( 최적화 )
-	Transform* transform;
-	SpriteRenderer* spriteRenderer;
-	Collider* collider;
-
 public:
     Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
            const std::wstring& resourcePath = L"", const std::wstring& imageName = L"",

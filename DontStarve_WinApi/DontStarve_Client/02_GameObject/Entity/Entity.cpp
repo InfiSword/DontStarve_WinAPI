@@ -24,7 +24,23 @@ Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float piv
 	spriteRenderer->SetLayer(LAYER_WORLD_OBJECT);
 	if (!imageName.empty())
 	{
-		spriteRenderer->LoadSprite(id, imageName);
+		// 리소스 매니저를 통해 비트맵 로드
+		ResourceManager* resourceManager = ResourceManager::GetInstance();
+		if (resourceManager)
+		{
+			std::wstring fullPath = resourceManager->BuildObjectResourcePath(id, L"", imageName);
+			Gdiplus::Bitmap* bitmap = resourceManager->LoadBitmap(fullPath);
+			if (bitmap)
+			{
+				float width = static_cast<float>(bitmap->GetWidth());
+				float height = static_cast<float>(bitmap->GetHeight());
+				Gdiplus::RectF fullRect(0.0f, 0.0f, width, height);
+
+				// Transform의 피벗을 그대로 SpriteRenderer에도 사용
+				spriteRenderer->SetSprite(bitmap, fullRect, transform->GetPivotX(), transform->GetPivotY());
+			}
+		}
+
 		// Transform은 이제 Scale만 관리 (기본값 1.0f)
 		// 크기는 sprite의 실제 크기를 사용하므로 Transform에 설정할 필요 없음
 	}
@@ -39,8 +55,8 @@ void Entity::Init()
 	GameObject::Init();
 
 	// Transform 컴포넌트 캐싱
-	transform = GetComponent<Transform>();
-	spriteRenderer = GetComponent<SpriteRenderer>();
+	Transform* transform = GetComponent<Transform>();
+	SpriteRenderer* spriteRenderer = GetComponent<SpriteRenderer>();	
 	if (!transform || !spriteRenderer) return;
 
 	// ResourceManager에서 콜라이더 정보 가져오기

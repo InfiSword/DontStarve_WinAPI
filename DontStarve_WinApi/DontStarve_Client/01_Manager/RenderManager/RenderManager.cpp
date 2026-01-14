@@ -132,59 +132,52 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 		return;
 	}
 
-	Animator* anim = pObject->GetComponent<Animator>();
-
-	if (anim != nullptr) {
-		// 월드 좌표를 화면 좌표로 변환
-		Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(transform->GetX(), transform->GetY());
-
-		// 렌더 레이어 및 정렬 키 계산
-		RenderLayer layer = spriteRenderer ? spriteRenderer->GetLayer() : LAYER_WORLD_OBJECT;
-		float sortKey = transform->GetSortKey(layer);
-
-		// Animator가 렌더 명령을 생성하도록 위치
-		anim->Draw(nullptr, screenPos, 1.0f, transform->GetDirection(), layer, sortKey);
+	// SpriteRenderer가 없으면 렌더링 불가
+	if (!spriteRenderer) {
+		return;
 	}
-	else 
-	{
-		// SpriteRenderer가 없으면 렌더링 불가
-		if (!spriteRenderer) {
-			return;
-		}
 
-		// 비트맵 가져오기
-		Gdiplus::Bitmap* pBitmap = spriteRenderer->GetSprite();
-		if (!pBitmap) {
-			return;
-		}
-		
-		// 월드 좌표 -> 화면 좌표
-		Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(transform->GetX(), transform->GetY());
-
-		// Sprite의 실제 크기 사용 (비트맵 크기)
-		float width = static_cast<float>(pBitmap->GetWidth());
-		float height = static_cast<float>(pBitmap->GetHeight());
-
-		// 피벗을 고려한 렌더 위치
-		float renderX = screenPos.X - width * transform->GetPivotX();
-		float renderY = screenPos.Y - height * transform->GetPivotY();
-
-		// 레이어 및 정렬 키 계산
-		RenderLayer layer = spriteRenderer->GetLayer();
-		float sortKey = transform->GetSortKey(layer);
-
-		// RenderManager 큐에 직접 명령 추가
-		AddDrawCommand(
-			pBitmap,
-			Gdiplus::RectF(renderX, renderY, width, height),
-			Gdiplus::RectF(0, 0, width, height),
-			Gdiplus::UnitPixel,
-			screenPos,
-			layer,
-			sortKey,
-			transform->GetDirection()
-		);
+	// 비트맵 가져오기
+	Gdiplus::Bitmap* pBitmap = spriteRenderer->GetSprite();
+	if (!pBitmap) {
+		return;
 	}
+
+	// 월드 좌표 -> 화면 좌표
+	Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(transform->GetX(), transform->GetY());
+
+	// 현재 프레임의 소스 영역과 크기 (Animator 또는 정적 스프라이트)
+	const Gdiplus::RectF& src = spriteRenderer->GetSourceRect();
+	float width = src.Width;
+	float height = src.Height;
+
+	// 소스 영역이 비어 있으면 전체 비트맵 사용 (안전 장치)
+	if (width <= 0.0f || height <= 0.0f) {
+		width = static_cast<float>(pBitmap->GetWidth());
+		height = static_cast<float>(pBitmap->GetHeight());
+	}
+
+	// 피벗을 고려한 렌더 위치 (SpriteRenderer가 들고 있는 피벗 사용)
+	float pivotX = spriteRenderer->GetPivotX();
+	float pivotY = spriteRenderer->GetPivotY();
+	float renderX = screenPos.X - width * pivotX;
+	float renderY = screenPos.Y - height * pivotY;
+
+	// 레이어 및 정렬 키 계산
+	RenderLayer layer = spriteRenderer->GetLayer();
+	float sortKey = transform->GetSortKey(layer);
+
+	// RenderManager 큐에 직접 명령 추가 (항상 SpriteRenderer 기반)
+	AddDrawCommand(
+		pBitmap,
+		Gdiplus::RectF(renderX, renderY, width, height),
+		Gdiplus::RectF(src.X, src.Y, width, height),
+		Gdiplus::UnitPixel,
+		screenPos,
+		layer,
+		sortKey,
+		transform->GetDirection()
+	);
 }
 
 void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height)

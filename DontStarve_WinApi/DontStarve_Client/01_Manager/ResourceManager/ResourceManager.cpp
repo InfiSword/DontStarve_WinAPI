@@ -20,6 +20,7 @@ void ResourceManager::Release()
 {
 	m_objectResources.clear();
 	m_tileResources.clear();
+	m_bitmapCache.clear();
 }
 
 // 파일 로드 함수 (기본 구현)
@@ -237,4 +238,32 @@ std::wstring ResourceManager::BuildTileResourcePath(TileID id, const std::wstrin
 	}
 
 	return BuildResourcePath(resourceData->tileAssetBaseDirectory, subFolder, filename);
+}
+
+Gdiplus::Bitmap* ResourceManager::LoadBitmap(const std::wstring& fullPath)
+{
+	if (fullPath.empty())
+	{
+		OutputDebugStringW(L"ResourceManager::LoadBitmap 실패 - 경로가 비어있음\n");
+		return nullptr;
+	}
+
+	// 이미 캐시에 있으면 재사용
+	auto it = m_bitmapCache.find(fullPath);
+	if (it != m_bitmapCache.end())
+	{
+		return it->second.get();
+	}
+
+	// 새로 로드해서 캐시에 보관
+	auto bitmap = std::make_unique<Gdiplus::Bitmap>(fullPath.c_str());
+	if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok)
+	{
+		OutputDebugStringW((L"ResourceManager::LoadBitmap 실패 - 파일 로드 실패: " + fullPath + L"\n").c_str());
+		return nullptr;
+	}
+
+	Gdiplus::Bitmap* rawPtr = bitmap.get();
+	m_bitmapCache.emplace(fullPath, std::move(bitmap));
+	return rawPtr;
 }

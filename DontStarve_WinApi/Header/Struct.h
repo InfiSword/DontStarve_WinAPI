@@ -481,22 +481,6 @@ struct GameProgress
 	}
 };
 
-
-template<typename StateType>
-struct AnimInfo {
-	StateType state;
-	Direction dir;
-	std::wstring sheetFilePath; // 스프라이트시트 파일 경로
-	std::wstring sheetKey;      // AnimationClip 템플릿 키
-	FLOAT frameWidth;
-	FLOAT frameHeight;
-	UINT framesPerRow;
-	UINT totalFrames;
-	BOOL isLoop;
-	std::map<int, std::wstring> animation_Events;
-};
-
-
 struct AnimationFrame {
 	Gdiplus::RectF sourceRect;
 	float duration;
