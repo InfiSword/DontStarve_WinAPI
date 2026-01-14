@@ -68,14 +68,23 @@ void SpiderEgg::LateInit()
 
 void SpiderEgg::Update(float deltaTime)
 {
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Building::Update(deltaTime);
 }
 
 void SpiderEgg::LateUpdate()
 {
+	// 부모 클래스의 LateUpdate() 호출하여 컴포넌트 업데이트
+	Building::LateUpdate();
 }
 
 void SpiderEgg::Release()
 {
+	// SpiderEgg 전용 정리 작업
+	m_animator = nullptr;
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Building::Release();
 }
 
 void SpiderEgg::Damaged(int damage)

@@ -29,14 +29,22 @@ void Ingredient::LateInit()
 
 void Ingredient::Update(float deltaTime)
 {
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Item::Update(deltaTime);
 }
 
 void Ingredient::LateUpdate()
 {
+	// 부모 클래스의 LateUpdate() 호출하여 컴포넌트 업데이트
+	GameObject::LateUpdate();
 }
 
 void Ingredient::Release()
 {
+	// Ingredient 전용 정리 작업
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Item::Release();
 }
 
 

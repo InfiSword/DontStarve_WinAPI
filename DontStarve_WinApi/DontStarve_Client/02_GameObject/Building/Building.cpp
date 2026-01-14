@@ -28,16 +28,24 @@ void Building::LateInit()
 
 void Building::Update(float deltaTime)
 {
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Entity::Update(deltaTime);
+	
     // 필요 시 상태에 따른 업데이트
 }
 
 void Building::LateUpdate()
 {
+	// 부모 클래스의 LateUpdate() 호출하여 컴포넌트 업데이트
+	Entity::LateUpdate();
 }
 
 void Building::Release()
 {
-   
+	// Building 전용 정리 작업
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Entity::Release();
 }
 
 void Building::Damaged(int damage)

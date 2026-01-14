@@ -24,6 +24,8 @@ public:
 
     // 초기화 - Animator 설정
     virtual void Init() override;
+    virtual void Update(float deltaTime) override;
+    virtual void Release() override;
 
     // 데미지 처리
     virtual void Damaged(int damage) = 0;

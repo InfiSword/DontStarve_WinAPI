@@ -17,7 +17,7 @@ public:
 	void Release();
 
 	// 기본 렌더 명령 등록
-	void AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction);
+	void AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor = Gdiplus::Color(255, 255, 255, 255), bool hasTint = false);
 	void AddTextCommand(const std::wstring& text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey);
 	void AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey);
 	void AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float sortKey);  // 채워진 사각형 명령
@@ -26,7 +26,7 @@ public:
 	// Pivot 포함 렌더링 헬퍼
 	void RenderUIImageWithPivot(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height,
 		float pivotX, float pivotY,
-		RenderLayer layer = LAYER_UI_BACKGROUND, float sortKey = 0.0f);
+		RenderLayer layer = LAYER_UI_BACKGROUND, float sortKey = 0.0f, const Gdiplus::Color& tintColor = Gdiplus::Color(255, 255, 255, 255), bool hasTint = false);
 
 	// UI 텍스트 렌더링
 	void RenderUIText(const std::wstring& text, Gdiplus::Font* font, Gdiplus::Brush* brush,

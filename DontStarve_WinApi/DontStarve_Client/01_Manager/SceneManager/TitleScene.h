@@ -1,6 +1,9 @@
 #pragma once
 #include "BaseScene.h"
 
+class UIImage;
+class UIButton;
+
 class TitleScene : public BaseScene
 {
 public:
@@ -30,4 +33,9 @@ protected:
 private:
 	void OnStartButtonClicked();
 	void OnExitButtonClicked();
+
+	UIImage* m_backgroundImage;
+	UIImage* m_logoImage;
+	UIButton* m_startButton;
+	UIButton* m_exitButton;
 };

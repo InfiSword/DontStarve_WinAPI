@@ -63,3 +63,20 @@ void Entity::SetDropItem(GameObjectID itemID, int count)
 	m_dropItemID = itemID;
 	m_dropItemCount = count;
 }
+
+void Entity::Update(float deltaTime)
+{
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	GameObject::Update(deltaTime);
+}
+
+void Entity::Release()
+{
+	// Entity 전용 정리 작업
+	m_animator = nullptr;
+	transform = nullptr;
+	spriteRenderer = nullptr;
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	GameObject::Release();
+}

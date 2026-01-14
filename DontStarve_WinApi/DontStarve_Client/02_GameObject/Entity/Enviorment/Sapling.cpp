@@ -26,7 +26,8 @@ void Sapling::LateInit()
 
 void Sapling::Update(float deltaTime)
 {
-	// 필요한 컴포넌트 업데이트 로직을 여기서 추가
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Entity::Update(deltaTime);
 }
 
 void Sapling::LateUpdate()
@@ -35,7 +36,10 @@ void Sapling::LateUpdate()
 
 void Sapling::Release()
 {
-	// 필요한 정리 작업
+	// Sapling 전용 정리 작업
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Entity::Release();
 }
 
 void Sapling::OnInteraction(GameObject* obj)

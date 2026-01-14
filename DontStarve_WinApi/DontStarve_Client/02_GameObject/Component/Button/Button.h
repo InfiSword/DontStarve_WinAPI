@@ -5,35 +5,21 @@
 class RectTransform;
 namespace ComponentElement { class Image; }
 
-struct ButtonVisualState {
-	Gdiplus::Color textColor;
+// 버튼 상태별 시각적 설정
+struct ButtonStateStyle {
+	Gdiplus::Color spriteColor;  // 스프라이트 틴트 색상 (기본값: 흰색)
 	RenderLayer layer;
 	float sortKeyOffset;
-	std::wstring spritePath; 
-	float width;             // 0이면 기존 스케일 기반
-	float height;            // 0이면 기존 스케일 기반
-};
-
-struct ButtonRenderParams {
-	Gdiplus::Bitmap* bitmap = nullptr;
-	std::wstring overrideSpritePath;
-	float targetWidth = 0.0f;
-	float targetHeight = 0.0f;
-	float pivotX = 0.5f;
-	float pivotY = 0.5f;
-	RenderLayer layer = LAYER_UI_FOREGROUND;
-	float sortKey = 0.0f;
-	Gdiplus::Color textColor = Gdiplus::Color(Gdiplus::Color::Black);
-	float textSortKey = 0.0f;
 };
 
 class Button : public Component
 {
 public:
 	Button(GameObject* owner,
-		const ButtonVisualState& normalState,
-		const ButtonVisualState& hoverState,
-		const ButtonVisualState& disabledState);
+		const ButtonStateStyle& normalStyle,
+		const ButtonStateStyle& hoverStyle,
+		const ButtonStateStyle& clickedStyle,
+		const ButtonStateStyle& disabledStyle);
 	virtual ~Button();
 
 	virtual void Init() override;
@@ -44,9 +30,9 @@ public:
 	ButtonState GetState() const { return m_buttonState; }
 	bool IsDisabled() const { return m_isDisabled; }
 
-	const ButtonVisualState& GetVisualState(ButtonState state) const;
+	const ButtonStateStyle& GetStateStyle(ButtonState state) const;
 	void UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image);
-	ButtonRenderParams GetRenderParams(const RectTransform* rectTransform, ComponentElement::Image* image) const;
+	void ApplyVisualState(ComponentElement::Image* image);
 
 private:
 	ButtonState m_buttonState;
@@ -54,9 +40,10 @@ private:
 	bool m_isDisabled;
 	std::function<void()> m_onClickCallback;
 
-	ButtonVisualState m_normal;
-	ButtonVisualState m_hover;
-	ButtonVisualState m_disabled;
+	ButtonStateStyle m_normal;
+	ButtonStateStyle m_click;
+	ButtonStateStyle m_hover;
+	ButtonStateStyle m_disabled;
 
 	bool IsPointInside(const RectTransform* rectTransform, ComponentElement::Image* image, float x, float y) const;
 };

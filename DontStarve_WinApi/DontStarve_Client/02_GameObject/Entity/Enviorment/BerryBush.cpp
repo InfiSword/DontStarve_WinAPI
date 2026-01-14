@@ -23,7 +23,8 @@ void BerryBush::LateInit()
 
 void BerryBush::Update(float deltaTime)
 {
-	// 필요한 컴포넌트 업데이트가 있다면 여기서 추가
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Entity::Update(deltaTime);
 }
 
 void BerryBush::LateUpdate()
@@ -32,7 +33,10 @@ void BerryBush::LateUpdate()
 
 void BerryBush::Release()
 {
-	// 필요한 정리 작업
+	// BerryBush 전용 정리 작업
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Entity::Release();
 }
 
 void BerryBush::OnInteraction(GameObject* obj)

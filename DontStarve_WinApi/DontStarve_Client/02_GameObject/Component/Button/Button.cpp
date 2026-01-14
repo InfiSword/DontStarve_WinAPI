@@ -2,22 +2,23 @@
 #include "Button.h"
 #include "../Transform/RectTransform.h"
 #include "../Sprite/Image.h"
-#include "../Text/Text.h"
 #include "../../GameObject.h"
 #include "../../../01_Manager/InputManager/InputManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 
 Button::Button(GameObject* owner,
-	const ButtonVisualState& normalState,
-	const ButtonVisualState& hoverState,
-	const ButtonVisualState& disabledState)
+	const ButtonStateStyle& normalStyle,
+	const ButtonStateStyle& hoverStyle,
+	const ButtonStateStyle& clickedStyle,
+	const ButtonStateStyle& disabledStyle)
 	: Component(owner),
 	m_buttonState(ButtonState::NORMAL),
 	m_isMouseOver(false),
 	m_isDisabled(false),
-	m_normal(normalState),
-	m_hover(hoverState),
-	m_disabled(disabledState)
+	m_normal(normalStyle),
+	m_click(clickedStyle),
+	m_hover(hoverStyle),
+	m_disabled(disabledStyle)
 {
 }
 
@@ -26,7 +27,14 @@ Button::~Button()
 	Release();
 }
 
-void Button::Init() {}
+void Button::Init() 
+{
+	// 초기 상태 적용
+	ComponentElement::Image* image = GetOwner()->GetComponent<ComponentElement::Image>();
+	if (image) {
+		ApplyVisualState(image);
+	}
+}
 
 void Button::Release()
 {
@@ -67,12 +75,13 @@ bool Button::IsPointInside(const RectTransform* rectTransform, ComponentElement:
 	return (x >= left && x <= right && y >= top && y <= bottom);
 }
 
-const ButtonVisualState& Button::GetVisualState(ButtonState state) const
+const ButtonStateStyle& Button::GetStateStyle(ButtonState state) const
 {
 	switch (state) {
 	case ButtonState::HOVER:
-	case ButtonState::CLICKED:
 		return m_hover;
+	case ButtonState::CLICKED:
+		return m_click;
 	case ButtonState::DISABLED:
 		return m_disabled;
 	default:
@@ -83,6 +92,8 @@ const ButtonVisualState& Button::GetVisualState(ButtonState state) const
 void Button::UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image)
 {
 	if (!rectTransform || !image) return;
+
+	ButtonState previousState = m_buttonState;
 
 	POINT mousePos = InputManager::GetInstance()->GetMousePos();
 	float mouseX = static_cast<float>(mousePos.x);
@@ -96,10 +107,13 @@ void Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 	}
 	else if (inside && InputManager::GetInstance()->IsLButtonClicked()) {
 		m_buttonState = ButtonState::CLICKED;
-		// 렌더가 상위(UI)에서 수행되므로 콜백만 트리거
 		if (m_onClickCallback) {
 			m_onClickCallback();
 		}
+	}
+	else if (m_buttonState == ButtonState::CLICKED && !InputManager::GetInstance()->IsLButtonDown()) {
+		// 클릭 상태에서 마우스 버튼이 떼어지면 hover 또는 normal로 전환
+		m_buttonState = inside ? ButtonState::HOVER : ButtonState::NORMAL;
 	}
 	else if (inside) {
 		m_buttonState = ButtonState::HOVER;
@@ -108,31 +122,28 @@ void Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 		m_buttonState = ButtonState::NORMAL;
 	}
 
+	if (previousState != m_buttonState) {
+		ApplyVisualState(image);
+	}
 }
 
-ButtonRenderParams Button::GetRenderParams(const RectTransform* rectTransform, ComponentElement::Image* image) const
+void Button::ApplyVisualState(ComponentElement::Image* image)
 {
-	ButtonRenderParams params{};
-	if (!rectTransform || !image) return params;
+	if (!image) return;
 
-	const ButtonVisualState& state = GetVisualState(m_buttonState);
+	const ButtonStateStyle& style = GetStateStyle(m_buttonState);
 
-	params.overrideSpritePath = state.spritePath;
-	Gdiplus::Bitmap* currentBitmap = image->GetSprite();
-	if (!currentBitmap) return params;
+	// Image 컴포넌트 스타일 적용
+	ComponentElement::ImageStyle imgStyle{
+		style.layer,
+		style.sortKeyOffset + static_cast<float>(m_buttonState)
+	};
+	image->ApplyStyle(imgStyle);
 
-	float bitmapWidth = static_cast<float>(currentBitmap->GetWidth());
-	float bitmapHeight = static_cast<float>(currentBitmap->GetHeight());
-	params.targetWidth = (state.width > 0.0f) ? state.width : bitmapWidth * rectTransform->GetScaleX();
-	params.targetHeight = (state.height > 0.0f) ? state.height : bitmapHeight * rectTransform->GetScaleY();
-
-	params.bitmap = currentBitmap;
-	params.pivotX = rectTransform->GetPivotX();
-	params.pivotY = rectTransform->GetPivotY();
-	params.layer = state.layer;
-	params.sortKey = state.sortKeyOffset + static_cast<float>(m_buttonState);
-	params.textColor = state.textColor;
-	params.textSortKey = state.sortKeyOffset + 0.1f + static_cast<float>(m_buttonState);
-
-	return params;
+	// Sprite 색상 적용은 UIButton에서 렌더링 시점에 처리하도록 변경
+	// (여러 버튼이 같은 스프라이트를 공유할 수 있으므로 직접 변경하지 않음)
+	// std::shared_ptr<Sprite> sprite = image->GetSpriteHandle();
+	// if (sprite) {
+	//     sprite->tintColor = style.spriteColor;
+	// }
 }

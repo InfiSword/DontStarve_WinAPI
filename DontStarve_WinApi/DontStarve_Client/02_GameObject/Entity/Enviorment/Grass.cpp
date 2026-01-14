@@ -26,7 +26,8 @@ void Grass::LateInit()
 
 void Grass::Update(float deltaTime)
 {
-	// 필요 시 컴포넌트 업데이트 로직을 여기에 추가
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Entity::Update(deltaTime);
 }
 
 void Grass::LateUpdate()
@@ -35,7 +36,10 @@ void Grass::LateUpdate()
 
 void Grass::Release()
 {
-	// 필요한 정리 작업 수행
+	// Grass 전용 정리 작업
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Entity::Release();
 }
 
 void Grass::OnInteraction(GameObject* obj)

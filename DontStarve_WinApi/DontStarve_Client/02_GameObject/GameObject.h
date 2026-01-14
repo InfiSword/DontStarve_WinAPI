@@ -14,11 +14,11 @@ protected:
 	GameObjectType m_type;			// 오브젝트 타입
 
 	std::wstring m_name;					// 해당 게임 오브젝트 이름
+	bool m_isInteractive;			// 상호작용 가능 여부
+	bool m_bReleased;				// Release() 호출 여부 (중복 호출 방지)
 									
     // 컴포넌트 관리					
     std::vector<Component*> m_components;
-
-	bool m_isInteractive;			// 상호작용 가능 여부 (Object의 m_enabled와는 독립)
 
 public:
     
@@ -34,7 +34,10 @@ public:
 	virtual void LateUpdate();
 	virtual void Release();
 
+	// 상호작용 관련
 	virtual void OnInteraction(GameObject* obj);
+	bool IsInteractive() const { return m_isInteractive; }
+	void SetInteractive(bool interactive) { m_isInteractive = interactive; }
 	
     template <typename T, typename... Args>
     T* AddComponent(Args&&... args) {
@@ -59,5 +62,4 @@ public:
 	inline GameObjectID GetID() const { return m_id; }
 	inline GameObjectType GetType() const { return m_type; }
 	inline const std::wstring& GetName() const { return m_name; }
-	inline bool IsInteractive() const { return m_isInteractive; }
 };

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../GameObject.h"
+#include "UIElement.h"
 
 class Sprite;
 class RectTransform;
 namespace ComponentElement { class Image; }
 
-class UIImage : public GameObject
+class UIImage : public UIElement
 {
 
 public:

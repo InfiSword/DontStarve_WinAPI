@@ -44,6 +44,9 @@ void Monster::Update(float deltaTime)
 		this->m_width = frame.width;
 		this->m_height = frame.height;
 	}*/
+	
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Entity::Update(deltaTime);
 }
 
 void Monster::LateUpdate()
@@ -52,7 +55,11 @@ void Monster::LateUpdate()
 
 void Monster::Release()
 {
+	// Monster 전용 정리 작업
 	// Animator 컴포넌트는 GameObject::Release()에서 m_components를 통해 자동으로 해제됨
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Entity::Release();
 }
 
 // Unity Animator 스타일 애니메이션 등록

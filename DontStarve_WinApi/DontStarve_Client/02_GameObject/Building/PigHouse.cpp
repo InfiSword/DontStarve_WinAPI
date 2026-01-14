@@ -16,8 +16,10 @@ PigHouse::~PigHouse()
 
 void PigHouse::Init()
 {
+	// 부모 클래스의 Init() 호출
+	Building::Init();
+	
 	m_buildingState = BUILDING_NOON;
-
 }
 
 void PigHouse::LateInit()
@@ -26,16 +28,20 @@ void PigHouse::LateInit()
 
 void PigHouse::Update(float deltaTime)
 {
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Building::Update(deltaTime);
+	
     // 필요 시 상태에 따른 업데이트
 }
 
 void PigHouse::LateUpdate()
 {
+	Building::LateUpdate();
 }
 
 void PigHouse::Release()
 {
-
+	Building::Release();
 }
 
 void PigHouse::Damaged(int damage)

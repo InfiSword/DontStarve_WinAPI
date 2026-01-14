@@ -201,6 +201,8 @@ struct DrawCommand {
 
 	Gdiplus::Color color = Gdiplus::Color(0, 0, 0, 0);
 	float thickness = 0.0f;
+	Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);  // 색상 틴트 (기본값: 흰색, 덮어쓰기 방식 - Unity Sprite 스타일)
+	bool hasTint = false;  // 틴트 적용 여부
 };
 
 struct TileData

@@ -53,7 +53,7 @@ void RenderManager::Release()
 	Clear();
 }
 
-void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction)
+void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint)
 {
 	if (!pBitmap) {
 		return;
@@ -73,6 +73,8 @@ void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::Rect
 	command.layer = layer;
 	command.sortKey = sortKey;
 	command.direction = direction;
+	command.tintColor = tintColor;
+	command.hasTint = hasTint;
 
 	m_drawCommands.emplace_back(std::move(command));
 }
@@ -123,7 +125,7 @@ void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gd
 
 void RenderManager::RenderUIImageWithPivot(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height,
 	float pivotX, float pivotY,
-	RenderLayer layer, float sortKey)
+	RenderLayer layer, float sortKey, const Gdiplus::Color& tintColor, bool hasTint)
 {
 	if (!bitmap) return;
 
@@ -131,7 +133,7 @@ void RenderManager::RenderUIImageWithPivot(Gdiplus::Bitmap* bitmap, float x, flo
 	Gdiplus::RectF sourceRect(0, 0, static_cast<float>(bitmap->GetWidth()), static_cast<float>(bitmap->GetHeight()));
 
 	AddDrawCommand(bitmap, destRect, sourceRect, Gdiplus::UnitPixel,
-		Gdiplus::PointF(x, y), layer, sortKey, DIR_DOWN);
+		Gdiplus::PointF(x, y), layer, sortKey, DIR_DOWN, tintColor, hasTint);
 }
 
 void RenderManager::RenderUIText(const std::wstring& text, Gdiplus::Font* font, Gdiplus::Brush* brush,
@@ -274,6 +276,15 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 			return;
 		}
 
+		// Sprite의 색상 틴트 정보 가져오기
+		Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);
+		bool hasTint = false;
+		if (spriteHandle) {
+			tintColor = spriteHandle->tintColor;
+			// 흰색이 아니면 틴트 적용
+			hasTint = (tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255 || tintColor.GetA() != 255);
+		}
+
 		// RenderManager 큐에 직접 명령 추가
 		AddDrawCommand(
 			pBitmap,
@@ -283,7 +294,9 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 			screenPos,
 			layer,
 			sortKey,
-			direction
+			direction,
+			tintColor,
+			hasTint
 		);
 	}
 }
@@ -390,8 +403,34 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 			}
 
 			ApplyGdiTransform(pGraphics, cmd, cmd.destRect.Width, cmd.destRect.Height);
-			pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
-				cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
+			
+			// 색상 틴트 적용
+			if (cmd.hasTint) {
+				// ColorMatrix를 사용하여 색상 틴트 적용 (덮어쓰기 방식 - Unity Sprite 스타일)
+				// 원본 이미지의 RGB를 tintColor로 교체하고, 알파는 원본 유지
+				float r = cmd.tintColor.GetR() / 255.0f;
+				float g = cmd.tintColor.GetG() / 255.0f;
+				float b = cmd.tintColor.GetB() / 255.0f;
+				float a = cmd.tintColor.GetA() / 255.0f;
+				
+				Gdiplus::ColorMatrix colorMatrix = {
+					0.0f, 0.0f, 0.0f, 0.0f, r,  // Red: 원본 RGB를 무시하고 tintColor의 R로 교체
+					0.0f, 0.0f, 0.0f, 0.0f, g,  // Green: 원본 RGB를 무시하고 tintColor의 G로 교체
+					0.0f, 0.0f, 0.0f, 0.0f, b,  // Blue: 원본 RGB를 무시하고 tintColor의 B로 교체
+					0.0f, 0.0f, 0.0f, a, 0.0f,  // Alpha: tintColor의 알파 적용
+					0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Scale
+				};
+				
+				Gdiplus::ImageAttributes imageAttr;
+				imageAttr.SetColorMatrix(&colorMatrix);
+				
+				pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
+					cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit, &imageAttr);
+			}
+			else {
+				pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
+					cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
+			}
 		}
 		else if (cmd.type == DRAW_COMMAND_TEXT) {
 			if (cmd.pFont && cmd.pBrush && cmd.pStringFormat) {

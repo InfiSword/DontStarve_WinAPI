@@ -49,5 +49,21 @@ void Item::Init()
     spriteRenderer = GetComponent<SpriteRenderer>();
 }
 
+void Item::Update(float deltaTime)
+{
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	GameObject::Update(deltaTime);
+}
+
+void Item::Release()
+{
+	// Item 전용 정리 작업
+	transform = nullptr;
+	spriteRenderer = nullptr;
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	GameObject::Release();
+}
+
 
 

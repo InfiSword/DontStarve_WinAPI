@@ -34,6 +34,7 @@
     <ClCompile Include="01_Manager\SceneManager\TitleScene.cpp" />
     <ClCompile Include="01_Manager\SceneManager\GameScene.cpp" />
     <ClCompile Include="01_Manager\SceneManager\CharacterSelectScene.cpp" />
+    <ClCompile Include="02_GameObject\UI\UIElement.cpp" />
     <ClCompile Include="02_GameObject\UI\UIButton.cpp" />
     <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
     <ClCompile Include="01_Manager\UIManager\UIManager.cpp" />
@@ -97,6 +98,7 @@
     <ClInclude Include="01_Manager\SceneManager\BaseScene.h" />
     <ClInclude Include="01_Manager\SceneManager\GameScene.h" />
     <ClInclude Include="01_Manager\SceneManager\CharacterSelectScene.h" />
+    <ClInclude Include="02_GameObject\UI\UIElement.h" />
     <ClInclude Include="02_GameObject\UI\UIButton.h" />
     <ClInclude Include="02_GameObject\UI\UIImage.h" />
     <ClInclude Include="01_Manager\UIManager\UIManager.h" />

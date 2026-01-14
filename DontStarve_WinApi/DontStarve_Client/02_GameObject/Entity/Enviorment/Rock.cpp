@@ -25,7 +25,8 @@ void Rock::LateInit()
 
 void Rock::Update(float deltaTime)
 {
-	// 필요한 컴포넌트 업데이트
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Entity::Update(deltaTime);
 }
 
 void Rock::LateUpdate()
@@ -34,7 +35,18 @@ void Rock::LateUpdate()
 
 void Rock::Release()
 {
-	// 필요한 정리 작업
+	// Rock 전용 정리 작업
+	if (m_rockCracked) {
+		delete m_rockCracked;
+		m_rockCracked = nullptr;
+	}
+	if (m_rockBroken) {
+		delete m_rockBroken;
+		m_rockBroken = nullptr;
+	}
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Entity::Release();
 }
 
 void Rock::OnInteraction(GameObject* obj)

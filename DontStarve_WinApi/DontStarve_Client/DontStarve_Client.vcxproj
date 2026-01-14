@@ -166,6 +166,7 @@
     <ClInclude Include="02_GameObject\Item\Tool\Axe\Axe.h" />
     <ClInclude Include="02_GameObject\Item\Tool\Tool.h" />
     <ClInclude Include="02_GameObject\Object.h" />
+    <ClInclude Include="02_GameObject\UI\UIElement.h" />
     <ClInclude Include="02_GameObject\UI\UIButton.h" />
     <ClInclude Include="02_GameObject\UI\UIImage.h" />
     <ClInclude Include="03_Animation\AnimationClip.h" />
@@ -227,6 +228,7 @@
     <ClCompile Include="02_GameObject\Item\Tool\Axe\Axe.cpp" />
     <ClCompile Include="02_GameObject\Item\Tool\Tool.cpp" />
     <ClCompile Include="02_GameObject\Object.cpp" />
+    <ClCompile Include="02_GameObject\UI\UIElement.cpp" />
     <ClCompile Include="02_GameObject\UI\UIButton.cpp" />
     <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
     <ClCompile Include="03_Animation\AnimationClip.cpp" />

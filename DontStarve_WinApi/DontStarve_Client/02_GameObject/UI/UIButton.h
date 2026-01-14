@@ -1,21 +1,30 @@
 #pragma once
-#include "../GameObject.h"
+#include "UIElement.h"
 
 class RectTransform;
 class Text;
 class Button;
+class Sprite;
 
 namespace ComponentElement { class Image; }
 
-class UIButton : public GameObject
+class UIButton : public UIElement
 {
 private:
-    RectTransform* m_rectTransform;
     ComponentElement::Image* m_image;
     class Button* m_buttonComp;
     class Text* m_textComp;
     std::shared_ptr<Sprite> m_normalSprite;  // normal 상태 스프라이트 저장
     std::shared_ptr<Sprite> m_hoverSprite;   // hover 상태 스프라이트 저장
+    
+    // Text 색상 (Button과 독립적으로 관리)
+    Gdiplus::Color m_textNormalColor;
+    Gdiplus::Color m_textHoverColor;
+    Gdiplus::Color m_textClickedColor;
+    Gdiplus::Color m_textDisabledColor;
+    
+    // 이전 상태 추적 (불필요한 스타일 재적용 방지)
+    ButtonState m_previousState;
 
 public:
     UIButton(GameObjectID id, float x, float y, float width, float height,
@@ -41,6 +50,5 @@ public:
     
     // 비활성화 관련 메서드
     void SetDisabled(bool disabled);
-    bool IsDisabled() const;
     void RenderDisabled();
 }; 

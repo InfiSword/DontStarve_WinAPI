@@ -390,16 +390,24 @@ void Player::OnInteraction(GameObject* obj)
 
 void Player::LateUpdate()
 {
+	// 부모 클래스의 LateUpdate() 호출하여 컴포넌트 업데이트
+	GameObject::LateUpdate();
 }
 
 void Player::LateInit() {
 }
 
 void Player::Release() {
+	// Player 전용 정리 작업
 	if (m_inventory) {
 		delete m_inventory;
 		m_inventory = nullptr;
 	}
+	m_currentInteractionTarget = nullptr;
+	m_equippedItem = nullptr;
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Entity::Release();
 }
 
 void Player::HandleClickInteraction(float worldX, float worldY)

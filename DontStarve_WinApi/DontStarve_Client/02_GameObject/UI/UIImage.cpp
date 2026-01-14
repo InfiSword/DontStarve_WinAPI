@@ -5,9 +5,10 @@
 #include "../../01_Manager/RenderManager/RenderManager.h"
 
 UIImage::UIImage(GameObjectID id, float x, float y, float width, float height, RenderLayer layer, const std::wstring& imagePath, float sortKey)
-	: GameObject(GOBJ_UI, id, L"", L"", true, false)
+	: UIElement(GOBJ_UI, id, L"", L"", true, false)
 {
-	m_rectTransform = AddComponent<RectTransform>();
+	// UIElement에서 이미 RectTransform이 생성되었으므로 GetRectTransform() 사용
+	m_rectTransform = GetRectTransform();
 	m_rectTransform->SetPosition(x, y);
 	m_rectTransform->SetPivot(0.5f, 0.5f);
 
@@ -36,7 +37,8 @@ UIImage::~UIImage()
 
 void UIImage::Update(float deltaTime)
 {
-
+	// UIElement는 Update()를 오버라이드하지 않으므로 GameObject::Update() 호출
+	GameObject::Update(deltaTime);
 }
 
 void UIImage::Render()
@@ -83,6 +85,10 @@ void UIImage::SetSprite(const std::shared_ptr<Sprite>& sprite)
 
 void UIImage::Release()
 {
+	// UIImage 전용 정리 작업
 	m_rectTransform = nullptr;
 	m_image = nullptr;
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	UIElement::Release();
 }

@@ -2,6 +2,7 @@
 #include "UIButton.h"
 #include "../Component/Transform/RectTransform.h"
 #include "../Component/Sprite/Image.h"
+#include "../Component/Sprite/Sprite.h"
 #include "../Component/Text/Text.h"
 #include "../Component/Button/Button.h"
 #include "../../01_Manager/InputManager/InputManager.h"
@@ -11,14 +12,20 @@
 
 UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 	const std::wstring& normalImagePath, const std::wstring& hoverImagePath, const std::wstring buttonText)
-	: GameObject(GOBJ_UI, id, L"", L"", true, false),
-	m_rectTransform(nullptr),
+	: UIElement(GOBJ_UI, id, L"", L"", true, false),
 	m_image(nullptr),
 	m_buttonComp(nullptr),
-	m_textComp(nullptr)
+	m_textComp(nullptr),
+	m_normalSprite(nullptr),
+	m_hoverSprite(nullptr),
+	m_textNormalColor(Gdiplus::Color(Gdiplus::Color::Black)),
+	m_textHoverColor(Gdiplus::Color(Gdiplus::Color::Black)),
+	m_textClickedColor(Gdiplus::Color(Gdiplus::Color::Black)),
+	m_textDisabledColor(Gdiplus::Color(160, 160, 160)),
+	m_previousState(ButtonState::NORMAL)
 {
-	// RectTransform 컴포넌트 추가
-	m_rectTransform = AddComponent<RectTransform>();
+	// UIElement에서 이미 RectTransform이 생성되었으므로 GetRectTransform() 사용
+	m_rectTransform = GetRectTransform();
 	m_rectTransform->SetPosition(x, y);
 	m_rectTransform->SetPivot(0.5f, 0.5f);
 	
@@ -27,37 +34,32 @@ UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 	m_image->SetLayer(LAYER_UI_FOREGROUND);
 	m_image->SetSortKey(0.0f);
 
-	// Button 컴포넌트 추가 (상태별 스타일 전달)
-	// UIButton은 UIImage처럼 전체 경로를 직접 사용
 	std::wstring normalFullPath = normalImagePath;
 	std::wstring hoverFullPath = hoverImagePath;
 
-	ButtonVisualState normal{
-		Gdiplus::Color(Gdiplus::Color::Black),
+	// Button 컴포넌트 스타일 설정
+	ButtonStateStyle normalStyle{
+		Gdiplus::Color(255, 255, 255, 255),     // spriteColor (기본: 흰색)
 		LAYER_UI_FOREGROUND,
-		0.0f,
-		L"", // 기본 상태는 현재 sprite 유지
-		width,
-		height
+		0.0f
 	};
-	ButtonVisualState hover{
-		Gdiplus::Color(Gdiplus::Color::Black),
+	ButtonStateStyle hoverStyle{
+		Gdiplus::Color(200, 200, 200, 255),     // spriteColor (연한 회색빛)
 		LAYER_UI_FOREGROUND,
-		0.0f, // 이미지 sortKey offset은 버튼 상태 값으로 더해짐
-		L"", // hover sprite는 직접 관리하므로 경로 불필요
-		width,
-		height
+		0.0f
 	};
-	ButtonVisualState disabled{
-		Gdiplus::Color(160, 160, 160), // 회색 톤
+	ButtonStateStyle clickedStyle{
+		Gdiplus::Color(200, 200, 200, 255),     // spriteColor (연한 회색빛, 필요시 변경 가능)
 		LAYER_UI_FOREGROUND,
-		0.0f,
-		L"",
-		width,
-		height
+		0.0f
+	};
+	ButtonStateStyle disabledStyle{
+		Gdiplus::Color(160, 160, 160, 255),     // spriteColor (회색 톤)
+		LAYER_UI_FOREGROUND,
+		0.0f
 	};
 
-	m_buttonComp = AddComponent<Button>(normal, hover, disabled);
+	m_buttonComp = AddComponent<Button>(normalStyle, hoverStyle, clickedStyle, disabledStyle);
 	
 	// normal과 hover 스프라이트 미리 로드
 	LoadBitmaps(normalFullPath, hoverFullPath);
@@ -121,7 +123,7 @@ void UIButton::Update(float deltaTime)
 {
 	if (!IsEnabled()) return;
 
-	// UpdateState는 Render()에서 호출됩니다
+	GameObject::Update(deltaTime);
 }
 
 void UIButton::Render()
@@ -130,66 +132,103 @@ void UIButton::Render()
 
 	if (!m_rectTransform || !m_image || !m_buttonComp) return;
 
-	// 상태 업데이트
+	// 버튼 상태 업데이트 (내부에서 상태 변경 시 ApplyVisualState 호출됨)
 	m_buttonComp->UpdateState(m_rectTransform, m_image);
+	
+	// UpdateState() 후 현재 상태 확인
+	ButtonState currentState = m_buttonComp->GetState();
+	
+	// 상태가 변경되었을 때 스프라이트 교체 (UIButton에서 관리)
+	if (m_previousState != currentState) {
+		if (currentState == ButtonState::HOVER || currentState == ButtonState::CLICKED) {
+			if (m_hoverSprite) {
+				m_image->SetSprite(m_hoverSprite);
+			}
+		}
+		else {
+			if (m_normalSprite) {
+				m_image->SetSprite(m_normalSprite);
+			}
+		}
+	}
 
 	// 비활성화된 버튼은 비활성화 스타일로 렌더링
-	if (IsDisabled()) {
+	if (m_buttonComp->IsDisabled()) {
 		RenderDisabled();
+		// 상태 업데이트 (Render() 함수의 마지막에 수행)
+		m_previousState = currentState;
 		return;
 	}
 
-	ButtonRenderParams params = m_buttonComp->GetRenderParams(m_rectTransform, m_image);
-
-	// 버튼 상태에 따라 스프라이트 교체
-	ButtonState currentState = m_buttonComp->GetState();
-	if (currentState == ButtonState::HOVER || currentState == ButtonState::CLICKED) {
-		// Hover 상태: hover 스프라이트 사용
-		if (m_hoverSprite) {
-			m_image->SetSprite(m_hoverSprite);
-			params.bitmap = m_hoverSprite->bitmap.get();
-		}
+	// 스프라이트가 없으면 렌더링 불가
+	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
+	if (!bitmap) {
+		// 상태 업데이트 (Render() 함수의 마지막에 수행)
+		m_previousState = currentState;
+		return;
 	}
-	else {
-		// Normal 상태: normal 스프라이트 사용
-		if (m_normalSprite) {
-			m_image->SetSprite(m_normalSprite);
-			params.bitmap = m_normalSprite->bitmap.get();
-		}
-	}
-
-	if (!params.bitmap) return;
-
-	// Image 스타일 적용
-	ComponentElement::ImageStyle imgStyle{ params.layer, params.sortKey };
-	m_image->ApplyStyle(imgStyle);
 
 	float x = m_rectTransform->GetX();
 	float y = m_rectTransform->GetY();
+	
+	// 비트맵 크기와 스케일 계산
+	float bitmapWidth = static_cast<float>(bitmap->GetWidth());
+	float bitmapHeight = static_cast<float>(bitmap->GetHeight());
+	float width = bitmapWidth * m_rectTransform->GetScaleX();
+	float height = bitmapHeight * m_rectTransform->GetScaleY();
+
+	// 현재 상태에 따른 색상 틴트 정보 가져오기 (Button의 스타일에서)
+	const ButtonStateStyle& style = m_buttonComp->GetStateStyle(currentState);
+	Gdiplus::Color tintColor = style.spriteColor;
+	bool hasTint = (tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255 || tintColor.GetA() != 255);
 
 	RenderManager::GetInstance()->RenderUIImageWithPivot(
-		params.bitmap,
+		bitmap,
 		x,
 		y,
-		params.targetWidth,
-		params.targetHeight,
-		params.pivotX,
-		params.pivotY,
+		width,
+		height,
+		m_rectTransform->GetPivotX(),
+		m_rectTransform->GetPivotY(),
 		m_image->GetLayer(),
-		m_image->GetSortKey()
+		m_image->GetSortKey(),
+		tintColor,
+		hasTint
 	);
 
-	// 텍스트 렌더링
-	if (m_textComp) {
-		// 스타일 적용
+	// Text 컴포넌트 스타일 적용 (Button과 독립적으로 관리)
+	// 상태가 변경되었을 때만 스타일 재적용
+	if (m_textComp && m_previousState != currentState) {
+		// 현재 상태에 따른 Text 색상 결정
+		Gdiplus::Color textColor = m_textNormalColor;
+		if (currentState == ButtonState::DISABLED) {
+			textColor = m_textDisabledColor;
+		}
+		else if (currentState == ButtonState::CLICKED) {
+			textColor = m_textClickedColor;
+		}
+		else if (currentState == ButtonState::HOVER) {
+			textColor = m_textHoverColor;
+		}
+		
+		// Button의 스타일에서 layer와 sortKeyOffset 가져오기
+		const ButtonStateStyle& style = m_buttonComp->GetStateStyle(currentState);
+		
 		TextStyle tstyle{
-			params.textColor,
-			params.layer,
-			params.textSortKey,
-			params.targetWidth,
-			params.targetHeight
+			textColor,
+			style.layer,
+			style.sortKeyOffset + 0.1f + static_cast<float>(currentState),
+			width,
+			height
 		};
 		m_textComp->ApplyStyle(tstyle);
+	}
+	
+	// 상태 업데이트 (Render() 함수의 마지막에 수행)
+	m_previousState = currentState;
+	
+	// 텍스트 렌더링 (항상 수행)
+	if (m_textComp) {
 		auto textParams = m_textComp->BuildRenderParams(m_rectTransform);
 		if (!textParams.text.empty() && textParams.font && textParams.brush && textParams.format) {
 			RenderManager::GetInstance()->AddTextCommand(
@@ -225,10 +264,14 @@ ButtonState UIButton::GetButtonState() const
 
 void UIButton::Release()
 {
+	// UIButton 전용 정리 작업
 	m_rectTransform = nullptr;
 	m_image = nullptr;
 	m_buttonComp = nullptr;
 	m_textComp = nullptr;
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	UIElement::Release();
 }
 
 void UIButton::SetDisabled(bool disabled)
@@ -238,14 +281,9 @@ void UIButton::SetDisabled(bool disabled)
 	}
 }
 
-bool UIButton::IsDisabled() const
-{
-	return m_buttonComp ? m_buttonComp->IsDisabled() : false;
-}
-
 void UIButton::RenderDisabled()
 {
-	if (!m_image || !m_rectTransform) return;
+	if (!m_image || !m_rectTransform || !m_buttonComp) return;
 	Gdiplus::Bitmap* normalBitmap = m_image->GetSprite();
     if (!normalBitmap) return;
     
@@ -260,6 +298,11 @@ void UIButton::RenderDisabled()
 	float pivotX = m_rectTransform->GetPivotX();
 	float pivotY = m_rectTransform->GetPivotY();
 
+	// Disabled 상태의 색상 틴트 적용
+	const ButtonStateStyle& disabledStyle = m_buttonComp->GetStateStyle(ButtonState::DISABLED);
+	Gdiplus::Color tintColor = disabledStyle.spriteColor;
+	bool hasTint = (tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255 || tintColor.GetA() != 255);
+
 	RenderManager::GetInstance()->RenderUIImageWithPivot(
 		normalBitmap,
 		x,
@@ -269,11 +312,8 @@ void UIButton::RenderDisabled()
 		pivotX,
 		pivotY,
 		LAYER_UI_FOREGROUND,
-		static_cast<float>(ButtonState::DISABLED)  // 버튼 상태를 sortKey로 사용
-	);
-
-   /* pGraphics->DrawImage(m_normalBitmap, destRect, 0, 0, 
-                        static_cast<float>(m_normalBitmap->GetWidth()), 
-                        static_cast<float>(m_normalBitmap->GetHeight()), 
-                        Gdiplus::UnitPixel, &imgAttr);*/
+		static_cast<float>(ButtonState::DISABLED),  // 버튼 상태를 sortKey로 사용
+		tintColor,
+		hasTint
+	);  
 }

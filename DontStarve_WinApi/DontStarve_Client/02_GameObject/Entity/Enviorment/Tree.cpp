@@ -30,6 +30,9 @@ void Tree::Update(float deltaTime)
 			m_hitAnimTimer = 0.0f; 
 		}
 	}
+	
+	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
+	Entity::Update(deltaTime);
 }
 
 void Tree::LateUpdate()
@@ -38,7 +41,10 @@ void Tree::LateUpdate()
 
 void Tree::Release()
 {
-	// 필요한 정리 작업
+	// Tree 전용 정리 작업
+	
+	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	Entity::Release();
 }
 
 void Tree::OnInteraction(GameObject* obj)

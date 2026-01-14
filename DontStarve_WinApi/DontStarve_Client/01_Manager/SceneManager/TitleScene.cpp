@@ -7,6 +7,10 @@
 #include "../InputManager/InputManager.h"
 
 TitleScene::TitleScene()
+	: m_backgroundImage(nullptr),
+	m_logoImage(nullptr),
+	m_startButton(nullptr),
+	m_exitButton(nullptr)
 {
 }
 
@@ -31,7 +35,7 @@ void TitleScene::CreateUI()
 	float screenHeight = WINCY;
 
 	// 배경 이미지 생성
-	UIImage* backgroundImage = new UIImage(
+	m_backgroundImage = new UIImage(
 		static_cast<GameObjectID>(GOID_MAIN_BG),
 		screenWidth / 2.0f,
 		screenHeight / 2.0f,
@@ -41,10 +45,10 @@ void TitleScene::CreateUI()
 		L"../Resource/UI/motd_fallbacks_box6.png",
 		0.f
 	);
-	UIManager::GetInstance()->AddUIImage(backgroundImage);
+	UIManager::GetInstance()->AddUIImage(m_backgroundImage);
 
 	// 로고 이미지 생성 (화면 상단에 위치)
-	UIImage* logoImage = new UIImage(
+	m_logoImage = new UIImage(
 		static_cast<GameObjectID>(GOID_GAME_LOGO),
 		screenWidth / 2.0f,
 		200.0f,
@@ -54,10 +58,10 @@ void TitleScene::CreateUI()
 		L"../Resource/UI/logo.png",
 		0.f
 	);
-	UIManager::GetInstance()->AddUIImage(logoImage);
+	UIManager::GetInstance()->AddUIImage(m_logoImage);
 
 	// 게임시작 버튼 생성
-	UIButton* startButton = new UIButton(
+	m_startButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BUTTON1),
 		screenWidth / 2.0f,
 		screenHeight / 2.0f + 100.0f,
@@ -69,13 +73,13 @@ void TitleScene::CreateUI()
 	);
 	
 	// 게임시작 버튼 콜백 설정
-	startButton->SetOnClickCallback([this]() {
+	m_startButton->SetOnClickCallback([this]() {
 		OnStartButtonClicked();
 	});
-	UIManager::GetInstance()->AddUIButton(startButton);
+	UIManager::GetInstance()->AddUIButton(m_startButton);
 
 	// 종료 버튼 생성
-	UIButton* exitButton = new UIButton(
+	m_exitButton = new UIButton(
 		static_cast<GameObjectID>(GOID_ENDBUTTON1),
 		screenWidth / 2.0f,
 		screenHeight / 2.0f + 200.0f,
@@ -87,10 +91,10 @@ void TitleScene::CreateUI()
 	);
 	
 	// 종료 버튼 콜백 설정
-	exitButton->SetOnClickCallback([this]() {
+	m_exitButton->SetOnClickCallback([this]() {
 		OnExitButtonClicked();
 	});
-	UIManager::GetInstance()->AddUIButton(exitButton);
+	UIManager::GetInstance()->AddUIButton(m_exitButton);
 }
 
 void TitleScene::Update(float deltaTime)
@@ -113,6 +117,13 @@ void TitleScene::Render()
 
 void TitleScene::Release()
 {
+	// UI 객체들은 UIManager에서 해제되므로, 포인터만 nullptr로 설정
+	// UIManager::Release()가 호출되면 자동으로 delete됨
+	m_backgroundImage = nullptr;
+	m_logoImage = nullptr;
+	m_startButton = nullptr;
+	m_exitButton = nullptr;
+	
 	// TitleScene에서 사용한 매니저들 해제
 	ReleaseAllManagers();
 }
@@ -120,7 +131,7 @@ void TitleScene::Release()
 void TitleScene::OnStartButtonClicked()
 {
 	OutputDebugStringW(L"TitleScene: Start button clicked!\n");
-	
+	// m_startButton->SetDisabled(false);
 	// SceneManager를 통해 캐릭터 선택 씬으로 전환
 	SceneManager::GetInstance()->LoadCharacterSelectScene();
 }

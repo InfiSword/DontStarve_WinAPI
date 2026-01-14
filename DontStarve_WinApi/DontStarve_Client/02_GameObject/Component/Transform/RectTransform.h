@@ -8,8 +8,18 @@ class RectTransform : public Component
 protected:
 	float m_x, m_y;				// 화면 좌표
 	float m_scaleX, m_scaleY;	// 스케일 (기본값 1.0f)
-	float m_anchorX, m_anchorY;	// 앵커 (0.0 ~ 1.0, 기본 0.0)
+	float m_anchorX, m_anchorY;	// 앵커 (0.0 ~ 1.0, 기본 0.0) - 호환성 유지용
 	float m_pivotX, m_pivotY;	// 피벗 (0.0 ~ 1.0, 기본 0.5)
+	
+	// Unity 스타일 앵커 시스템
+	Gdiplus::PointF m_anchorMin;		// 앵커 최소값 (0.0 ~ 1.0, 기본 0.0, 0.0)
+	Gdiplus::PointF m_anchorMax;		// 앵커 최대값 (0.0 ~ 1.0, 기본 0.0, 0.0)
+	Gdiplus::PointF m_anchoredPosition;	// 앵커 기준 위치
+	Gdiplus::SizeF m_sizeDelta;			// 앵커에 따른 크기 오프셋
+	
+	// 부모 또는 화면 크기 (앵커 계산용)
+	float m_parentWidth;	// 부모 너비 (기본값: 화면 너비)
+	float m_parentHeight;	// 부모 높이 (기본값: 화면 높이)
 
 public:
 	RectTransform(GameObject* owner, float x = 0.0f, float y = 0.0f,
@@ -46,6 +56,37 @@ public:
 	void SetPivotX(float pivotX) { m_pivotX = pivotX; }
 	void SetPivotY(float pivotY) { m_pivotY = pivotY; }
 	void SetPivot(float pivotX, float pivotY) { m_pivotX = pivotX; m_pivotY = pivotY; }
+
+	// Unity 스타일 앵커 Getter/Setter
+	Gdiplus::PointF GetAnchorMin() const { return m_anchorMin; }
+	Gdiplus::PointF GetAnchorMax() const { return m_anchorMax; }
+	void SetAnchorMin(float x, float y);
+	void SetAnchorMax(float x, float y);
+	void SetAnchorMin(const Gdiplus::PointF& anchorMin) { SetAnchorMin(anchorMin.X, anchorMin.Y); }
+	void SetAnchorMax(const Gdiplus::PointF& anchorMax) { SetAnchorMax(anchorMax.X, anchorMax.Y); }
+
+	// Unity 스타일 위치/크기 Getter/Setter
+	Gdiplus::PointF GetAnchoredPosition() const { return m_anchoredPosition; }
+	void SetAnchoredPosition(float x, float y);
+	void SetAnchoredPosition(const Gdiplus::PointF& pos) { SetAnchoredPosition(pos.X, pos.Y); }
+
+	Gdiplus::SizeF GetSizeDelta() const { return m_sizeDelta; }
+	void SetSizeDelta(float width, float height);
+	void SetSizeDelta(const Gdiplus::SizeF& size) { SetSizeDelta(size.Width, size.Height); }
+
+	// 오프셋 계산
+	Gdiplus::PointF GetOffsetMin() const;
+	Gdiplus::PointF GetOffsetMax() const;
+	void SetOffsetMin(float left, float bottom);
+	void SetOffsetMax(float right, float top);
+
+	// 부모 크기 설정 (앵커 계산용)
+	void SetParentSize(float width, float height) { m_parentWidth = width; m_parentHeight = height; UpdatePositionFromAnchors(); }
+	float GetParentWidth() const { return m_parentWidth; }
+	float GetParentHeight() const { return m_parentHeight; }
+
+	// 앵커 기반 위치 업데이트
+	void UpdatePositionFromAnchors();
 
 	// 바운딩 박스 계산 (화면 좌표 기준)
 	// 주의: sprite 크기 * scale을 사용하므로, Image 또는 SpriteRenderer 컴포넌트가 필요합니다
