@@ -9,8 +9,8 @@
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
 Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
-	const std::wstring& resourcePath, const std::wstring& imageName, bool isActive, bool isInteractive)
-	:GameObject(type, id, resourcePath, imageName, isActive, isInteractive),
+	const std::wstring& imageName, bool isActive, bool isInteractive)
+	:GameObject(type, id, L"", imageName, isActive, isInteractive),
 	m_animator(nullptr)
 {
 	// Transform 컴포넌트 추가
@@ -44,8 +44,8 @@ void Entity::Init()
 	GameObject::Init();
 
 	// Transform 컴포넌트 캐싱
-	transform = GetComponent<Transform>();
-	spriteRenderer = GetComponent<SpriteRenderer>();
+	this->transform = GetComponent<Transform>();
+	this->spriteRenderer = GetComponent<SpriteRenderer>();
 }
 
 GameObjectID Entity::GetDropItemID() const

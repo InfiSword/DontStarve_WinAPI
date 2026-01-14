@@ -23,7 +23,7 @@ struct ButtonRenderParams {
 	float pivotY = 0.5f;
 	RenderLayer layer = LAYER_UI_FOREGROUND;
 	float sortKey = 0.0f;
-	Gdiplus::Color textColor = Gdiplus::Color::Black;
+	Gdiplus::Color textColor = Gdiplus::Color(Gdiplus::Color::Black);
 	float textSortKey = 0.0f;
 };
 

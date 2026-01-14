@@ -1,8 +1,5 @@
 #pragma once
 
-#include <Struct.h>
-
-// Forward declarations
 class GameObject;
 
 class RenderManager : public CSingleTon<RenderManager>

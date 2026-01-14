@@ -8,8 +8,8 @@
 #include "../../Component/Transform/Transform.h"
 #include "Boss_Hound.h"
 
-Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
+Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
+	: Monster(id, x, y, pivotX, pivotY, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
 {
 	// 보스 특성 초기화
 	m_hp = 150; // 일반 하운드보다 높은 체력
@@ -30,9 +30,9 @@ void Boss_Hound::Init()
 	Monster::Init(); // 부모 클래스 초기화
 	
 	// Transform 컴포넌트 확인
-	if (!transform) {
-		transform = GetComponent<Transform>();
-		if (!transform) {
+	if (!this->transform) {
+		this->transform = GetComponent<Transform>();
+		if (!this->transform) {
 			OutputDebugStringW(L"Boss_Hound: Transform component not found!\n");
 			return;
 		}
@@ -54,56 +54,56 @@ void Boss_Hound::Init()
 		if (m_id == GOID_MONSTER_REDHOUNDDOG) {
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_down.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_up.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_down.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_up.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_REDHOUNDDOG, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 		}
 		else if (m_id == GOID_MONSTER_ICEHOUNDDOG) {
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_down.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_up.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_down.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_up.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_ICEHOUNDDOG, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 		}
 
 		m_animator->SetState((int)m_state, transform->GetDirection());

@@ -75,6 +75,12 @@ Gdiplus::Bitmap* UIImage::GetBitmap() const
 	return m_image ? m_image->GetSprite() : nullptr;
 }
 
+void UIImage::SetSprite(const std::shared_ptr<Sprite>& sprite) 
+{
+	if(m_image != nullptr)
+		m_image->SetSprite(sprite);
+}
+
 void UIImage::Release()
 {
 	m_rectTransform = nullptr;

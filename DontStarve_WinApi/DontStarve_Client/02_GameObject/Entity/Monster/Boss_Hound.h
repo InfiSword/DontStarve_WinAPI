@@ -4,7 +4,7 @@
 class Boss_Hound : public Monster
 {
 public:
-    Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName = L"");
     virtual ~Boss_Hound();
 
     virtual void Init() override;

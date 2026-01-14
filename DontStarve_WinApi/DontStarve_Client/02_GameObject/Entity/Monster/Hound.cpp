@@ -2,14 +2,13 @@
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../03_Animation/Animator.h"
-#include "../../../03_Animation/AnimationClip.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../Player/Player.h"
 #include "../../Component/Transform/Transform.h"
 #include "Hound.h"
 
-Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName)
+Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
+	: Monster(id, x, y, pivotX, pivotY, imageName)
 {
 	m_hp = 90;
 	maxHp = m_hp;
@@ -22,9 +21,9 @@ void Hound::Init()
 	Monster::Init();
 	
 	// Transform 컴포넌트 확인
-	if (!transform) {
-		transform = GetComponent<Transform>();
-		if (!transform) {
+	if (!this->transform) {
+		this->transform = GetComponent<Transform>();
+		if (!this->transform) {
 			OutputDebugStringW(L"Hound: Transform component not found!\n");
 			return;
 		}
@@ -42,32 +41,32 @@ void Hound::Init()
 		if (m_id == GOID_MONSTER_HOUNDDOG) {
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_down.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_up.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_idle_side.png"),
-				120, 100, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 100, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_down.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_up.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_HOUNDDOG, L"Normal_Hound", L"Hound_hound_atk_side.png"),
-				140, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				140, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 		}
 
-		m_animator->SetState((int)m_state, transform->GetDirection());
+		m_animator->SetState((int)m_state, this->transform->GetDirection());
 	}
 	
 	// Animator 초기화 확인

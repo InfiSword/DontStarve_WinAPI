@@ -4,7 +4,7 @@
 class Spider : public Monster
 {
 public:
-    Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName = L"");
     virtual ~Spider();
 
     virtual void Init() override;

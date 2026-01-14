@@ -14,9 +14,6 @@ protected:
 	GameObjectType m_type;			// 오브젝트 타입
 
 	std::wstring m_name;					// 해당 게임 오브젝트 이름
-    std::wstring m_resourcePath;			// 해당 리소스 경로
-    std::wstring m_spriteResourceName;		// ~~~.png
-	std::wstring m_description;				// 해당 오브젝트 설명 (필요시)
 									
     // 컴포넌트 관리					
     std::vector<Component*> m_components;
@@ -59,10 +56,8 @@ public:
     }
 
 	// inline 함수
-	inline std::wstring GetSpriteResourceName() const { return m_spriteResourceName; }
 	inline GameObjectID GetID() const { return m_id; }
 	inline GameObjectType GetType() const { return m_type; }
 	inline const std::wstring& GetName() const { return m_name; }
-	inline const std::wstring& GetDescription() const { return m_description; }
 	inline bool IsInteractive() const { return m_isInteractive; }
 };

@@ -8,8 +8,8 @@
 #include "../../Component/Transform/Transform.h"
 #include "Pig.h"
 
-Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName)
+Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
+	: Monster(id, x, y, pivotX, pivotY, imageName)
 {
 	m_hp = 100;
 	maxHp = m_hp;
@@ -22,9 +22,9 @@ void Pig::Init()
 	Monster::Init();
 	
 	// Transform 컴포넌트 확인
-	if (!transform) {
-		transform = GetComponent<Transform>();
-		if (!transform) {
+	if (!this->transform) {
+		this->transform = GetComponent<Transform>();
+		if (!this->transform) {
 			OutputDebugStringW(L"Pig: Transform component not found!\n");
 			return;
 		}
@@ -42,41 +42,41 @@ void Pig::Init()
 			// IDLE
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_down.png"),
-				120, 150, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 150, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_up.png"),
-				120, 150, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 150, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png"),
-				120, 150, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 150, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Action", L"pig_pigman_idle_loop_side.png"),
-				120, 150, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+				120, 150, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 
 			// ATTACK
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"down_pigman_atk_down.png"),
-				150, 180, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				150, 180, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"up_pigman_atk_up.png"),
-				150, 180, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				150, 180, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png"),
-				150, 180, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				150, 180, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Attack", L"side_pigman_atk_side.png"),
-				150, 180, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				150, 180, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Hit", L"Hit_pigman_hit.png"),
-				120, 150, 3, 3, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				120, 150, 3, 3, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_PIG, L"Death", L"Death_pigman_death.png"),
-				150, 100, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				150, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 		}
 
-		m_animator->SetState((int)m_state, transform->GetDirection());
+		m_animator->SetState((int)m_state, this->transform->GetDirection());
 	}
 	
 	// Animator 초기화 확인

@@ -4,7 +4,7 @@
 class Boss_SpiderQueen : public Monster
 {
 public:
-    Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName = L"");
     virtual ~Boss_SpiderQueen();
 
     virtual void Init() override;

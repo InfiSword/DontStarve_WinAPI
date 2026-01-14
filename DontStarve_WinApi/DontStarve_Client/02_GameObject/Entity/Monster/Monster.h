@@ -4,7 +4,7 @@
 class Monster : public Entity
 {
 public:
-    Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName = L"");
     virtual ~Monster();
 
     virtual void Init() override;

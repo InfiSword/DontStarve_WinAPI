@@ -4,7 +4,7 @@
 #include "Tree.h"
 
 Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true),
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, imageName, true, true),
 	m_hp(100), m_hitAnimTimer(0.0f), m_state(TreeState::TREE_IDLE)
 {
 	maxHp = m_hp;

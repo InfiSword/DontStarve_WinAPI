@@ -6,7 +6,7 @@
 Building::Building(GameObjectID id, float x, float y, float pivotX, float pivotY, 
     Direction _dir, const std::wstring& resourcePath,
                    const std::wstring& imageName, int hp)
-    : Entity(GOBJ_BUILDING, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, true, true),
+    : Entity(GOBJ_BUILDING, id, x, y, pivotX, pivotY, _dir, imageName, true, true),
       m_hp(hp), m_maxHp(hp), m_buildingState(BUILDING_NOON)
 {
 

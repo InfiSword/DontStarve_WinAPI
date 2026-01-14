@@ -14,6 +14,8 @@ private:
     ComponentElement::Image* m_image;
     class Button* m_buttonComp;
     class Text* m_textComp;
+    std::shared_ptr<Sprite> m_normalSprite;  // normal 상태 스프라이트 저장
+    std::shared_ptr<Sprite> m_hoverSprite;   // hover 상태 스프라이트 저장
 
 public:
     UIButton(GameObjectID id, float x, float y, float width, float height,

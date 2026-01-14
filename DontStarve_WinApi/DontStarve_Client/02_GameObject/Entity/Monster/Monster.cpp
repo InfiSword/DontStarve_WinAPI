@@ -6,8 +6,8 @@
 #include "../../../03_Animation/SpriteSheet.h"
 #include "Monster.h"
 
-Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_MONSTER, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName), m_hp(100), m_hitAnimTimer(0.0f), m_state(MonsterState::MONSTER_IDLE)
+Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
+	: Entity(GOBJ_MONSTER, id, x, y, pivotX, pivotY, DIR_DOWN, imageName), m_hp(100), m_hitAnimTimer(0.0f), m_state(MonsterState::MONSTER_IDLE)
 {
 	maxHp = m_hp;
 }

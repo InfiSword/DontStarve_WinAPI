@@ -6,8 +6,7 @@
 GameObject::GameObject(GameObjectType type, GameObjectID id,
 	const std::wstring& resourcePath, const std::wstring& imageName,
 	bool isActive, bool isInteractive)
-	: Object(), m_type(type), m_id(id), m_resourcePath(resourcePath), 
-	m_spriteResourceName(imageName), m_isInteractive(isInteractive)
+	: Object(), m_type(type), m_id(id), m_isInteractive(isInteractive)
 {
 	SetActive(isActive);
 }

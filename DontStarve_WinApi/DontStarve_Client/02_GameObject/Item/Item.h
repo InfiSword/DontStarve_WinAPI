@@ -10,6 +10,7 @@ protected:
     // Component 캐싱 (최적화)
     Transform* transform;
     SpriteRenderer* spriteRenderer;
+    std::wstring m_description;  // 해당 아이템 설명
 
 public:
     Item(GameObjectType type, GameObjectID id, const std::wstring& name, const std::wstring& desc,
@@ -19,4 +20,7 @@ public:
     virtual ~Item();
     
     virtual void Init() override;
+    
+    // inline 함수
+    inline const std::wstring& GetDescription() const { return m_description; }
 };

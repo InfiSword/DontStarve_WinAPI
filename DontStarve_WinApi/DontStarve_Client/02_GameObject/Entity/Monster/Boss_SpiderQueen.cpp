@@ -8,8 +8,8 @@
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
 
-Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, resourcePath, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
+Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
+	: Monster(id, x, y, pivotX, pivotY, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
 {
 	// 보스 특성 초기화
 	m_hp = 200; // 일반 스파이더보다 높은 체력
@@ -24,8 +24,8 @@ void Boss_SpiderQueen::Init()
 	
 	// Transform 컴포넌트 확인
 	if (!transform) {
-		transform = GetComponent<Transform>();
-		if (!transform) {
+		this->transform = GetComponent<Transform>();
+		if (!this->transform) {
 			OutputDebugStringW(L"Boss_SpiderQueen: Transform component not found!\n");
 			return;
 		}
@@ -49,7 +49,7 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,
 					pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_Image.png"),
-					120, 120, 1, 1, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+					120, 120, 1, 1, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			}
 
 			// WALK
@@ -57,7 +57,7 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_WALK, (Direction)dir,
 					walkPath,
-					120, 120, 6, 6, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+					120, 120, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 			}
 
 			// ATTACK
@@ -65,20 +65,20 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_ATTACK, (Direction)dir,
 					attackPath,
-					140, 140, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+					140, 140, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 			}
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_hit_side.png"),
-				120, 120, 3, 3, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				120, 120, 3, 3, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 
 			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
 				pRM->BuildObjectResourcePath(GOID_MONSTER_QUEEN_SPIDER, L"", L"Queen_spider_queen_death.png"),
-				120, 120, 8, 8, 0.1f, transform->GetPivotX(), transform->GetPivotY(), false);
+				120, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 		}
 
-		m_animator->SetState((int)m_state, transform->GetDirection());
+		m_animator->SetState((int)m_state, this->transform->GetDirection());
 	}
 }
 

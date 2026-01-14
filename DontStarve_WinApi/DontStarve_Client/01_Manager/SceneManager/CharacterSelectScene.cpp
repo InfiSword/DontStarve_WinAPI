@@ -383,7 +383,7 @@ void CharacterSelectScene::UpdateCharacterSelection()
 			}
 			
 			// UIImage의 LoadBitmap 함수를 사용하여 포트레이트 이미지 업데이트
-			selectedPortrait->GetImageComponent()->LoadSprite(portraitPath);
+			const_cast<ComponentElement::Image*>(selectedPortrait->GetImageComponent())->LoadSprite(portraitPath);
 		}
 	}
 }

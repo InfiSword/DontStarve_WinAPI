@@ -272,29 +272,29 @@ void ObjectManager::InitializeFactories()
 
 	// 몬스터 타입
 	m_gameObjectFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Pig(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Pig(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->assetImageName : L"");
 	};
 	
 	m_gameObjectFactories[GOID_MONSTER_SPIDER] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->assetImageName : L"");
 	};
 	m_gameObjectFactories[GOID_MONSTER_WARRIOR_SPIDER] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Spider(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->assetImageName : L"");
 	};
 	
 	m_gameObjectFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Boss_SpiderQueen(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Boss_SpiderQueen(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->assetImageName : L"");
 	};
 	
 	m_gameObjectFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->assetImageName : L"");
 	};
 	
 	m_gameObjectFactories[GOID_MONSTER_REDHOUNDDOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->assetImageName : L"");
 	};
 	m_gameObjectFactories[GOID_MONSTER_ICEHOUNDDOG] = [](GameObjectID id, float x, float y, const GameObjectData* data) -> GameObject* {
-		return new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->objectAssetBaseDirectory : L"", data ? data->assetImageName : L"");
+		return new Boss_Hound(id, x, y, data ? data->pivotX : 0.5f, data ? data->pivotY : 0.5f, data ? data->assetImageName : L"");
 	};
 
 	// 건물 타입

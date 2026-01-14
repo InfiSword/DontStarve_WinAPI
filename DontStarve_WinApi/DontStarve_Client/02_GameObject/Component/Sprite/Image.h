@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Enum.h>
 #include "../Component.h"
 #include "Sprite.h"
 

@@ -11,11 +11,14 @@ class Entity : public GameObject
 protected:
     GameObjectID m_dropItemID;  // 드롭 아이템 ID
     int m_dropItemCount;
+
     Animator* m_animator;       // 애니메이션을 위한 Animator 컴포넌트
+    Transform* transform;        // Transform 컴포넌트 캐시
+    SpriteRenderer* spriteRenderer;  // SpriteRenderer 컴포넌트 캐시
 
 public:
     Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
-           const std::wstring& resourcePath = L"", const std::wstring& imageName = L"",
+           const std::wstring& imageName = L"",
            bool isActive = true, bool isInteractive = false);
     virtual ~Entity();
 

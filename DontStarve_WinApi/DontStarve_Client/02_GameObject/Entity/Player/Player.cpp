@@ -25,7 +25,7 @@ namespace {
 }
 
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, resourcePath, imageName, true, true),
+	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, imageName, true, true),
 	hp(100), maxHp(100), m_playerSpeed(300.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr), m_currentInteractionTarget(nullptr), m_state(PlayerState::IDLE), isMoveToGoal(false)
 {
@@ -46,29 +46,29 @@ void Player::Init()
 
 	// IDLE
 	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Down.png"),
-		126, 189, 7, 64, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
+		126, 189, 7, 64, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Up.png"),
-		128, 193, 7, 64, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
+		128, 193, 7, 64, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Side.png"),
-		135, 194, 7, 64, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
+		135, 194, 7, 64, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Side.png"),
-		135, 194, 7, 64, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
+		135, 194, 7, 64, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 
 	// WALK(RUN)
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Down.png"),
-		139, 226, 6, 33, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
+		139, 226, 6, 33, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Up.png"),
-		133, 231, 6, 33, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
+		133, 231, 6, 33, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Side.png"),
-		141, 226, 6, 33, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
+		141, 226, 6, 33, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Side.png"),
-		141, 226, 6, 33, 0.03f, transform->GetPivotX(), transform->GetPivotY(), true);
+		141, 226, 6, 33, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 
 	// PICKUP
 	std::wstring pickupPath = pRM->BuildObjectResourcePath(GetID(), L"Interact", L"Interact_wilson_pickup_pst_down.png");
 	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
-			127, 201, 6, 20, 0.03f, transform->GetPivotX(), transform->GetPivotY(), false);
+			127, 201, 6, 20, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
 	}
 
 	// CHOP (이벤트 적용)
@@ -76,7 +76,7 @@ void Player::Init()
 	std::wstring chopPath = pRM->BuildObjectResourcePath(GetID(), L"Axe", L"axe_wilson_chop_loop_down.png");
 	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::CHOP, (Direction)dir, chopPath,
-			284, 248, 6, 54, 0.03f, transform->GetPivotX() + 0.1f, transform->GetPivotY(), false, chopEvents);
+			284, 248, 6, 54, 0.03f, this->transform->GetPivotX() + 0.1f, this->transform->GetPivotY(), false, chopEvents);
 	}
 
 
@@ -183,7 +183,7 @@ void Player::UpdateAnimatorState() {
 
 	if (m_animator == nullptr) return;
 
-	m_animator->SetState(static_cast<int>(m_state), transform->GetDirection());
+	m_animator->SetState(static_cast<int>(m_state), this->transform->GetDirection());
 }
 
 void Player::SetTargetPosition(float worldX, float worldY) {
@@ -203,7 +203,7 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 		newDirection = (dy > 0) ? DIR_DOWN : DIR_UP;
 	}
 
-	if (transform->GetDirection() != newDirection)
+	if (this->transform->GetDirection() != newDirection)
 	{
 		transform->SetDirection(newDirection);
 		UpdateAnimatorState();

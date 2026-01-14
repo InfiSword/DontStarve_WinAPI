@@ -28,20 +28,12 @@ UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 	m_image->SetSortKey(0.0f);
 
 	// Button 컴포넌트 추가 (상태별 스타일 전달)
-	ResourceManager* pRM = ResourceManager::GetInstance();
-
-	std::wstring normalFullPath;
-	if (!normalImagePath.empty()) {
-		normalFullPath = pRM->BuildObjectResourcePath(id, L"", normalImagePath);
-	}
-
-	std::wstring hoverFullPath;
-	if (!hoverImagePath.empty()) {
-		hoverFullPath = pRM->BuildObjectResourcePath(id, L"", hoverImagePath);
-	}
+	// UIButton은 UIImage처럼 전체 경로를 직접 사용
+	std::wstring normalFullPath = normalImagePath;
+	std::wstring hoverFullPath = hoverImagePath;
 
 	ButtonVisualState normal{
-		Gdiplus::Color::Black,
+		Gdiplus::Color(Gdiplus::Color::Black),
 		LAYER_UI_FOREGROUND,
 		0.0f,
 		L"", // 기본 상태는 현재 sprite 유지
@@ -49,10 +41,10 @@ UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 		height
 	};
 	ButtonVisualState hover{
-		Gdiplus::Color::Black,
+		Gdiplus::Color(Gdiplus::Color::Black),
 		LAYER_UI_FOREGROUND,
 		0.0f, // 이미지 sortKey offset은 버튼 상태 값으로 더해짐
-		hoverFullPath, // hover sprite (객체 리소스 경로)
+		L"", // hover sprite는 직접 관리하므로 경로 불필요
 		width,
 		height
 	};
@@ -67,7 +59,8 @@ UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 
 	m_buttonComp = AddComponent<Button>(normal, hover, disabled);
 	
-	LoadBitmaps(normalFullPath);
+	// normal과 hover 스프라이트 미리 로드
+	LoadBitmaps(normalFullPath, hoverFullPath);
 	
 	// 비트맵 로드 후 크기에 맞춰 scale 계산
 	if (m_image && m_image->GetSprite()) {
@@ -81,7 +74,7 @@ UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 		}
 	}
 	
-	// Text 컴포넌트 추가
+	// Text 컴포넌트 추가 (한글 지원 폰트 사용)
 	m_textComp = AddComponent<Text>(
 		buttonText,
 		Gdiplus::Color::Black,
@@ -89,7 +82,7 @@ UIButton::UIButton(GameObjectID id, float x, float y, float width, float height,
 		height,
 		LAYER_UI_FOREGROUND,
 		m_image ? m_image->GetSortKey() + 0.1f : 0.1f,
-		L"Arial",
+		L"맑은 고딕",  // 한글 지원 폰트
 		16.0f,
 		Gdiplus::StringAlignmentCenter,
 		Gdiplus::StringAlignmentCenter
@@ -101,7 +94,7 @@ UIButton::~UIButton()
 	Release();
 }
 
-void UIButton::LoadBitmaps(const std::wstring& normalImagePath)
+void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstring& hoverImagePath)
 {
 	// Image 컴포넌트 가져오기
 	if (!m_image) {
@@ -110,22 +103,25 @@ void UIButton::LoadBitmaps(const std::wstring& normalImagePath)
 		m_image->SetSortKey(0.0f);
 	}
 
-	// Normal 비트맵 로드 (객체 리소스 맵 경로)
+	// Normal 비트맵 로드 및 저장
 	if (!normalImagePath.empty()) {
-		if (auto sprite = ResourceManager::GetInstance()->LoadSprite(normalImagePath)) {
-			m_image->SetSprite(sprite);
+		m_normalSprite = ResourceManager::GetInstance()->LoadSprite(normalImagePath);
+		if (m_normalSprite) {
+			m_image->SetSprite(m_normalSprite);
 		}
 	}
 
+	// Hover 비트맵 미리 로드 및 저장
+	if (!hoverImagePath.empty()) {
+		m_hoverSprite = ResourceManager::GetInstance()->LoadSprite(hoverImagePath);
+	}
 }
 
 void UIButton::Update(float deltaTime)
 {
 	if (!IsEnabled()) return;
 
-	if (m_buttonComp) {
-		m_buttonComp->UpdateState();
-	}
+	// UpdateState는 Render()에서 호출됩니다
 }
 
 void UIButton::Render()
@@ -145,11 +141,20 @@ void UIButton::Render()
 
 	ButtonRenderParams params = m_buttonComp->GetRenderParams(m_rectTransform, m_image);
 
-	// 상태별 스프라이트 경로가 있으면 교체
-	if (!params.overrideSpritePath.empty()) {
-		if (auto sprite = ResourceManager::GetInstance()->LoadSprite(params.overrideSpritePath)) {
-			m_image->SetSprite(sprite);
-			params.bitmap = sprite->bitmap.get();
+	// 버튼 상태에 따라 스프라이트 교체
+	ButtonState currentState = m_buttonComp->GetState();
+	if (currentState == ButtonState::HOVER || currentState == ButtonState::CLICKED) {
+		// Hover 상태: hover 스프라이트 사용
+		if (m_hoverSprite) {
+			m_image->SetSprite(m_hoverSprite);
+			params.bitmap = m_hoverSprite->bitmap.get();
+		}
+	}
+	else {
+		// Normal 상태: normal 스프라이트 사용
+		if (m_normalSprite) {
+			m_image->SetSprite(m_normalSprite);
+			params.bitmap = m_normalSprite->bitmap.get();
 		}
 	}
 
