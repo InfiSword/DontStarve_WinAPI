@@ -107,9 +107,15 @@ void Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 	}
 	else if (inside && InputManager::GetInstance()->IsLButtonClicked()) {
 		m_buttonState = ButtonState::CLICKED;
+		// 콜백 호출 전에 상태 적용 (콜백에서 객체가 삭제될 수 있음)
+		if (previousState != m_buttonState) {
+			ApplyVisualState(image);
+		}
+		// 콜백이 이 객체를 삭제할 수 있으므로 마지막에 호출
 		if (m_onClickCallback) {
 			m_onClickCallback();
 		}
+		return; // 콜백 호출 후 즉시 리턴 (객체가 삭제되었을 수 있음)
 	}
 	else if (m_buttonState == ButtonState::CLICKED && !InputManager::GetInstance()->IsLButtonDown()) {
 		// 클릭 상태에서 마우스 버튼이 떼어지면 hover 또는 normal로 전환

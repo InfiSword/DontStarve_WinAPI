@@ -1,10 +1,6 @@
 #pragma once
 #include "BaseScene.h"
 
-class UIImage;
-class UIButton;
-class UIText;
-
 class TitleScene : public BaseScene
 {
 public:
@@ -18,27 +14,8 @@ public:
 	virtual void Render() override;
 	virtual void Release() override;
 	virtual SceneType GetSceneType() const override { return SCENE_TITLE; }
-	
-	virtual void UpdateManagers(float deltaTime) override;
-	virtual void LateUpdateManagers() override;
-	virtual void RenderManagers() override;
-	virtual void ReleaseManagers() override;
-
-	// 매니저 초기화/해제 함수들
-	virtual void InitializeManagers() override;
-	virtual void ReleaseAllManagers() override;
-
-protected:
-	virtual void CreateUI() override;
 
 private:
 	void OnStartButtonClicked();
 	void OnExitButtonClicked();
-
-	UIImage* m_backgroundImage;
-	UIImage* m_logoImage;
-	UIButton* m_startButton;
-	UIButton* m_exitButton;
-	UIText* m_startButtonText;
-	UIText* m_exitButtonText;
 };

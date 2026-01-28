@@ -57,6 +57,14 @@ void UIManager::Render()
 	RenderManager* renderManager = RenderManager::GetInstance();
 	if (!renderManager) return;
 
+	// 디버그: 렌더링할 UI 개수 출력
+	static int frameCount = 0;
+	if (frameCount++ % 60 == 0) {  // 60프레임마다 한 번씩 출력
+		OutputDebugStringW((L"UIManager::Render - Images: " + std::to_wstring(m_uiImages.size()) +
+			L", Buttons: " + std::to_wstring(m_uiButtons.size()) +
+			L", Texts: " + std::to_wstring(m_uiTexts.size()) + L"\n").c_str());
+	}
+
 	for (auto* image : m_uiImages) {
 		if (image && image->IsEnabled()) {
 			image->Render();

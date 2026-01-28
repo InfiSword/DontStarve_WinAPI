@@ -9,12 +9,7 @@
 #include "../RenderManager/RenderManager.h"
 
 CharacterSelectScene::CharacterSelectScene()
-	: m_backgroundImage(nullptr), m_backButton(nullptr),
-	  m_selectedPortrait(nullptr), m_characterInfoPanel(nullptr),
-	  m_selectButton(nullptr), m_cancelButton(nullptr),
-	  m_descriptionText(nullptr),
-	  m_backButtonText(nullptr), m_selectButtonText(nullptr), m_cancelButtonText(nullptr),
-	  m_currentState(CharacterSelectionState::BROWSING), m_selectedCharacterIndex(-1),
+	: m_currentState(CharacterSelectionState::BROWSING), m_selectedCharacterIndex(-1),
 	  m_isLockedCharacterSelected(false), m_isSelectButtonDisabled(false)
 {
 }
@@ -26,15 +21,180 @@ CharacterSelectScene::~CharacterSelectScene()
 
 void CharacterSelectScene::Init()
 {
+	OutputDebugStringW(L"=== CharacterSelectScene::Init() 시작 ===\n");
+	
 	// CharacterSelectScene에 필요한 매니저들 초기화
-	InitializeManagers();
+	UIManager::GetInstance()->Init();
+	InputManager::GetInstance()->Init();
+	
+	OutputDebugStringW(L"CharacterSelectScene: 매니저 초기화 완료\n");
 	
 	// 캐릭터 목록 초기화
 	InitializeCharacters();
 	OutputDebugStringW((L"CharacterSelectScene: 캐릭터 목록 초기화 완료 - " + std::to_wstring(m_characterList.size()) + L"개 캐릭터\n").c_str());
 	
 	// UI 생성
-	CreateUI();
+	UIManager* uiManager = UIManager::GetInstance();
+
+	// 배경 이미지 생성 (전체 화면)
+	OutputDebugStringW(L"CharacterSelectScene: 배경 이미지 생성 시작\n");
+	UIImage* backgroundImage = new UIImage(
+		static_cast<GameObjectID>(GOID_MAIN_BG),
+		static_cast<float>(WINCX),
+		static_cast<float>(WINCY),
+		LAYER_UI_BACKGROUND,
+		L"../Resource/UI/BG.png",
+		0.f,
+		0.0f, 0.0f,  // anchorMin
+		1.0f, 1.0f,  // anchorMax
+		0.0f, 0.0f    // anchoredPosition
+	);
+	uiManager->AddUIImage(backgroundImage);
+	OutputDebugStringW(L"CharacterSelectScene: 배경 이미지 생성 완료\n");
+
+	// 뒤로가기 버튼 생성 (좌측 중앙)
+	UIButton* backButton = new UIButton(
+		static_cast<GameObjectID>(GOID_BACK_BUTTON),
+		80.0f,
+		100.0f,
+		L"../Resource/UI/Button.png",
+		L"../Resource/UI/Button.png",
+		0.0f, 0.5f,  // anchorMin (좌측 중앙)
+		0.0f, 0.5f,  // anchorMax (좌측 중앙)
+		100.0f, 300.0f // anchoredPosition (좌측에서 오른쪽으로 100px, 중앙에서 아래로 300px)
+	);
+	backButton->SetOnClickCallback([this]() {
+		OnBackButtonClicked();
+		});
+	uiManager->AddUIButton(backButton);
+
+	// 선택된 캐릭터 포트레이트 (우측 중앙) - 초기에는 숨김
+	UIImage* selectedPortrait = new UIImage(
+		static_cast<GameObjectID>(GOID_PLAYER_PORTRAIT),
+		350.0f,
+		500.0f,
+		LAYER_UI_FOREGROUND,
+		L"../Resource/UI/wilson.png",
+		1.0f,
+		1.0f, 0.5f,  // anchorMin (우측 중앙)
+		1.0f, 0.5f,  // anchorMax (우측 중앙)
+		-300.0f, -150.0f // anchoredPosition (우측에서 왼쪽으로 300px, 중앙에서 위로 150px)
+	);
+	selectedPortrait->SetActive(false);  // 초기에는 비활성화
+	uiManager->AddUIImage(selectedPortrait);
+
+	// 캐릭터 정보창 (우측 중앙) - 초기에는 숨김
+	UIImage* characterInfoPanel = new UIImage(
+		static_cast<GameObjectID>(GOID_PLAYER_INFO),
+		500.0f,
+		200.0f,
+		LAYER_UI_FOREGROUND,
+		L"../Resource/UI/UI4.png",
+		1.0f,
+		1.0f, 0.5f,  // anchorMin (우측 중앙)
+		1.0f, 0.5f,  // anchorMax (우측 중앙)
+		-300.0f, 200.0f // anchoredPosition (우측에서 왼쪽으로 300px, 중앙에서 아래로 200px)
+	);
+	characterInfoPanel->SetActive(false);  // 초기에는 비활성화
+	uiManager->AddUIImage(characterInfoPanel);
+
+	// 선택 버튼 (하단 중앙) - 초기에는 숨김
+	UIButton* selectButton = new UIButton(
+		static_cast<GameObjectID>(GOID_SELECT_BUTTON),
+		120.0f,
+		50.0f,
+		L"../Resource/UI/Select_Bar.png",
+		L"../Resource/UI/Select_Bar.png",
+		0.5f, 0.0f,  // anchorMin (하단 중앙)
+		0.5f, 0.0f,  // anchorMax (하단 중앙)
+		-150.0f, -350.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 350px)
+	);
+	selectButton->SetOnClickCallback([this]() {
+		this->OnSelectButtonClicked();
+		});
+	selectButton->SetActive(false);  // 초기에는 비활성화
+	uiManager->AddUIButton(selectButton);
+
+	// 선택 버튼 텍스트 생성 (버튼과 동일한 anchor)
+	UIText* selectButtonText = new UIText(
+		static_cast<GameObjectID>(GOID_SELECT_BUTTON_TEXT),
+		120.0f,
+		50.0f,
+		L"선택",
+		Gdiplus::Color::Black,
+		LAYER_UI_FOREGROUND,
+		0.1f,
+		L"맑은 고딕",
+		16.0f,
+		Gdiplus::StringAlignmentCenter,
+		Gdiplus::StringAlignmentCenter,
+		0.5f, 0.0f,  // anchorMin (하단 중앙)
+		0.5f, 0.0f,  // anchorMax (하단 중앙)
+		-150.0f, -350.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 350px)
+	);
+	selectButtonText->SetActive(false);  // 초기에는 비활성화
+	uiManager->AddUIText(selectButtonText);
+
+	// 취소 버튼 (하단 중앙) - 초기에는 숨김
+	UIButton* cancelButton = new UIButton(
+		static_cast<GameObjectID>(GOID_CANCEL_SELECTION),
+		120.0f,
+		50.0f,
+		L"../Resource/UI/Select_Bar.png",
+		L"../Resource/UI/Select_Bar.png",
+		0.5f, 0.0f,  // anchorMin (하단 중앙)
+		0.5f, 0.0f,  // anchorMax (하단 중앙)
+		150.0f, -350.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 350px)
+	);
+	cancelButton->SetOnClickCallback([this]() {
+		this->OnCancelButtonClicked();
+		});
+	cancelButton->SetActive(false);  // 초기에는 비활성화
+	uiManager->AddUIButton(cancelButton);
+
+	// 취소 버튼 텍스트 생성 (버튼과 동일한 anchor)
+	UIText* cancelButtonText = new UIText(
+		static_cast<GameObjectID>(GOID_CANCEL_SELECTION_TEXT),
+		120.0f,
+		50.0f,
+		L"취소",
+		Gdiplus::Color::Black,
+		LAYER_UI_FOREGROUND,
+		0.1f,
+		L"맑은 고딕",
+		16.0f,
+		Gdiplus::StringAlignmentCenter,
+		Gdiplus::StringAlignmentCenter,
+		0.5f, 0.0f,  // anchorMin (하단 중앙)
+		0.5f, 0.0f,  // anchorMax (하단 중앙)
+		150.0f, -350.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 350px)
+	);
+	cancelButtonText->SetActive(false);  // 초기에는 비활성화
+	uiManager->AddUIText(cancelButtonText);
+
+	// 캐릭터 설명 텍스트 생성 (캐릭터 정보창과 같은 anchor, 상대적 위치)
+	UIText* descriptionText = new UIText(
+		static_cast<GameObjectID>(GOID_CHARACTER_DESCRIPTION),
+		500.0f - 40.0f,  // textWidth
+		200.0f - 40.0f,  // textHeight
+		L"",
+		Gdiplus::Color::Black,
+		LAYER_UI_FOREGROUND,
+		6.0f,
+		L"맑은 고딕",
+		16.0f,
+		Gdiplus::StringAlignmentNear,
+		Gdiplus::StringAlignmentNear,
+		1.0f, 0.5f,  // anchorMin (우측 중앙, 정보창과 동일)
+		1.0f, 0.5f,  // anchorMax (우측 중앙, 정보창과 동일)
+		-280.0f, 180.0f // anchoredPosition (정보창보다 약간 왼쪽 위로)
+	);
+	descriptionText->SetActive(false);  // 초기에는 비활성화
+	uiManager->AddUIText(descriptionText);
+
+	// 캐릭터 버튼들 생성
+	CreateCharacterButtons();
+
 	OutputDebugStringW(L"CharacterSelectScene: UI 생성 완료\n");
 	
 	// 초기 상태 설정
@@ -97,190 +257,11 @@ void CharacterSelectScene::InitializeCharacters()
 	);
 }
 
-void CharacterSelectScene::CreateUI()
-{
-	// 배경 이미지 생성 (전체 화면)
-	m_backgroundImage = new UIImage(
-		static_cast<GameObjectID>(GOID_MAIN_BG),
-		static_cast<float>(WINCX),
-		static_cast<float>(WINCY),
-		LAYER_UI_BACKGROUND,
-		L"../Resource/UI/BG.png",
-		0.f,
-		0.0f, 0.0f,  // anchorMin
-		1.0f, 1.0f,  // anchorMax
-		0.0f, 0.0f    // anchoredPosition
-	);
-	UIManager::GetInstance()->AddUIImage(m_backgroundImage);
-
-	// 뒤로가기 버튼 생성 (좌측 중앙)
-	m_backButton = new UIButton(
-		static_cast<GameObjectID>(GOID_BACK_BUTTON),
-		80.0f,
-		100.0f,
-		L"../Resource/UI/Button.png",
-		L"../Resource/UI/Button.png",
-		0.0f, 0.5f,  // anchorMin (좌측 중앙)
-		0.0f, 0.5f,  // anchorMax (좌측 중앙)
-		100.0f, 300.0f // anchoredPosition (좌측에서 오른쪽으로 100px, 중앙에서 아래로 300px)
-	);
-	m_backButton->SetOnClickCallback([this]() {
-		OnBackButtonClicked();
-	});
-	UIManager::GetInstance()->AddUIButton(m_backButton);
-
-	// 뒤로가기 버튼 텍스트 생성 (버튼과 동일한 anchor)
-	m_backButtonText = new UIText(
-		static_cast<GameObjectID>(GOID_BACK_BUTTON_TEXT),
-		80.0f,
-		100.0f,
-		L"타이틀 화면",
-		Gdiplus::Color::Black,
-		LAYER_UI_FOREGROUND,
-		0.1f,
-		L"맑은 고딕",
-		16.0f,
-		Gdiplus::StringAlignmentCenter,
-		Gdiplus::StringAlignmentCenter,
-		0.0f, 0.5f,  // anchorMin (좌측 중앙)
-		0.0f, 0.5f,  // anchorMax (좌측 중앙)
-		100.0f, 300.0f // anchoredPosition (좌측에서 오른쪽으로 100px, 중앙에서 아래로 300px)
-	);
-	UIManager::GetInstance()->AddUIText(m_backButtonText);
-
-	// 선택된 캐릭터 포트레이트 (우측 중앙) - 초기에는 숨김
-	m_selectedPortrait = new UIImage(
-		static_cast<GameObjectID>(GOID_PLAYER_PORTRAIT),
-		350.0f,
-		500.0f,
-		LAYER_UI_FOREGROUND,
-		L"../Resource/UI/wilson.png",
-		1.0f,
-		1.0f, 0.5f,  // anchorMin (우측 중앙)
-		1.0f, 0.5f,  // anchorMax (우측 중앙)
-		-300.0f, -150.0f // anchoredPosition (우측에서 왼쪽으로 300px, 중앙에서 위로 150px)
-	);
-	m_selectedPortrait->SetActive(false);  // 초기에는 비활성화
-	UIManager::GetInstance()->AddUIImage(m_selectedPortrait);
-
-	// 캐릭터 정보창 (우측 중앙) - 초기에는 숨김
-	m_characterInfoPanel = new UIImage(
-		static_cast<GameObjectID>(GOID_PLAYER_INFO),
-		500.0f,
-		200.0f,
-		LAYER_UI_FOREGROUND,
-		L"../Resource/UI/UI4.png",
-		1.0f,
-		1.0f, 0.5f,  // anchorMin (우측 중앙)
-		1.0f, 0.5f,  // anchorMax (우측 중앙)
-		-300.0f, 200.0f // anchoredPosition (우측에서 왼쪽으로 300px, 중앙에서 아래로 200px)
-	);
-	m_characterInfoPanel->SetActive(false);  // 초기에는 비활성화
-	UIManager::GetInstance()->AddUIImage(m_characterInfoPanel);
-
-	// 선택 버튼 (하단 중앙) - 초기에는 숨김
-	m_selectButton = new UIButton(
-		static_cast<GameObjectID>(GOID_SELECT_BUTTON),
-		120.0f,
-		50.0f,
-		L"../Resource/UI/Select_Bar.png",
-		L"../Resource/UI/Select_Bar.png",
-		0.5f, 0.0f,  // anchorMin (하단 중앙)
-		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		-150.0f, -350.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 350px)
-	);
-	m_selectButton->SetOnClickCallback([this]() {
-		m_selectButton->SetDisabled(true);
-		this->OnSelectButtonClicked();
-	});
-	m_selectButton->SetActive(false);  // 초기에는 비활성화
-	UIManager::GetInstance()->AddUIButton(m_selectButton);
-
-	// 선택 버튼 텍스트 생성 (버튼과 동일한 anchor)
-	m_selectButtonText = new UIText(
-		static_cast<GameObjectID>(GOID_SELECT_BUTTON_TEXT),
-		120.0f,
-		50.0f,
-		L"선택",
-		Gdiplus::Color::Black,
-		LAYER_UI_FOREGROUND,
-		0.1f,
-		L"맑은 고딕",
-		16.0f,
-		Gdiplus::StringAlignmentCenter,
-		Gdiplus::StringAlignmentCenter,
-		0.5f, 0.0f,  // anchorMin (하단 중앙)
-		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		-150.0f, -350.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 350px)
-	);
-	m_selectButtonText->SetActive(false);  // 초기에는 비활성화
-	UIManager::GetInstance()->AddUIText(m_selectButtonText);
-
-	// 취소 버튼 (하단 중앙) - 초기에는 숨김
-	m_cancelButton = new UIButton(
-		static_cast<GameObjectID>(GOID_CANCEL_SELECTION),
-		120.0f,
-		50.0f,
-		L"../Resource/UI/Select_Bar.png",
-		L"../Resource/UI/Select_Bar.png",
-		0.5f, 0.0f,  // anchorMin (하단 중앙)
-		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		150.0f, -350.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 350px)
-	);
-	m_cancelButton->SetOnClickCallback([this]() {
-		this->OnCancelButtonClicked();
-	});
-	m_cancelButton->SetActive(false);  // 초기에는 비활성화
-	UIManager::GetInstance()->AddUIButton(m_cancelButton);
-
-	// 취소 버튼 텍스트 생성 (버튼과 동일한 anchor)
-	m_cancelButtonText = new UIText(
-		static_cast<GameObjectID>(GOID_CANCEL_SELECTION_TEXT),
-		120.0f,
-		50.0f,
-		L"취소",
-		Gdiplus::Color::Black,
-		LAYER_UI_FOREGROUND,
-		0.1f,
-		L"맑은 고딕",
-		16.0f,
-		Gdiplus::StringAlignmentCenter,
-		Gdiplus::StringAlignmentCenter,
-		0.5f, 0.0f,  // anchorMin (하단 중앙)
-		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		150.0f, -350.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 350px)
-	);
-	m_cancelButtonText->SetActive(false);  // 초기에는 비활성화
-	UIManager::GetInstance()->AddUIText(m_cancelButtonText);
-	
-	// 캐릭터 설명 텍스트 생성 (캐릭터 정보창과 같은 anchor, 상대적 위치)
-	m_descriptionText = new UIText(
-		static_cast<GameObjectID>(GOID_CHARACTER_DESCRIPTION),
-		500.0f - 40.0f,  // textWidth
-		200.0f - 40.0f,  // textHeight
-		L"",
-		Gdiplus::Color::Black,
-		LAYER_UI_FOREGROUND,
-		6.0f,
-		L"맑은 고딕",
-		16.0f,
-		Gdiplus::StringAlignmentNear,
-		Gdiplus::StringAlignmentNear,
-		1.0f, 0.5f,  // anchorMin (우측 중앙, 정보창과 동일)
-		1.0f, 0.5f,  // anchorMax (우측 중앙, 정보창과 동일)
-		-280.0f, 180.0f // anchoredPosition (정보창보다 약간 왼쪽 위로)
-	);
-	m_descriptionText->SetActive(false);  // 초기에는 비활성화
-	UIManager::GetInstance()->AddUIText(m_descriptionText);
-	
-	// 캐릭터 버튼들 생성
-	CreateCharacterButtons();
-}
-
 void CharacterSelectScene::Update(float deltaTime)
 {
 	// 매니저들 업데이트
-	UpdateManagers(deltaTime);
+	UIManager::GetInstance()->Update(deltaTime);
+	InputManager::GetInstance()->Update(deltaTime);
 }
  
 void CharacterSelectScene::CreateCharacterButtons()
@@ -374,44 +355,41 @@ void CharacterSelectScene::CreateCharacterButtons()
 void CharacterSelectScene::LateUpdate()
 {
 	// 매니저들 LateUpdate
-	LateUpdateManagers();
+	UIManager::GetInstance()->LateUpdate();
+	InputManager::GetInstance()->LateUpdate();
 }
 
 void CharacterSelectScene::Render()
 {
 	// 매니저들 렌더링
-	RenderManagers();
+	UIManager::GetInstance()->Render();
+	InputManager::GetInstance()->Render();
 }
 
 void CharacterSelectScene::Release()
 {
-	// UI 객체들은 UIManager에서 해제되므로, 포인터만 nullptr로 설정
-	// UIManager::Release()가 호출되면 자동으로 delete됨
-	m_backgroundImage = nullptr;
-	m_backButton = nullptr;
-	m_selectedPortrait = nullptr;
-	m_characterInfoPanel = nullptr;
-	m_selectButton = nullptr;
-	m_cancelButton = nullptr;
-	m_descriptionText = nullptr;
-	
+	// UI 객체들은 UIManager에서 해제되므로 별도 처리 불필요
 	// CharacterSelectScene에서 사용한 매니저들 해제
-	ReleaseAllManagers();
+	InputManager::GetInstance()->Release();
+	UIManager::GetInstance()->Release();
 }
 
 void CharacterSelectScene::UpdateCharacterDescription()
 {
+	UIManager* uiManager = UIManager::GetInstance();
+	UIText* descriptionText = uiManager->FindUIText(GOID_CHARACTER_DESCRIPTION);
+	
 	if (m_selectedCharacterIndex >= 0 && m_selectedCharacterIndex < static_cast<int>(m_characterList.size())) {
 		const CharacterInfo& selectedChar = m_characterList[m_selectedCharacterIndex];
 		
-		if (m_descriptionText) {
-			m_descriptionText->SetText(selectedChar.description);
-			m_descriptionText->SetActive(true);
+		if (descriptionText) {
+			descriptionText->SetText(selectedChar.description);
+			descriptionText->SetActive(true);
 		}
 	}
 	else {
-		if (m_descriptionText) {
-			m_descriptionText->SetActive(false);
+		if (descriptionText) {
+			descriptionText->SetActive(false);
 		}
 	}
 }
@@ -422,7 +400,10 @@ void CharacterSelectScene::UpdateCharacterSelection()
 		const CharacterInfo& selectedChar = m_characterList[m_selectedCharacterIndex];
 		
 		// 선택된 캐릭터의 포트레이트 이미지 업데이트
-		if (m_selectedPortrait)
+		UIManager* uiManager = UIManager::GetInstance();
+		UIImage* selectedPortrait = uiManager->FindUIImage(GOID_PLAYER_PORTRAIT);
+		
+		if (selectedPortrait)
 		{
 			// 잠금 캐릭터는 lock.png, 해금된 캐릭터는 해당 포트레이트 경로
 			std::wstring portraitPath;
@@ -434,7 +415,7 @@ void CharacterSelectScene::UpdateCharacterSelection()
 			}
 			
 			// UIImage의 LoadSprite 메서드를 사용하여 포트레이트 이미지 업데이트
-			m_selectedPortrait->LoadSprite(portraitPath);
+			selectedPortrait->LoadSprite(portraitPath);
 		}
 	}
 }
@@ -467,28 +448,36 @@ void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 		m_currentState = CharacterSelectionState::CHARACTER_INFO;
 		
 		// UI 표시
-		if (m_selectedPortrait) {
-			m_selectedPortrait->SetActive(true);
+		UIManager* uiManager = UIManager::GetInstance();
+		UIImage* selectedPortrait = uiManager->FindUIImage(GOID_PLAYER_PORTRAIT);
+		UIImage* characterInfoPanel = uiManager->FindUIImage(GOID_PLAYER_INFO);
+		UIButton* selectButton = uiManager->FindUIButton(GOID_SELECT_BUTTON);
+		UIText* selectButtonText = uiManager->FindUIText(GOID_SELECT_BUTTON_TEXT);
+		UIButton* cancelButton = uiManager->FindUIButton(GOID_CANCEL_SELECTION);
+		UIText* cancelButtonText = uiManager->FindUIText(GOID_CANCEL_SELECTION_TEXT);
+		
+		if (selectedPortrait) {
+			selectedPortrait->SetActive(true);
 		}
 		
-		if (m_characterInfoPanel) {
-			m_characterInfoPanel->SetActive(true);
+		if (characterInfoPanel) {
+			characterInfoPanel->SetActive(true);
 		}
 		
-		if (m_selectButton) {
-			m_selectButton->SetActive(true);
+		if (selectButton) {
+			selectButton->SetActive(true);
 		}
 		
-		if (m_selectButtonText) {
-			m_selectButtonText->SetActive(true);
+		if (selectButtonText) {
+			selectButtonText->SetActive(true);
 		}
 		
-		if (m_cancelButton) {
-			m_cancelButton->SetActive(true);
+		if (cancelButton) {
+			cancelButton->SetActive(true);
 		}
 		
-		if (m_cancelButtonText) {
-			m_cancelButtonText->SetActive(true);
+		if (cancelButtonText) {
+			cancelButtonText->SetActive(true);
 		}
 		
 		UpdateCharacterSelection();
@@ -506,12 +495,6 @@ void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 
 void CharacterSelectScene::OnSelectButtonClicked()
 {
-	// 이미 전환 중이면 무시 (SceneManager 상태 사용)
-	if (SceneManager::GetInstance()->IsTransitioning()) {
-		OutputDebugStringW(L"CharacterSelectScene: 이미 전환 중이므로 선택 버튼 클릭 무시\n");
-		return;
-	}
-	
 	if (m_selectedCharacterIndex == -1) {
 		OutputDebugStringW(L"No character selected!\n");
 		return;
@@ -529,29 +512,12 @@ void CharacterSelectScene::OnSelectButtonClicked()
 	
 	m_currentState = CharacterSelectionState::CLICK_GAME;
 	
-	// 모든 버튼 비활성화 (전환 중에는 클릭 불가)
-	if (m_selectButton) {
-		m_selectButton->SetDisabled(true);
-	}
-	if (m_cancelButton) {
-		m_cancelButton->SetDisabled(true);
-	}
-	if (m_backButton) {
-		m_backButton->SetDisabled(true);
-	}
-	
-	// 선택된 캐릭터 정보를 SceneManager에 전달하여 게임 씬으로 전환
-	SceneManager::GetInstance()->LoadGameScene(L"../MapData/00_map.dsm", selectedCharacterID);
+	// 선택된 캐릭터 정보를 SceneManager에 전달하여 게임 씬으로 전환 요청
+	SceneManager::GetInstance()->RequestLoadGameScene(L"../MapData/00_map.dsm", selectedCharacterID);
 }
 
 void CharacterSelectScene::OnCancelButtonClicked()
 {
-	// 전환 중이면 무시 (SceneManager 상태 사용)
-	if (SceneManager::GetInstance()->IsTransitioning()) {
-		OutputDebugStringW(L"CharacterSelectScene: 전환 중이므로 취소 버튼 클릭 무시\n");
-		return;
-	}
-	
 	OutputDebugStringW(L"Character Selection Cancelled!\n");
 	
 	// 캐릭터 선택 초기화, 브라우징 상태로 되돌리기
@@ -561,32 +527,41 @@ void CharacterSelectScene::OnCancelButtonClicked()
 	m_currentState = CharacterSelectionState::BROWSING;
 	
 	// UI 숨김
-	if (m_selectedPortrait) {
-		m_selectedPortrait->SetActive(false);
+	UIManager* uiManager = UIManager::GetInstance();
+	UIImage* selectedPortrait = uiManager->FindUIImage(GOID_PLAYER_PORTRAIT);
+	UIImage* characterInfoPanel = uiManager->FindUIImage(GOID_PLAYER_INFO);
+	UIButton* selectButton = uiManager->FindUIButton(GOID_SELECT_BUTTON);
+	UIText* selectButtonText = uiManager->FindUIText(GOID_SELECT_BUTTON_TEXT);
+	UIButton* cancelButton = uiManager->FindUIButton(GOID_CANCEL_SELECTION);
+	UIText* cancelButtonText = uiManager->FindUIText(GOID_CANCEL_SELECTION_TEXT);
+	UIText* descriptionText = uiManager->FindUIText(GOID_CHARACTER_DESCRIPTION);
+	
+	if (selectedPortrait) {
+		selectedPortrait->SetActive(false);
 	}
 	
-	if (m_characterInfoPanel) {
-		m_characterInfoPanel->SetActive(false);
+	if (characterInfoPanel) {
+		characterInfoPanel->SetActive(false);
 	}
 	
-	if (m_selectButton) {
-		m_selectButton->SetActive(false);
+	if (selectButton) {
+		selectButton->SetActive(false);
 	}
 	
-	if (m_selectButtonText) {
-		m_selectButtonText->SetActive(false);
+	if (selectButtonText) {
+		selectButtonText->SetActive(false);
 	}
 	
-	if (m_cancelButton) {
-		m_cancelButton->SetActive(false);
+	if (cancelButton) {
+		cancelButton->SetActive(false);
 	}
 	
-	if (m_cancelButtonText) {
-		m_cancelButtonText->SetActive(false);
+	if (cancelButtonText) {
+		cancelButtonText->SetActive(false);
 	}
 	
-	if (m_descriptionText) {
-		m_descriptionText->SetActive(false);
+	if (descriptionText) {
+		descriptionText->SetActive(false);
 	}
 	
 	// 선택 버튼 상태 초기화
@@ -595,40 +570,43 @@ void CharacterSelectScene::OnCancelButtonClicked()
 
 void CharacterSelectScene::OnBackButtonClicked()
 {
-	// 전환 중이면 무시 (SceneManager 상태 사용)
-	if (SceneManager::GetInstance()->IsTransitioning()) {
-		OutputDebugStringW(L"CharacterSelectScene: 전환 중이므로 뒤로가기 버튼 클릭 무시\n");
-		return;
-	}
-	
 	OutputDebugStringW(L"Back button clicked! Returning to Title Scene\n");
 	
 	// UI 숨김
-	if (m_selectedPortrait) {
-		m_selectedPortrait->SetActive(false);
+	UIManager* uiManager = UIManager::GetInstance();
+	UIImage* selectedPortrait = uiManager->FindUIImage(GOID_PLAYER_PORTRAIT);
+	UIImage* characterInfoPanel = uiManager->FindUIImage(GOID_PLAYER_INFO);
+	UIButton* selectButton = uiManager->FindUIButton(GOID_SELECT_BUTTON);
+	UIText* selectButtonText = uiManager->FindUIText(GOID_SELECT_BUTTON_TEXT);
+	UIButton* cancelButton = uiManager->FindUIButton(GOID_CANCEL_SELECTION);
+	UIText* cancelButtonText = uiManager->FindUIText(GOID_CANCEL_SELECTION_TEXT);
+	
+	if (selectedPortrait) {
+		selectedPortrait->SetActive(false);
 	}
 	
-	if (m_characterInfoPanel) {
-		m_characterInfoPanel->SetActive(false);
+	if (characterInfoPanel) {
+		characterInfoPanel->SetActive(false);
 	}
 	
-	if (m_selectButton) {
-		m_selectButton->SetActive(false);
+	if (selectButton) {
+		selectButton->SetActive(false);
 	}
 	
-	if (m_selectButtonText) {
-		m_selectButtonText->SetActive(false);
+	if (selectButtonText) {
+		selectButtonText->SetActive(false);
 	}
 	
-	if (m_cancelButton) {
-		m_cancelButton->SetActive(false);
+	if (cancelButton) {
+		cancelButton->SetActive(false);
 	}
 	
-	if (m_cancelButtonText) {
-		m_cancelButtonText->SetActive(false);
+	if (cancelButtonText) {
+		cancelButtonText->SetActive(false);
 	}
-	// 타이틀 씬으로 되돌리기
-	SceneManager::GetInstance()->ReturnToTitle();
+	
+	// 타이틀 씬으로 되돌리기 요청
+	SceneManager::GetInstance()->RequestLoadTitleScene();
 }
 
 void CharacterSelectScene::UpdateSelectButtonState()
@@ -636,13 +614,16 @@ void CharacterSelectScene::UpdateSelectButtonState()
 	// 잠금 캐릭터가 선택되었다면 선택 버튼 비활성화
 	m_isSelectButtonDisabled = m_isLockedCharacterSelected;
 	
-	if (m_selectButton) {
+	UIManager* uiManager = UIManager::GetInstance();
+	UIButton* selectButton = uiManager->FindUIButton(GOID_SELECT_BUTTON);
+	
+	if (selectButton) {
 		if (m_isSelectButtonDisabled) {
 			// 버튼을 비활성화 상태로 설정
-			m_selectButton->SetDisabled(true);
+			selectButton->SetDisabled(true);
 		} else {
 			// 버튼을 활성화 상태로 설정
-			m_selectButton->SetDisabled(false);
+			selectButton->SetDisabled(false);
 		}
 	}
 }
@@ -655,54 +636,5 @@ void CharacterSelectScene::UpdateCharacterUnlockStatus()
 	}
 	
 	// UI 요소들 재생성
-	CreateUI();
-}
-
-void CharacterSelectScene::UpdateManagers(float deltaTime)
-{
-	// CharacterSelectScene에서 UIManager와 InputManager 업데이트
-	UIManager::GetInstance()->Update(deltaTime);
-	InputManager::GetInstance()->Update(deltaTime);
-}
-
-void CharacterSelectScene::LateUpdateManagers()
-{
-	// CharacterSelectScene에서 UIManager와 InputManager LateUpdate
-	UIManager::GetInstance()->LateUpdate();
-	InputManager::GetInstance()->LateUpdate();
-}
-
-void CharacterSelectScene::RenderManagers()
-{
-	// CharacterSelectScene에서 UIManager와 InputManager 렌더링
-	UIManager::GetInstance()->Render();
-	InputManager::GetInstance()->Render();
-}
-
-void CharacterSelectScene::ReleaseManagers()
-{
-	// CharacterSelectScene에서 UIManager 해제
-	UIManager::GetInstance()->Release();
-}
-
-void CharacterSelectScene::InitializeManagers()
-{
-	OutputDebugStringW(L"CharacterSelectScene: 매니저 초기화 시작\n");
-	
-	// CharacterSelectScene에서 UIManager와 InputManager를 초기화
-	UIManager::GetInstance()->Init();
-	InputManager::GetInstance()->Init();
-	
-	OutputDebugStringW(L"CharacterSelectScene: 매니저 초기화 완료\n");
-}
-
-void CharacterSelectScene::ReleaseAllManagers()
-{
-	OutputDebugStringW(L"CharacterSelectScene: 매니저 해제 시작\n");
-	
-	// CharacterSelectScene에서 사용한 매니저들 해제
-	InputManager::GetInstance()->Release();
-	UIManager::GetInstance()->Release();
-	
-	OutputDebugStringW(L"CharacterSelectScene: 매니저 해제 완료\n");
+	// CreateUI();
 }

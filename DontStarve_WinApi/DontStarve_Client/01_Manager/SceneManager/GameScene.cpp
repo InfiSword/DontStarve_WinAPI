@@ -1,4 +1,4 @@
-﻿#include "99_Default/pch.h"
+#include "99_Default/pch.h"
 #include "GameScene.h"
 #include "../UIManager/UIManager.h"
 #include "../InputManager/InputManager.h"
@@ -7,9 +7,8 @@
 #include "../RenderManager/RenderManager.h"
 #include "../InventoryManager/InventoryManager.h"
 #include "../ResourceManager/ResourceManager.h"
+#include "../ColliderManager/ColliderManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
-#include "../../02_GameObject/UI/UIImage.h"
-#include "../../02_GameObject/UI/UIButton.h"
 
 GameScene::GameScene() : m_selectedCharacterID(GOID_NONE)
 {
@@ -23,10 +22,16 @@ GameScene::~GameScene()
 void GameScene::Init()
 {
 	// GameScene에 필요한 매니저들 초기화
-	InitializeManagers();
+	UIManager::GetInstance()->Init();
+	InputManager::GetInstance()->Init();
+	ObjectManager::GetInstance()->Init();
+	CameraManager::GetInstance()->Init();
+	RenderManager::GetInstance()->Init();
+	InventoryManager::GetInstance()->Init();
+	ResourceManager::GetInstance()->Init();
 
 	// UI 생성
-	CreateUI();
+	// CreateUI();
 
 	// 게임 진행 정보 로드
 	LoadGameProgress();
@@ -49,72 +54,15 @@ void GameScene::Init(const MapData& mapData)
 	ObjectManager::GetInstance()->InitializeObjects();
 }
 
-
-void GameScene::CreateUI()
-{
-	// 게임 씬에서 필요한 UI 요소들 생성
-	// 예: 인벤토리 UI, 상태 표시 UI 등
-
-	// 화면 크기
-	float screenWidth = static_cast<float>(WINCX);
-	float screenHeight = static_cast<float>(WINCY);
-
-	//OutputDebugStringW(L"GameScene: UI 생성 시작\n");
-
-	// 게임 배경 이미지 추가
-	//UIImage* backgroundImage = new UIImage(
-	//	static_cast<GameObjectID>(GOID_GAME_BACKGROUND),
-	//	screenWidth / 2.0f,
-	//	screenHeight / 2.0f,
-	//	screenWidth,
-	//	screenHeight,
-	//	LAYER_UI_BACKGROUND,
-	//	L"../Resource/UI/game_background.png",
-	//	0.f
-	//);
-	//UIManager::GetInstance()->AddUIImage(backgroundImage);
-	//OutputDebugStringW(L"GameScene: 게임 배경 UI 추가 완료\n");
-
-	//// 게임 상태 표시 UI (예: 체력, 배고픔 등)
-	//UIImage* statusUI = new UIImage(
-	//	static_cast<GameObjectID>(GOID_STATUS_UI),
-	//	screenWidth - 100.0f,
-	//	100.0f,
-	//	200.0f,
-	//	100.0f,
-	//	LAYER_UI_FOREGROUND,
-	//	L"../Resource/UI/status_panel.png",
-	//	0.f
-	//);
-	//UIManager::GetInstance()->AddUIImage(statusUI);
-	//OutputDebugStringW(L"GameScene: 상태 UI 추가 완료\n");
-	//
-	//// 일시정지 버튼
-	//UIButton* pauseButton = new UIButton(
-	//	static_cast<GameObjectID>(GOID_PAUSE_BUTTON),
-	//	screenWidth - 50.0f,
-	//	50.0f,
-	//	40.0f,
-	//	40.0f,
-	//	L"../Resource/UI/pause_button.png",
-	//	L"../Resource/UI/pause_button_hover.png",
-	//	L"일시정지"
-	//);
-	//
-	//pauseButton->SetOnClickCallback([this]() {
-	//	// 일시정지 로직
-	//	OutputDebugStringW(L"GameScene: 일시정지 버튼 클릭\n");
-	//});
-	//UIManager::GetInstance()->AddUIButton(pauseButton);
-	//OutputDebugStringW(L"GameScene: 일시정지 버튼 추가 완료\n");
-
-	//OutputDebugStringW(L"GameScene: UI 생성 완료\n");
-}
-
 void GameScene::Update(float deltaTime)
 {
 	// 매니저들 업데이트
-	UpdateManagers(deltaTime);
+	UIManager::GetInstance()->Update(deltaTime);
+	InputManager::GetInstance()->Update(deltaTime);
+	ObjectManager::GetInstance()->Update(deltaTime);
+	CameraManager::GetInstance()->Update(deltaTime);
+	RenderManager::GetInstance()->Update(deltaTime);
+	InventoryManager::GetInstance()->Update(deltaTime);
 
 	// 플레이어 이동 처리 제거 - Player::Update()에서 처리됨
 	
@@ -131,65 +79,39 @@ void GameScene::Update(float deltaTime)
 void GameScene::LateUpdate()
 {
 	// 매니저들 LateUpdate
-	LateUpdateManagers();
-	
-	// GameScene의 특별한 LateUpdate 로직
+	UIManager::GetInstance()->LateUpdate();
+	InputManager::GetInstance()->LateUpdate();
+	ObjectManager::GetInstance()->LateUpdate();
+	InventoryManager::GetInstance()->LateUpdate();	
 }
 
 void GameScene::Render()
 {
 	// 매니저들 렌더링
-	RenderManagers();
-}
-
-void GameScene::Release()
-{
-	// GameScene에서 사용한 매니저들 해제
-	ReleaseAllManagers();
-}
-
-void GameScene::UpdateManagers(float deltaTime)
-{
-	// GameScene에서는 게임에 필요한 모든 매니저들을 업데이트
-	UIManager::GetInstance()->Update(deltaTime);
-	InputManager::GetInstance()->Update(deltaTime);
-	ObjectManager::GetInstance()->Update(deltaTime);
-	CameraManager::GetInstance()->Update(deltaTime);
-	RenderManager::GetInstance()->Update(deltaTime);
-	InventoryManager::GetInstance()->Update(deltaTime);
-}
-
-void GameScene::LateUpdateManagers()
-{
-	// GameScene에서는 게임에 필요한 모든 매니저들을 LateUpdate
-	UIManager::GetInstance()->LateUpdate();
-	InputManager::GetInstance()->LateUpdate();
-	ObjectManager::GetInstance()->LateUpdate();
-	CameraManager::GetInstance()->LateUpdate();
-	InventoryManager::GetInstance()->LateUpdate();
-}
-
-void GameScene::RenderManagers()
-{
-	// GameScene에서는 게임에 필요한 모든 매니저들을 렌더링
-	// 렌더링 순서: 타일 -> 게임 오브젝트 -> UI -> 인벤토리
+	// 렌더링 순서: 타일 -> (월드) 게임 오브젝트 -> 디버그 기즈모 -> UI -> 인벤토리
 	
 	// 1. CameraManager (타일 렌더링)
 	CameraManager* cameraManager = CameraManager::GetInstance();
-	RenderManager* renderManager = RenderManager::GetInstance();
-	if (cameraManager && renderManager) {
+	if (cameraManager) {
 		// 맵 데이터가 있는 경우에만 타일 렌더링
 		if (m_mapData.mapWidth > 0 && m_mapData.mapHeight > 0) {
-			cameraManager->RenderVisibleTiles(renderManager, &m_mapData);
+			cameraManager->RenderVisibleTiles(&m_mapData);
 		}
 	}
 	
-	// 2. RenderManager (게임 오브젝트들 렌더링)
-	if (renderManager) {
-		renderManager->Render();
+	// 2. ObjectManager (월드 오브젝트 렌더링 + 디버그 바운드)
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	if (objectManager) {
+		objectManager->Render();
 	}
 	
-	// 2. InputManager (입력 관련 렌더링)
+	// 3. 디버그용 콜라이더 Gizmo 렌더링
+	ColliderManager* colliderManager = ColliderManager::GetInstance();
+	if (colliderManager) {
+		colliderManager->RenderGizmos();
+	}
+	
+	// 4. InputManager (입력 관련 렌더링)
 	InputManager* inputManager = InputManager::GetInstance();
 	if (inputManager) {
 		inputManager->Render();
@@ -197,24 +119,28 @@ void GameScene::RenderManagers()
 		OutputDebugStringW(L"GameScene: InputManager가 null입니다.\n");
 	}
 	
-	// 3. UIManager (UI 요소들 렌더링)
+	// 5. UIManager (UI 요소들 렌더링)
 	UIManager* uiManager = UIManager::GetInstance();
 	if (uiManager) {
 		uiManager->Render();
 	}
 	
-	// 4. InventoryManager (인벤토리 UI 렌더링)
+	// 6. InventoryManager (인벤토리 UI 렌더링)
 	InventoryManager* inventoryManager = InventoryManager::GetInstance();
 	if (inventoryManager) {
 		inventoryManager->Render();
 	}
 }
 
-void GameScene::ReleaseManagers()
+void GameScene::Release()
 {
-	// GameScene에서는 게임에 필요한 모든 매니저들을 해제
-	UIManager::GetInstance()->Release();
+	// GameScene에서 사용한 매니저들 해제
 	InventoryManager::GetInstance()->Release();
+	RenderManager::GetInstance()->Release();
+	CameraManager::GetInstance()->Release();
+	ObjectManager::GetInstance()->Release();
+	InputManager::GetInstance()->Release();
+	UIManager::GetInstance()->Release();
 }
 
 void GameScene::CreateGameObjectsFromMapData()
@@ -225,7 +151,8 @@ void GameScene::CreateGameObjectsFromMapData()
 	}
 
 	int createdCount = 0;
-	for (const auto& objData : m_mapData.gameObjects) {
+	for (const GameObjectData& objData : m_mapData.gameObjects) 
+	{
 		// 맵 파일의 콜라이더 정보를 포함한 resourceData 생성
 		GameObjectData resourceData;
 		resourceData.id = objData.id;
@@ -248,8 +175,6 @@ void GameScene::CreateGameObjectsFromMapData()
 			createdCount++;
 		}
 	}
-
-
 }
 
 void GameScene::SpawnPlayer()
@@ -311,27 +236,4 @@ void GameScene::LoadGameProgress()
 {
 	// 게임 진행 정보 로드
 	//m_gameProgress.LoadFromFile(L"game_progress.txt");
-}
-
-void GameScene::InitializeManagers()
-{
-	// GameScene에서는 게임에 필요한 모든 매니저들을 초기화
-	UIManager::GetInstance()->Init();
-	InputManager::GetInstance()->Init();
-	ObjectManager::GetInstance()->Init();
-	CameraManager::GetInstance()->Init();
-	RenderManager::GetInstance()->Init();
-	InventoryManager::GetInstance()->Init();
-	ResourceManager::GetInstance()->Init();
-}
-
-void GameScene::ReleaseAllManagers()
-{
-	// GameScene에서 사용한 매니저들 해제
-	InventoryManager::GetInstance()->Release();
-	RenderManager::GetInstance()->Release();
-	CameraManager::GetInstance()->Release();
-	ObjectManager::GetInstance()->Release();
-	InputManager::GetInstance()->Release();
-	UIManager::GetInstance()->Release();
 }

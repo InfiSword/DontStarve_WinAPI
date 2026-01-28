@@ -21,7 +21,7 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 	m_previousState(ButtonState::NORMAL)
 {
 	// UIElement에서 이미 RectTransform이 생성되었으므로 GetRectTransform() 사용
-	RectTransform* rectTransform = GetRectTransform();
+	RectTransform* rectTransform = m_rectTransform;
 	rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
 	rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
 	rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
@@ -107,17 +107,23 @@ void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstri
 
 void UIButton::Update(float deltaTime)
 {
-	// GameObject::Update() 호출하여 모든 컴포넌트 업데이트
-	GameObject::Update(deltaTime);
-	
+	// 먼저 필수 컴포넌트 체크
 	if (!m_buttonComp || !m_image) return;
 	
-	RectTransform* rectTransform = GetRectTransform();
-	if (!rectTransform) return;
+	if (!m_rectTransform) return;
 	
-	// Button 상태 업데이트
+	// Image 컴포넌트만 업데이트 (Button은 수동으로 UpdateState 호출)
+	if (m_image && m_image->IsEnabled()) {
+		m_image->Update(deltaTime);
+	}
+	
+	// Button 상태 업데이트 (이 안에서 콜백이 호출될 수 있음)
 	ButtonState previousState = m_buttonComp->GetState();
-	m_buttonComp->UpdateState(rectTransform, m_image);
+	m_buttonComp->UpdateState(m_rectTransform, m_image);
+	
+	// UpdateState 호출 후 객체가 삭제되었을 수 있으므로 다시 체크
+	if (!m_buttonComp || !m_image) return;
+	
 	ButtonState currentState = m_buttonComp->GetState();
 	
 	// 상태가 변경되었을 때 스프라이트 변경
@@ -188,18 +194,17 @@ void UIButton::RenderDisabled()
 {
 	if (!m_image) return;
 	
-	RectTransform* rectTransform = GetRectTransform();
-	if (!rectTransform) return;
+	if (!m_rectTransform) return;
 	
 	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
 	if (!bitmap) return;
 	
-	float x = rectTransform->GetX();
-	float y = rectTransform->GetY();
+	float x = m_rectTransform->GetX();
+	float y = m_rectTransform->GetY();
 	float bitmapWidth = static_cast<float>(bitmap->GetWidth());
 	float bitmapHeight = static_cast<float>(bitmap->GetHeight());
-	float width = bitmapWidth * rectTransform->GetScaleX();
-	float height = bitmapHeight * rectTransform->GetScaleY();
+	float width = bitmapWidth * m_rectTransform->GetScaleX();
+	float height = bitmapHeight * m_rectTransform->GetScaleY();
 	
 	const ButtonStateStyle& disabledStyle = m_buttonComp->GetStateStyle(ButtonState::DISABLED);
 	Gdiplus::Color tintColor = disabledStyle.spriteColor;
@@ -211,8 +216,8 @@ void UIButton::RenderDisabled()
 		y,
 		width,
 		height,
-		rectTransform->GetPivotX(),
-		rectTransform->GetPivotY(),
+		m_rectTransform->GetPivotX(),
+		m_rectTransform->GetPivotY(),
 		m_image->GetLayer(),
 		m_image->GetSortKey(),
 		tintColor,

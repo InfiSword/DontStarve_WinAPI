@@ -19,16 +19,6 @@ public:
 
 	virtual SceneType GetSceneType() const override { return SCENE_GAME_FARMING_AREA; }
 	
-	// 매니저 업데이트 함수들 구현
-	virtual void UpdateManagers(float deltaTime) override;
-	virtual void LateUpdateManagers() override;
-	virtual void RenderManagers() override;
-	virtual void ReleaseManagers() override;
-
-	// 매니저 초기화/해제 함수들
-	virtual void InitializeManagers() override;
-	virtual void ReleaseAllManagers() override;
-
 	// 맵 데이터 초기화
 	void Init(const MapData& mapData);
 
@@ -48,9 +38,6 @@ public:
 	// 게임 진행 정보 저장/로드
 	void SaveGameProgress();
 	void LoadGameProgress();
-
-protected:
-	virtual void CreateUI() override;
 
 private:
 	void CreateGameObjectsFromMapData();

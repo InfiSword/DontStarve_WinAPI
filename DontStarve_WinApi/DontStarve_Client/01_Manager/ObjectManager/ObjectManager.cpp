@@ -62,9 +62,6 @@ void ObjectManager::Update(float deltaTime)
 			obj->Update(deltaTime);
 		}
 	}
-	
-	// 루프 종료 후 삭제 지연 처리
-	ProcessPendingDeletions();
 }
 
 void ObjectManager::LateUpdate()
@@ -84,16 +81,16 @@ void ObjectManager::LateUpdate()
 
 void ObjectManager::Render()
 {
-	// 카메라에 보이는 게임오브젝트 렌더링 (렌더매니저 위임)
-	RenderManager::GetInstance()->RenderVisibleGameObjects();
+	// 카메라에 보이는 게임오브젝트 렌더링
+	CameraManager* cameraManager = CameraManager::GetInstance();
+	if (cameraManager) {
+		cameraManager->RenderVisibleGameObjects();
+	}
 	
 	// 바운드 표시가 활성화되어 있으면 모든 게임오브젝트의 바운드를 그림
 	if (m_showBounds) {
 		RenderBounds();
 	}
-	
-	// 루프 종료 후 삭제 지연 처리
-	ProcessPendingDeletions();
 }
 
 void ObjectManager::Release()

@@ -1,6 +1,6 @@
 #pragma once
 
-// Ÿ�� ĳ�� ������ ����ü
+// 타일 캐시 데이터 구조체
 struct TileCacheData {
 	TileID id;
 	Gdiplus::Bitmap* bitmap;
@@ -13,8 +13,6 @@ struct TileCacheData {
 };
 
 class GameObject;
-class RenderManager;
-class Player;
 
 class CameraManager : public CSingleTon<CameraManager>
 {
@@ -24,88 +22,65 @@ public:
 	~CameraManager();
 
 	void Init();
-	void LateInit();
 	void Update(float deltaTime);
-	void LateUpdate();
-	void Render();
 	void Release();
 
-	// ���� ��ǥ <-> ȭ�� ��ǥ ��ȯ �Լ�
-	Gdiplus::PointF WorldToScreen(float worldX, float worldY);
-	Gdiplus::PointF ScreenToWorld(float screenX, float screenY);
+	// 월드 좌표 <-> 화면 좌표 변환 함수
+	Gdiplus::PointF WorldToScreen(float worldX, float worldY) const;
+	Gdiplus::PointF ScreenToWorld(float screenX, float screenY) const;
 	
-	// ����Ʈ ���� ���� �Լ�
+	// 뷰포트 월드 좌표 반환 함수
 	Gdiplus::RectF GetViewportWorldRect() const;
 	
-	Gdiplus::PointF GetCameraPos();
+	Gdiplus::PointF GetCameraPos() const;
 
-	// ī�޶� ���� ���
+	// 타겟 설정
 	void SetTarget(GameObject* target);
-	const GameObject* GetTarget();
-	void FollowTarget(float deltaTime);
+	const GameObject* GetTarget() const;
+	void FollowTarget();
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 	bool IsFollowMode() const { return m_followMode; }
 	
-	// ī�޶� ��ġ ���� ����
+	// 카메라 위치 설정 함수
 	void SetCameraPosition(float x, float y);
 
-	// === ȭ�鿡 ���̴� ���ӿ�����Ʈ ���� ��� (ViewportManager ����) ===
-	// ȭ�鿡 ���̴� ���ӿ�����Ʈ ������Ʈ (ObjectManager�� ���ӿ�����Ʈ���� �������)
+	// 뷰포트 내 보이는 오브젝트 업데이트
 	void UpdateVisibleObjects();
-	const std::vector<GameObject*>& GetVisibleObjects() const { return m_visibleObjects; }
 	
-	// Ư�� ��ġ�� ���ӿ�����Ʈ ã�� (ȭ�鿡 ���̴� ���ӿ�����Ʈ�� �˻�)
+	// 월드 좌표에 있는 오브젝트 찾기
 	GameObject* FindObjectAtPosition(float worldX, float worldY);
 	
-	// ȭ�鿡 ���̴� ���ӿ�����Ʈ���� Ȯ��
-	bool IsObjectVisible(GameObject* obj) const;
-	
-	// ����Ʈ ���� Ȯ��
-	bool HasViewportChanged() const { return m_viewportChanged; }
-	void ClearViewportChanged() { m_viewportChanged = false; }
-	
-	// Sprite ũ�� ��� �ٿ�� �ڽ� �������� (Animator/SpriteRenderer���� sprite ũ�� ���)
+	// Sprite 바운딩 박스 계산
 	Gdiplus::RectF GetSpriteBoundingBox(GameObject* obj) const;
 
-	// === Ÿ�� ������ ���� ��� ===
-	// ȭ�鿡 ���̴� Ÿ�� ������ (�� �����͸� �Ķ���ͷ� ����)
-	void RenderVisibleTiles(RenderManager* renderManager, const MapData* mapData);
+	// === 렌더링 함수 ===
+	// 타일 렌더링
+	void RenderVisibleTiles(const MapData* mapData);
 	
-	// Ÿ�� ĳ�� ����
+	// 월드 오브젝트 렌더링 (UI 제외)
+	void RenderVisibleGameObjects();
+	
 	void ClearTileCache();
 
 private:
     GameObject* m_target;
 	Gdiplus::PointF m_cameraPos;
 
-	float m_zoomFactor;             // �� ���� ����
+	float m_zoomFactor;             // 줌 인수
 	
-	bool m_followMode;              // ī�޶� ���� ���
+	bool m_followMode;
 	
-	// === ȭ�鿡 ���̴� ���ӿ�����Ʈ ���� (ViewportManager ����) ===
+	// 뷰포트 관리
 	std::vector<GameObject*> m_visibleObjects;
-	std::unordered_set<GameObject*> m_visibleObjectSet; // ���� �˻��� ���� �ؽü�
-	
-	// ����Ʈ ����
+	std::unordered_set<GameObject*> m_visibleObjectSet;
 	Gdiplus::RectF m_lastViewportRect;
 	bool m_viewportChanged;
-	
-	// ȭ�鿡 ���̴� ���ӿ�����Ʈ���� Ȯ���ϴ� ���� �Լ�
-	bool IsObjectInViewport(GameObject* obj) const;
-	
-	// ����Ʈ ���� Ȯ��
 	void CheckViewportChanged();
 	
-	// === Ÿ�� ������ ���� ===
+	// 타일 캐시 관리
 	std::map<UINT, TileCacheData> m_tileCache;
-	std::vector<std::pair<int, int>> m_visibleTileIndices;
-	
-	// Ÿ�� ������ ����ȭ ���� ����
 	int m_lastStartTileX, m_lastStartTileY, m_lastEndTileX, m_lastEndTileY;
 	bool m_tileViewportChanged;
-	
-	// Ÿ�� ������ ���� �Լ���
 	void LoadTileBitmap(TileID tileID, TileCacheData& cacheData);
-	void RenderSingleTile(RenderManager* renderManager, const MapData* mapData, int x, int y, float worldY);
-	// bool IsTileInViewport(int tileX, int tileY) const; // ���� �̻��
+	void RenderSingleTile(const MapData* mapData, int x, int y, float worldY);
 };

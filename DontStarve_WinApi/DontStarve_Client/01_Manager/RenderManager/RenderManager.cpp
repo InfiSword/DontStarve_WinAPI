@@ -30,24 +30,6 @@ void RenderManager::LateUpdate()
 {
 }
 
-void RenderManager::Render()
-{
-	// 카메라에 보이는 객체만 렌더
-	RenderVisibleGameObjects();
-	
-	// ObjectManager가 요청한 디버그 바운딩 박스를 함께 그림
-	ObjectManager* objectManager = ObjectManager::GetInstance();
-	if (objectManager && objectManager->IsBoundsDisplayEnabled()) {
-		objectManager->RenderBounds();
-	}
-	
-	// ColliderManager의 Gizmo 렌더링
-	ColliderManager* colliderManager = ColliderManager::GetInstance();
-	if (colliderManager) {
-		colliderManager->RenderGizmos();
-	}
-}
-
 void RenderManager::Release()
 {
 	Clear();
@@ -121,45 +103,19 @@ void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gd
 	m_drawCommands.emplace_back(std::move(command));
 }
 
-// === UI 전용 명령 큐 함수 ===
-
+// UI 이미지 렌더링
 void RenderManager::RenderUIImageWithPivot(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height,
-	float pivotX, float pivotY,
-	RenderLayer layer, float sortKey, const Gdiplus::Color& tintColor, bool hasTint)
+	float pivotX, float pivotY, RenderLayer layer, float sortKey, const Gdiplus::Color& tintColor, bool hasTint)
 {
 	if (!bitmap) return;
 
 	Gdiplus::RectF destRect(x - (pivotX * width), y - (pivotY * height), width, height);
 	Gdiplus::RectF sourceRect(0, 0, static_cast<float>(bitmap->GetWidth()), static_cast<float>(bitmap->GetHeight()));
 
-	AddDrawCommand(bitmap, destRect, sourceRect, Gdiplus::UnitPixel,
-		Gdiplus::PointF(x, y), layer, sortKey, DIR_DOWN, tintColor, hasTint);
+	AddDrawCommand(bitmap, destRect, sourceRect, Gdiplus::UnitPixel, Gdiplus::PointF(x, y), layer, sortKey, DIR_DOWN, tintColor, hasTint);
 }
 
-void RenderManager::RenderUIText(const std::wstring& text, Gdiplus::Font* font, Gdiplus::Brush* brush,
-	float x, float y, float width, float height,
-	RenderLayer layer, float sortKey)
-{
-	// 폰트 인자의 유효성을 확인
-	if (!font || !brush || text.empty()) return;
-
-	// 폰트 패밀리를 가져올 수 있는지 확인
-	Gdiplus::FontFamily fontFamily;
-	if (font->GetFamily(&fontFamily) != Gdiplus::Ok) return;
-
-	Gdiplus::StringFormat* stringFormat = new Gdiplus::StringFormat();
-	if (!stringFormat) return;
-
-	stringFormat->SetAlignment(Gdiplus::StringAlignmentCenter);
-	stringFormat->SetLineAlignment(Gdiplus::StringAlignmentCenter);
-
-	Gdiplus::RectF textRect(x, y, width, height);
-	AddTextCommand(text, font, brush, stringFormat, textRect, layer, sortKey);
-
-	// TODO: StringFormat 수명 관리가 필요하면 별도 해제 로직 추가
-}
-
-// === GameObject 렌더링 ===
+// GameObject 렌더링
 
 void RenderManager::RenderGameObject(GameObject* pObject)
 {
@@ -305,47 +261,22 @@ void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float
 {
 	if (!pTileBitmap) return;
 
-	// 월드 좌표(타일 중심)를 화면 좌표로 변환
 	Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(worldX, worldY);
+	float renderX = screenPos.X - width * 0.5f;
+	float renderY = screenPos.Y - height * 0.5f;
 
-	// 타일 중심 기준으로 화면 위치 계산
-	float renderX = screenPos.X - width * 0.5f; // 중심 X - 절반 너비
-	float renderY = screenPos.Y - height * 0.5f; // 중심 Y - 절반 높이
-
-	// 타일은 항상 같은 레이어에 위치
-	float sortKey = LAYER_WORLD_TILE;
-
-	// 렌더 명령 추가
-	Gdiplus::RectF destRect(renderX, renderY, width, height); 
+	Gdiplus::RectF destRect(renderX, renderY, width, height);
 	Gdiplus::RectF sourceRect(0, 0, static_cast<float>(pTileBitmap->GetWidth()), static_cast<float>(pTileBitmap->GetHeight()));
 
-	AddDrawCommand(pTileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, sortKey, DIR_DOWN);
-}
-
-void RenderManager::RenderVisibleGameObjects()
-{
-	// CameraManager에서 보이는 객체 리스트를 가져온다
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	if (!cameraManager) {
-		return;
-	}
-
-	const std::vector<GameObject*>& visibleObjects = cameraManager->GetVisibleObjects();
-	
-	// 이렇게 필터링된 객체만 순회하면서 렌더
-	for (GameObject* obj : visibleObjects) {
-		if (obj && obj->IsEnabled()) {
-			RenderGameObject(obj);
-		}
-	}
+	AddDrawCommand(pTileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, LAYER_WORLD_TILE, DIR_DOWN);
 }
 
 void RenderManager::Clear() {
 	m_drawCommands.clear();
 }
 
-// Animator::Draw에서 사용하는 변환 방식과 동일하게 적용한다.
-void RenderManager::ApplyGdiTransform(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight)
+// 방향에 따른 스프라이트 반전 적용 (월드 오브젝트만)
+void RenderManager::ApplyDirectionFlip(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight)
 {
 	if (command.layer >= LAYER_UI_BACKGROUND || command.type == DRAW_COMMAND_TEXT)
 	{
@@ -370,7 +301,12 @@ void RenderManager::ApplyGdiTransform(Gdiplus::Graphics* pGraphics, const DrawCo
 }
 
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
-	if (!pGraphics || m_drawCommands.empty()) return;
+	if (!pGraphics) return;
+	
+	// 렌더링 명령이 없으면 아무것도 하지 않음 (화면은 검은색으로 유지됨)
+	if (m_drawCommands.empty()) {
+		return;
+	}
 
 	// 1. 레이어 높이 sortKey 순서로 정렬하여 Z-order를 보장
 	std::sort(m_drawCommands.begin(), m_drawCommands.end(), RenderManager::CompareDrawCommands);
@@ -402,7 +338,7 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 				continue;
 			}
 
-			ApplyGdiTransform(pGraphics, cmd, cmd.destRect.Width, cmd.destRect.Height);
+			ApplyDirectionFlip(pGraphics, cmd, cmd.destRect.Width, cmd.destRect.Height);
 			
 			// 색상 틴트 적용
 			if (cmd.hasTint) {
@@ -448,5 +384,7 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 		
 		pGraphics->Restore(commandSpecificState);
 	}
-	Clear(); // 모든 명령을 처리한 뒤 큐를 초기화
+	
+	// 렌더링 완료 후 명령 큐 비우기 (다음 프레임을 위해)
+	Clear();
 }

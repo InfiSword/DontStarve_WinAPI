@@ -8,10 +8,6 @@
 #include "../InputManager/InputManager.h"
 
 TitleScene::TitleScene()
-	: m_backgroundImage(nullptr),
-	m_logoImage(nullptr),
-	m_startButton(nullptr),
-	m_exitButton(nullptr)
 {
 }
 
@@ -23,16 +19,14 @@ TitleScene::~TitleScene()
 void TitleScene::Init()
 {
 	// TitleScene에 필요한 매니저들 초기화
-	InitializeManagers();
+	UIManager::GetInstance()->Init();
+	InputManager::GetInstance()->Init();
 	
 	// UI 생성
-	CreateUI();
-}
+	UIManager* uiManager = UIManager::GetInstance();
 
-void TitleScene::CreateUI()
-{
 	// 배경 이미지 생성 (전체 화면)
-	m_backgroundImage = new UIImage(
+	UIImage* backgroundImage = new UIImage(
 		static_cast<GameObjectID>(GOID_MAIN_BG),
 		static_cast<float>(WINCX),
 		static_cast<float>(WINCY),
@@ -43,10 +37,10 @@ void TitleScene::CreateUI()
 		1.0f, 1.0f,  // anchorMax
 		0.0f, 0.0f    // anchoredPosition
 	);
-	UIManager::GetInstance()->AddUIImage(m_backgroundImage);
+	uiManager->AddUIImage(backgroundImage);
 
 	// 로고 이미지 생성 (화면 상단 중앙)
-	m_logoImage = new UIImage(
+	UIImage* logoImage = new UIImage(
 		static_cast<GameObjectID>(GOID_GAME_LOGO),
 		400.0f,
 		200.0f,
@@ -57,10 +51,10 @@ void TitleScene::CreateUI()
 		0.5f, 1.0f,  // anchorMax (상단 중앙)
 		0.0f, -200.0f // anchoredPosition (상단에서 아래로 200px)
 	);
-	UIManager::GetInstance()->AddUIImage(m_logoImage);
+	uiManager->AddUIImage(logoImage);
 
 	// 게임시작 버튼 생성 (화면 중앙 기준 아래로 100px)
-	m_startButton = new UIButton(
+	UIButton* startButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BUTTON1),
 		200.0f,
 		60.0f,
@@ -70,15 +64,15 @@ void TitleScene::CreateUI()
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
 	);
-	
+
 	// 게임시작 버튼 콜백 설정
-	m_startButton->SetOnClickCallback([this]() {
+	startButton->SetOnClickCallback([this]() {
 		OnStartButtonClicked();
-	});
-	UIManager::GetInstance()->AddUIButton(m_startButton);
+		});
+	uiManager->AddUIButton(startButton);
 
 	// 게임시작 버튼 텍스트 생성 (버튼과 동일한 anchor)
-	m_startButtonText = new UIText(
+	UIText* startButtonText = new UIText(
 		static_cast<GameObjectID>(GOID_BUTTON1_TEXT),
 		200.0f,
 		60.0f,
@@ -94,10 +88,10 @@ void TitleScene::CreateUI()
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
 	);
-	UIManager::GetInstance()->AddUIText(m_startButtonText);
+	uiManager->AddUIText(startButtonText);
 
 	// 종료 버튼 생성 (화면 중앙 기준 아래로 200px)
-	m_exitButton = new UIButton(
+	UIButton* exitButton = new UIButton(
 		static_cast<GameObjectID>(GOID_ENDBUTTON1),
 		200.0f,
 		60.0f,
@@ -107,15 +101,15 @@ void TitleScene::CreateUI()
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
 	);
-	
+
 	// 종료 버튼 콜백 설정
-	m_exitButton->SetOnClickCallback([this]() {
+	exitButton->SetOnClickCallback([this]() {
 		OnExitButtonClicked();
-	});
-	UIManager::GetInstance()->AddUIButton(m_exitButton);
+		});
+	uiManager->AddUIButton(exitButton);
 
 	// 종료 버튼 텍스트 생성 (버튼과 동일한 anchor)
-	m_exitButtonText = new UIText(
+	UIText* exitButtonText = new UIText(
 		static_cast<GameObjectID>(GOID_ENDBUTTON1_TEXT),
 		200.0f,
 		60.0f,
@@ -131,46 +125,42 @@ void TitleScene::CreateUI()
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
 	);
-	UIManager::GetInstance()->AddUIText(m_exitButtonText);
+	uiManager->AddUIText(exitButtonText);
 }
 
 void TitleScene::Update(float deltaTime)
 {
-	// 매니저들 업데이트
-	UpdateManagers(deltaTime);
+	// TitleScene에서 UIManager와 InputManager 업데이트
+	UIManager::GetInstance()->Update(deltaTime);
+	InputManager::GetInstance()->Update(deltaTime);
 }
 
 void TitleScene::LateUpdate()
 {
-	// 매니저들 LateUpdate
-	LateUpdateManagers();
+	UIManager::GetInstance()->LateUpdate();
+	InputManager::GetInstance()->LateUpdate();
 }
 
 void TitleScene::Render()
 {
 	// 매니저들 렌더링
-	RenderManagers();
+	UIManager::GetInstance()->Render();
+	InputManager::GetInstance()->Render();
 }
 
 void TitleScene::Release()
 {
-	// UI 객체들은 UIManager에서 해제되므로, 포인터만 nullptr로 설정
-	// UIManager::Release()가 호출되면 자동으로 delete됨
-	m_backgroundImage = nullptr;
-	m_logoImage = nullptr;
-	m_startButton = nullptr;
-	m_exitButton = nullptr;
-	
+	// UI 객체들은 UIManager에서 해제되므로 별도 처리 불필요
 	// TitleScene에서 사용한 매니저들 해제
-	ReleaseAllManagers();
+	UIManager::GetInstance()->Release();
+	InputManager::GetInstance()->Release();
 }
 
 void TitleScene::OnStartButtonClicked()
 {
 	OutputDebugStringW(L"TitleScene: Start button clicked!\n");
-	// m_startButton->SetDisabled(false);
-	// SceneManager를 통해 캐릭터 선택 씬으로 전환
-	SceneManager::GetInstance()->LoadCharacterSelectScene();
+	// SceneManager를 통해 캐릭터 선택 씬으로 전환 요청
+	SceneManager::GetInstance()->RequestLoadCharacterSelectScene();
 }
 
 void TitleScene::OnExitButtonClicked()
@@ -179,53 +169,4 @@ void TitleScene::OnExitButtonClicked()
 	
 	// 프로그램 종료
 	PostQuitMessage(0);
-}
-
-void TitleScene::UpdateManagers(float deltaTime)
-{
-	// TitleScene에서 UIManager와 InputManager 업데이트
-	UIManager::GetInstance()->Update(deltaTime);
-	InputManager::GetInstance()->Update(deltaTime);
-}
-
-void TitleScene::LateUpdateManagers()
-{
-	// TitleScene에서 UIManager와 InputManager LateUpdate
-	UIManager::GetInstance()->LateUpdate();
-	InputManager::GetInstance()->LateUpdate();
-}
-
-void TitleScene::RenderManagers()
-{
-	// TitleScene에서 UIManager와 InputManager 렌더링
-	UIManager::GetInstance()->Render();
-	InputManager::GetInstance()->Render();
-}
-
-void TitleScene::ReleaseManagers()
-{
-	// TitleScene에서 UIManager 해제
-	UIManager::GetInstance()->Release();
-}
-
-void TitleScene::InitializeManagers()
-{
-	OutputDebugStringW(L"TitleScene: 매니저 초기화 시작\n");
-	
-	// TitleScene에서 UIManager와 InputManager를 초기화
-	UIManager::GetInstance()->Init();
-	InputManager::GetInstance()->Init();
-	
-	OutputDebugStringW(L"TitleScene: 매니저 초기화 완료\n");
-}
-
-void TitleScene::ReleaseAllManagers()
-{
-	OutputDebugStringW(L"TitleScene: 매니저 해제 시작\n");
-	
-	// TitleScene에서 사용한 매니저들 해제
-	InputManager::GetInstance()->Release();
-	UIManager::GetInstance()->Release();
-	
-	OutputDebugStringW(L"TitleScene: 매니저 해제 완료\n");
 }

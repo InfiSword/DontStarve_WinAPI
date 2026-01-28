@@ -1,10 +1,6 @@
 #pragma once
 #include "BaseScene.h"
 
-class UIImage;
-class UIButton;
-class UIText;
-
 // 캐릭터 정보 구조체
 struct CharacterInfo
 {
@@ -37,18 +33,6 @@ private:
 	// 캐릭터 목록
 	std::vector<CharacterInfo> m_characterList;        // 모든 등록된 캐릭터 목록
 	
-	// UI 요소들
-	UIImage* m_backgroundImage;
-	UIButton* m_backButton;
-	UIImage* m_selectedPortrait;
-	UIImage* m_characterInfoPanel;
-	UIButton* m_selectButton;
-	UIButton* m_cancelButton;
-	UIText* m_descriptionText;  // 캐릭터 설명 텍스트
-	UIText* m_backButtonText;
-	UIText* m_selectButtonText;
-	UIText* m_cancelButtonText;
-	
 	// 상태 관리 변수
 	CharacterSelectionState m_currentState;
 	int m_selectedCharacterIndex;       // 선택된 캐릭터 인덱스 (-1: 선택 안됨)
@@ -72,16 +56,6 @@ public:
 	virtual void Release() override;
 	virtual SceneType GetSceneType() const override { return SCENE_CHARACTER_SELECT; }
 	
-
-	virtual void UpdateManagers(float deltaTime) override;
-	virtual void LateUpdateManagers() override;
-	virtual void RenderManagers() override;
-	virtual void ReleaseManagers() override;
-
-	// 매니저 초기화/해제 함수들
-	virtual void InitializeManagers() override;
-	virtual void ReleaseAllManagers() override;
-
 	// 캐릭터 선택 public 함수들
 	std::wstring GetSelectedCharacterName() const;
 	int GetSelectedCharacterIndex() const { return m_selectedCharacterIndex; }
@@ -91,9 +65,6 @@ public:
 	
 	// 선택된 캐릭터 ID 반환
 	GameObjectID GetSelectedCharacterID() const;
-
-protected:
-	virtual void CreateUI() override;
 
 private:
 	void InitializeCharacters();        // 캐릭터 목록 초기화

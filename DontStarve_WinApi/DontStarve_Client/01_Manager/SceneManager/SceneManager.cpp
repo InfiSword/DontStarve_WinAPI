@@ -15,8 +15,8 @@
 #include <locale>
 
 SceneManager::SceneManager()
-	: m_currentScene(nullptr), m_nextScene(nullptr),
-	m_transitionState(TransitionState::NONE), m_fadeAlpha(0.0f), m_fadeDuration(0.8f)
+	: m_currentScene(nullptr), m_pendingSceneType(PendingSceneType::NONE), 
+	  m_pendingMapFileName(L""), m_pendingCharacterID(GOID_NONE)
 {
 }
 
@@ -27,19 +27,15 @@ SceneManager::~SceneManager()
 
 void SceneManager::Init()
 {
-	// 초기 상태 설정
-	m_transitionState = TransitionState::NONE;
-	m_fadeAlpha = 0.0f;
-
 	// 첫 번째 씬 (타이틀 씬) 로드
 	LoadTitleScene();
 }
 
 void SceneManager::Update(float deltaTime)
 {
-	// 전환 효과 업데이트
-	UpdateFadeEffect(deltaTime);
-
+	// 보류 중인 씬 전환 처리 (Update 시작 시점에 처리)
+	ProcessPendingSceneChange();
+	
 	// 현재 씬 업데이트 (해당 씬의 매니저들 업데이트)
 	if (m_currentScene) {
 		m_currentScene->Update(deltaTime);
@@ -56,20 +52,10 @@ void SceneManager::LateUpdate()
 
 void SceneManager::Render()
 {
-	// 씬 전환 중에는 검은 화면만 표시 (초기화가 완료될 때까지 대기)
-	if (m_transitionState == TransitionState::SCENE_SWITCH) {
-		// 전환 효과만 렌더링
-		RenderFadeEffect();
-		return;
-	}
-
 	// 현재 씬 렌더링 (해당 씬의 매니저들 렌더링)
 	if (m_currentScene) {
 		m_currentScene->Render();
 	}
-
-	// 전환 효과 렌더링
-	RenderFadeEffect();
 }
 
 void SceneManager::Release()
@@ -80,95 +66,72 @@ void SceneManager::Release()
 		delete m_currentScene;
 		m_currentScene = nullptr;
 	}
-
-	// 다음 씬 해제
-	if (m_nextScene) {
-		m_nextScene->Release();
-		delete m_nextScene;
-		m_nextScene = nullptr;
-	}
 }
 
 void SceneManager::LoadTitleScene()
 {
-	// 타이틀 씬 생성 후 즉시 로드
-	TitleScene* titleScene = new TitleScene();
-	titleScene->Init();
-
-	// 현재 씬이 있으면 해제
+	OutputDebugStringW(L"SceneManager: 타이틀 씬 로드 시작\n");
+	
+	// 현재 씬이 있으면 먼저 해제
 	if (m_currentScene) {
+		OutputDebugStringW(L"SceneManager: 이전 씬 해제 중...\n");
 		m_currentScene->Release();
 		delete m_currentScene;
+		m_currentScene = nullptr;
 	}
 
+	// 타이틀 씬 생성 및 초기화
+	TitleScene* titleScene = new TitleScene();
+	titleScene->Init();
 	m_currentScene = titleScene;
-
-	// 초기 로드가 아닌 경우 전환 효과 시작
-	if (m_transitionState != TransitionState::NONE) {
-		StartFadeIn();
-	}
 
 	OutputDebugStringW(L"SceneManager: 타이틀 씬 로드 완료\n");
 }
 
 void SceneManager::LoadCharacterSelectScene()
 {
-	// 이미 전환 중이면 무시
-	if (m_transitionState != TransitionState::NONE) {
-		OutputDebugStringW(L"SceneManager: 이미 전환 중이므로 캐릭터 선택 씬 로드 무시\n");
-		return;
+	OutputDebugStringW(L"SceneManager: 캐릭터 선택 씬 로드 시작\n");
+	
+	// 현재 씬이 있으면 먼저 해제
+	if (m_currentScene) {
+		OutputDebugStringW(L"SceneManager: 이전 씬 해제 중...\n");
+		m_currentScene->Release();
+		delete m_currentScene;
+		m_currentScene = nullptr;
 	}
 
-	// 캐릭터 선택 씬 생성 (초기화는 전환 효과 완료 후)
+	// 캐릭터 선택 씬 생성 및 초기화
 	CharacterSelectScene* characterSelectScene = new CharacterSelectScene();
-	m_nextScene = characterSelectScene;
+	characterSelectScene->Init();
+	m_currentScene = characterSelectScene;
 
-	StartFadeOut();
-
-	OutputDebugStringW(L"SceneManager: 캐릭터 선택 씬 로드 시작 - 전환 효과 시작\n");
+	OutputDebugStringW(L"SceneManager: 캐릭터 선택 씬 로드 완료\n");
 }
 
 void SceneManager::LoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID)
 {
-	// 이미 전환 중이면 무시
-	if (m_transitionState != TransitionState::NONE) {
-		OutputDebugStringW(L"SceneManager: 이미 전환 중이므로 게임 씬 로드 무시\n");
-		return;
-	}
-
 	OutputDebugStringW(L"SceneManager: 게임 씬 로드 시작\n");
-
-	// 임시 변수에 저장
-	m_tempMapFileName = mapFileName;
-	m_tempSelectedCharacterID = selectedCharacterID;
-
-	// 게임 씬 생성 (초기화는 전환 효과 완료 후)
+	
+	// 현재 씬이 있으면 먼저 해제
+	if (m_currentScene) {
+		OutputDebugStringW(L"SceneManager: 이전 씬 해제 중...\n");
+		m_currentScene->Release();
+		delete m_currentScene;
+		m_currentScene = nullptr;
+	}
+	
+	// 게임 씬 생성 및 초기화
 	GameScene* gameScene = new GameScene();
 	gameScene->SetSelectedCharacterID(selectedCharacterID);
+	
+	// 맵 데이터 파싱 후 게임 씬 초기화
+	std::unique_ptr<MapData> mapData = std::make_unique<MapData>();
+	ParseMapFileInto(mapFileName, *mapData);
+	gameScene->Init(*mapData);
+	m_currentScene = gameScene;
 
-	m_nextScene = gameScene;
-	StartFadeOut();
-
-	OutputDebugStringW((L"SceneManager: 게임 씬 로드 시작 - 맵: " + mapFileName +
-		L", 캐릭터 ID: " + std::to_wstring(selectedCharacterID) + L", 전환 효과 시작\n").c_str());
-}
-
-void SceneManager::ReturnToTitle()
-{
-	// 이미 전환 중이면 무시
-	if (m_transitionState != TransitionState::NONE) {
-		OutputDebugStringW(L"SceneManager: 이미 전환 중이므로 타이틀 씬 로드 무시\n");
-		return;
-	}
-
-	// 타이틀 씬으로 되돌리기
-	OutputDebugStringW(L"SceneManager: 타이틀 씬으로 되돌리기 시작\n");
-
-	// 타이틀 씬 생성 (초기화는 전환 효과 완료 후)
-	TitleScene* titleScene = new TitleScene();
-
-	m_nextScene = titleScene;
-	StartFadeOut();
+	OutputDebugStringW((L"SceneManager: 게임 씬 로드 완료 - 맵: " + mapFileName +
+		L", 캐릭터 ID: " + std::to_wstring(selectedCharacterID) + L"\n").c_str());
 }
 
 void SceneManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& mapData)
@@ -374,141 +337,56 @@ SceneType SceneManager::GetCurrentSceneType() const
 	return m_currentScene->GetSceneType();
 }
 
-// 전환 효과 관련 함수들 구현
-void SceneManager::StartFadeOut()
+void SceneManager::RequestLoadTitleScene()
 {
-	m_transitionState = TransitionState::FADE_OUT;
-	m_fadeAlpha = 0.0f;
+	OutputDebugStringW(L"SceneManager: 타이틀 씬 전환 요청\n");
+	m_pendingSceneType = PendingSceneType::TITLE;
 }
 
-void SceneManager::StartFadeIn()
+void SceneManager::RequestLoadCharacterSelectScene()
 {
-	m_transitionState = TransitionState::FADE_IN;
-	m_fadeAlpha = 1.0f;
+	OutputDebugStringW(L"SceneManager: 캐릭터 선택 씬 전환 요청\n");
+	m_pendingSceneType = PendingSceneType::CHARACTER_SELECT;
 }
 
-void SceneManager::UpdateFadeEffect(float deltaTime)
+void SceneManager::RequestLoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID)
 {
-	// TimeManager에서 이미 계산된 deltaTime을 사용하므로 추가 계산 불필요
-	switch (m_transitionState) {
-	case TransitionState::FADE_OUT:
-		m_fadeAlpha += deltaTime / m_fadeDuration;
-		if (m_fadeAlpha >= 1.0f) {
-			m_fadeAlpha = 1.0f;
+	OutputDebugStringW(L"SceneManager: 게임 씬 전환 요청\n");
+	m_pendingSceneType = PendingSceneType::GAME;
+	m_pendingMapFileName = mapFileName;
+	m_pendingCharacterID = selectedCharacterID;
+}
 
-			// 전환 효과 완료 후 씬 전환
-			if (m_nextScene) {
-				// 현재 씬이 있으면 해제
-				if (m_currentScene) {
-					m_currentScene->Release();
-					delete m_currentScene;
-				}
-
-				// 다음 씬을 현재 씬으로 설정
-				m_currentScene = m_nextScene;
-				m_nextScene = nullptr;
-
-				// 씬 전환 상태로 변경
-				m_transitionState = TransitionState::SCENE_SWITCH;
-			}
-			else {
-				// 다음 씬이 없으면 전환 효과 종료
-				m_transitionState = TransitionState::NONE;
-			}
-		}
-		break;
-
-	case TransitionState::SCENE_SWITCH:
-	{
-		// 씬 전환 중 - 새 씬 초기화
-		if (m_currentScene) {
-			// GameScene인 경우 맵 데이터로 초기화
-			if (m_currentScene->GetSceneType() == SCENE_GAME_FARMING_AREA ||
-				m_currentScene->GetSceneType() == SCENE_GAME_HOUND_FOREST ||
-				m_currentScene->GetSceneType() == SCENE_GAME_SPIDER_QUEEN_HOUSE)
-			{
-				GameScene* gameScene = dynamic_cast<GameScene*>(m_currentScene);
-				if (gameScene) {
-					// 맵 데이터를 파싱 후 초기화 (메모리 할당하여 전달)
-					std::unique_ptr<MapData> mapData = std::make_unique<MapData>();
-					ParseMapFileInto(m_tempMapFileName, *mapData);
-					gameScene->Init(*mapData);
-					// unique_ptr은 자동으로 해제됨
-
-					OutputDebugStringW(L"SceneManager: 게임 씬 초기화 완료\n");
-				}
-			}
-			else {
-				// 다른 씬은 일반 초기화
-				m_currentScene->Init();
-				OutputDebugStringW(L"SceneManager: 씬 초기화 완료\n");
-			}
-		}
-
-		// 초기화 완료 후 페이드 인 시작
-		StartFadeIn();
+void SceneManager::ProcessPendingSceneChange()
+{
+	if (m_pendingSceneType == PendingSceneType::NONE) {
+		return;
 	}
-	break;
-
-	case TransitionState::FADE_IN:
-		m_fadeAlpha -= deltaTime / m_fadeDuration;
-		if (m_fadeAlpha <= 0.0f) {
-			m_fadeAlpha = 0.0f;
-			m_transitionState = TransitionState::NONE;
-			OutputDebugStringW(L"SceneManager: 전환 효과 완료\n");
-		}
+	
+	OutputDebugStringW(L"SceneManager: 보류 중인 씬 전환 처리 시작\n");
+	
+	PendingSceneType sceneToLoad = m_pendingSceneType;
+	std::wstring mapFileName = m_pendingMapFileName;
+	GameObjectID characterID = m_pendingCharacterID;
+	
+	// 대기 상태 초기화
+	m_pendingSceneType = PendingSceneType::NONE;
+	m_pendingMapFileName = L"";
+	m_pendingCharacterID = GOID_NONE;
+	
+	// 씬 전환 실행
+	switch (sceneToLoad) {
+	case PendingSceneType::TITLE:
+		LoadTitleScene();
 		break;
-
-	case TransitionState::NONE:
-	default:
+	case PendingSceneType::CHARACTER_SELECT:
+		LoadCharacterSelectScene();
+		break;
+	case PendingSceneType::GAME:
+		LoadGameScene(mapFileName, characterID);
 		break;
 	}
-
-	// 디버그 로그 추가 (너무 많이 출력되지 않도록 제한)
-	static float debugTimer = 0.0f;
-	debugTimer += deltaTime;
-	if (m_transitionState != TransitionState::NONE && debugTimer >= 0.1f) {
-		OutputDebugStringW((L"SceneManager: 전환 효과 업데이트 - 알파: " + std::to_wstring(m_fadeAlpha) + L", 상태: " + std::to_wstring(static_cast<int>(m_transitionState)) + L"\n").c_str());
-		debugTimer = 0.0f;
-	}
+	
+	OutputDebugStringW(L"SceneManager: 씬 전환 완료\n");
 }
 
-void SceneManager::RenderFadeEffect()
-{
-	if (m_transitionState != TransitionState::NONE) {
-		// 전환 효과 렌더링
-		RenderManager* renderManager = RenderManager::GetInstance();
-		if (renderManager) {
-			// SCENE_SWITCH 상태에서는 완전히 검은 화면 표시
-			BYTE alpha;
-			if (m_transitionState == TransitionState::SCENE_SWITCH) {
-				alpha = 255; // 완전히 검은 화면
-			}
-			else {
-				// 알파값을 0-255 범위로 변환하여, 점진적으로 전환
-				alpha = static_cast<BYTE>(m_fadeAlpha * 255);
-			}
-
-			Gdiplus::Color fadeColor(alpha, 0, 0, 0);
-
-			// 디버그 로그 출력 (너무 많이 출력되지 않도록 제한)
-			static float renderDebugTimer = 0.0f;
-			renderDebugTimer += 0.016f; // 프레임당 대략적인 시간
-			if (renderDebugTimer >= 0.5f) {
-				OutputDebugStringW((L"SceneManager: 전환 효과 렌더링 - 알파: " + std::to_wstring(alpha) +
-					L", 상태: " + std::to_wstring(static_cast<int>(m_transitionState)) + L"\n").c_str());
-				renderDebugTimer = 0.0f;
-			}
-
-			renderManager->AddFillRectangleCommand(
-				Gdiplus::RectF(0, 0, WINCX, WINCY),
-				fadeColor,
-				LAYER_DEBUG_OVERLAY,  // 최상위 레이어에 표시
-				999.0f  // 최상위 레이어에 표시
-			);
-		}
-		else {
-			OutputDebugStringW(L"SceneManager: RenderManager가 null입니다. 전환 효과 렌더링 실패.\n");
-		}
-	}
-}

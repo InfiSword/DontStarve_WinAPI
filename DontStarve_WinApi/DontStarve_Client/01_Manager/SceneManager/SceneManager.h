@@ -23,39 +23,32 @@ public:
 	void LoadTitleScene();
 	void LoadCharacterSelectScene();
 	void LoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID = GOID_NONE);
-	void ReturnToTitle();  // 다시 타이틀로
+
+	// 지연된 씬 전환 요청
+	void RequestLoadTitleScene();
+	void RequestLoadCharacterSelectScene();
+	void RequestLoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID = GOID_NONE);
 
 	// 맵 데이터 파싱
 	void ParseMapFileInto(const std::wstring& mapFileName, MapData& mapData);
 
-	// 전환 효과
-	void StartFadeOut();
-	void StartFadeIn();
-	void UpdateFadeEffect(float deltaTime);
-	void RenderFadeEffect();
-
 	// 현재 씬 타입 반환
 	SceneType GetCurrentSceneType() const;
-	
-	// 전환 중인지 확인
-	bool IsTransitioning() const { return m_transitionState != TransitionState::NONE; }
 
 private:
-	// 전환 효과 상태
-	enum class TransitionState {
+	BaseScene* m_currentScene;
+
+	// 씬 전환 대기 큐
+	enum class PendingSceneType {
 		NONE,
-		FADE_OUT,
-		SCENE_SWITCH,  // 씬 전환 중 (새 씬 초기화)
-		FADE_IN
+		TITLE,
+		CHARACTER_SELECT,
+		GAME
 	};
 
-	BaseScene* m_currentScene;
-	BaseScene* m_nextScene;
-	TransitionState m_transitionState;
-	float m_fadeAlpha;
-	float m_fadeDuration;
-	
-	// 임시 맵 파일명 저장용
-	std::wstring m_tempMapFileName;
-	GameObjectID m_tempSelectedCharacterID;
+	PendingSceneType m_pendingSceneType;
+	std::wstring m_pendingMapFileName;
+	GameObjectID m_pendingCharacterID;
+
+	void ProcessPendingSceneChange();
 };
