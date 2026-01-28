@@ -3,6 +3,8 @@
 #include "../GameObject.h"
 
 class RectTransform;
+class Text;
+namespace ComponentElement { class Image; }
 
 class UIElement : public GameObject
 {
@@ -15,6 +17,8 @@ public:
 		bool isActive = true, bool isInteractive = false);
 	virtual ~UIElement();
 
+	virtual void Update(float deltaTime) override;
+	virtual void Render() {}
 	virtual void Release() override;
 
 	// RectTransform 접근

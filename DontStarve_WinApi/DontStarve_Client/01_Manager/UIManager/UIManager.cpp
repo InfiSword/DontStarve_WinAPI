@@ -1,5 +1,8 @@
 #include "99_Default/pch.h"
 #include "UIManager.h"
+#include "../../02_GameObject/UI/UIImage.h"
+#include "../../02_GameObject/UI/UIButton.h"
+#include "../../02_GameObject/UI/UIText.h"
 #include "../RenderManager/RenderManager.h"
 #include "../InputManager/InputManager.h"
 
@@ -23,7 +26,6 @@ void UIManager::LateInit()
 
 void UIManager::Update(float deltaTime)
 {
-
 	for (size_t i = 0; i < m_uiImages.size(); ++i) {
 		auto* image = m_uiImages[i];
 		if (image && image->IsEnabled()) {
@@ -31,11 +33,17 @@ void UIManager::Update(float deltaTime)
 		}
 	}
 
-
 	for (size_t i = 0; i < m_uiButtons.size(); ++i) {
 		auto* button = m_uiButtons[i];
 		if (button && button->IsEnabled()) {
 			button->Update(deltaTime);
+		}
+	}
+
+	for (size_t i = 0; i < m_uiTexts.size(); ++i) {
+		auto* text = m_uiTexts[i];
+		if (text && text->IsEnabled()) {
+			text->Update(deltaTime);
 		}
 	}
 }
@@ -49,17 +57,21 @@ void UIManager::Render()
 	RenderManager* renderManager = RenderManager::GetInstance();
 	if (!renderManager) return;
 
-
 	for (auto* image : m_uiImages) {
 		if (image && image->IsEnabled()) {
 			image->Render();
 		}
 	}
 
-
 	for (auto* button : m_uiButtons) {
 		if (button && button->IsEnabled()) {
 			button->Render();
+		}
+	}
+
+	for (auto* text : m_uiTexts) {
+		if (text && text->IsEnabled()) {
+			text->Render();
 		}
 	}
 }
@@ -89,6 +101,16 @@ void UIManager::AddUIButton(UIButton* button)
 	}
 }
 
+void UIManager::AddUIText(UIText* text)
+{
+	if (text) {
+		auto it = std::find(m_uiTexts.begin(), m_uiTexts.end(), text);
+		if (it == m_uiTexts.end()) {
+			m_uiTexts.push_back(text);
+		}
+	}
+}
+
 void UIManager::RemoveUIImage(UIImage* image)
 {
 	if (!image) return;
@@ -109,6 +131,16 @@ void UIManager::RemoveUIButton(UIButton* button)
 	}
 }
 
+void UIManager::RemoveUIText(UIText* text)
+{
+	if (!text) return;
+
+	auto it = std::find(m_uiTexts.begin(), m_uiTexts.end(), text);
+	if (it != m_uiTexts.end()) {
+		m_uiTexts.erase(it);
+	}
+}
+
 void UIManager::ClearAllUI()
 {
 	for (auto* image : m_uiImages) {
@@ -126,6 +158,14 @@ void UIManager::ClearAllUI()
 		}
 	}
 	m_uiButtons.clear();
+
+	for (auto* text : m_uiTexts) {
+		if (text) {
+			text->Release();
+			delete text;
+		}
+	}
+	m_uiTexts.clear();
 }
 
 UIImage* UIManager::FindUIImage(GameObjectID id)
@@ -143,6 +183,16 @@ UIButton* UIManager::FindUIButton(GameObjectID id)
 	for (auto* button : m_uiButtons) {
 		if (button && button->GetID() == id) {
 			return button;
+		}
+	}
+	return nullptr;
+}
+
+UIText* UIManager::FindUIText(GameObjectID id)
+{
+	for (auto* text : m_uiTexts) {
+		if (text && text->GetID() == id) {
+			return text;
 		}
 	}
 	return nullptr;

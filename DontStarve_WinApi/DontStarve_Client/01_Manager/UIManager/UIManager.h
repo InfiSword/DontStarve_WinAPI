@@ -1,8 +1,10 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "../../02_GameObject/UI/UIImage.h"
-#include "../../02_GameObject/UI/UIButton.h"
+
+class UIImage;
+class UIButton;
+class UIText;
 
 class UIManager : public CSingleTon<UIManager>
 {
@@ -21,13 +23,16 @@ public:
 	// UI 오브젝트 관리
 	void AddUIImage(UIImage* image);
 	void AddUIButton(UIButton* button);
+	void AddUIText(UIText* text);
 	void RemoveUIImage(UIImage* image);
 	void RemoveUIButton(UIButton* button);
+	void RemoveUIText(UIText* text);
 	void ClearAllUI();
 
 	// 특정 UI 오브젝트 찾기
 	UIImage* FindUIImage(GameObjectID id);
 	UIButton* FindUIButton(GameObjectID id);
+	UIText* FindUIText(GameObjectID id);
 
 	// UI 상태 관리
 	void SetUIVisibility(bool visible);
@@ -36,5 +41,6 @@ public:
 private:
 	std::vector<UIImage*> m_uiImages;
 	std::vector<UIButton*> m_uiButtons;
+	std::vector<UIText*> m_uiTexts;
 	bool m_isUIVisible;
 }; 

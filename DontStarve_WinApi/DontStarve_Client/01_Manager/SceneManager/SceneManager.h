@@ -36,6 +36,9 @@ public:
 
 	// 현재 씬 타입 반환
 	SceneType GetCurrentSceneType() const;
+	
+	// 전환 중인지 확인
+	bool IsTransitioning() const { return m_transitionState != TransitionState::NONE; }
 
 private:
 	// 전환 효과 상태

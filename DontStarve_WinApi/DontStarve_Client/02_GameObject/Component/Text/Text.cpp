@@ -23,18 +23,8 @@ Text::Text(GameObject* owner,
 {
 	m_brush = std::make_unique<Gdiplus::SolidBrush>(color);
 	
-	// 한글 지원을 위해 FontFamily를 명시적으로 생성
-	// GDI+ Font 생성자는 FontFamily를 복사하므로 스택 변수 사용 가능
-	Gdiplus::FontFamily fontFamily(fontName.c_str());
-	if (fontFamily.GetLastStatus() == Gdiplus::Ok) {
-		m_font = std::make_unique<Gdiplus::Font>(&fontFamily, fontSize, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
-	}
-	else {
-		Gdiplus::FontFamily defaultFamily(L"맑은 고딕");
-		if (defaultFamily.GetLastStatus() == Gdiplus::Ok) {
-			m_font = std::make_unique<Gdiplus::Font>(&defaultFamily, fontSize, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
-		}
-	}
+	// 폰트 생성
+	m_font = std::make_unique<Gdiplus::Font>(fontName.c_str(), fontSize, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
 	
 	m_format = std::make_unique<Gdiplus::StringFormat>();
 	m_format->SetAlignment(hAlign);
@@ -105,11 +95,7 @@ void Text::EnsureDefaults()
 {
 	if (!m_font)
 	{
-		// 한글 지원을 위해 FontFamily를 명시적으로 생성
-		Gdiplus::FontFamily defaultFamily(L"맑은 고딕");
-		if (defaultFamily.GetLastStatus() == Gdiplus::Ok) {
-			m_font = std::make_unique<Gdiplus::Font>(&defaultFamily, 16.0f, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
-		}
+		m_font = std::make_unique<Gdiplus::Font>(L"Arial", 16.0f, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
 	}
 	if (!m_brush)
 	{

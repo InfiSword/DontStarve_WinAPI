@@ -1,6 +1,10 @@
 #pragma once
 #include "BaseScene.h"
 
+class UIImage;
+class UIButton;
+class UIText;
+
 // 캐릭터 정보 구조체
 struct CharacterInfo
 {
@@ -33,9 +37,17 @@ private:
 	// 캐릭터 목록
 	std::vector<CharacterInfo> m_characterList;        // 모든 등록된 캐릭터 목록
 	
-	// 텍스트 렌더링 리소스
-	Gdiplus::Font* m_descriptionFont;   // 설명 텍스트용 폰트
-	Gdiplus::SolidBrush* m_descriptionBrush; // 설명 텍스트용 브러시
+	// UI 요소들
+	UIImage* m_backgroundImage;
+	UIButton* m_backButton;
+	UIImage* m_selectedPortrait;
+	UIImage* m_characterInfoPanel;
+	UIButton* m_selectButton;
+	UIButton* m_cancelButton;
+	UIText* m_descriptionText;  // 캐릭터 설명 텍스트
+	UIText* m_backButtonText;
+	UIText* m_selectButtonText;
+	UIText* m_cancelButtonText;
 	
 	// 상태 관리 변수
 	CharacterSelectionState m_currentState;
@@ -87,8 +99,7 @@ private:
 	void InitializeCharacters();        // 캐릭터 목록 초기화
 	void CreateCharacterButtons();      // 캐릭터 버튼 생성
 	void UpdateCharacterSelection();    // 선택된 캐릭터 UI 업데이트
-	void InitializeTextRendering();    // 텍스트 렌더링 초기화
-	void RenderCharacterDescription(); // 캐릭터 설명 텍스트 렌더링
+	void UpdateCharacterDescription();  // 캐릭터 설명 텍스트 업데이트
 	void UpdateCharacterUnlockStatus(); // 캐릭터 해금 상태 업데이트
 	void UpdateSelectButtonState();    // 선택 버튼 상태 업데이트
 	

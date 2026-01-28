@@ -113,6 +113,12 @@ void SceneManager::LoadTitleScene()
 
 void SceneManager::LoadCharacterSelectScene()
 {
+	// 이미 전환 중이면 무시
+	if (m_transitionState != TransitionState::NONE) {
+		OutputDebugStringW(L"SceneManager: 이미 전환 중이므로 캐릭터 선택 씬 로드 무시\n");
+		return;
+	}
+
 	// 캐릭터 선택 씬 생성 (초기화는 전환 효과 완료 후)
 	CharacterSelectScene* characterSelectScene = new CharacterSelectScene();
 	m_nextScene = characterSelectScene;
@@ -124,6 +130,12 @@ void SceneManager::LoadCharacterSelectScene()
 
 void SceneManager::LoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID)
 {
+	// 이미 전환 중이면 무시
+	if (m_transitionState != TransitionState::NONE) {
+		OutputDebugStringW(L"SceneManager: 이미 전환 중이므로 게임 씬 로드 무시\n");
+		return;
+	}
+
 	OutputDebugStringW(L"SceneManager: 게임 씬 로드 시작\n");
 
 	// 임시 변수에 저장
@@ -143,6 +155,12 @@ void SceneManager::LoadGameScene(const std::wstring& mapFileName, GameObjectID s
 
 void SceneManager::ReturnToTitle()
 {
+	// 이미 전환 중이면 무시
+	if (m_transitionState != TransitionState::NONE) {
+		OutputDebugStringW(L"SceneManager: 이미 전환 중이므로 타이틀 씬 로드 무시\n");
+		return;
+	}
+
 	// 타이틀 씬으로 되돌리기
 	OutputDebugStringW(L"SceneManager: 타이틀 씬으로 되돌리기 시작\n");
 

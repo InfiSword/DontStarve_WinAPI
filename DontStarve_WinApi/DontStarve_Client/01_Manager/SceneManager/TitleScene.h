@@ -3,6 +3,7 @@
 
 class UIImage;
 class UIButton;
+class UIText;
 
 class TitleScene : public BaseScene
 {
@@ -38,4 +39,6 @@ private:
 	UIImage* m_logoImage;
 	UIButton* m_startButton;
 	UIButton* m_exitButton;
+	UIText* m_startButtonText;
+	UIText* m_exitButtonText;
 };

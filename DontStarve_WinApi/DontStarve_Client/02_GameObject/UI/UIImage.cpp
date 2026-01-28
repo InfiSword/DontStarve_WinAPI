@@ -4,12 +4,16 @@
 #include "../Component/Sprite/Image.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
 
-UIImage::UIImage(GameObjectID id, float x, float y, float width, float height, RenderLayer layer, const std::wstring& imagePath, float sortKey)
+UIImage::UIImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& imagePath, float sortKey,
+                 float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY,
+                 float anchoredPosX, float anchoredPosY)
 	: UIElement(GOBJ_UI, id, L"", L"", true, false)
 {
 	// UIElement에서 이미 RectTransform이 생성되었으므로 GetRectTransform() 사용
 	m_rectTransform = GetRectTransform();
-	m_rectTransform->SetPosition(x, y);
+	m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
+	m_rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
+	m_rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
 	m_rectTransform->SetPivot(0.5f, 0.5f);
 
 	m_image = AddComponent<ComponentElement::Image>();
@@ -81,6 +85,13 @@ void UIImage::SetSprite(const std::shared_ptr<Sprite>& sprite)
 {
 	if(m_image != nullptr)
 		m_image->SetSprite(sprite);
+}
+
+void UIImage::LoadSprite(const std::wstring& imagePath)
+{
+	if (m_image != nullptr) {
+		m_image->LoadSprite(imagePath);
+	}
 }
 
 void UIImage::Release()

@@ -2,6 +2,7 @@
 #include "TitleScene.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
+#include "../../02_GameObject/UI/UIText.h"
 #include "SceneManager.h"
 #include "../UIManager/UIManager.h"
 #include "../InputManager/InputManager.h"
@@ -30,46 +31,44 @@ void TitleScene::Init()
 
 void TitleScene::CreateUI()
 {
-	// 화면 크기 계산
-	float screenWidth = WINCX;
-	float screenHeight = WINCY;
-
-	// 배경 이미지 생성
+	// 배경 이미지 생성 (전체 화면)
 	m_backgroundImage = new UIImage(
 		static_cast<GameObjectID>(GOID_MAIN_BG),
-		screenWidth / 2.0f,
-		screenHeight / 2.0f,
-		screenWidth,
-		screenHeight,
+		static_cast<float>(WINCX),
+		static_cast<float>(WINCY),
 		LAYER_UI_BACKGROUND,
 		L"../Resource/UI/motd_fallbacks_box6.png",
-		0.f
+		0.f,
+		0.0f, 0.0f,  // anchorMin
+		1.0f, 1.0f,  // anchorMax
+		0.0f, 0.0f    // anchoredPosition
 	);
 	UIManager::GetInstance()->AddUIImage(m_backgroundImage);
 
-	// 로고 이미지 생성 (화면 상단에 위치)
+	// 로고 이미지 생성 (화면 상단 중앙)
 	m_logoImage = new UIImage(
 		static_cast<GameObjectID>(GOID_GAME_LOGO),
-		screenWidth / 2.0f,
-		200.0f,
 		400.0f,
 		200.0f,
 		LAYER_UI_FOREGROUND,
 		L"../Resource/UI/logo.png",
-		0.f
+		0.f,
+		0.5f, 1.0f,  // anchorMin (상단 중앙)
+		0.5f, 1.0f,  // anchorMax (상단 중앙)
+		0.0f, -200.0f // anchoredPosition (상단에서 아래로 200px)
 	);
 	UIManager::GetInstance()->AddUIImage(m_logoImage);
 
-	// 게임시작 버튼 생성
+	// 게임시작 버튼 생성 (화면 중앙 기준 아래로 100px)
 	m_startButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BUTTON1),
-		screenWidth / 2.0f,
-		screenHeight / 2.0f + 100.0f,
 		200.0f,
 		60.0f,
 		L"../Resource/UI/frontscreen.png",
 		L"../Resource/UI/HighLight_frontscreen.png",
-		L"게임시작"
+		0.5f, 0.5f,  // anchorMin (중앙)
+		0.5f, 0.5f,  // anchorMax (중앙)
+		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
 	);
 	
 	// 게임시작 버튼 콜백 설정
@@ -78,16 +77,35 @@ void TitleScene::CreateUI()
 	});
 	UIManager::GetInstance()->AddUIButton(m_startButton);
 
-	// 종료 버튼 생성
+	// 게임시작 버튼 텍스트 생성 (버튼과 동일한 anchor)
+	m_startButtonText = new UIText(
+		static_cast<GameObjectID>(GOID_BUTTON1_TEXT),
+		200.0f,
+		60.0f,
+		L"게임시작",
+		Gdiplus::Color::Black,
+		LAYER_UI_FOREGROUND,
+		0.1f,
+		L"맑은 고딕",
+		16.0f,
+		Gdiplus::StringAlignmentCenter,
+		Gdiplus::StringAlignmentCenter,
+		0.5f, 0.5f,  // anchorMin (중앙)
+		0.5f, 0.5f,  // anchorMax (중앙)
+		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
+	);
+	UIManager::GetInstance()->AddUIText(m_startButtonText);
+
+	// 종료 버튼 생성 (화면 중앙 기준 아래로 200px)
 	m_exitButton = new UIButton(
 		static_cast<GameObjectID>(GOID_ENDBUTTON1),
-		screenWidth / 2.0f,
-		screenHeight / 2.0f + 200.0f,
 		200.0f,
 		60.0f,
 		L"../Resource/UI/frontscreen.png",
 		L"../Resource/UI/HighLight_frontscreen.png",
-		L"종료"
+		0.5f, 0.5f,  // anchorMin (중앙)
+		0.5f, 0.5f,  // anchorMax (중앙)
+		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
 	);
 	
 	// 종료 버튼 콜백 설정
@@ -95,6 +113,25 @@ void TitleScene::CreateUI()
 		OnExitButtonClicked();
 	});
 	UIManager::GetInstance()->AddUIButton(m_exitButton);
+
+	// 종료 버튼 텍스트 생성 (버튼과 동일한 anchor)
+	m_exitButtonText = new UIText(
+		static_cast<GameObjectID>(GOID_ENDBUTTON1_TEXT),
+		200.0f,
+		60.0f,
+		L"종료",
+		Gdiplus::Color::Black,
+		LAYER_UI_FOREGROUND,
+		0.1f,
+		L"맑은 고딕",
+		16.0f,
+		Gdiplus::StringAlignmentCenter,
+		Gdiplus::StringAlignmentCenter,
+		0.5f, 0.5f,  // anchorMin (중앙)
+		0.5f, 0.5f,  // anchorMax (중앙)
+		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
+	);
+	UIManager::GetInstance()->AddUIText(m_exitButtonText);
 }
 
 void TitleScene::Update(float deltaTime)

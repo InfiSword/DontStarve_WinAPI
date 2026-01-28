@@ -17,6 +17,12 @@ UIElement::~UIElement()
 	Release();
 }
 
+void UIElement::Update(float deltaTime)
+{
+	// GameObject::Update() 호출하여 모든 컴포넌트 업데이트
+	GameObject::Update(deltaTime);
+}
+
 void UIElement::Release()
 {
 	// UIElement 전용 정리 작업
