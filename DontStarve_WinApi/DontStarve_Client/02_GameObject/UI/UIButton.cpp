@@ -27,6 +27,10 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 	rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
 	rectTransform->SetPivot(0.5f, 0.5f);
 	
+	// 기본 크기 설정 (스케일은 1.0으로 유지)
+	rectTransform->SetSize(width, height);
+	rectTransform->SetScale(1.0f, 1.0f);
+	
 	// Image 컴포넌트 추가 (생성자에서 초기화)
 	m_image = AddComponent<ComponentElement::Image>();
 	m_image->SetLayer(LAYER_UI_FOREGROUND);
@@ -62,17 +66,21 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 	// normal과 hover 스프라이트 미리 로드
 	LoadBitmaps(normalFullPath, hoverFullPath);
 	
-	// 비트맵 로드 후 크기에 맞춰 scale 계산
+	// 스프라이트가 있으면 스프라이트 크기에 맞춰 scale 조정
 	if (m_image && m_image->GetSprite()) {
 		Gdiplus::Bitmap* bitmap = m_image->GetSprite();
 		float bitmapWidth = static_cast<float>(bitmap->GetWidth());
 		float bitmapHeight = static_cast<float>(bitmap->GetHeight());
 		if (bitmapWidth > 0 && bitmapHeight > 0) {
+			// 목표 크기(width, height)에 맞추기 위한 스케일 계산
 			float scaleX = width / bitmapWidth;
 			float scaleY = height / bitmapHeight;
 			rectTransform->SetScale(scaleX, scaleY);
+			// 스프라이트 원본 크기로 width/height 업데이트
+			rectTransform->SetSize(bitmapWidth, bitmapHeight);
 		}
 	}
+	// 스프라이트가 없는 경우는 이미 width/height가 설정되어 있음
 }
 
 UIButton::~UIButton()
@@ -126,7 +134,7 @@ void UIButton::Update(float deltaTime)
 	
 	ButtonState currentState = m_buttonComp->GetState();
 	
-	// 상태가 변경되었을 때 스프라이트 변경
+	// 상태가 변경되었을 때 스프라이트 변경 (hover callback은 Button에서 처리)
 	if (previousState != currentState) {
 		if (currentState == ButtonState::HOVER && m_hoverSprite) {
 			m_image->SetSprite(m_hoverSprite);
@@ -170,10 +178,9 @@ void UIButton::Render()
 	float width = bitmapWidth * rectTransform->GetScaleX();
 	float height = bitmapHeight * rectTransform->GetScaleY();
 
-	// 현재 상태에 따른 색상 틴트 정보 가져오기 (Button의 스타일에서)
-	const ButtonStateStyle& style = m_buttonComp->GetStateStyle(currentState);
-	Gdiplus::Color tintColor = style.spriteColor;
-	bool hasTint = (tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255 || tintColor.GetA() != 255);
+	// Image 컴포넌트의 틴트 색상 사용 (Button의 ApplyVisualState에서 설정됨)
+	Gdiplus::Color tintColor = m_image->GetTintColor();
+	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
 
 	RenderManager::GetInstance()->RenderUIImageWithPivot(
 		bitmap,
@@ -206,9 +213,9 @@ void UIButton::RenderDisabled()
 	float width = bitmapWidth * m_rectTransform->GetScaleX();
 	float height = bitmapHeight * m_rectTransform->GetScaleY();
 	
-	const ButtonStateStyle& disabledStyle = m_buttonComp->GetStateStyle(ButtonState::DISABLED);
-	Gdiplus::Color tintColor = disabledStyle.spriteColor;
-	bool hasTint = (tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255 || tintColor.GetA() != 255);
+	// Image 컴포넌트의 틴트 색상 사용 (Button의 ApplyVisualState에서 설정됨)
+	Gdiplus::Color tintColor = m_image->GetTintColor();
+	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
 	
 	RenderManager::GetInstance()->RenderUIImageWithPivot(
 		bitmap,
@@ -247,6 +254,34 @@ void UIButton::SetDisabled(bool disabled)
 ButtonState UIButton::GetButtonState() const
 {
 	return m_buttonComp ? m_buttonComp->GetState() : ButtonState::NORMAL;
+}
+
+void UIButton::SetHoverColor(const Gdiplus::Color& color)
+{
+	if (m_buttonComp) {
+		m_buttonComp->SetHoverColor(color);
+	}
+}
+
+void UIButton::SetNormalColor(const Gdiplus::Color& color)
+{
+	if (m_buttonComp) {
+		m_buttonComp->SetNormalColor(color);
+	}
+}
+
+void UIButton::SetClickedColor(const Gdiplus::Color& color)
+{
+	if (m_buttonComp) {
+		m_buttonComp->SetClickedColor(color);
+	}
+}
+
+void UIButton::SetDisabledColor(const Gdiplus::Color& color)
+{
+	if (m_buttonComp) {
+		m_buttonComp->SetDisabledColor(color);
+	}
 }
 
 void UIButton::Release()

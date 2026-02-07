@@ -63,6 +63,10 @@ void UIImage::Render()
 	float pivotX = m_rectTransform->GetPivotX();
 	float pivotY = m_rectTransform->GetPivotY();
 
+	// Image 컴포넌트의 틴트 색상 가져오기
+	Gdiplus::Color tintColor = m_image->GetTintColor();
+	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
+
     RenderManager::GetInstance()->RenderUIImageWithPivot(
         bitmap,
         x,
@@ -71,8 +75,10 @@ void UIImage::Render()
         height,
 		pivotX,
 		pivotY,
-		m_image->GetLayer(),  // Image 컴포넌트의 레이어 사용
-		m_image->GetSortKey()  // Image 컴포넌트의 정렬 키 사용
+		m_image->GetLayer(),
+		m_image->GetSortKey(),
+		tintColor,
+		hasTint
     );
 }
 
@@ -92,6 +98,35 @@ void UIImage::LoadSprite(const std::wstring& imagePath)
 	if (m_image != nullptr) {
 		m_image->LoadSprite(imagePath);
 	}
+}
+
+void UIImage::SetTintColor(const Gdiplus::Color& color)
+{
+	if (m_image != nullptr) {
+		m_image->SetTintColor(color);
+	}
+}
+
+void UIImage::SetTintColor(BYTE r, BYTE g, BYTE b, BYTE a)
+{
+	if (m_image != nullptr) {
+		m_image->SetTintColor(r, g, b, a);
+	}
+}
+
+void UIImage::SetAlpha(BYTE alpha)
+{
+	if (m_image != nullptr) {
+		m_image->SetAlpha(alpha);
+	}
+}
+
+Gdiplus::Color UIImage::GetTintColor() const
+{
+	if (m_image != nullptr) {
+		return m_image->GetTintColor();
+	}
+	return Gdiplus::Color(255, 255, 255, 255);
 }
 
 void UIImage::Release()

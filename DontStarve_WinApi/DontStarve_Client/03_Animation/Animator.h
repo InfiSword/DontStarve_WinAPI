@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Enum.h>
+#include <functional>
 #include "../02_GameObject/Component/Component.h"
 #include "AnimationClip.h"
 
@@ -21,7 +22,7 @@ public:
                           const std::map<int, std::wstring>& events = {});
 
     void SetState(int state, Direction direction);
-    void SetEventCallback(AnimationEventCallback callback) { m_globalEventCallback = callback; }
+    void SetEventCallback(std::function<void(int, const std::wstring&)> callback) { m_globalEventCallback = callback; }
 
     virtual void Init() override;
     virtual void Update(float deltaTime) override;
@@ -50,7 +51,7 @@ private:
     bool m_isPlaying;
     int m_lastTriggeredFrame;
 
-    AnimationEventCallback m_globalEventCallback;
+    std::function<void(int, const std::wstring&)> m_globalEventCallback;
 
     int GetAnimationKey(int state, int direction) const { return state * 1000 + direction; }
     void SelectAndPlayAnimation();

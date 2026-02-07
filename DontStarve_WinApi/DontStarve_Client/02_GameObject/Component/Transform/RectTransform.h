@@ -7,6 +7,7 @@ class RectTransform : public Component
 {
 protected:
 	float m_x, m_y;				// 화면 좌표
+	float m_width, m_height;	// 너비와 높이
 	float m_scaleX, m_scaleY;	// 스케일 (기본값 1.0f)
 	float m_anchorX, m_anchorY;	// 앵커 (0.0 ~ 1.0, 기본 0.0) - 호환성 유지용
 	float m_pivotX, m_pivotY;	// 피벗 (0.0 ~ 1.0, 기본 0.5)
@@ -23,6 +24,7 @@ protected:
 
 public:
 	RectTransform(GameObject* owner, float x = 0.0f, float y = 0.0f,
+		float width = 100.0f, float height = 100.0f,
 		float scaleX = 1.0f, float scaleY = 1.0f,
 		float anchorX = 0.0f, float anchorY = 0.0f,
 		float pivotX = 0.5f, float pivotY = 0.5f);
@@ -34,6 +36,13 @@ public:
 	void SetX(float x) { m_x = x; }
 	void SetY(float y) { m_y = y; }
 	void SetPosition(float x, float y) { m_x = x; m_y = y; }
+
+	// 크기 Getter/Setter
+	float GetWidth() const { return m_width; }
+	float GetHeight() const { return m_height; }
+	void SetWidth(float width) { m_width = width; }
+	void SetHeight(float height) { m_height = height; }
+	void SetSize(float width, float height) { m_width = width; m_height = height; }
 
 	// 스케일 Getter/Setter
 	float GetScaleX() const { return m_scaleX; }

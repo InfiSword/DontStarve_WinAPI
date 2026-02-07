@@ -301,12 +301,7 @@ void RenderManager::ApplyDirectionFlip(Gdiplus::Graphics* pGraphics, const DrawC
 }
 
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
-	if (!pGraphics) return;
-	
-	// 렌더링 명령이 없으면 아무것도 하지 않음 (화면은 검은색으로 유지됨)
-	if (m_drawCommands.empty()) {
-		return;
-	}
+	if (!pGraphics || m_drawCommands.empty()) return;
 
 	// 1. 레이어 높이 sortKey 순서로 정렬하여 Z-order를 보장
 	std::sort(m_drawCommands.begin(), m_drawCommands.end(), RenderManager::CompareDrawCommands);
@@ -342,19 +337,19 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 			
 			// 색상 틴트 적용
 			if (cmd.hasTint) {
-				// ColorMatrix를 사용하여 색상 틴트 적용 (덮어쓰기 방식 - Unity Sprite 스타일)
-				// 원본 이미지의 RGB를 tintColor로 교체하고, 알파는 원본 유지
+				// ColorMatrix를 사용하여 색상 틴트 적용 (곱셈 방식)
+				// 원본 이미지의 RGB에 tintColor를 곱하여 적용
 				float r = cmd.tintColor.GetR() / 255.0f;
 				float g = cmd.tintColor.GetG() / 255.0f;
 				float b = cmd.tintColor.GetB() / 255.0f;
 				float a = cmd.tintColor.GetA() / 255.0f;
 				
 				Gdiplus::ColorMatrix colorMatrix = {
-					0.0f, 0.0f, 0.0f, 0.0f, r,  // Red: 원본 RGB를 무시하고 tintColor의 R로 교체
-					0.0f, 0.0f, 0.0f, 0.0f, g,  // Green: 원본 RGB를 무시하고 tintColor의 G로 교체
-					0.0f, 0.0f, 0.0f, 0.0f, b,  // Blue: 원본 RGB를 무시하고 tintColor의 B로 교체
-					0.0f, 0.0f, 0.0f, a, 0.0f,  // Alpha: tintColor의 알파 적용
-					0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Scale
+					r, 0.0f, 0.0f, 0.0f, 0.0f,  // Red: 원본 R * r
+					0.0f, g, 0.0f, 0.0f, 0.0f,  // Green: 원본 G * g
+					0.0f, 0.0f, b, 0.0f, 0.0f,  // Blue: 원본 B * b
+					0.0f, 0.0f, 0.0f, a, 0.0f,  // Alpha: 원본 A * a
+					0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Translation (none)
 				};
 				
 				Gdiplus::ImageAttributes imageAttr;

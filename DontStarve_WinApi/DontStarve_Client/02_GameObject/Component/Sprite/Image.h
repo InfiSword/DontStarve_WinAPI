@@ -18,6 +18,7 @@ namespace ComponentElement
 		std::shared_ptr<Sprite> m_sprite;
 		RenderLayer m_layer;
 		float m_sortKey;
+		Gdiplus::Color m_tintColor;  // 이미지 틴트 색상
 
 	public:
 		Image(GameObject* owner, RenderLayer layer = LAYER_UI_BACKGROUND, float sortKey = 0.0f);
@@ -35,6 +36,14 @@ namespace ComponentElement
 
 		float GetSortKey() const { return m_sortKey; }
 		void SetSortKey(float sortKey) { m_sortKey = sortKey; }
+
+		// 색상 Getter/Setter
+		Gdiplus::Color GetTintColor() const { return m_tintColor; }
+		void SetTintColor(const Gdiplus::Color& color) { m_tintColor = color; }
+		void SetTintColor(BYTE r, BYTE g, BYTE b, BYTE a = 255) { m_tintColor = Gdiplus::Color(a, r, g, b); }
+		
+		// 알파값만 설정
+		void SetAlpha(BYTE alpha) { m_tintColor = Gdiplus::Color(alpha, m_tintColor.GetR(), m_tintColor.GetG(), m_tintColor.GetB()); }
 
 		void ApplyStyle(const ImageStyle& style) { m_layer = style.layer; m_sortKey = style.sortKey; }
 

@@ -11,7 +11,7 @@ class UIButton : public UIElement
 {
 private:
     ComponentElement::Image* m_image;
-    class Button* m_buttonComp;
+    Button* m_buttonComp;
     std::shared_ptr<Sprite> m_normalSprite;  // normal 상태 스프라이트 저장
     std::shared_ptr<Sprite> m_hoverSprite;   // hover 상태 스프라이트 저장
     
@@ -45,4 +45,10 @@ public:
     // 비활성화 관련 메서드
     void SetDisabled(bool disabled);
     void RenderDisabled();
+    
+    // 버튼 스타일 설정 메서드
+    void SetHoverColor(const Gdiplus::Color& color);
+    void SetNormalColor(const Gdiplus::Color& color);
+    void SetClickedColor(const Gdiplus::Color& color);
+    void SetDisabledColor(const Gdiplus::Color& color);
 };

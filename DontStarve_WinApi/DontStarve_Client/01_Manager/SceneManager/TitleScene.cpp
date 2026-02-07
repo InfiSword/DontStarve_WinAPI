@@ -47,9 +47,9 @@ void TitleScene::Init()
 		LAYER_UI_FOREGROUND,
 		L"../Resource/UI/logo.png",
 		0.f,
-		0.5f, 1.0f,  // anchorMin (상단 중앙)
-		0.5f, 1.0f,  // anchorMax (상단 중앙)
-		0.0f, -200.0f // anchoredPosition (상단에서 아래로 200px)
+		0.5f, 0.0f,  // anchorMin (상단 중앙)
+		0.5f, 0.0f,  // anchorMax (상단 중앙)
+		0.0f, 200.0f // anchoredPosition (상단에서 아래로 200px)
 	);
 	uiManager->AddUIImage(logoImage);
 
@@ -64,6 +64,10 @@ void TitleScene::Init()
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
 	);
+
+	// Hover 시 밝게 빛나는 효과 설정
+	startButton->SetNormalColor(Gdiplus::Color(255, 255, 255, 255));  // 완전 흰색 (밝게)
+	startButton->SetHoverColor(Gdiplus::Color(255, 220, 220, 220)); // 기본 (약간 어둡게)
 
 	// 게임시작 버튼 콜백 설정
 	startButton->SetOnClickCallback([this]() {
@@ -101,6 +105,10 @@ void TitleScene::Init()
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
 	);
+
+	// Hover 시 밝게 빛나는 효과 설정
+	exitButton->SetNormalColor(Gdiplus::Color(255, 255, 255, 255));  // 완전 흰색 (밝게)
+	exitButton->SetHoverColor(Gdiplus::Color(255, 220, 220, 220)); // 기본 (약간 어둡게)
 
 	// 종료 버튼 콜백 설정
 	exitButton->SetOnClickCallback([this]() {

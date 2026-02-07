@@ -107,7 +107,7 @@ void CharacterSelectScene::Init()
 		L"../Resource/UI/Select_Bar.png",
 		0.5f, 0.0f,  // anchorMin (하단 중앙)
 		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		-150.0f, -350.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 350px)
+		-150.0f, 100.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 100px)
 	);
 	selectButton->SetOnClickCallback([this]() {
 		this->OnSelectButtonClicked();
@@ -130,7 +130,7 @@ void CharacterSelectScene::Init()
 		Gdiplus::StringAlignmentCenter,
 		0.5f, 0.0f,  // anchorMin (하단 중앙)
 		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		-150.0f, -350.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 350px)
+		-150.0f, 100.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 100px)
 	);
 	selectButtonText->SetActive(false);  // 초기에는 비활성화
 	uiManager->AddUIText(selectButtonText);
@@ -144,7 +144,7 @@ void CharacterSelectScene::Init()
 		L"../Resource/UI/Select_Bar.png",
 		0.5f, 0.0f,  // anchorMin (하단 중앙)
 		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		150.0f, -350.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 350px)
+		150.0f, 100.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 100px)
 	);
 	cancelButton->SetOnClickCallback([this]() {
 		this->OnCancelButtonClicked();
@@ -167,7 +167,7 @@ void CharacterSelectScene::Init()
 		Gdiplus::StringAlignmentCenter,
 		0.5f, 0.0f,  // anchorMin (하단 중앙)
 		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		150.0f, -350.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 350px)
+		150.0f, 100.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 100px)
 	);
 	cancelButtonText->SetActive(false);  // 초기에는 비활성화
 	uiManager->AddUIText(cancelButtonText);
@@ -269,6 +269,7 @@ void CharacterSelectScene::CreateCharacterButtons()
 	OutputDebugStringW((L"CharacterSelectScene: 캐릭터 버튼 생성 시작 - " + std::to_wstring(m_characterList.size()) + L"개 캐릭터\n").c_str());
 	
 	float screenHeight = static_cast<float>(WINCY);
+	UIManager* uiManager = UIManager::GetInstance();
 	
 	// 모든 캐릭터에 대한 UI 요소들 생성
 	for (size_t i = 0; i < m_characterList.size(); ++i) {
@@ -283,70 +284,54 @@ void CharacterSelectScene::CreateCharacterButtons()
 		float anchorPosX = charInfo.buttonPosX;
 		float anchorPosY = charInfo.buttonPosY - screenHeight / 2.0f;
 		
-		// HUD 배경 생성
-		UIImage* hudBackground = new UIImage(
-			static_cast<GameObjectID>(3000 + i * 10),
+		// HUD 배경을 버튼으로 생성 (hover 시 밝게 표시)
+		UIButton* hudButton = new UIButton(
+			static_cast<GameObjectID>(3004 + i * 10),
 			buttonWidth,
 			buttonHeight,
-			LAYER_UI_BACKGROUND,
-			L"../Resource/UI/quagmire_hud.png",
-			1.0f,
+			L"../Resource/UI/quagmire_hud.png",  // normal 이미지
+			L"../Resource/UI/quagmire_hud.png",  // hover 이미지 (같은 이미지 사용)
 			0.0f, 0.5f,  // anchorMin (좌측 중앙)
 			0.0f, 0.5f,  // anchorMax (좌측 중앙)
 			anchorPosX, anchorPosY // anchoredPosition
 		);
-		UIManager::GetInstance()->AddUIImage(hudBackground);
 		
-		// 캐릭터 이미지 생성 (HUD 배경보다 약간 아래)
-		UIImage* characterImage = new UIImage(
-			static_cast<GameObjectID>(3001 + i * 10),
+		// Normal 상태는 원본 밝기, Hover 상태는 밝게 표시
+		hudButton->SetNormalColor(Gdiplus::Color(255, 255, 255, 255));  
+		hudButton->SetHoverColor(Gdiplus::Color(255, 250, 250, 200));  
+		
+		// 람다로 캐릭터 인덱스 캡처
+		int characterIndex = static_cast<int>(i);
+		hudButton->SetOnClickCallback([this, characterIndex]() {
+			OnCharacterButtonClicked(characterIndex);
+		});
+		
+		uiManager->AddUIButton(hudButton);
+		
+		// 캐릭터 이미지 또는 잠금 오버레이 생성 (항상 생성)
+		std::wstring displayImagePath;
+		if (!charInfo.isUnlocked) {
+			// 잠금된 캐릭터는 잠금 이미지 표시
+			displayImagePath = L"../Resource/UI/locked_Character.png";
+		} else {
+			// 해금된 캐릭터는 캐릭터 이미지 표시
+			displayImagePath = charInfo.characterImagePath;
+		}
+		
+		UIImage* characterOverlay = new UIImage(
+			static_cast<GameObjectID>(3003 + i * 10),
 			buttonWidth * 0.8f,
 			buttonHeight * 0.8f,
-			LAYER_UI_FOREGROUND,
-			charInfo.characterImagePath,
-			1.0f,
+			LAYER_UI_FOREGROUND,  // 버튼 위에 표시
+			displayImagePath,
+			4.0f,  // sortKey
 			0.0f, 0.5f,  // anchorMin (좌측 중앙)
 			0.0f, 0.5f,  // anchorMax (좌측 중앙)
 			anchorPosX, anchorPosY + 15.0f // anchoredPosition (15px 아래)
 		);
-		UIManager::GetInstance()->AddUIImage(characterImage);
+		uiManager->AddUIImage(characterOverlay);
 		
-		// 잠금 오버레이 생성 (해금되지 않은 캐릭터만)
-		if (!charInfo.isUnlocked) {
-			UIImage* lockOverlay = new UIImage(
-				static_cast<GameObjectID>(3003 + i * 10),
-				buttonWidth,
-				buttonHeight,
-				LAYER_UI_FOREGROUND,
-				L"../Resource/UI/locked_Character.png",
-				2.0f,
-				0.0f, 0.5f,  // anchorMin (좌측 중앙)
-				0.0f, 0.5f,  // anchorMax (좌측 중앙)
-				anchorPosX, anchorPosY // anchoredPosition
-			);
-			UIManager::GetInstance()->AddUIImage(lockOverlay);
-		}
-		
-		// 캐릭터 버튼 생성 (클릭 이벤트 처리) - 모든 캐릭터에 대해 생성
-		// 투명한 버튼을 위해 빈 이미지 경로 사용 (클릭 영역만 필요)
-		UIButton* characterButton = new UIButton(
-			static_cast<GameObjectID>(3002 + i * 10),
-			buttonWidth,
-			buttonHeight,
-			L"",  // 빈 경로 (투명 버튼)
-			L"",  // 빈 경로
-			0.0f, 0.5f,  // anchorMin (좌측 중앙)
-			0.0f, 0.5f,  // anchorMax (좌측 중앙)
-			anchorPosX, anchorPosY // anchoredPosition
-		);
-		
-		// 람다로 캐릭터 인덱스 캡처
-		int characterIndex = static_cast<int>(i);
-		characterButton->SetOnClickCallback([this, characterIndex]() {
-			OnCharacterButtonClicked(characterIndex);
-		});
-		
-		UIManager::GetInstance()->AddUIButton(characterButton);
+		OutputDebugStringW((L"캐릭터 버튼 생성 완료: ID=" + std::to_wstring(3004 + i * 10) + L"\n").c_str());
 	}
 	
 	OutputDebugStringW(L"CharacterSelectScene: 캐릭터 버튼 생성 완료\n");
@@ -438,10 +423,14 @@ GameObjectID CharacterSelectScene::GetSelectedCharacterID() const
 
 void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 {
+	OutputDebugStringW(L"=== OnCharacterButtonClicked 호출됨 ===\n");
+	OutputDebugStringW((L"캐릭터 인덱스: " + std::to_wstring(characterIndex) + L"\n").c_str());
+	
 	if (characterIndex >= 0 && characterIndex < static_cast<int>(m_characterList.size())) {
 		const CharacterInfo& charInfo = m_characterList[characterIndex];
 		
 		OutputDebugStringW((L"Character Selected: " + charInfo.name + L"\n").c_str());
+		OutputDebugStringW((L"해금 상태: " + std::wstring(charInfo.isUnlocked ? L"해금됨" : L"잠김") + L"\n").c_str());
 		
 		m_selectedCharacterIndex = characterIndex;
 		m_isLockedCharacterSelected = !charInfo.isUnlocked;
@@ -456,28 +445,42 @@ void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 		UIButton* cancelButton = uiManager->FindUIButton(GOID_CANCEL_SELECTION);
 		UIText* cancelButtonText = uiManager->FindUIText(GOID_CANCEL_SELECTION_TEXT);
 		
+		OutputDebugStringW(L"UI 요소 찾기 결과:\n");
+		OutputDebugStringW((L"  - selectedPortrait: " + std::wstring(selectedPortrait ? L"Found" : L"NULL") + L"\n").c_str());
+		OutputDebugStringW((L"  - characterInfoPanel: " + std::wstring(characterInfoPanel ? L"Found" : L"NULL") + L"\n").c_str());
+		OutputDebugStringW((L"  - selectButton: " + std::wstring(selectButton ? L"Found" : L"NULL") + L"\n").c_str());
+		OutputDebugStringW((L"  - selectButtonText: " + std::wstring(selectButtonText ? L"Found" : L"NULL") + L"\n").c_str());
+		OutputDebugStringW((L"  - cancelButton: " + std::wstring(cancelButton ? L"Found" : L"NULL") + L"\n").c_str());
+		OutputDebugStringW((L"  - cancelButtonText: " + std::wstring(cancelButtonText ? L"Found" : L"NULL") + L"\n").c_str());
+		
 		if (selectedPortrait) {
 			selectedPortrait->SetActive(true);
+			OutputDebugStringW(L"  - selectedPortrait 활성화됨\n");
 		}
 		
 		if (characterInfoPanel) {
 			characterInfoPanel->SetActive(true);
+			OutputDebugStringW(L"  - characterInfoPanel 활성화됨\n");
 		}
 		
 		if (selectButton) {
 			selectButton->SetActive(true);
+			OutputDebugStringW(L"  - selectButton 활성화됨\n");
 		}
 		
 		if (selectButtonText) {
 			selectButtonText->SetActive(true);
+			OutputDebugStringW(L"  - selectButtonText 활성화됨\n");
 		}
 		
 		if (cancelButton) {
 			cancelButton->SetActive(true);
+			OutputDebugStringW(L"  - cancelButton 활성화됨\n");
 		}
 		
 		if (cancelButtonText) {
 			cancelButtonText->SetActive(true);
+			OutputDebugStringW(L"  - cancelButtonText 활성화됨\n");
 		}
 		
 		UpdateCharacterSelection();
@@ -490,6 +493,8 @@ void CharacterSelectScene::OnCharacterButtonClicked(int characterIndex)
 		
 		// 선택 버튼 상태 업데이트
 		UpdateSelectButtonState();
+		
+		OutputDebugStringW(L"=== OnCharacterButtonClicked 완료 ===\n");
 	}
 }
 
@@ -579,7 +584,7 @@ void CharacterSelectScene::OnBackButtonClicked()
 	UIButton* selectButton = uiManager->FindUIButton(GOID_SELECT_BUTTON);
 	UIText* selectButtonText = uiManager->FindUIText(GOID_SELECT_BUTTON_TEXT);
 	UIButton* cancelButton = uiManager->FindUIButton(GOID_CANCEL_SELECTION);
-	UIText* cancelButtonText = uiManager->FindUIText(GOID_CANCEL_SELECTION_TEXT);
+	 UIText* cancelButtonText = uiManager->FindUIText(GOID_CANCEL_SELECTION_TEXT);
 	
 	if (selectedPortrait) {
 		selectedPortrait->SetActive(false);

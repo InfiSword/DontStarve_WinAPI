@@ -26,6 +26,7 @@ public:
 	virtual void Release() override;
 
 	void SetOnClickCallback(std::function<void()> callback);
+	
 	void SetDisabled(bool disabled);
 	ButtonState GetState() const { return m_buttonState; }
 	bool IsDisabled() const { return m_isDisabled; }
@@ -33,6 +34,18 @@ public:
 	const ButtonStateStyle& GetStateStyle(ButtonState state) const;
 	void UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image);
 	void ApplyVisualState(ComponentElement::Image* image);
+	
+	// 스타일 설정 메서드
+	//void SetNormalStyle(const ButtonStateStyle& style) { m_normal = style; }
+	//void SetHoverStyle(const ButtonStateStyle& style) { m_hover = style; }
+	//void SetClickedStyle(const ButtonStateStyle& style) { m_click = style; }
+	//void SetDisabledStyle(const ButtonStateStyle& style) { m_disabled = style; }
+	
+	// 색상만 변경하는 편의 메서드
+	void SetNormalColor(const Gdiplus::Color& color) { m_normal.spriteColor = color; }
+	void SetHoverColor(const Gdiplus::Color& color) { m_hover.spriteColor = color; }
+	void SetClickedColor(const Gdiplus::Color& color) { m_click.spriteColor = color; }
+	void SetDisabledColor(const Gdiplus::Color& color) { m_disabled.spriteColor = color; }
 
 private:
 	ButtonState m_buttonState;

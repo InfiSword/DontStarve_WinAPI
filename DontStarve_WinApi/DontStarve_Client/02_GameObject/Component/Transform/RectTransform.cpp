@@ -5,9 +5,12 @@
 #include "../../GameObject.h"
 
 RectTransform::RectTransform(GameObject* owner, float x, float y,
+	float width, float height,
 	float scaleX, float scaleY, float anchorX, float anchorY,
 	float pivotX, float pivotY)
-	: Component(owner), m_x(x), m_y(y), m_scaleX(scaleX), m_scaleY(scaleY),
+	: Component(owner), m_x(x), m_y(y), 
+	m_width(width), m_height(height),
+	m_scaleX(scaleX), m_scaleY(scaleY),
 	m_anchorX(anchorX), m_anchorY(anchorY), m_pivotX(pivotX), m_pivotY(pivotY),
 	m_anchorMin(anchorX, anchorY), m_anchorMax(anchorX, anchorY),
 	m_anchoredPosition(x, y), m_sizeDelta(0.0f, 0.0f),
@@ -73,36 +76,12 @@ Gdiplus::PointF RectTransform::GetOffsetMax() const
 	float anchorWorldX = anchorX * m_parentWidth;
 	float anchorWorldY = anchorY * m_parentHeight;
 	
-	// 실제 크기 계산
-	float width = 0.0f;
-	float height = 0.0f;
+	// 실제 크기 계산 (width * scaleX, height * scaleY)
+	float actualWidth = m_width * m_scaleX;
+	float actualHeight = m_height * m_scaleY;
 	
-	if (m_owner) {
-		Gdiplus::Bitmap* bitmap = nullptr;
-		ComponentElement::Image* image = m_owner->GetComponent<ComponentElement::Image>();
-		if (image && image->GetSprite()) {
-			bitmap = image->GetSprite();
-		}
-		else {
-			SpriteRenderer* spriteRenderer = m_owner->GetComponent<SpriteRenderer>();
-			if (spriteRenderer && spriteRenderer->GetSprite()) {
-				bitmap = spriteRenderer->GetSprite();
-			}
-		}
-		
-		if (bitmap) {
-			width = static_cast<float>(bitmap->GetWidth()) * m_scaleX;
-			height = static_cast<float>(bitmap->GetHeight()) * m_scaleY;
-		}
-	}
-	
-	if (width == 0.0f || height == 0.0f) {
-		width = 32.0f * m_scaleX;
-		height = 32.0f * m_scaleY;
-	}
-	
-	float right = m_x + width * (1.0f - m_pivotX) - anchorWorldX;
-	float top = m_y + height * (1.0f - m_pivotY) - anchorWorldY;
+	float right = m_x + actualWidth * (1.0f - m_pivotX) - anchorWorldX;
+	float top = m_y + actualHeight * (1.0f - m_pivotY) - anchorWorldY;
 	
 	return Gdiplus::PointF(right, top);
 }
@@ -130,36 +109,12 @@ void RectTransform::SetOffsetMax(float right, float top)
 	float anchorWorldX = anchorX * m_parentWidth;
 	float anchorWorldY = anchorY * m_parentHeight;
 	
-	// 실제 크기 계산
-	float width = 0.0f;
-	float height = 0.0f;
+	// 실제 크기 계산 (width * scaleX, height * scaleY)
+	float actualWidth = m_width * m_scaleX;
+	float actualHeight = m_height * m_scaleY;
 	
-	if (m_owner) {
-		Gdiplus::Bitmap* bitmap = nullptr;
-		ComponentElement::Image* image = m_owner->GetComponent<ComponentElement::Image>();
-		if (image && image->GetSprite()) {
-			bitmap = image->GetSprite();
-		}
-		else {
-			SpriteRenderer* spriteRenderer = m_owner->GetComponent<SpriteRenderer>();
-			if (spriteRenderer && spriteRenderer->GetSprite()) {
-				bitmap = spriteRenderer->GetSprite();
-			}
-		}
-		
-		if (bitmap) {
-			width = static_cast<float>(bitmap->GetWidth()) * m_scaleX;
-			height = static_cast<float>(bitmap->GetHeight()) * m_scaleY;
-		}
-	}
-	
-	if (width == 0.0f || height == 0.0f) {
-		width = 32.0f * m_scaleX;
-		height = 32.0f * m_scaleY;
-	}
-	
-	m_x = anchorWorldX + right - width * (1.0f - m_pivotX);
-	m_y = anchorWorldY + top - height * (1.0f - m_pivotY);
+	m_x = anchorWorldX + right - actualWidth * (1.0f - m_pivotX);
+	m_y = anchorWorldY + top - actualHeight * (1.0f - m_pivotY);
 	
 	m_anchoredPosition.X = m_x;
 	m_anchoredPosition.Y = m_y;
@@ -188,11 +143,11 @@ void RectTransform::UpdatePositionFromAnchors()
 
 Gdiplus::RectF RectTransform::GetScreenBoundingBox() const
 {
-	// Sprite 크기 * scale 계산
-	float width = 0.0f;
-	float height = 0.0f;
+	// 기본 크기는 m_width, m_height 사용
+	float actualWidth = m_width * m_scaleX;
+	float actualHeight = m_height * m_scaleY;
 	
-	// Image 또는 SpriteRenderer 컴포넌트에서 비트맵 크기 가져오기
+	// Sprite가 있으면 그 크기를 우선 사용 (기존 동작 유지)
 	if (m_owner) {
 		Gdiplus::Bitmap* bitmap = nullptr;
 		
@@ -210,21 +165,15 @@ Gdiplus::RectF RectTransform::GetScreenBoundingBox() const
 		}
 		
 		if (bitmap) {
-			width = static_cast<float>(bitmap->GetWidth()) * m_scaleX;
-			height = static_cast<float>(bitmap->GetHeight()) * m_scaleY;
+			actualWidth = static_cast<float>(bitmap->GetWidth()) * m_scaleX;
+			actualHeight = static_cast<float>(bitmap->GetHeight()) * m_scaleY;
 		}
 	}
 	
-	// 비트맵이 없으면 기본값 사용
-	if (width == 0.0f || height == 0.0f) {
-		width = 32.0f * m_scaleX;
-		height = 32.0f * m_scaleY;
-	}
-	
 	return Gdiplus::RectF(
-		m_x - width * m_pivotX,
-		m_y - height * m_pivotY,
-		width,
-		height
+		m_x - actualWidth * m_pivotX,
+		m_y - actualHeight * m_pivotY,
+		actualWidth,
+		actualHeight
 	);
 }

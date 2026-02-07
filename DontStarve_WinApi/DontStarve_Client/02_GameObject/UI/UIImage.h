@@ -28,6 +28,12 @@ public:
 	void SetSprite(const std::shared_ptr<Sprite>& sprite);
 	void LoadSprite(const std::wstring& imagePath);
 	
+	// 색상 설정 메서드
+	void SetTintColor(const Gdiplus::Color& color);
+	void SetTintColor(BYTE r, BYTE g, BYTE b, BYTE a = 255);
+	void SetAlpha(BYTE alpha);
+	Gdiplus::Color GetTintColor() const;
+	
 private:
     RectTransform* m_rectTransform;
     ComponentElement::Image* m_image;

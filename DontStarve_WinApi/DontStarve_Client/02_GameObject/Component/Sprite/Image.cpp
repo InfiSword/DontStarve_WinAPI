@@ -6,7 +6,8 @@
 namespace ComponentElement {
 
 Image::Image(GameObject* owner, RenderLayer layer, float sortKey)
-	: Component(owner), m_sprite(nullptr), m_layer(layer), m_sortKey(sortKey)
+	: Component(owner), m_sprite(nullptr), m_layer(layer), m_sortKey(sortKey),
+	m_tintColor(255, 255, 255, 255)  
 {
 }
 
