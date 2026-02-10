@@ -353,8 +353,7 @@ void CharacterSelectScene::Render()
 
 void CharacterSelectScene::Release()
 {
-	// UI 객체들은 UIManager에서 해제되므로 별도 처리 불필요
-	// CharacterSelectScene에서 사용한 매니저들 해제
+	// CharacterSelectScene에서 사용한 매니저/포인터 정리 (소멸자에서 호출)
 	InputManager::GetInstance()->Release();
 	UIManager::GetInstance()->Release();
 }
@@ -518,7 +517,7 @@ void CharacterSelectScene::OnSelectButtonClicked()
 	m_currentState = CharacterSelectionState::CLICK_GAME;
 	
 	// 선택된 캐릭터 정보를 SceneManager에 전달하여 게임 씬으로 전환 요청
-	SceneManager::GetInstance()->RequestLoadGameScene(L"../MapData/00_map.dsm", selectedCharacterID);
+	SceneManager::GetInstance()->LoadGameScene(L"../MapData/00_map.dsm", selectedCharacterID);
 }
 
 void CharacterSelectScene::OnCancelButtonClicked()
@@ -611,7 +610,7 @@ void CharacterSelectScene::OnBackButtonClicked()
 	}
 	
 	// 타이틀 씬으로 되돌리기 요청
-	SceneManager::GetInstance()->RequestLoadTitleScene();
+	SceneManager::GetInstance()->LoadTitleScene();
 }
 
 void CharacterSelectScene::UpdateSelectButtonState()

@@ -1,9 +1,13 @@
 #pragma once
 #include "../Entity.h"
 
+class ResourceManager;
+
 class Rock : public Entity
 {
 public:
+	static void RegisterResources(ResourceManager* rm);
+
     Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
     virtual ~Rock();
 

@@ -1,10 +1,18 @@
 #pragma once
-#include "BaseScene.h"
 
 class BaseScene;
 class TitleScene;
 class CharacterSelectScene;
 class GameScene;
+
+// 지연 씬 전환용 (버튼 콜백 등에서 즉시 전환 시 자기 자신이 삭제되는 것 방지)
+enum class PendingSceneType
+{
+	None,
+	Title,
+	CharacterSelect,
+	Game
+};
 
 class SceneManager : public CSingleTon<SceneManager>
 {
@@ -19,36 +27,27 @@ public:
 	void Render();
 	void Release();
 
-	// 씬 로드 함수들
+	// 씬 로드 요청 (다음 프레임 시작 시 실제 전환 — 콜백 안에서 호출해도 안전)
 	void LoadTitleScene();
 	void LoadCharacterSelectScene();
 	void LoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID = GOID_NONE);
 
-	// 지연된 씬 전환 요청
-	void RequestLoadTitleScene();
-	void RequestLoadCharacterSelectScene();
-	void RequestLoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID = GOID_NONE);
-
-	// 맵 데이터 파싱
-	void ParseMapFileInto(const std::wstring& mapFileName, MapData& mapData);
-
 	// 현재 씬 타입 반환
 	SceneType GetCurrentSceneType() const;
+
+	// 지연된 씬 전환 1회 처리 (메인 루프에서 Update 직후 1번만 호출)
+	void ProcessPendingSceneLoad();
 
 private:
 	BaseScene* m_currentScene;
 
-	// 씬 전환 대기 큐
-	enum class PendingSceneType {
-		NONE,
-		TITLE,
-		CHARACTER_SELECT,
-		GAME
-	};
-
-	PendingSceneType m_pendingSceneType;
+	// 지연 전환 (ProcessPendingSceneLoad()에서 한 번에 처리)
+	PendingSceneType m_pendingScene;
 	std::wstring m_pendingMapFileName;
 	GameObjectID m_pendingCharacterID;
 
-	void ProcessPendingSceneChange();
+	void ReleaseCurrentScene();
+	void DoLoadTitleScene();
+	void DoLoadCharacterSelectScene();
+	void DoLoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID);
 };

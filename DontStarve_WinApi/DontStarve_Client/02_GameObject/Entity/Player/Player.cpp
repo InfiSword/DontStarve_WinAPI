@@ -24,6 +24,18 @@ namespace {
 	constexpr float PLAYER_INTERACTION_SORT_OFFSET = 0.5f;
 }
 
+void Player::RegisterResources(ResourceManager* rm)
+{
+	if (!rm) return;
+	GameObjectData d;
+	d.type = GOBJ_PLAYER;
+	d.pivotX = 0.5f;
+	d.pivotY = 1.0f;
+	d.objectAssetBaseDirectory = L"Resource/Objects/Player/Wilson";  d.id = GOID_PLAYER_WILSON;  d.assetImageName = L""; rm->RegisterObjectResource(GOID_PLAYER_WILSON, d);
+	d.objectAssetBaseDirectory = L"Resource/Objects/Player/Willow";   d.id = GOID_PLAYER_WILLOW;  d.assetImageName = L""; rm->RegisterObjectResource(GOID_PLAYER_WILLOW, d);
+	d.objectAssetBaseDirectory = L"Resource/Objects/Player/Wolfgang"; d.id = GOID_PLAYER_WOLFGANG; d.assetImageName = L""; rm->RegisterObjectResource(GOID_PLAYER_WOLFGANG, d);
+}
+
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, imageName, true, true),
 	hp(100), maxHp(100), m_playerSpeed(300.f), m_stopThreshold(10),
@@ -43,29 +55,32 @@ void Player::Init()
 	}
 
 	ResourceManager* pRM = ResourceManager::GetInstance();
+	const GameObjectData* objData = pRM->GetObjectResourceInfo(GetID());
+	if (!objData) return;
+	const std::wstring& base = objData->objectAssetBaseDirectory;
 
 	// IDLE
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Down.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN, pRM->BuildResourcePath(base, L"Idle", L"Wilson_Idle_Down.png"),
 		126, 189, 7, 64, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Up.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP, pRM->BuildResourcePath(base, L"Idle", L"Wilson_Idle_Up.png"),
 		128, 193, 7, 64, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT, pRM->BuildResourcePath(base, L"Idle", L"Wilson_Idle_Side.png"),
 		135, 194, 7, 64, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, pRM->BuildObjectResourcePath(GetID(), L"Idle", L"Wilson_Idle_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, pRM->BuildResourcePath(base, L"Idle", L"Wilson_Idle_Side.png"),
 		135, 194, 7, 64, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 
 	// WALK(RUN)
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Down.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN, pRM->BuildResourcePath(base, L"Run", L"Wilson_Run_Down.png"),
 		139, 226, 6, 33, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Up.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP, pRM->BuildResourcePath(base, L"Run", L"Wilson_Run_Up.png"),
 		133, 231, 6, 33, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, pRM->BuildResourcePath(base, L"Run", L"Wilson_Run_Side.png"),
 		141, 226, 6, 33, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, pRM->BuildObjectResourcePath(GetID(), L"Run", L"Wilson_Run_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, pRM->BuildResourcePath(base, L"Run", L"Wilson_Run_Side.png"),
 		141, 226, 6, 33, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
 
 	// PICKUP
-	std::wstring pickupPath = pRM->BuildObjectResourcePath(GetID(), L"Interact", L"Interact_wilson_pickup_pst_down.png");
+	std::wstring pickupPath = pRM->BuildResourcePath(base, L"Interact", L"Interact_wilson_pickup_pst_down.png");
 	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
 			127, 201, 6, 20, 0.03f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
@@ -73,7 +88,7 @@ void Player::Init()
 
 	// CHOP (이벤트 적용)
 	std::map<int, std::wstring> chopEvents = { {4, L"chop_hit"} };
-	std::wstring chopPath = pRM->BuildObjectResourcePath(GetID(), L"Axe", L"axe_wilson_chop_loop_down.png");
+	std::wstring chopPath = pRM->BuildResourcePath(base, L"Axe", L"axe_wilson_chop_loop_down.png");
 	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::CHOP, (Direction)dir, chopPath,
 			284, 248, 6, 54, 0.03f, this->transform->GetPivotX() + 0.1f, this->transform->GetPivotY(), false, chopEvents);

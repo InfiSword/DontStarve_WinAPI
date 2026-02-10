@@ -134,7 +134,7 @@ void GameScene::Render()
 
 void GameScene::Release()
 {
-	// GameScene에서 사용한 매니저들 해제
+	// GameScene에서 사용한 매니저/포인터 정리 (소멸자에서 호출)
 	InventoryManager::GetInstance()->Release();
 	RenderManager::GetInstance()->Release();
 	CameraManager::GetInstance()->Release();

@@ -32,7 +32,8 @@ public:
 	bool IsDisabled() const { return m_isDisabled; }
 
 	const ButtonStateStyle& GetStateStyle(ButtonState state) const;
-	void UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image);
+	/// true 반환 시 클릭 콜백이 호출됐으므로 호출부에서는 이 버튼/UI를 더 이상 참조하면 안 됨 (씬 전환 등으로 파괴되었을 수 있음)
+	bool UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image);
 	void ApplyVisualState(ComponentElement::Image* image);
 	
 	// 스타일 설정 메서드

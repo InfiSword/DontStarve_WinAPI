@@ -99,9 +99,9 @@ const ButtonStateStyle& Button::GetStateStyle(ButtonState state) const
 	}
 }
 
-void Button::UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image)
+bool Button::UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image)
 {
-	if (!rectTransform || !image) return;
+	if (!rectTransform || !image) return false;
 
 	ButtonState previousState = m_buttonState;
 
@@ -124,8 +124,9 @@ void Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 		// 콜백이 이 객체를 삭제할 수 있으므로 마지막에 호출
 		if (m_onClickCallback) {
 			m_onClickCallback();
+			return true; // 콜백 호출됨 → 호출부에서 버튼/UI 역참조 금지
 		}
-		return; // 콜백 호출 후 즉시 리턴 (객체가 삭제되었을 수 있음)
+		return false;
 	}
 	else if (m_buttonState == ButtonState::CLICKED && !InputManager::GetInstance()->IsLButtonDown()) {
 		// 클릭 상태에서 마우스 버튼이 떼어지면 hover 또는 normal로 전환
@@ -142,6 +143,7 @@ void Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 	if (previousState != m_buttonState) {
 		ApplyVisualState(image);
 	}
+	return false;
 }
 
 void Button::ApplyVisualState(ComponentElement::Image* image)

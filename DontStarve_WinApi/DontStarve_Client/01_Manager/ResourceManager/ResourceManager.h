@@ -12,30 +12,30 @@ private:
 public:
     void Init();
     void Release();
-    
-    // resources.txt 파일 로드
-    void LoadResourcesFromFile(const std::wstring& filePath);
-    
+
+    // 리소스 등록 (클래스별 RegisterResources에서 호출)
+    void RegisterObjectResource(GameObjectID id, const GameObjectData& data);
+
     // 리소스 정보 가져오기
     const GameObjectData* GetObjectResourceInfo(GameObjectID id) const;
-    const TileData* GetTileResourceInfo(TileID id) const;
     
-    // 전체 리소스 맵 가져오기
+    // 전체 오브젝트 리소스 맵 가져오기
     const std::map<GameObjectID, GameObjectData>& GetAllObjectResources() const { return m_objectResources; }
-    const std::map<TileID, TileData>& GetAllTileResources() const { return m_tileResources; }
 
 	// 스프라이트 로드/캐시
 	std::shared_ptr<Sprite> LoadSprite(const std::wstring& fullPath);
 	std::shared_ptr<Sprite> LoadSpriteFromAtlas(const std::wstring& atlasPath, const Gdiplus::RectF& srcRect, float pivotX = 0.5f, float pivotY = 0.5f);
-    
-    // 경로 빌드 헬퍼 함수들
-    std::wstring BuildObjectResourcePath(GameObjectID id, const std::wstring& subFolder, const std::wstring& filename) const;
-    std::wstring BuildTileResourcePath(TileID id, const std::wstring& subFolder, const std::wstring& filename) const;
-    std::wstring BuildUIResourcePath(const std::wstring& subFolder, const std::wstring& filename) const;
+
+	// 경로 빌드 (basePath + subFolder + filename → 상대/절대 경로)
+	std::wstring BuildResourcePath(const std::wstring& basePath, const std::wstring& subFolder, const std::wstring& filename) const;
+
+	// 맵 데이터 로드/캐시 (파싱 후 반환, 동일 파일은 캐시에서 반환)
+	const MapData* LoadMapData(const std::wstring& mapFileName);
 
 private:
-    std::wstring BuildResourcePath(const std::wstring& basePath, const std::wstring& subFolder, const std::wstring& filename) const;
+    void ParseMapFileInto(const std::wstring& mapFileName, MapData& outMapData);
+
     std::map<GameObjectID, GameObjectData> m_objectResources;
-    std::map<TileID, TileData> m_tileResources;
+    std::map<std::wstring, MapData> m_mapDataCache;
 	std::unordered_map<std::wstring, std::weak_ptr<Sprite>> m_spriteCache;
 }; 

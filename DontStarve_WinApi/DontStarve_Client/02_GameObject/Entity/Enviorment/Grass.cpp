@@ -3,6 +3,19 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "Grass.h"
 
+void Grass::RegisterResources(ResourceManager* rm)
+{
+	if (!rm) return;
+	GameObjectData d;
+	d.type = GOBJ_NATURAL_ENVIR;
+	d.pivotX = 0.5f;
+	d.pivotY = 1.0f;
+	d.id = GOID_NORMAL_GRASS;
+	d.objectAssetBaseDirectory = L"Resource/Objects/Grass";
+	d.assetImageName = L"grass.png";
+	rm->RegisterObjectResource(GOID_NORMAL_GRASS, d);
+}
+
 Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, imageName, true, true), m_state(GrassState::GRASS_IDLE)
 {

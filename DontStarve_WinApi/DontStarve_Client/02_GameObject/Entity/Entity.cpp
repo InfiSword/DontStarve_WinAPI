@@ -25,7 +25,8 @@ Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float piv
 	if (!imageName.empty())
 	{
 		ResourceManager* pRM = ResourceManager::GetInstance();
-		std::wstring fullPath = pRM->BuildObjectResourcePath(id, L"", imageName);
+		const GameObjectData* data = pRM->GetObjectResourceInfo(id);
+		std::wstring fullPath = data ? pRM->BuildResourcePath(data->objectAssetBaseDirectory, L"", imageName) : L"";
 
 		if (!fullPath.empty()) {
 			if (auto sprite = pRM->LoadSprite(fullPath)) {

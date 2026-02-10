@@ -340,7 +340,7 @@ void CameraManager::RenderSingleTile(const MapData* mapData, int x, int y, float
 	if (cacheIt == m_tileCache.end()) {
 		TileCacheData newCacheData;
 		newCacheData.id = tileData.id;
-		LoadTileBitmap(tileData.id, newCacheData);
+		LoadTileBitmap(tileData, newCacheData);
 		if (newCacheData.bitmap) {
 			m_tileCache[tileData.id] = newCacheData;
 			cacheIt = m_tileCache.find(tileData.id);
@@ -351,7 +351,7 @@ void CameraManager::RenderSingleTile(const MapData* mapData, int x, int y, float
 
 	Gdiplus::Bitmap* tileBitmap = cacheIt->second.bitmap;
 	if (!tileBitmap) {
-		LoadTileBitmap(tileData.id, cacheIt->second);
+		LoadTileBitmap(tileData, cacheIt->second);
 		tileBitmap = cacheIt->second.bitmap;
 		if (!tileBitmap) {
 			m_tileCache.erase(cacheIt);
@@ -379,19 +379,19 @@ void CameraManager::ClearTileCache()
 	m_tileCache.clear();
 }
 
-void CameraManager::LoadTileBitmap(TileID tileID, TileCacheData& cacheData)
+void CameraManager::LoadTileBitmap(const TileData& tileData, TileCacheData& cacheData)
 {
+	if (tileData.tileAssetBaseDirectory.empty() || tileData.tileImageName.empty()) {
+		return;
+	}
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	const TileData* resourceTile = resourceManager->GetTileResourceInfo(tileID);
-	if (resourceTile) {
-		// TileData의 tileImageName을 사용하여 경로 생성
-		std::wstring fullPath = resourceManager->BuildTileResourcePath(tileID, L"", resourceTile->tileImageName);
-		
-		cacheData.bitmap = new Gdiplus::Bitmap(fullPath.c_str());
-		if (cacheData.bitmap && cacheData.bitmap->GetLastStatus() == Gdiplus::Ok) {
-			cacheData.isAtlasBased = false;
-		}
-		else {
+	std::wstring fullPath = resourceManager->BuildResourcePath(tileData.tileAssetBaseDirectory, L"", tileData.tileImageName);
+
+	cacheData.bitmap = new Gdiplus::Bitmap(fullPath.c_str());
+	if (cacheData.bitmap && cacheData.bitmap->GetLastStatus() == Gdiplus::Ok) {
+		cacheData.isAtlasBased = false;
+	} else {
+		if (cacheData.bitmap) {
 			delete cacheData.bitmap;
 			cacheData.bitmap = nullptr;
 		}

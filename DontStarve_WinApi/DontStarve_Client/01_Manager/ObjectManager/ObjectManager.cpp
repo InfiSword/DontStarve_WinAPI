@@ -161,6 +161,8 @@ void ObjectManager::ClearAllObjects()
 	// 삭제 지연 큐도 함께 처리
 	ProcessPendingDeletions();
 
+	m_cachedPlayer = nullptr; // 씬 전환 시 이전 플레이어 포인터 무효화
+
 	for (GameObject* obj : m_gameObjects)
 	{
 		if (obj)

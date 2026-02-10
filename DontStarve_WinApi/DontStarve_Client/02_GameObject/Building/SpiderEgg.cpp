@@ -6,7 +6,20 @@
 #include "../../03_Animation/AnimationClip.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
 
-SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivotY, 
+void SpiderEgg::RegisterResources(ResourceManager* rm)
+{
+	if (!rm) return;
+	GameObjectData d;
+	d.type = GOBJ_BUILDING;
+	d.pivotX = 0.5f;
+	d.pivotY = 1.0f;
+	d.objectAssetBaseDirectory = L"Resource/Objects/Building/Egg";
+	d.id = GOID_BUILDING_SPIDER_SMALLEGG;  d.assetImageName = L"Egg_spider_cocoon_small_Image.png";  rm->RegisterObjectResource(GOID_BUILDING_SPIDER_SMALLEGG, d);
+	d.id = GOID_BUILDING_SPIDER_NORMALEGG; d.assetImageName = L"Egg_spider_cocoon_medium_Image.png"; rm->RegisterObjectResource(GOID_BUILDING_SPIDER_NORMALEGG, d);
+	d.id = GOID_BUILDING_SPIDER_TALLEGG;   d.assetImageName = L"Egg_spider_cocoon_large_Image.png";  rm->RegisterObjectResource(GOID_BUILDING_SPIDER_TALLEGG, d);
+}
+
+SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivotY,
     Direction _dir, const std::wstring& resourcePath,
     const std::wstring& imageName, int hp)
     : Building(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, hp)
@@ -40,15 +53,17 @@ void SpiderEgg::Init()
     if (m_animator && transform) {
         ResourceManager* pRM = ResourceManager::GetInstance();
         std::wstring imagePath;
-        
-        if (m_id == GOID_BUILDING_SPIDER_SMALLEGG) {
-            imagePath = pRM->BuildObjectResourcePath(GOID_BUILDING_SPIDER_SMALLEGG, L"", L"Egg_spider_cocoon_small_Image.png");
-        }
-        else if (m_id == GOID_BUILDING_SPIDER_NORMALEGG) {
-            imagePath = pRM->BuildObjectResourcePath(GOID_BUILDING_SPIDER_NORMALEGG, L"", L"Egg_spider_cocoon_medium_Image.png");
-        }
-        else if (m_id == GOID_BUILDING_SPIDER_TALLEGG) {
-            imagePath = pRM->BuildObjectResourcePath(GOID_BUILDING_SPIDER_TALLEGG, L"", L"Egg_spider_cocoon_large_Image.png");
+        const GameObjectData* data = pRM->GetObjectResourceInfo(m_id);
+        if (data) {
+            if (m_id == GOID_BUILDING_SPIDER_SMALLEGG) {
+                imagePath = pRM->BuildResourcePath(data->objectAssetBaseDirectory, L"", L"Egg_spider_cocoon_small_Image.png");
+            }
+            else if (m_id == GOID_BUILDING_SPIDER_NORMALEGG) {
+                imagePath = pRM->BuildResourcePath(data->objectAssetBaseDirectory, L"", L"Egg_spider_cocoon_medium_Image.png");
+            }
+            else if (m_id == GOID_BUILDING_SPIDER_TALLEGG) {
+                imagePath = pRM->BuildResourcePath(data->objectAssetBaseDirectory, L"", L"Egg_spider_cocoon_large_Image.png");
+            }
         }
 
         if (!imagePath.empty()) {

@@ -318,11 +318,11 @@ void Inventory::LoadUIBitmaps()
 	auto* pRM = ResourceManager::GetInstance();
 	
 	if (!m_inventoryBgBitmap) {
-		std::wstring invenPath = pRM->BuildUIResourcePath(L"", L"Inven.png");
+		std::wstring invenPath = pRM->BuildResourcePath(L"Resource/UI", L"", L"Inven.png");
 		m_inventoryBgBitmap = BitmapUtils::LoadBitmapFromFile(invenPath.c_str());
 	}
 	if (!m_slotBgBitmap) {
-		std::wstring slotPath = pRM->BuildUIResourcePath(L"", L"slot.png");
+		std::wstring slotPath = pRM->BuildResourcePath(L"Resource/UI", L"", L"slot.png");
 		m_slotBgBitmap = BitmapUtils::LoadBitmapFromFile(slotPath.c_str());
 	}
 

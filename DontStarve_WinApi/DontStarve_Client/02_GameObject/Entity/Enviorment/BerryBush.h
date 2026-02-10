@@ -1,9 +1,13 @@
 #pragma once
-#include "../Entity.h" 
+#include "../Entity.h"
+
+class ResourceManager;
 
 class BerryBush : public Entity
 {
 public:
+	static void RegisterResources(ResourceManager* rm);
+
     BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
     virtual ~BerryBush();
 

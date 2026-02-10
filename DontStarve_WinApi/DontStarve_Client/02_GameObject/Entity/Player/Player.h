@@ -3,10 +3,13 @@
 #include "../../Item/Item.h"
 
 class Inventory;
+class ResourceManager;
 
 class Player : public Entity
 {
 public:
+	static void RegisterResources(ResourceManager* rm);
+
 	Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
 	virtual ~Player();
 

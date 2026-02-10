@@ -3,6 +3,23 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "Rock.h"
 
+void Rock::RegisterResources(ResourceManager* rm)
+{
+	if (!rm) return;
+	GameObjectData d;
+	d.type = GOBJ_NATURAL_ENVIR;
+	d.pivotX = 0.5f;
+	d.pivotY = 1.0f;
+	d.id = GOID_NORMAL_ROCK;
+	d.objectAssetBaseDirectory = L"Resource/Objects/Rock/Rock_Normal";
+	d.assetImageName = L"rock_Image.png";
+	rm->RegisterObjectResource(GOID_NORMAL_ROCK, d);
+	d.id = GOID_GOLD_ROCK;
+	d.objectAssetBaseDirectory = L"Resource/Objects/Rock/Rock_Gold";
+	d.assetImageName = L"rock_Image.png";
+	rm->RegisterObjectResource(GOID_GOLD_ROCK, d);
+}
+
 Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, imageName, true, true),
 	m_hp(100), m_hitAnimTimer(0.0f), m_state(RockState::ROCK_INTACT)

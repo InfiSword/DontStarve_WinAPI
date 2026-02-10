@@ -3,7 +3,20 @@
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
-PigHouse::PigHouse(GameObjectID id, float x, float y, float pivotX, float pivotY, 
+void PigHouse::RegisterResources(ResourceManager* rm)
+{
+	if (!rm) return;
+	GameObjectData d;
+	d.type = GOBJ_BUILDING;
+	d.pivotX = 0.5f;
+	d.pivotY = 1.0f;
+	d.id = GOID_BUILDING_PIGHOUSE;
+	d.objectAssetBaseDirectory = L"Resource/Objects/Building/House";
+	d.assetImageName = L"pig_house.png";
+	rm->RegisterObjectResource(GOID_BUILDING_PIGHOUSE, d);
+}
+
+PigHouse::PigHouse(GameObjectID id, float x, float y, float pivotX, float pivotY,
     Direction _dir, const std::wstring& resourcePath,
     const std::wstring& imageName, int hp)
     : Building(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, hp)

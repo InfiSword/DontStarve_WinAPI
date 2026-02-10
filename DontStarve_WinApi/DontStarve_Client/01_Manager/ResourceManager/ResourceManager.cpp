@@ -1,5 +1,19 @@
 #include "99_Default/pch.h"
 #include "ResourceManager.h"
+#include "../../02_GameObject/Entity/Player/Player.h"
+#include "../../02_GameObject/Item/Item.h"
+#include "../../02_GameObject/Entity/Monster/Spider.h"
+#include "../../02_GameObject/Entity/Monster/Pig.h"
+#include "../../02_GameObject/Entity/Monster/Hound.h"
+#include "../../02_GameObject/Entity/Monster/Boss_SpiderQueen.h"
+#include "../../02_GameObject/Entity/Monster/Boss_Hound.h"
+#include "../../02_GameObject/Entity/Enviorment/Tree.h"
+#include "../../02_GameObject/Entity/Enviorment/Grass.h"
+#include "../../02_GameObject/Entity/Enviorment/Rock.h"
+#include "../../02_GameObject/Entity/Enviorment/Sapling.h"
+#include "../../02_GameObject/Entity/Enviorment/BerryBush.h"
+#include "../../02_GameObject/Building/SpiderEgg.h"
+#include "../../02_GameObject/Building/PigHouse.h"
 
 ResourceManager::ResourceManager()
 {
@@ -12,154 +26,33 @@ ResourceManager::~ResourceManager()
 
 void ResourceManager::Init()
 {
-	// 기본 리소스 로드
-	LoadResourcesFromFile(L"../Resource/resources.txt");
+	// 오브젝트 리소스 등록 (Player, Item, 몬스터, 건물 등)
+	Player::RegisterResources(this);
+	Item::RegisterResources(this);
+	Spider::RegisterResources(this);
+	Pig::RegisterResources(this);
+	Hound::RegisterResources(this);
+	Boss_SpiderQueen::RegisterResources(this);
+	Boss_Hound::RegisterResources(this);
+	Tree::RegisterResources(this);
+	Grass::RegisterResources(this);
+	Rock::RegisterResources(this);
+	Sapling::RegisterResources(this);
+	BerryBush::RegisterResources(this);
+	SpiderEgg::RegisterResources(this);
+	PigHouse::RegisterResources(this);
 }
 
 void ResourceManager::Release()
 {
 	m_objectResources.clear();
-	m_tileResources.clear();
+	m_mapDataCache.clear();
 	m_spriteCache.clear();
 }
 
-// 파일 로드 함수 (기본 구현)
-void ResourceManager::LoadResourcesFromFile(const std::wstring& filePath)
+void ResourceManager::RegisterObjectResource(GameObjectID id, const GameObjectData& data)
 {
-	std::wifstream file(filePath);
-
-	if (!file.is_open()) {
-		return;
-	}
-
-	std::wstring line;
-	while (std::getline(file, line)) {
-		if (line.empty() || line[0] == L'#') continue;
-
-		std::wstringstream ss(line);
-		std::wstring type, id, resourcePath, imageName;
-		std::wstring hasColliderStr, colliderTypeStr, offsetXStr, offsetYStr, widthStr, heightStr;
-		std::wstring centerXStr, centerYStr, radiusStr;
-
-		if (std::getline(ss, type, L',') &&
-			std::getline(ss, id, L',') &&
-			std::getline(ss, resourcePath, L',')) {
-
-			// 이미지 파일명을 선택적으로 읽기 (플레이어와 같은 경우에는 없을 수 있음)
-			std::getline(ss, imageName, L',');
-
-			// 콜라이더 정보 읽기 (선택적)
-			std::getline(ss, hasColliderStr, L',');
-			std::getline(ss, colliderTypeStr, L',');  // 콜라이더 타입 (BOX 또는 CIRCLE)
-			std::getline(ss, offsetXStr, L',');
-			std::getline(ss, offsetYStr, L',');
-			std::getline(ss, widthStr, L',');
-			std::getline(ss, heightStr, L',');
-			std::getline(ss, centerXStr, L',');  // CircleCollider 중심 X
-			std::getline(ss, centerYStr, L',');  // CircleCollider 중심 Y
-			std::getline(ss, radiusStr, L',');  // CircleCollider 반지름
-
-			// 공백 제거
-			type.erase(0, type.find_first_not_of(L" \t"));
-			type.erase(type.find_last_not_of(L" \t") + 1);
-			id.erase(0, id.find_first_not_of(L" \t"));
-			id.erase(id.find_last_not_of(L" \t") + 1);
-			resourcePath.erase(0, resourcePath.find_first_not_of(L" \t"));
-			resourcePath.erase(resourcePath.find_last_not_of(L" \t") + 1);
-			imageName.erase(0, imageName.find_first_not_of(L" \t"));
-			imageName.erase(imageName.find_last_not_of(L" \t") + 1);
-			hasColliderStr.erase(0, hasColliderStr.find_first_not_of(L" \t"));
-			hasColliderStr.erase(hasColliderStr.find_last_not_of(L" \t") + 1);
-			colliderTypeStr.erase(0, colliderTypeStr.find_first_not_of(L" \t"));
-			colliderTypeStr.erase(colliderTypeStr.find_last_not_of(L" \t") + 1);
-			offsetXStr.erase(0, offsetXStr.find_first_not_of(L" \t"));
-			offsetXStr.erase(offsetXStr.find_last_not_of(L" \t") + 1);
-			offsetYStr.erase(0, offsetYStr.find_first_not_of(L" \t"));
-			offsetYStr.erase(offsetYStr.find_last_not_of(L" \t") + 1);
-			widthStr.erase(0, widthStr.find_first_not_of(L" \t"));
-			widthStr.erase(widthStr.find_last_not_of(L" \t") + 1);
-			heightStr.erase(0, heightStr.find_first_not_of(L" \t"));
-			heightStr.erase(heightStr.find_last_not_of(L" \t") + 1);
-			centerXStr.erase(0, centerXStr.find_first_not_of(L" \t"));
-			centerXStr.erase(centerXStr.find_last_not_of(L" \t") + 1);
-			centerYStr.erase(0, centerYStr.find_first_not_of(L" \t"));
-			centerYStr.erase(centerYStr.find_last_not_of(L" \t") + 1);
-			radiusStr.erase(0, radiusStr.find_first_not_of(L" \t"));
-			radiusStr.erase(radiusStr.find_last_not_of(L" \t") + 1);
-
-			if (type.find(L"TILE_") == 0) {
-				// 타일 리소스
-				TileID tileID = EnumUtils::GetEnumValue<TileID>(id.c_str(), TILEID_NONE);
-				if (tileID != TILEID_NONE) {
-					TileData tileData;
-					tileData.id = tileID;
-					tileData.tileAssetBaseDirectory = resourcePath;
-					tileData.tileImageName = imageName;
-					m_tileResources[tileID] = tileData;
-				}
-			}
-			else {
-				// 게임오브젝트 리소스
-				GameObjectID objID = EnumUtils::GetEnumValue<GameObjectID>(id.c_str(), GOID_NONE);
-				GameObjectData objData;
-				objData.id = objID;
-				objData.type = EnumUtils::GetEnumValue<GameObjectType>(type.c_str(), GOBJ_NONE);
-				objData.objectAssetBaseDirectory = resourcePath;
-				objData.assetImageName = imageName;
-				objData.pivotX = 0.5f;
-				objData.pivotY = 1.0f;
-				
-				// 콜라이더 정보 파싱 (선택적)
-				if (!hasColliderStr.empty() && (hasColliderStr == L"1" || hasColliderStr == L"true" || hasColliderStr == L"True")) {
-					objData.hasCollider = true;
-					
-					// 콜라이더 타입 파싱 (기본값: COLLIDER_BOX)
-					if (!colliderTypeStr.empty()) {
-						if (colliderTypeStr == L"CIRCLE" || colliderTypeStr == L"circle" || colliderTypeStr == L"Circle") {
-							objData.colliderType = COLLIDER_CIRCLE;
-						}
-						else {
-							objData.colliderType = COLLIDER_BOX;
-						}
-					}
-					else {
-						objData.colliderType = COLLIDER_BOX;  // 기본값
-					}
-					
-					// BoxCollider 정보 파싱
-					if (!offsetXStr.empty() && !offsetYStr.empty() && !widthStr.empty() && !heightStr.empty()) {
-						objData.colliderOffsetX = std::stoi(offsetXStr);
-						objData.colliderOffsetY = std::stoi(offsetYStr);
-						objData.colliderWidth = std::stoi(widthStr);
-						objData.colliderHeight = std::stoi(heightStr);
-					}
-					
-					// CircleCollider 정보 파싱
-					if (!centerXStr.empty() && !centerYStr.empty() && !radiusStr.empty()) {
-						objData.colliderCenterX = std::stof(centerXStr);
-						objData.colliderCenterY = std::stof(centerYStr);
-						objData.colliderRadius = std::stof(radiusStr);
-					}
-				}
-				else {
-					objData.hasCollider = false;
-					objData.colliderType = COLLIDER_BOX;  // 기본값
-					objData.colliderOffsetX = 0;
-					objData.colliderOffsetY = 0;
-					objData.colliderWidth = 0;
-					objData.colliderHeight = 0;
-					objData.colliderCenterX = 0.0f;
-					objData.colliderCenterY = 0.0f;
-					objData.colliderRadius = 0.0f;
-				}
-				
-				m_objectResources[objID] = objData;
-
-			}
-		}
-	}
-
-	file.close();
+	m_objectResources[id] = data;
 }
 
 const GameObjectData* ResourceManager::GetObjectResourceInfo(GameObjectID id) const
@@ -171,13 +64,167 @@ const GameObjectData* ResourceManager::GetObjectResourceInfo(GameObjectID id) co
 	return nullptr;
 }
 
-const TileData* ResourceManager::GetTileResourceInfo(TileID id) const
+static void GetTilePathForParse(TileID id, std::wstring& outBaseDir, std::wstring& outImageName)
 {
-	auto it = m_tileResources.find(id);
-	if (it != m_tileResources.end()) {
-		return &(it->second);
+	outBaseDir.clear();
+	outImageName.clear();
+	switch (id) {
+	case TILEID_DIRT_00: outBaseDir = L"Resource/Tiles/Dirt"; outImageName = L"dirt_01.png"; break;
+	case TILEID_DIRT_01: outBaseDir = L"Resource/Tiles/Dirt"; outImageName = L"dirt_02.png"; break;
+	case TILEID_DIRT_02: outBaseDir = L"Resource/Tiles/Dirt"; outImageName = L"dirt_03.png"; break;
+	case TILEID_DIRT_03: outBaseDir = L"Resource/Tiles/Dirt"; outImageName = L"dirt_04.png"; break;
+	case TILEID_GRASS_00: outBaseDir = L"Resource/Tiles/Grass"; outImageName = L"grass_01.png"; break;
+	case TILEID_GRASS_01: outBaseDir = L"Resource/Tiles/Grass"; outImageName = L"grass_02.png"; break;
+	case TILEID_GRASS_02: outBaseDir = L"Resource/Tiles/Grass"; outImageName = L"grass_03.png"; break;
+	case TILEID_GRASS_03: outBaseDir = L"Resource/Tiles/Grass"; outImageName = L"grass_04.png"; break;
+	case TILEID_FOREST_00: outBaseDir = L"Resource/Tiles/Forest"; outImageName = L"forest_01.png"; break;
+	case TILEID_FOREST_01: outBaseDir = L"Resource/Tiles/Forest"; outImageName = L"forest_02.png"; break;
+	case TILEID_FOREST_02: outBaseDir = L"Resource/Tiles/Forest"; outImageName = L"forest_03.png"; break;
+	case TILEID_FOREST_03: outBaseDir = L"Resource/Tiles/Forest"; outImageName = L"forest_04.png"; break;
+	default: break;
 	}
-	return nullptr;
+}
+
+const MapData* ResourceManager::LoadMapData(const std::wstring& mapFileName)
+{
+	auto it = m_mapDataCache.find(mapFileName);
+	if (it != m_mapDataCache.end()) {
+		return &it->second;
+	}
+	MapData mapData;
+	ParseMapFileInto(mapFileName, mapData);
+	m_mapDataCache[mapFileName] = std::move(mapData);
+	return &m_mapDataCache[mapFileName];
+}
+
+void ResourceManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& outMapData)
+{
+	outMapData.mapFilePath = mapFileName;
+
+	size_t lastSlash = mapFileName.find_last_of(L"\\/");
+	size_t lastDot = mapFileName.find_last_of(L".");
+	if (lastSlash != std::wstring::npos) {
+		outMapData.mapName = mapFileName.substr(lastSlash + 1, lastDot - lastSlash - 1);
+	} else {
+		outMapData.mapName = mapFileName.substr(0, lastDot);
+	}
+
+	std::wifstream file(mapFileName);
+	file.imbue(std::locale(std::locale(), new std::codecvt_utf8<wchar_t>));
+
+	if (!file.is_open()) {
+		return;
+	}
+
+	std::wstring line;
+	enum Section { NONE, METADATA, PLAYER, TILES, OBJECTS, WALKABLE } section = NONE;
+	int currentTileRow = 0;
+
+	while (std::getline(file, line)) {
+		if (line.empty() || line[0] == L'#') {
+			if (line.find(L"# TILES") != std::wstring::npos) {
+				section = TILES;
+				currentTileRow = 0;
+			} else if (line.find(L"# OBJECTS") != std::wstring::npos) {
+				section = OBJECTS;
+			} else if (line.find(L"# WALKABLE_AREAS") != std::wstring::npos) {
+				section = WALKABLE;
+			}
+			continue;
+		}
+
+		if (line.find(L"MAP_WIDTH=") != std::wstring::npos) {
+			outMapData.mapWidth = std::stoi(line.substr(line.find(L"=") + 1));
+		} else if (line.find(L"MAP_HEIGHT=") != std::wstring::npos) {
+			outMapData.mapHeight = std::stoi(line.substr(line.find(L"=") + 1));
+		} else if (line.find(L"PLAYER_SPAWN_X=") != std::wstring::npos) {
+			outMapData.playerSpawn.x = std::stof(line.substr(line.find(L"=") + 1));
+		} else if (line.find(L"PLAYER_SPAWN_Y=") != std::wstring::npos) {
+			outMapData.playerSpawn.y = std::stof(line.substr(line.find(L"=") + 1));
+		} else if (section == TILES) {
+			std::wstringstream ss(line);
+			std::wstring token;
+			std::vector<std::wstring> tokens;
+			while (std::getline(ss, token, L',')) {
+				token.erase(0, token.find_first_not_of(L" \t"));
+				token.erase(token.find_last_not_of(L" \t") + 1);
+				tokens.push_back(token);
+			}
+			for (int i = 0; i < (int)tokens.size(); i += 2) {
+				int tileX = i / 2;
+				if (tileX < outMapData.mapWidth && currentTileRow < outMapData.mapHeight) {
+					TileType tileType = EnumUtils::GetEnumValue<TileType>(tokens[i].c_str(), TILE_NONE);
+					TileID tileID = EnumUtils::GetEnumValue<TileID>(tokens[i + 1].c_str(), TILEID_NONE);
+					std::wstring baseDir, imageName;
+					GetTilePathForParse(tileID, baseDir, imageName);
+					outMapData.tiles[tileX][currentTileRow].type = tileType;
+					outMapData.tiles[tileX][currentTileRow].id = tileID;
+					outMapData.tiles[tileX][currentTileRow].tileAssetBaseDirectory = baseDir;
+					outMapData.tiles[tileX][currentTileRow].tileImageName = imageName;
+					outMapData.tiles[tileX][currentTileRow].pAtlasBitmap = nullptr;
+					outMapData.tiles[tileX][currentTileRow].sourceRect = Gdiplus::RectF(0.0f, 0.0f, 0.0f, 0.0f);
+				}
+			}
+			currentTileRow++;
+		} else if (section == OBJECTS) {
+			if (line.find(L"0,0,0,0,0") != std::wstring::npos) continue;
+			std::wstringstream ss(line);
+			std::wstring type, id, x, y, resource, pivotX, pivotY;
+			if (std::getline(ss, type, L',') &&
+			    std::getline(ss, id, L',') &&
+			    std::getline(ss, x, L',') &&
+			    std::getline(ss, y, L',') &&
+			    std::getline(ss, resource, L',') &&
+			    std::getline(ss, pivotX, L',') &&
+			    std::getline(ss, pivotY, L',')) {
+				type.erase(0, type.find_first_not_of(L" \t"));
+				type.erase(type.find_last_not_of(L" \t") + 1);
+				id.erase(0, id.find_first_not_of(L" \t"));
+				id.erase(id.find_last_not_of(L" \t") + 1);
+				resource.erase(0, resource.find_first_not_of(L" \t"));
+				resource.erase(resource.find_last_not_of(L" \t") + 1);
+				GameObjectID objID = EnumUtils::GetEnumValue<GameObjectID>(id.c_str(), GOID_NONE);
+				GameObjectType objType = EnumUtils::GetEnumValue<GameObjectType>(type.c_str(), GOBJ_NONE);
+				float objX = std::stof(x);
+				float objY = std::stof(y);
+				float objPivotX = std::stof(pivotX);
+				float objPivotY = std::stof(pivotY);
+				const GameObjectData* resourceData = GetObjectResourceInfo(objID);
+				if (objID != GOID_NONE) {
+					GameObjectData objData;
+					objData.type = objType;
+					objData.id = objID;
+					objData.x = objX;
+					objData.y = objY;
+					objData.pivotX = objPivotX;
+					objData.pivotY = objPivotY;
+					if (resourceData) {
+						objData.objectAssetBaseDirectory = resourceData->objectAssetBaseDirectory;
+						objData.assetImageName = resourceData->assetImageName;
+						objData.hasCollider = resourceData->hasCollider;
+						objData.colliderOffsetX = resourceData->colliderOffsetX;
+						objData.colliderOffsetY = resourceData->colliderOffsetY;
+						objData.colliderWidth = resourceData->colliderWidth;
+						objData.colliderHeight = resourceData->colliderHeight;
+					}
+					outMapData.gameObjects.push_back(objData);
+				}
+			}
+		} else if (section == WALKABLE) {
+			std::wstringstream ss(line);
+			std::wstring token;
+			int currentCol = 0;
+			while (std::getline(ss, token, L',') && currentCol < outMapData.mapWidth) {
+				token.erase(0, token.find_first_not_of(L" \t"));
+				token.erase(token.find_last_not_of(L" \t") + 1);
+				if (currentTileRow - outMapData.mapHeight >= 0 && currentTileRow - outMapData.mapHeight < outMapData.mapHeight) {
+					outMapData.walkableAreas[currentCol][currentTileRow - outMapData.mapHeight] = (std::stoi(token) == 1);
+				}
+				currentCol++;
+			}
+		}
+	}
+	file.close();
 }
 
 std::wstring ResourceManager::BuildResourcePath(const std::wstring& basePath, const std::wstring& subFolder, const std::wstring& filename) const
@@ -218,31 +265,6 @@ std::wstring ResourceManager::BuildResourcePath(const std::wstring& basePath, co
 	}
 
 	return relativePath;
-}
-
-std::wstring ResourceManager::BuildObjectResourcePath(GameObjectID id, const std::wstring& subFolder, const std::wstring& filename) const
-{
-	const GameObjectData* resourceData = GetObjectResourceInfo(id);
-	if (!resourceData) {
-		return L"";
-	}
-
-	return BuildResourcePath(resourceData->objectAssetBaseDirectory, subFolder, filename);
-}
-
-std::wstring ResourceManager::BuildTileResourcePath(TileID id, const std::wstring& subFolder, const std::wstring& filename) const
-{
-	const TileData* resourceData = GetTileResourceInfo(id);
-	if (!resourceData) {
-		return L"";
-	}
-
-	return BuildResourcePath(resourceData->tileAssetBaseDirectory, subFolder, filename);
-}
-
-std::wstring ResourceManager::BuildUIResourcePath(const std::wstring& subFolder, const std::wstring& filename) const
-{
-	return BuildResourcePath(L"Resource\\UI", subFolder, filename);
 }
 
 std::shared_ptr<Sprite> ResourceManager::LoadSprite(const std::wstring& fullPath)

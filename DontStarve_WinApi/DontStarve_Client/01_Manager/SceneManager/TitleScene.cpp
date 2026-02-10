@@ -158,23 +158,17 @@ void TitleScene::Render()
 
 void TitleScene::Release()
 {
-	// UI 객체들은 UIManager에서 해제되므로 별도 처리 불필요
-	// TitleScene에서 사용한 매니저들 해제
+	// TitleScene에서 사용한 매니저/포인터 정리 (소멸자에서 호출)
 	UIManager::GetInstance()->Release();
 	InputManager::GetInstance()->Release();
 }
 
 void TitleScene::OnStartButtonClicked()
 {
-	OutputDebugStringW(L"TitleScene: Start button clicked!\n");
-	// SceneManager를 통해 캐릭터 선택 씬으로 전환 요청
-	SceneManager::GetInstance()->RequestLoadCharacterSelectScene();
+	SceneManager::GetInstance()->LoadCharacterSelectScene();
 }
 
 void TitleScene::OnExitButtonClicked()
 {
-	OutputDebugStringW(L"TitleScene: Exit button clicked!\n");
-	
-	// 프로그램 종료
 	PostQuitMessage(0);
 }

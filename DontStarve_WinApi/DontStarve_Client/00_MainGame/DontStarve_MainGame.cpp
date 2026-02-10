@@ -35,8 +35,8 @@ void DontStarve_MainGame::Init()
     
     GraphicsManager::GetInstance()->Init();
     RenderManager::GetInstance()->Init();
-    ResourceManager::GetInstance()->Init(); // 리소스 매니저 초기화
-    
+    ResourceManager::GetInstance()->Init(); // 리소스 매니저 초기화 (오브젝트 리소스 등록 포함)
+
     // SceneManager 초기화 (첫 번째 씬 로드)
     SceneManager::GetInstance()->Init();
      
@@ -61,7 +61,7 @@ void DontStarve_MainGame::Update()
     
     // SceneManager 업데이트 (FPS 제한 적용)
     SceneManager::GetInstance()->Update(deltaTime);
-    
+
     // FPS 제한 업데이트
     TimeManager::GetInstance()->UpdateFrameLimit();
 }

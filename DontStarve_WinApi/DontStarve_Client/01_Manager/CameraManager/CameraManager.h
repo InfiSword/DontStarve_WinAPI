@@ -1,5 +1,7 @@
 #pragma once
 
+struct TileData;
+
 // 타일 캐시 데이터 구조체
 struct TileCacheData {
 	TileID id;
@@ -81,6 +83,6 @@ private:
 	std::map<UINT, TileCacheData> m_tileCache;
 	int m_lastStartTileX, m_lastStartTileY, m_lastEndTileX, m_lastEndTileY;
 	bool m_tileViewportChanged;
-	void LoadTileBitmap(TileID tileID, TileCacheData& cacheData);
+	void LoadTileBitmap(const TileData& tileData, TileCacheData& cacheData);
 	void RenderSingleTile(const MapData* mapData, int x, int y, float worldY);
 };

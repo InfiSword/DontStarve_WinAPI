@@ -125,11 +125,11 @@ void UIButton::Update(float deltaTime)
 		m_image->Update(deltaTime);
 	}
 	
-	// Button 상태 업데이트 (이 안에서 콜백이 호출될 수 있음)
+	// Button 상태 업데이트 (이 안에서 클릭 콜백이 호출될 수 있음 → 씬 전환 시 이 UI가 파괴됨)
 	ButtonState previousState = m_buttonComp->GetState();
-	m_buttonComp->UpdateState(m_rectTransform, m_image);
+	bool callbackInvoked = m_buttonComp->UpdateState(m_rectTransform, m_image);
+	if (callbackInvoked) return; // 콜백에서 씬 전환 등으로 이 객체가 파괴되었을 수 있음. 역참조 금지.
 	
-	// UpdateState 호출 후 객체가 삭제되었을 수 있으므로 다시 체크
 	if (!m_buttonComp || !m_image) return;
 	
 	ButtonState currentState = m_buttonComp->GetState();
