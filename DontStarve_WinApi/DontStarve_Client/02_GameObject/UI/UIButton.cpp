@@ -1,16 +1,16 @@
 #include "99_Default/pch.h"
 #include "UIButton.h"
-#include "../Component/Transform/RectTransform.h"
-#include "../Component/Sprite/Image.h"
-#include "../Component/Sprite/Sprite.h"
-#include "../Component/Button/Button.h"
 #include "../../01_Manager/InputManager/InputManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
+#include "../Component/Transform/RectTransform.h"
+#include "../Component/Sprite/Image.h"
+#include "../Component/Sprite/Sprite.h"
+#include "../Component/Button/Button.h"
 
 UIButton::UIButton(GameObjectID id, float width, float height,
-	const std::wstring& normalImagePath, const std::wstring& hoverImagePath,
+	const std::shared_ptr<Sprite>& normalSprite, const std::shared_ptr<Sprite>& hoverSprite,
 	float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY,
 	float anchoredPosX, float anchoredPosY)
 	: UIElement(GOBJ_UI, id, L"", L"", true, false),
@@ -21,7 +21,12 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 	m_previousState(ButtonState::NORMAL)
 {
 	// UIElement에서 이미 RectTransform이 생성되었으므로 GetRectTransform() 사용
-	RectTransform* rectTransform = m_rectTransform;
+	RectTransform* rectTransform = GetRectTransform();
+	if (!rectTransform) {
+		OutputDebugStringW(L"UIButton: RectTransform이 nullptr입니다!\n");
+		return;
+	}
+	
 	rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
 	rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
 	rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
@@ -33,11 +38,16 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 	
 	// Image 컴포넌트 추가 (생성자에서 초기화)
 	m_image = AddComponent<ComponentElement::Image>();
+	if (!m_image) {
+		OutputDebugStringW(L"UIButton: Image 컴포넌트 생성 실패!\n");
+		return;
+	}
 	m_image->SetLayer(LAYER_UI_FOREGROUND);
 	m_image->SetSortKey(0.0f);
 
-	std::wstring normalFullPath = normalImagePath;
-	std::wstring hoverFullPath = hoverImagePath;
+	// 스프라이트 핸들 저장
+	m_normalSprite = normalSprite;
+	m_hoverSprite = hoverSprite;
 
 	// Button 컴포넌트 스타일 설정
 	ButtonStateStyle normalStyle{
@@ -62,13 +72,19 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 	};
 
 	m_buttonComp = AddComponent<Button>(normalStyle, hoverStyle, clickedStyle, disabledStyle);
+	if (!m_buttonComp) {
+		OutputDebugStringW(L"UIButton: Button 컴포넌트 생성 실패!\n");
+		return;
+	}
 	
-	// normal과 hover 스프라이트 미리 로드
-	LoadBitmaps(normalFullPath, hoverFullPath);
+	// normal 스프라이트가 있으면 Image 컴포넌트에 설정
+	if (m_normalSprite) {
+		m_image->SetSprite(m_normalSprite);
+	}
 	
 	// 스프라이트가 있으면 스프라이트 크기에 맞춰 scale 조정
-	if (m_image && m_image->GetSprite()) {
-		Gdiplus::Bitmap* bitmap = m_image->GetSprite();
+	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
+	if (bitmap) {
 		float bitmapWidth = static_cast<float>(bitmap->GetWidth());
 		float bitmapHeight = static_cast<float>(bitmap->GetHeight());
 		if (bitmapWidth > 0 && bitmapHeight > 0) {
@@ -86,31 +102,6 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 UIButton::~UIButton()
 {
 	Release();
-}
-
-void UIButton::LoadBitmaps(const std::wstring& normalImagePath, const std::wstring& hoverImagePath)
-{
-	// Image 컴포넌트 가져오기
-	if (!m_image) {
-		m_image = AddComponent<ComponentElement::Image>();
-		m_image->SetLayer(LAYER_UI_FOREGROUND);
-		m_image->SetSortKey(0.0f);
-	}
-
-	// Normal 비트맵 로드 및 저장
-	if (!normalImagePath.empty()) {
-		m_normalSprite = ResourceManager::GetInstance()->LoadSprite(normalImagePath);
-		if (m_normalSprite) {
-			m_image->SetSprite(m_normalSprite);
-		}
-	}
-	// 빈 경로인 경우 스프라이트를 로드하지 않음 (투명 버튼)
-
-	// Hover 비트맵 로드 및 저장
-	if (!hoverImagePath.empty()) {
-		m_hoverSprite = ResourceManager::GetInstance()->LoadSprite(hoverImagePath);
-	}
-	// 빈 경로인 경우 hover 스프라이트를 로드하지 않음
 }
 
 void UIButton::Update(float deltaTime)
@@ -281,6 +272,33 @@ void UIButton::SetDisabledColor(const Gdiplus::Color& color)
 {
 	if (m_buttonComp) {
 		m_buttonComp->SetDisabledColor(color);
+	}
+}
+
+void UIButton::UpdateHoverStateImmediate()
+{
+	// 즉시 UpdateState 호출 (hover 및 모든 상태 처리)
+	// 컴포넌트가 유효한지 확인 (삭제 중일 수 있음)
+	if (!m_buttonComp || !m_image || !m_rectTransform) return;
+	
+	ButtonState previousState = m_buttonComp->GetState();
+	
+	// UpdateState 호출 (hover, 클릭 등 모든 상태 처리)
+	bool callbackInvoked = m_buttonComp->UpdateState(m_rectTransform, m_image);
+	
+	// 콜백에서 객체가 삭제되었을 수 있으므로 체크
+	if (callbackInvoked || !m_buttonComp || !m_image) return;
+	
+	ButtonState currentState = m_buttonComp->GetState();
+	
+	// 상태가 변경되었을 때 스프라이트 변경
+	if (previousState != currentState) {
+		if (currentState == ButtonState::HOVER && m_hoverSprite) {
+			m_image->SetSprite(m_hoverSprite);
+		}
+		else if (m_normalSprite) {
+			m_image->SetSprite(m_normalSprite);
+		}
 	}
 }
 

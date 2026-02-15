@@ -49,7 +49,12 @@ public:
 
     template <typename T>
     T* GetComponent() const {
+        // Release()된 GameObject의 컴포넌트에 접근하지 않음 (안전성)
+        if (m_bReleased) {
+            return nullptr;
+        }
         for (Component* component : m_components) {
+            if (!component) continue; // nullptr 체크
             T* target = dynamic_cast<T*>(component);
             if (target) {
                 return target;

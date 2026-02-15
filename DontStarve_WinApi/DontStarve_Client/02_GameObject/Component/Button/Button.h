@@ -7,7 +7,7 @@ namespace ComponentElement { class Image; }
 
 // 버튼 상태별 시각적 설정
 struct ButtonStateStyle {
-	Gdiplus::Color spriteColor;  // 스프라이트 틴트 색상 (기본값: 흰색)
+	Gdiplus::Color spriteColor; 
 	RenderLayer layer;
 	float sortKeyOffset;
 };
@@ -32,7 +32,7 @@ public:
 	bool IsDisabled() const { return m_isDisabled; }
 
 	const ButtonStateStyle& GetStateStyle(ButtonState state) const;
-	/// true 반환 시 클릭 콜백이 호출됐으므로 호출부에서는 이 버튼/UI를 더 이상 참조하면 안 됨 (씬 전환 등으로 파괴되었을 수 있음)
+
 	bool UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image);
 	void ApplyVisualState(ComponentElement::Image* image);
 	

@@ -7,11 +7,10 @@ struct TileCacheData {
 	TileID id;
 	Gdiplus::Bitmap* bitmap;
 	Gdiplus::RectF sourceRect;
-	bool isAtlasBased;
 	
-	TileCacheData() : id(TILEID_NONE), bitmap(nullptr), isAtlasBased(false) {}
-	TileCacheData(TileID _id, Gdiplus::Bitmap* _bitmap, const Gdiplus::RectF& _rect, bool _isAtlas) 
-		: id(_id), bitmap(_bitmap), sourceRect(_rect), isAtlasBased(_isAtlas) {}
+	TileCacheData() : id(TILEID_NONE), bitmap(nullptr) {}
+	TileCacheData(TileID _id, Gdiplus::Bitmap* _bitmap, const Gdiplus::RectF& _rect) 
+		: id(_id), bitmap(_bitmap), sourceRect(_rect) {}
 };
 
 class GameObject;
@@ -83,6 +82,8 @@ private:
 	std::map<UINT, TileCacheData> m_tileCache;
 	int m_lastStartTileX, m_lastStartTileY, m_lastEndTileX, m_lastEndTileY;
 	bool m_tileViewportChanged;
+	bool m_tileRangeInitialized;  // 타일 범위가 한 번이라도 계산되었는지 여부
 	void LoadTileBitmap(const TileData& tileData, TileCacheData& cacheData);
 	void RenderSingleTile(const MapData* mapData, int x, int y, float worldY);
+	void CleanupUnusedTileCache(const MapData* mapData, int startTileX, int endTileX, int startTileY, int endTileY);
 };

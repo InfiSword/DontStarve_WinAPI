@@ -31,7 +31,7 @@ void DontStarve_MainGame::Init()
 
     // 기본 시스템 매니저만 초기화 (렌더/윈도우 매니저 등)
     TimeManager::GetInstance()->Init();
-    TimeManager::GetInstance()->SetFPS(20);
+    TimeManager::GetInstance()->SetFPS(30);
     
     GraphicsManager::GetInstance()->Init();
     RenderManager::GetInstance()->Init();
@@ -59,6 +59,9 @@ void DontStarve_MainGame::Update()
     TimeManager::GetInstance()->Update();
     float deltaTime = TimeManager::GetInstance()->GetDeltaTime(); // 실제 deltaTime
     
+    // 입력 처리: 가장 먼저 업데이트 (버튼 반응 속도 개선)
+    InputManager::GetInstance()->Update(deltaTime);
+    
     // SceneManager 업데이트 (FPS 제한 적용)
     SceneManager::GetInstance()->Update(deltaTime);
 
@@ -70,6 +73,9 @@ void DontStarve_MainGame::LateUpdate()
 {
     if (!m_bIsInitialized)
         return;
+
+    // InputManager LateUpdate (입력 처리 후 정리 작업)
+    InputManager::GetInstance()->LateUpdate();
 
     // SceneManager LateUpdate
     SceneManager::GetInstance()->LateUpdate();

@@ -1,12 +1,13 @@
 #include "99_Default/pch.h"
 #include "CharacterSelectScene.h"
-#include "../../02_GameObject/UI/UIImage.h"
-#include "../../02_GameObject/UI/UIButton.h"
-#include "../../02_GameObject/UI/UIText.h"
 #include "SceneManager.h"
 #include "../UIManager/UIManager.h"
 #include "../InputManager/InputManager.h"
 #include "../RenderManager/RenderManager.h"
+#include "../ResourceManager/ResourceManager.h"
+#include "../../02_GameObject/UI/UIImage.h"
+#include "../../02_GameObject/UI/UIButton.h"
+#include "../../02_GameObject/UI/UIText.h"
 
 CharacterSelectScene::CharacterSelectScene()
 	: m_currentState(CharacterSelectionState::BROWSING), m_selectedCharacterIndex(-1),
@@ -35,6 +36,7 @@ void CharacterSelectScene::Init()
 	
 	// UI 생성
 	UIManager* uiManager = UIManager::GetInstance();
+	ResourceManager * resourceManager = ResourceManager::GetInstance();
 
 	// 배경 이미지 생성 (전체 화면)
 	OutputDebugStringW(L"CharacterSelectScene: 배경 이미지 생성 시작\n");
@@ -45,23 +47,25 @@ void CharacterSelectScene::Init()
 		LAYER_UI_BACKGROUND,
 		L"../Resource/UI/BG.png",
 		0.f,
-		0.0f, 0.0f,  // anchorMin
-		1.0f, 1.0f,  // anchorMax
-		0.0f, 0.0f    // anchoredPosition
+		0.0f, 0.0f,  
+		1.0f, 1.0f,  
+		0.0f, 0.0f    
 	);
 	uiManager->AddUIImage(backgroundImage);
 	OutputDebugStringW(L"CharacterSelectScene: 배경 이미지 생성 완료\n");
 
 	// 뒤로가기 버튼 생성 (좌측 중앙)
+	std::shared_ptr<Sprite> backNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/Button.png");
+	std::shared_ptr<Sprite> backHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/Button.png");
 	UIButton* backButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BACK_BUTTON),
 		80.0f,
 		100.0f,
-		L"../Resource/UI/Button.png",
-		L"../Resource/UI/Button.png",
-		0.0f, 0.5f,  // anchorMin (좌측 중앙)
-		0.0f, 0.5f,  // anchorMax (좌측 중앙)
-		100.0f, 300.0f // anchoredPosition (좌측에서 오른쪽으로 100px, 중앙에서 아래로 300px)
+		backNormalSprite,
+		backHoverSprite,
+		0.0f, 0.5f,  
+		0.0f, 0.5f,  
+		100.0f, 300.0f 
 	);
 	backButton->SetOnClickCallback([this]() {
 		OnBackButtonClicked();
@@ -76,38 +80,60 @@ void CharacterSelectScene::Init()
 		LAYER_UI_FOREGROUND,
 		L"../Resource/UI/wilson.png",
 		1.0f,
-		1.0f, 0.5f,  // anchorMin (우측 중앙)
-		1.0f, 0.5f,  // anchorMax (우측 중앙)
-		-300.0f, -150.0f // anchoredPosition (우측에서 왼쪽으로 300px, 중앙에서 위로 150px)
+		1.0f, 0.5f,  
+		1.0f, 0.5f,  
+		-300.0f, -150.0f 
 	);
 	selectedPortrait->SetActive(false);  // 초기에는 비활성화
 	uiManager->AddUIImage(selectedPortrait);
 
-	// 캐릭터 정보창 (우측 중앙) - 초기에는 숨김
+	// 캐릭터 정보창 (우측 중앙, 설명 텍스트와 위치 맞춤) - 초기에는 숨김
 	UIImage* characterInfoPanel = new UIImage(
 		static_cast<GameObjectID>(GOID_PLAYER_INFO),
-		500.0f,
+		550.0f,
 		200.0f,
 		LAYER_UI_FOREGROUND,
 		L"../Resource/UI/UI4.png",
 		1.0f,
-		1.0f, 0.5f,  // anchorMin (우측 중앙)
-		1.0f, 0.5f,  // anchorMax (우측 중앙)
-		-300.0f, 200.0f // anchoredPosition (우측에서 왼쪽으로 300px, 중앙에서 아래로 200px)
+		1.0f, 0.5f,  
+		1.0f, 0.5f,  
+		-320.0f, 180.0f 
 	);
-	characterInfoPanel->SetActive(false);  // 초기에는 비활성화
+	characterInfoPanel->SetActive(false);  
 	uiManager->AddUIImage(characterInfoPanel);
 
-	// 선택 버튼 (하단 중앙) - 초기에는 숨김
+	// 캐릭터 설명 텍스트 생성 (캐릭터 정보창과 같은 anchor, 상대적 위치)
+	UIText* descriptionText = new UIText(
+		static_cast<GameObjectID>(GOID_CHARACTER_DESCRIPTION),
+		500.0f - 40.0f,  
+		200.0f - 40.0f,  
+		L"",
+		Gdiplus::Color::Black,
+		LAYER_UI_FOREGROUND,
+		6.0f,
+		L"맑은 고딕",
+		16.0f,
+		Gdiplus::StringAlignmentNear,
+		Gdiplus::StringAlignmentNear,
+		1.0f, 0.5f, 
+		1.0f, 0.5f,  
+		-300.0f, 200.0f 
+	);
+	descriptionText->SetActive(false);  // 초기에는 비활성화
+	uiManager->AddUIText(descriptionText);
+
+	// 선택 버튼 (캐릭터 정보창 아래, 왼쪽) - 초기에는 숨김
+	std::shared_ptr<Sprite> selectNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/Select_Bar.png");
+	std::shared_ptr<Sprite> selectHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/Select_Bar.png");
 	UIButton* selectButton = new UIButton(
 		static_cast<GameObjectID>(GOID_SELECT_BUTTON),
 		120.0f,
 		50.0f,
-		L"../Resource/UI/Select_Bar.png",
-		L"../Resource/UI/Select_Bar.png",
-		0.5f, 0.0f,  // anchorMin (하단 중앙)
-		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		-150.0f, 100.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 100px)
+		selectNormalSprite,
+		selectHoverSprite,
+		1.0f, 0.5f, 
+		1.0f, 0.5f,  
+		-390.0f, 320.0f 
 	);
 	selectButton->SetOnClickCallback([this]() {
 		this->OnSelectButtonClicked();
@@ -128,23 +154,25 @@ void CharacterSelectScene::Init()
 		16.0f,
 		Gdiplus::StringAlignmentCenter,
 		Gdiplus::StringAlignmentCenter,
-		0.5f, 0.0f,  // anchorMin (하단 중앙)
-		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		-150.0f, 100.0f // anchoredPosition (중앙에서 왼쪽으로 150px, 하단에서 위로 100px)
+		1.0f, 0.5f,  
+		1.0f, 0.5f,  
+		-400.0f, 320.0f 
 	);
 	selectButtonText->SetActive(false);  // 초기에는 비활성화
 	uiManager->AddUIText(selectButtonText);
 
-	// 취소 버튼 (하단 중앙) - 초기에는 숨김
+	// 취소 버튼 (캐릭터 정보창 아래, 오른쪽) - 초기에는 숨김
+	std::shared_ptr<Sprite> cancelNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/Select_Bar.png");
+	std::shared_ptr<Sprite> cancelHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/Select_Bar.png");
 	UIButton* cancelButton = new UIButton(
 		static_cast<GameObjectID>(GOID_CANCEL_SELECTION),
 		120.0f,
 		50.0f,
-		L"../Resource/UI/Select_Bar.png",
-		L"../Resource/UI/Select_Bar.png",
-		0.5f, 0.0f,  // anchorMin (하단 중앙)
-		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		150.0f, 100.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 100px)
+		cancelNormalSprite,
+		cancelHoverSprite,
+		1.0f, 0.5f,  
+		1.0f, 0.5f,  
+		-210.0f, 320.0f 
 	);
 	cancelButton->SetOnClickCallback([this]() {
 		this->OnCancelButtonClicked();
@@ -165,32 +193,12 @@ void CharacterSelectScene::Init()
 		16.0f,
 		Gdiplus::StringAlignmentCenter,
 		Gdiplus::StringAlignmentCenter,
-		0.5f, 0.0f,  // anchorMin (하단 중앙)
-		0.5f, 0.0f,  // anchorMax (하단 중앙)
-		150.0f, 100.0f // anchoredPosition (중앙에서 오른쪽으로 150px, 하단에서 위로 100px)
+		1.0f, 0.5f,  
+		1.0f, 0.5f, 
+		-220.0f, 320.0f 
 	);
 	cancelButtonText->SetActive(false);  // 초기에는 비활성화
-	uiManager->AddUIText(cancelButtonText);
-
-	// 캐릭터 설명 텍스트 생성 (캐릭터 정보창과 같은 anchor, 상대적 위치)
-	UIText* descriptionText = new UIText(
-		static_cast<GameObjectID>(GOID_CHARACTER_DESCRIPTION),
-		500.0f - 40.0f,  // textWidth
-		200.0f - 40.0f,  // textHeight
-		L"",
-		Gdiplus::Color::Black,
-		LAYER_UI_FOREGROUND,
-		6.0f,
-		L"맑은 고딕",
-		16.0f,
-		Gdiplus::StringAlignmentNear,
-		Gdiplus::StringAlignmentNear,
-		1.0f, 0.5f,  // anchorMin (우측 중앙, 정보창과 동일)
-		1.0f, 0.5f,  // anchorMax (우측 중앙, 정보창과 동일)
-		-280.0f, 180.0f // anchoredPosition (정보창보다 약간 왼쪽 위로)
-	);
-	descriptionText->SetActive(false);  // 초기에는 비활성화
-	uiManager->AddUIText(descriptionText);
+	uiManager->AddUIText(cancelButtonText);	
 
 	// 캐릭터 버튼들 생성
 	CreateCharacterButtons();
@@ -259,9 +267,7 @@ void CharacterSelectScene::InitializeCharacters()
 
 void CharacterSelectScene::Update(float deltaTime)
 {
-	// 매니저들 업데이트
 	UIManager::GetInstance()->Update(deltaTime);
-	InputManager::GetInstance()->Update(deltaTime);
 }
  
 void CharacterSelectScene::CreateCharacterButtons()
@@ -284,15 +290,19 @@ void CharacterSelectScene::CreateCharacterButtons()
 		float anchorPosX = charInfo.buttonPosX;
 		float anchorPosY = charInfo.buttonPosY - screenHeight / 2.0f;
 		
+		ResourceManager* resourceManager =  ResourceManager::GetInstance();
+
 		// HUD 배경을 버튼으로 생성 (hover 시 밝게 표시)
+		std::shared_ptr<Sprite> hudNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/quagmire_hud.png");
+		std::shared_ptr<Sprite> hudHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/quagmire_hud.png");
 		UIButton* hudButton = new UIButton(
 			static_cast<GameObjectID>(3004 + i * 10),
 			buttonWidth,
 			buttonHeight,
-			L"../Resource/UI/quagmire_hud.png",  // normal 이미지
-			L"../Resource/UI/quagmire_hud.png",  // hover 이미지 (같은 이미지 사용)
-			0.0f, 0.5f,  // anchorMin (좌측 중앙)
-			0.0f, 0.5f,  // anchorMax (좌측 중앙)
+			hudNormalSprite,  // normal 이미지
+			hudHoverSprite,   // hover 이미지 (같은 이미지 사용)
+			0.0f, 0.5f,		  // anchorMin (좌측 중앙)
+			0.0f, 0.5f,		  // anchorMax (좌측 중앙)
 			anchorPosX, anchorPosY // anchoredPosition
 		);
 		
@@ -308,7 +318,7 @@ void CharacterSelectScene::CreateCharacterButtons()
 		
 		uiManager->AddUIButton(hudButton);
 		
-		// 캐릭터 이미지 또는 잠금 오버레이 생성 (항상 생성)
+		// 캐릭터 이미지 또는 잠금 오버레이 생성
 		std::wstring displayImagePath;
 		if (!charInfo.isUnlocked) {
 			// 잠금된 캐릭터는 잠금 이미지 표시
@@ -339,9 +349,7 @@ void CharacterSelectScene::CreateCharacterButtons()
  
 void CharacterSelectScene::LateUpdate()
 {
-	// 매니저들 LateUpdate
 	UIManager::GetInstance()->LateUpdate();
-	InputManager::GetInstance()->LateUpdate();
 }
 
 void CharacterSelectScene::Render()

@@ -14,86 +14,86 @@ public:
 
 	LRESULT HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-	// 맵 저장/로드/새 맵 함수
-	void NewMap();                                  // 새 맵 생성 (초기화)
+	// Map save/load/new functions
+	void NewMap();                                  // Create new map (initialize)
 	bool SaveMap(const WCHAR* filename);
 	bool LoadMap(const WCHAR* filename);
 
-	// 파일 다이얼로그 함수
+	// File dialog functions
 	bool ShowSaveFileDialog(WCHAR* fileName, DWORD fileNameSize);
 	bool ShowOpenFileDialog(WCHAR* fileName, DWORD fileNameSize);
 
-	// 오브젝트 추가/제거/위치 관련 함수 (m_objectsDirty 플래그 관리)
+	// Object add/remove/position update functions (m_objectsDirty flag management)
 	void AddObject(const GameObjectData& obj);
-	void RemoveObject(size_t idx); // 인덱스 삭제
-	void RemoveObject(GameObjectData* objToRemove); // 포인터로 삭제 (오버로드)
-	void UpdateObjectPosition(GameObjectData* obj, int newX, int newY); // 오브젝트 위치 업데이트
+	void RemoveObject(size_t idx); // Remove by index
+	void RemoveObject(GameObjectData* objToRemove); // Remove by pointer (fast search)
+	void UpdateObjectPosition(GameObjectData* obj, int newX, int newY); // Update object position
 
-	// 성능 정보 설정/조회 (Editor.cpp에서 계산된 값 받기)
+	// Performance info get/set (set from Editor.cpp)
 	void SetCurrentFPS(float fps) { m_currentFPS = fps; }
 	float GetCurrentFPS() const { return m_currentFPS; }
 	float GetLayerMemoryUsageMB() const;
 
-	// 디버그 설정
+	// Debug info
 	void SetDebugInfoVisible(bool visible) { m_showDebugInfo = visible; }
 	bool IsDebugInfoVisible() const { return m_showDebugInfo; }
 
 private:
-	// GDI+ 렌더링 관련 멤버 변수
+	// GDI+ rendering related member variables
 	Gdiplus::Graphics* m_pGraphics;
 	Gdiplus::Bitmap* m_pDoubleBufferBitmap;
 
-	// 에디터 데이터 관련 멤버 변수
-	TileData m_tileMap[MAP_WIDTH][MAP_HEIGHT]; // 타일맵 데이터
+	// Map data related member variables
+	TileData m_tileMap[MAP_WIDTH][MAP_HEIGHT]; // Tile map data
 	std::vector<GameObjectData> m_gameObjects;
 
-	// 플레이어 스폰 포인트
-	bool m_hasPlayerSpawn = false;				// 플레이어 스폰 포인트가 설정되었는지 여부
-	Gdiplus::PointF m_playerSpawnPoint;			// 플레이어 스폰 월드 좌표 (발 밑 중심)
-	bool m_isPlayerSpawnMode = false;			// 플레이어 스폰 포인트 설정 모드
+	// Player spawn point related
+	bool m_hasPlayerSpawn = false;				// Whether player spawn point is set
+	Gdiplus::PointF m_playerSpawnPoint;			// Player spawn point coordinates (map center)
+	bool m_isPlayerSpawnMode = false;			// Player spawn point edit mode
 
-	// 팔레트 관련 멤버 변수
-	std::vector<PaletteItem> m_paletteItems;    // 팔레트 아이템 리스트
-	RECT m_paletteRect;                         // 팔레트 영역
-	int m_selectedPaletteIndex;                 // 현재 선택된 팔레트 아이템 인덱스 (-1은 선택 없음)
+	// Palette related member variables
+	std::vector<PaletteItem> m_paletteItems;    // Palette item list
+	RECT m_paletteRect;                         // Palette area
+	int m_selectedPaletteIndex;                 // Currently selected palette item index (-1 means not selected)
 
-	// 배치 및 프리뷰 관련 멤버 변수
-	bool m_isPlacingMode;                       // 현재 아이템 배치 모드인지 여부 
-	bool m_is3x3Mode;                           // 3x3 타일 설치 모드 여부
-	POINT m_rawMousePos;                        // 현재 마우스 커서의 픽셀 좌표
-	Gdiplus::PointF m_snappedPreviewPos;        // 프리뷰의 스냅된 화면 좌표 (float 정밀도)
+	// Placement mode related member variables
+	bool m_isPlacingMode;                       // Whether currently in placement mode
+	bool m_is3x3Mode;                           // 3x3 tile placement mode flag
+	POINT m_rawMousePos;                        // Raw mouse cursor screen coordinates
+	Gdiplus::PointF m_snappedPreviewPos;        // Snapped preview position screen coordinates (float precision)
 
-	// Pivot 설정 관련 멤버 변수
-	bool m_isPivotEditMode;                     // Pivot 편집 모드 여부
-	POINT m_pivotEditPos;                       // Pivot 편집 위치
-	float m_currentPivotX;                      // 현재 설정된 Pivot X
-	float m_currentPivotY;                      // 현재 설정된 Pivot Y
-	GameObjectData* m_editingObject;            // 편집 중인 오브젝트
+	// Pivot edit mode related member variables
+	bool m_isPivotEditMode;                     // Pivot edit mode flag
+	POINT m_pivotEditPos;                       // Pivot edit position
+	float m_currentPivotX;                      // Currently editing Pivot X
+	float m_currentPivotY;                      // Currently editing Pivot Y
+	GameObjectData* m_editingObject;            // Currently editing object
 
 	const int MIN_COLLIDER_SIZE = 4;
-	const float MIN_COLLIDER_RADIUS = 2.0f;    // CircleCollider 최소 반지름
-	bool m_isColliderEditMode = false;          // 콜라이더 편집 모드 여부
-	GameObjectData* m_editingColliderObject = nullptr; // 현재 콜라이더를 편집 중인 오브젝트
-	bool m_isDraggingCollider = false;          // 콜라이더 드래그 중인지 여부
-	POINT m_colliderEditStartMousePos;          // 콜라이더 크기/위치 조절 시작 마우스 위치 (화면 좌표)
-	RECT m_initialColliderRect;                 // 콜라이더 편집 시작 시 콜라이더의 초기 위치/크기 (오브젝트 로컬 좌표계) - BoxCollider용
-	float m_initialColliderCenterX;            // 콜라이더 편집 시작 시 CircleCollider의 초기 중심 X
-	float m_initialColliderCenterY;            // 콜라이더 편집 시작 시 CircleCollider의 초기 중심 Y
-	float m_initialColliderRadius;             // 콜라이더 편집 시작 시 CircleCollider의 초기 반지름
-	int m_draggingHandle = -1;                  // 드래그 중인 핸들 인덱스 (0:좌상단, 1:우상단, 2:좌하단, 3:우하단, 4:이동, 5:반지름조절)
+	const float MIN_COLLIDER_RADIUS = 2.0f;    // CircleCollider minimum radius
+	bool m_isColliderEditMode = false;          // Collider edit mode flag
+	GameObjectData* m_editingColliderObject = nullptr; // Currently editing collider object
+	bool m_isDraggingCollider = false;          // Collider dragging state flag
+	POINT m_colliderEditStartMousePos;          // Collider size/position edit start mouse position (screen coordinates)
+	RECT m_initialColliderRect;                 // Collider edit start initial collider position/size (object local coordinates) - BoxCollider
+	float m_initialColliderCenterX;            // Collider edit start CircleCollider initial center X
+	float m_initialColliderCenterY;            // Collider edit start CircleCollider initial center Y
+	float m_initialColliderRadius;             // Collider edit start CircleCollider initial radius
+	int m_draggingHandle = -1;                  // Dragging handle index (0:top-left, 1:top-right, 2:bottom-left, 3:bottom-right, 4:move, 5:radius-adjust)
 
-	// 맵 스크롤 오프셋 관련 멤버 변수
-	POINT m_mapOffset;                          // 맵 렌더링 오프셋 (스크롤 위치)
+	// Map offset related member variables
+	POINT m_mapOffset;                          // Map rendering offset (camera position)
 
-	// 하위 팔레트 데이터 구조체
+	// Sub palette related structure
 	struct SubPaletteData {
 		bool isOpen = false;
 		ItemCategory category = CATEGORY_NONE;
 		int targetCategoryId = -1;
-		// TileType 또는 GameObjectType (메인 팔레트에서 선택된 category ID)
+		// TileType or GameObjectType (category ID selected from main palette)
 
-		RECT rect = { 0 };			 // 하위 팔레트 UI 영역
-		std::vector<RECT> itemRects; // 하위 팔레트 아이템별 UI Rect
+		RECT rect = { 0 };			 // Sub palette UI area
+		std::vector<RECT> itemRects; // Sub palette item UI Rect
 
 		std::vector<std::pair<TileID, const TileVariant*>> currentTileVariantDefs;
 		std::vector<std::pair<GameObjectID, const ObjectVariant*>> currentObjectVariantDefs;
@@ -133,26 +133,26 @@ private:
 	} m_subPalette;
 
 
-	// 리소스 관리 멤버 변수	
+	// Resource variant related member variables	
 	std::map<TileType, std::map<TileID, TileVariant>> m_tileVariants;
 	std::map<GameObjectType, std::map<GameObjectID, ObjectVariant>> m_objectVariants;
 
-	// 아틀라스 비트맵 소유권
+	// Atlas bitmap owners
 	std::unique_ptr<Gdiplus::Bitmap> m_tileAtlasBitmapOwner;
 	std::unique_ptr<Gdiplus::Bitmap> m_objectAtlasBitmapOwner;
 
-	// 줌 관련 멤버 변수
+	// Zoom related member variables
 	float m_zoomFactor;
 	const float m_minZoom;
 	const float m_maxZoom;
 	const float m_zoomStep;
 
-	// 오브젝트 정렬 최적화용 멤버
+	// Object layer optimization related
 	std::vector<const GameObjectData*> m_sortedObjects;
 	bool m_objectsDirty = true;
 	GameObjectData* m_selectedObjectPtr;
 
-	// 레이어 캐싱 및 최적화 관련 변수
+	// Layer bitmap caching related member variables
 	Gdiplus::Bitmap* m_tileLayerBitmap;
 	bool m_tileLayerDirty = true;
 	Gdiplus::Bitmap* m_objectLayerBitmap;
@@ -162,37 +162,37 @@ private:
 	Gdiplus::Bitmap* m_gridLayerBitmap;
 	bool m_gridLayerDirty = true;
 
-	// 성능 모니터링 관련 변수 (Editor.cpp에서 설정됨)
-	float m_currentFPS = 0.0f;		// 현재 FPS (외부에서 설정)
+	// Performance info member variables (set from Editor.cpp)
+	float m_currentFPS = 0.0f;		// Current FPS (updated from outside)
 
-	// 디버그 설정
-	bool m_showDebugInfo = true;			// 디버그 정보 표시 여부
+	// Debug info
+	bool m_showDebugInfo = true;			// Debug info display flag
 
-	// Walkable Area 편집 관련 변수
-	bool m_isWalkableEditMode = false;		// Walkable 영역 편집 모드 여부
-	bool m_isDraggingWalkable = false;		// Walkable 영역 드래그 중인지 여부
-	POINT m_walkableDragStart;				// 드래그 시작 지점 (화면 좌표)
-	POINT m_walkableDragEnd;				// 드래그 끝 지점 (화면 좌표)
-	bool m_walkableAreaMap[MAP_HEIGHT][MAP_WIDTH];	// 각 타일별 walkable 여부
+	// Walkable Area edit mode related member variables
+	bool m_isWalkableEditMode = false;		// Walkable area edit mode flag
+	bool m_isDraggingWalkable = false;		// Walkable area dragging state flag
+	POINT m_walkableDragStart;				// Drag start point (screen coordinates)
+	POINT m_walkableDragEnd;				// Drag end point (screen coordinates)
+	bool m_walkableAreaMap[MAP_HEIGHT][MAP_WIDTH];	// Per tile walkable area
 
-	// 카메라 드래그 관련 변수
-	bool m_isDraggingCamera = false;		// 카메라 드래그 중인지 여부
-	POINT m_cameraDragStart;				// 카메라 드래그 시작 지점 (화면 좌표)
-	POINT m_initialMapOffset;				// 드래그 시작 시 맵 오프셋
+	// Camera dragging related member variables
+	bool m_isDraggingCamera = false;		// Camera dragging state flag
+	POINT m_cameraDragStart;				// Camera drag start point (screen coordinates)
+	POINT m_initialMapOffset;				// Map offset at drag start
 
 private:
-	// 내부 헬퍼 함수들
-	void InitPalette();                             // 팔레트 초기화
-	void LoadResources();                           // 이미지 리소스 로드
-	void ReleaseResources();                        // 이미지 리소스 해제
+	// Initialization related functions
+	void InitPalette();                             // Palette initialization
+	void LoadResources();                           // Image resource loading
+	void ReleaseResources();                        // Image resource release
 
-	// 그리기 함수들
+	// Drawing related functions
 	void ComposeTileLayer();
 	void ComposeObjectLayer();
 	void ComposePaletteLayer();
 	void ComposeGridLayer();
 
-	// 성능 모니터링 함수 (메모리 사용량만)
+	// Performance info function (memory usage)
 
 	void DrawGrid(Gdiplus::Graphics* pGraphics);
 	void DrawTileMap(Gdiplus::Graphics* pGraphics);
@@ -200,26 +200,26 @@ private:
 	void DrawPalette(Gdiplus::Graphics* pGraphics);
 	void DrawPreview(Gdiplus::Graphics* pGraphics);
 	void DrawSubPalette(Gdiplus::Graphics* pGraphics);
-	void DrawPivotEditor(Gdiplus::Graphics* pGraphics); // Pivot 에디터 그리기 (현재 코드에 있다고 가정)
+	void DrawPivotEditor(Gdiplus::Graphics* pGraphics); // Draw pivot editor (as mentioned in comments)
 	void DrawColliders(Gdiplus::Graphics* pGraphics);
-	void DrawPlayerSpawn(Gdiplus::Graphics* pGraphics);	// 플레이어 스폰 포인트 그리기
-	void DrawWalkableAreas(Gdiplus::Graphics* pGraphics);	// Walkable 영역 그리기
+	void DrawPlayerSpawn(Gdiplus::Graphics* pGraphics);	// Draw player spawn point
+	void DrawWalkableAreas(Gdiplus::Graphics* pGraphics);	// Draw walkable areas
 	void DrawDebugInfo(Gdiplus::Graphics* pGraphics);
 
 	const TileVariant* GetTileVariant(TileType type, TileID id) const;
 	const ObjectVariant* GetObjectVariant(GameObjectType type, GameObjectID id)const;
 
-	// Pivot 편집 관련 함수들 (기존 코드에 있다고 가정)
+	// Pivot edit mode related functions (as mentioned in comments)
 	void UpdatePivotEdit(POINT clickPoint);
 	void StartPivotEdit(GameObjectData* obj);
 	void EndPivotEdit();
 
-	// 콜라이더 편집
+	// Collider edit
 	void StartColliderEdit(GameObjectData* obj);
 	void EndColliderEdit();
-	int GetColliderHandleAt(POINT screenPos); // 마우스 위치에 콜라이더 핸들이 있는지 확인
+	int GetColliderHandleAt(POINT screenPos); // Check if collider handle exists at mouse position
 
-	// 현재 화면에 보이는 월드 좌표 범위 (뷰 프러스텀)를 반환합니다.
+	// Convert world coordinates visible on screen (map coordinates) to screen coordinates.
 	Gdiplus::RectF GetViewWorldRect(float cullingMargin = 0.0f) const;
 	Gdiplus::PointF WorldToScreen(Gdiplus::PointF worldPos) const;
 	Gdiplus::RectF WorldToScreen(Gdiplus::RectF worldRect) const;

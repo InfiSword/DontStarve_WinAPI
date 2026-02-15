@@ -2,6 +2,7 @@
 #include "framework.h"
 #include "Client.h"
 #include "../00_MainGame/DontStarve_MainGame.h"
+#include "../01_Manager/InputManager/InputManager.h"
 
 #define MAX_LOADSTRING 100
 
@@ -162,6 +163,25 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    // InputManager에 마우스/키보드 메시지 즉시 전달 (클릭 반응 속도 개선, hover 처리 포함)
+    InputManager* inputManager = InputManager::GetInstance();
+    if (inputManager) {
+        switch (message)
+        {
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+            inputManager->ProcessMouseMessage(message, wParam, lParam);
+            break;
+        case WM_KEYDOWN:
+        case WM_KEYUP:
+            inputManager->ProcessKeyMessage(message, wParam);
+            break;
+        }
+    }
+    
     switch (message)
     {
     case WM_KEYDOWN:

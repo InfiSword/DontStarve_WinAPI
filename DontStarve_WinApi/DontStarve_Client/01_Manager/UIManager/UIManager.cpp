@@ -5,6 +5,22 @@
 #include "../../02_GameObject/UI/UIText.h"
 #include "../RenderManager/RenderManager.h"
 #include "../InputManager/InputManager.h"
+#include <chrono>
+#include <fstream>
+#include <windows.h>
+
+// #region agent log helper
+static std::wstring GetLogPath() {
+	wchar_t exePath[MAX_PATH];
+	GetModuleFileNameW(NULL, exePath, MAX_PATH);
+	std::wstring path(exePath);
+	size_t pos = path.find_last_of(L"\\");
+	if (pos != std::wstring::npos) {
+		path = path.substr(0, pos); // 실행 파일 디렉토리
+	}
+	return path + L"\\debug.log";
+}
+// #endregion
 
 UIManager::UIManager() : m_isUIVisible(true)
 {
@@ -26,6 +42,10 @@ void UIManager::LateInit()
 
 void UIManager::Update(float deltaTime)
 {
+	// #region agent log
+	auto startTime = std::chrono::high_resolution_clock::now();
+	// #endregion
+	
 	for (size_t i = 0; i < m_uiImages.size(); ++i) {
 		auto* image = m_uiImages[i];
 		if (image && image->IsEnabled()) {
@@ -46,6 +66,17 @@ void UIManager::Update(float deltaTime)
 			text->Update(deltaTime);
 		}
 	}
+	
+	// #region agent log
+	auto endTime = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+	// 로그 파일 I/O는 성능 테스트를 위해 임시로 비활성화
+	// std::ofstream logFile(GetLogPath(), std::ios::app);
+	// if (logFile.is_open()) {
+	// 	logFile << "{\"runId\":\"perf1\",\"hypothesisId\":\"K\",\"location\":\"UIManager.cpp:27\",\"message\":\"UIManager::Update\",\"data\":{\"duration_us\":" << duration << ",\"imageCount\":" << m_uiImages.size() << ",\"buttonCount\":" << m_uiButtons.size() << ",\"textCount\":" << m_uiTexts.size() << "},\"timestamp\":" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << "}\n";
+	// 	logFile.close();
+	// }
+	// #endregion
 }
 
 void UIManager::LateUpdate()
@@ -209,4 +240,16 @@ UIText* UIManager::FindUIText(GameObjectID id)
 void UIManager::SetUIVisibility(bool visible)
 {
 	m_isUIVisible = visible;
+}
+
+void UIManager::UpdateButtonHoverStates()
+{
+	// 모든 버튼의 hover 상태를 즉시 업데이트 (마우스 이동 시 호출)
+	// 역순 순회로 버튼이 삭제되는 경우에도 안전하게 처리
+	for (int i = static_cast<int>(m_uiButtons.size()) - 1; i >= 0; --i) {
+		auto* button = m_uiButtons[i];
+		if (button && button->IsEnabled()) {
+			button->UpdateHoverStateImmediate();
+		}
+	}
 }

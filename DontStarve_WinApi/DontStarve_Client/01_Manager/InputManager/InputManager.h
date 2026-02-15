@@ -29,6 +29,9 @@ public:
 	// 마우스 왼쪽 버튼이 클릭되었는지
 	bool IsRButtonClicked();
 
+	// Windows 메시지 직접 처리 (즉시 반응을 위한 함수)
+	void ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam);
+	void ProcessKeyMessage(UINT message, WPARAM wParam);
 
 	Gdiplus::PointF GetMouseClickWorldPos() const; 
 	Gdiplus::PointF GetMouseClickScreenPos() const;
@@ -40,5 +43,9 @@ private:
 	bool s_lButtonState;
 	bool s_lButtonPrevState;
 	bool s_rButtonState;     
-	bool s_rButtonPrevState; 
+	bool s_rButtonPrevState;
+	
+	// 클릭 즉시 감지를 위한 플래그 (Windows 메시지에서 설정)
+	bool s_lButtonClickedThisFrame;
+	bool s_rButtonClickedThisFrame; 
 };

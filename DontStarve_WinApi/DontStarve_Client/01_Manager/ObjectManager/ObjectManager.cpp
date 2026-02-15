@@ -1,8 +1,24 @@
 #include "99_Default/pch.h"
 #include "ObjectManager.h"
+#include <fstream>
+#include <chrono>
+#include <windows.h>
 #include "../ResourceManager/ResourceManager.h"
 #include "../RenderManager/RenderManager.h"
 #include "../CameraManager/CameraManager.h"
+
+// #region agent log helper
+static std::wstring GetLogPath() {
+	wchar_t exePath[MAX_PATH];
+	GetModuleFileNameW(NULL, exePath, MAX_PATH);
+	std::wstring path(exePath);
+	size_t pos = path.find_last_of(L"\\");
+	if (pos != std::wstring::npos) {
+		path = path.substr(0, pos);
+	}
+	return path + L"\\debug.log";
+}
+// #endregion
 
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
@@ -27,7 +43,7 @@
 ObjectManager::ObjectManager()
 {
 	m_cachedPlayer = nullptr;
-	m_showBounds = true; // 바운드 표시 기본값은 false
+	m_showBounds = false; // 바운드 표시 기본값은 false (성능 최적화)
 }
 
 ObjectManager::~ObjectManager()
@@ -54,14 +70,31 @@ void ObjectManager::LateInit()
 
 void ObjectManager::Update(float deltaTime)
 {
+	// #region agent log
+	auto startTime = std::chrono::high_resolution_clock::now();
+	// #endregion
+	
 	// 모든 게임오브젝트 업데이트
+	int updatedCount = 0;
 	for (GameObject* obj : m_gameObjects)
 	{
 		if (obj && obj->IsEnabled())
 		{
 			obj->Update(deltaTime);
+			updatedCount++;
 		}
 	}
+	
+	// #region agent log
+	auto endTime = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+	// 로그 파일 I/O는 성능 테스트를 위해 임시로 비활성화
+	// std::ofstream logFile(GetLogPath(), std::ios::app);
+	// if (logFile.is_open()) {
+	// 	logFile << "{\"runId\":\"perf1\",\"hypothesisId\":\"D\",\"location\":\"ObjectManager.cpp:55\",\"message\":\"ObjectManager::Update\",\"data\":{\"duration_us\":" << duration << ",\"totalObjects\":" << m_gameObjects.size() << ",\"updatedCount\":" << updatedCount << "},\"timestamp\":" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << "}\n";
+	// 	logFile.close();
+	// }
+	// #endregion
 }
 
 void ObjectManager::LateUpdate()

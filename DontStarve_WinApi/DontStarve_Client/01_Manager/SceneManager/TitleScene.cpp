@@ -1,11 +1,12 @@
 #include "99_Default/pch.h"
 #include "TitleScene.h"
-#include "../../02_GameObject/UI/UIImage.h"
-#include "../../02_GameObject/UI/UIButton.h"
-#include "../../02_GameObject/UI/UIText.h"
 #include "SceneManager.h"
 #include "../UIManager/UIManager.h"
 #include "../InputManager/InputManager.h"
+#include "../ResourceManager/ResourceManager.h"
+#include "../../02_GameObject/UI/UIImage.h"
+#include "../../02_GameObject/UI/UIButton.h"
+#include "../../02_GameObject/UI/UIText.h"
 
 TitleScene::TitleScene()
 {
@@ -24,6 +25,7 @@ void TitleScene::Init()
 	
 	// UI 생성
 	UIManager* uiManager = UIManager::GetInstance();
+	ResourceManager* resourceManager = ResourceManager::GetInstance();
 
 	// 배경 이미지 생성 (전체 화면)
 	UIImage* backgroundImage = new UIImage(
@@ -54,12 +56,14 @@ void TitleScene::Init()
 	uiManager->AddUIImage(logoImage);
 
 	// 게임시작 버튼 생성 (화면 중앙 기준 아래로 100px)
+	std::shared_ptr<Sprite> startNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/frontscreen.png");
+	std::shared_ptr<Sprite> startHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/HighLight_frontscreen.png");
 	UIButton* startButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BUTTON1),
 		200.0f,
 		60.0f,
-		L"../Resource/UI/frontscreen.png",
-		L"../Resource/UI/HighLight_frontscreen.png",
+		startNormalSprite,
+		startHoverSprite,
 		0.5f, 0.5f,  // anchorMin (중앙)
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
@@ -95,12 +99,14 @@ void TitleScene::Init()
 	uiManager->AddUIText(startButtonText);
 
 	// 종료 버튼 생성 (화면 중앙 기준 아래로 200px)
+	std::shared_ptr<Sprite> exitNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/frontscreen.png");
+	std::shared_ptr<Sprite> exitHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/HighLight_frontscreen.png");
 	UIButton* exitButton = new UIButton(
 		static_cast<GameObjectID>(GOID_ENDBUTTON1),
 		200.0f,
 		60.0f,
-		L"../Resource/UI/frontscreen.png",
-		L"../Resource/UI/HighLight_frontscreen.png",
+		exitNormalSprite,
+		exitHoverSprite,
 		0.5f, 0.5f,  // anchorMin (중앙)
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
@@ -138,15 +144,15 @@ void TitleScene::Init()
 
 void TitleScene::Update(float deltaTime)
 {
-	// TitleScene에서 UIManager와 InputManager 업데이트
+	// TitleScene에서 UIManager 업데이트
+	// InputManager는 메인 루프에서 가장 먼저 업데이트됨 (반응 속도 개선)
 	UIManager::GetInstance()->Update(deltaTime);
-	InputManager::GetInstance()->Update(deltaTime);
 }
 
 void TitleScene::LateUpdate()
 {
 	UIManager::GetInstance()->LateUpdate();
-	InputManager::GetInstance()->LateUpdate();
+	// InputManager::LateUpdate는 메인 루프에서 처리됨
 }
 
 void TitleScene::Render()

@@ -242,6 +242,7 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 		}
 
 		// RenderManager 큐에 직접 명령 추가
+		// 주의: UpdateVisibleObjects에서 이미 화면 교차 체크를 완료했으므로 여기서는 추가 체크 불필요
 		AddDrawCommand(
 			pBitmap,
 			Gdiplus::RectF(x, y, width, height),
@@ -301,66 +302,85 @@ void RenderManager::ApplyDirectionFlip(Gdiplus::Graphics* pGraphics, const DrawC
 }
 
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
-	if (!pGraphics || m_drawCommands.empty()) return;
+	if (!pGraphics || m_drawCommands.empty()) {
+		return;
+	}
+	
+	// 성능 최적화: 정렬이 필요한지 확인 (이미 정렬된 경우 스킵)
+	bool needsSort = false;
+	if (m_drawCommands.size() > 1) {
+		for (size_t i = 1; i < m_drawCommands.size(); ++i) {
+			if (RenderManager::CompareDrawCommands(m_drawCommands[i], m_drawCommands[i-1])) {
+				needsSort = true;
+				break;
+			}
+		}
+	}
+	if (needsSort) {
+		std::sort(m_drawCommands.begin(), m_drawCommands.end(), RenderManager::CompareDrawCommands);
+	}
 
-	// 1. 레이어 높이 sortKey 순서로 정렬하여 Z-order를 보장
-	std::sort(m_drawCommands.begin(), m_drawCommands.end(), RenderManager::CompareDrawCommands);
-
+	// 성능 최적화: ImageAttributes 재사용을 위한 캐싱
+	Gdiplus::ImageAttributes cachedImageAttr;
+	Gdiplus::Color lastTintColor(0, 0, 0, 0);
+	bool imageAttrCached = false;
+	
+	// 성능 최적화: DIR_LEFT가 아닌 명령들은 Save/Restore 스킵
 	for (const auto& cmd : m_drawCommands) {
-		Gdiplus::GraphicsState commandSpecificState = pGraphics->Save(); // 명령 별도로 상태 저장
+		bool needsTransform = (cmd.type == DRAW_COMMAND_IMAGE && cmd.direction == DIR_LEFT && cmd.layer < LAYER_UI_BACKGROUND);
+		Gdiplus::GraphicsState commandSpecificState = 0;
+		
+		if (needsTransform) {
+			commandSpecificState = pGraphics->Save();
+		}
 
 		if (cmd.type == DRAW_COMMAND_IMAGE) {
-			// 비트맵 유효성 확인
-			if (!cmd.pBitmap) {
-				pGraphics->Restore(commandSpecificState);
+			// 비트맵 유효성 확인 (빠른 실패)
+			if (!cmd.pBitmap || cmd.pBitmap->GetLastStatus() != Gdiplus::Ok ||
+				cmd.sourceRect.Width <= 0 || cmd.sourceRect.Height <= 0 ||
+				cmd.destRect.Width <= 0 || cmd.destRect.Height <= 0) {
+				if (needsTransform) {
+					pGraphics->Restore(commandSpecificState);
+				}
 				continue;
 			}
 
-			// 비트맵 상태 확인
-			if (cmd.pBitmap->GetLastStatus() != Gdiplus::Ok) {
-				pGraphics->Restore(commandSpecificState);
-				continue;
+			if (needsTransform) {
+				ApplyDirectionFlip(pGraphics, cmd, cmd.destRect.Width, cmd.destRect.Height);
 			}
-
-			// 소스/대상 사각형 유효성
-			if (cmd.sourceRect.Width <= 0 || cmd.sourceRect.Height <= 0) {
-				pGraphics->Restore(commandSpecificState);
-				continue;
-			}
-
-			if (cmd.destRect.Width <= 0 || cmd.destRect.Height <= 0) {
-				pGraphics->Restore(commandSpecificState);
-				continue;
-			}
-
-			ApplyDirectionFlip(pGraphics, cmd, cmd.destRect.Width, cmd.destRect.Height);
 			
-			// 색상 틴트 적용
+			// 색상 틴트 적용 (ImageAttributes 재사용 최적화)
 			if (cmd.hasTint) {
-				// ColorMatrix를 사용하여 색상 틴트 적용 (곱셈 방식)
-				// 원본 이미지의 RGB에 tintColor를 곱하여 적용
-				float r = cmd.tintColor.GetR() / 255.0f;
-				float g = cmd.tintColor.GetG() / 255.0f;
-				float b = cmd.tintColor.GetB() / 255.0f;
-				float a = cmd.tintColor.GetA() / 255.0f;
-				
-				Gdiplus::ColorMatrix colorMatrix = {
-					r, 0.0f, 0.0f, 0.0f, 0.0f,  // Red: 원본 R * r
-					0.0f, g, 0.0f, 0.0f, 0.0f,  // Green: 원본 G * g
-					0.0f, 0.0f, b, 0.0f, 0.0f,  // Blue: 원본 B * b
-					0.0f, 0.0f, 0.0f, a, 0.0f,  // Alpha: 원본 A * a
-					0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Translation (none)
-				};
-				
-				Gdiplus::ImageAttributes imageAttr;
-				imageAttr.SetColorMatrix(&colorMatrix);
+				// 틴트 색상이 변경된 경우에만 ImageAttributes 재생성
+				if (!imageAttrCached || lastTintColor.GetValue() != cmd.tintColor.GetValue()) {
+					float r = cmd.tintColor.GetR() / 255.0f;
+					float g = cmd.tintColor.GetG() / 255.0f;
+					float b = cmd.tintColor.GetB() / 255.0f;
+					float a = cmd.tintColor.GetA() / 255.0f;
+					
+					Gdiplus::ColorMatrix colorMatrix = {
+						r, 0.0f, 0.0f, 0.0f, 0.0f,
+						0.0f, g, 0.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, b, 0.0f, 0.0f,
+						0.0f, 0.0f, 0.0f, a, 0.0f,
+						0.0f, 0.0f, 0.0f, 0.0f, 1.0f
+					};
+					
+					cachedImageAttr.SetColorMatrix(&colorMatrix);
+					lastTintColor = cmd.tintColor;
+					imageAttrCached = true;
+				}
 				
 				pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
-					cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit, &imageAttr);
+					cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit, &cachedImageAttr);
 			}
 			else {
 				pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
 					cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
+			}
+			
+			if (needsTransform) {
+				pGraphics->Restore(commandSpecificState);
 			}
 		}
 		else if (cmd.type == DRAW_COMMAND_TEXT) {
@@ -376,8 +396,6 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 			Gdiplus::SolidBrush brush(cmd.color);
 			pGraphics->FillRectangle(&brush, cmd.destRect);
 		}
-		
-		pGraphics->Restore(commandSpecificState);
 	}
 	
 	// 렌더링 완료 후 명령 큐 비우기 (다음 프레임을 위해)

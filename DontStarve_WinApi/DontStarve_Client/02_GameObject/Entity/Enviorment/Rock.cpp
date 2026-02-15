@@ -12,11 +12,11 @@ void Rock::RegisterResources(ResourceManager* rm)
 	d.pivotY = 1.0f;
 	d.id = GOID_NORMAL_ROCK;
 	d.objectAssetBaseDirectory = L"Resource/Objects/Rock/Rock_Normal";
-	d.assetImageName = L"rock_Image.png";
+	d.assetImageName = L"rock01-0.png";
 	rm->RegisterObjectResource(GOID_NORMAL_ROCK, d);
 	d.id = GOID_GOLD_ROCK;
 	d.objectAssetBaseDirectory = L"Resource/Objects/Rock/Rock_Gold";
-	d.assetImageName = L"rock_Image.png";
+	d.assetImageName = L"rock02-0.png";
 	rm->RegisterObjectResource(GOID_GOLD_ROCK, d);
 }
 

@@ -24,7 +24,6 @@ public:
 
 	// 스프라이트 로드/캐시
 	std::shared_ptr<Sprite> LoadSprite(const std::wstring& fullPath);
-	std::shared_ptr<Sprite> LoadSpriteFromAtlas(const std::wstring& atlasPath, const Gdiplus::RectF& srcRect, float pivotX = 0.5f, float pivotY = 0.5f);
 
 	// 경로 빌드 (basePath + subFolder + filename → 상대/절대 경로)
 	std::wstring BuildResourcePath(const std::wstring& basePath, const std::wstring& subFolder, const std::wstring& filename) const;

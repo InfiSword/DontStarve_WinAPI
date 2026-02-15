@@ -39,7 +39,7 @@ void Image::LoadSprite(const std::wstring& fullPath)
 	auto bmp = std::make_shared<Gdiplus::Bitmap>(fullPath.c_str());
 	if (bmp && bmp->GetLastStatus() == Gdiplus::Ok) {
 		Gdiplus::RectF src(0, 0, static_cast<float>(bmp->GetWidth()), static_cast<float>(bmp->GetHeight()));
-		m_sprite = std::make_shared<Sprite>(bmp, src, 0.5f, 0.5f, fullPath, false);
+		m_sprite = std::make_shared<Sprite>(bmp, src, 0.5f, 0.5f, fullPath);
 		OutputDebugStringW(L"Image: LoadSprite 성공\n");
 	}
 	else {

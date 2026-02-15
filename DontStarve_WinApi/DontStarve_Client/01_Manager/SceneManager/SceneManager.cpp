@@ -26,7 +26,7 @@ SceneManager::~SceneManager()
 
 void SceneManager::Init()
 {
-	// 첫 번째 씬 (타이틀 씬) 로드 요청 후 즉시 처리
+	// 첫 번째 씬 로드 요청 후 즉시 처리
 	LoadTitleScene();
 	ProcessPendingSceneLoad();
 }
@@ -36,6 +36,9 @@ void SceneManager::Update(float deltaTime)
 	if (m_currentScene) {
 		m_currentScene->Update(deltaTime);
 	}
+	
+	if (m_pendingScene != PendingSceneType::None) 
+		ProcessPendingSceneLoad();
 }
 
 void SceneManager::LateUpdate()
@@ -88,10 +91,9 @@ void SceneManager::LoadGameScene(const std::wstring& mapFileName, GameObjectID s
 	m_pendingCharacterID = selectedCharacterID;
 }
 
+// 프레임 끝에 씬 전환 요청을 실제로 처리
 void SceneManager::ProcessPendingSceneLoad()
 {
-	if (m_pendingScene == PendingSceneType::None) return;
-
 	switch (m_pendingScene) {
 	case PendingSceneType::Title:
 		DoLoadTitleScene();
@@ -105,11 +107,14 @@ void SceneManager::ProcessPendingSceneLoad()
 	default:
 		break;
 	}
+	
+	// 요청 처리 후 플래그 초기화
 	m_pendingScene = PendingSceneType::None;
 	m_pendingMapFileName.clear();
 	m_pendingCharacterID = GOID_NONE;
 }
 
+// 실제 씬 로드 구현
 void SceneManager::DoLoadTitleScene()
 {
 	OutputDebugStringW(L"SceneManager: 타이틀 씬 로드 시작\n");

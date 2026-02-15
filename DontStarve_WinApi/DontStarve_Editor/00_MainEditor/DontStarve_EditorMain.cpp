@@ -1,6 +1,6 @@
 #include "../pch.h" 
 #include "DontStarve_EditorMain.h"
-#include <commdlg.h>  // ÆÄÀÏ ´ÙÀÌ¾ó·Î±×¿ë
+#include <commdlg.h>  // íŒŒì¼ ë‹¤ì´ì–¼ë¡œê·¸ìš©
 
 DontStarve_EditorMain::DontStarve_EditorMain()
 	: m_pGraphics(nullptr), m_pDoubleBufferBitmap(nullptr),
@@ -18,14 +18,14 @@ DontStarve_EditorMain::DontStarve_EditorMain()
 	m_gridLayerBitmap(nullptr), m_gridLayerDirty(true),
 	m_hasPlayerSpawn(false), m_playerSpawnPoint(0.0f, 0.0f), m_isPlayerSpawnMode(false)
 {
-	// m_tileMap ÃÊ±âÈ­ (TileDataÀÇ ±âº» »ı¼ºÀÚ È£Ãâ)
+	// m_tileMap ì´ˆê¸°í™” (TileDataì˜ ê¸°ë³¸ ìƒì„±ì í˜¸ì¶œ)
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < MAP_WIDTH; ++x) {
 			m_tileMap[y][x] = TileData();
 		}
 	}
 
-	// walkable area map ÃÊ±âÈ­ (±âº»ÀûÀ¸·Î ¸ğµç ¿µ¿ªÀÌ walkable)
+	// walkable area map ì´ˆê¸°í™” (ê¸°ë³¸ì ìœ¼ë¡œ ëª¨ë“  ì˜ì—­ì´ walkable)
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < MAP_WIDTH; ++x) {
 			m_walkableAreaMap[y][x] = true;
@@ -44,26 +44,26 @@ void DontStarve_EditorMain::Initialize() {
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
 
-	// Double Buffer Bitmap ¹× Graphics °´Ã¼ ¼³Á¤
+	// Double Buffer Bitmap ë° Graphics ê°ì²´ ì„¤ì •
 	m_pDoubleBufferBitmap = new Gdiplus::Bitmap(clientRect.right, clientRect.bottom, PixelFormat32bppARGB);
 	m_pGraphics = Gdiplus::Graphics::FromImage(m_pDoubleBufferBitmap);
 
-	// GDI+ ·»´õ¸µ Ç°Áú ¼³Á¤
+	// GDI+ ë Œë”ë§ í’ˆì§ˆ ì„¤ì •
 	m_pGraphics->SetInterpolationMode(Gdiplus::InterpolationModeBilinear);
 	m_pGraphics->SetSmoothingMode(Gdiplus::SmoothingModeDefault);
 	m_pGraphics->SetPixelOffsetMode(Gdiplus::PixelOffsetModeHalf);
 
-	// ÃÊ±â ·¹ÀÌ¾î ºñÆ®¸Ê »ı¼º (È­¸é Å©±â ±â¹İ)
-	const UINT INIT_LAYER_SIZE = 1024;  // ÃÊ±â 1024x1024 Å©±â
+	// ì´ˆê¸° ë ˆì´ì–´ ë¹„íŠ¸ë§µ ìƒì„± (í™”ë©´ í¬ê¸° ê¸°ë°˜)
+	const UINT INIT_LAYER_SIZE = 1024;  // ì´ˆê¸° 1024x1024 í¬ê¸°
 
 	m_tileLayerBitmap = new Gdiplus::Bitmap(INIT_LAYER_SIZE, INIT_LAYER_SIZE, PixelFormat32bppARGB);
 	m_objectLayerBitmap = new Gdiplus::Bitmap(INIT_LAYER_SIZE, INIT_LAYER_SIZE, PixelFormat32bppARGB);
 	m_gridLayerBitmap = new Gdiplus::Bitmap(INIT_LAYER_SIZE, INIT_LAYER_SIZE, PixelFormat32bppARGB);
 
-	LoadResources(); // resources.txt ·Îµå (¾ÆÆ²¶ó½º ºñÆ®¸Ê ¹× variants Ã¤¿ò)
-	InitPalette();   // ÆÈ·¹Æ® ÃÊ±âÈ­ (m_paletteRect ¹× m_paletteLayerBitmap »ı¼º Æ÷ÇÔ)
+	LoadResources(); // resources.txt ë¡œë“œ (ì•„í‹€ë¼ìŠ¤ ë¹„íŠ¸ë§µ ë° variants ì±„ì›€)
+	InitPalette();   // íŒ”ë ˆíŠ¸ ì´ˆê¸°í™” (m_paletteRect ë° m_paletteLayerBitmap ìƒì„± í¬í•¨)
 
-	// ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ®¸¦ ¸Ê Áß¾ÓÀ¸·Î ÃÊ±âÈ­
+	// í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ë¥¼ ë§µ ì¤‘ì•™ìœ¼ë¡œ ì´ˆê¸°í™”
 	float centerX = (MAP_WIDTH / 2.0f) * TILE_SIZE;  // 25 * 128 = 3200px
 	float centerY = (MAP_HEIGHT / 2.0f) * TILE_SIZE; // 25 * 128 = 3200px
 	m_playerSpawnPoint = Gdiplus::PointF(centerX, centerY);
@@ -94,13 +94,13 @@ void DontStarve_EditorMain::Render()
 
 	m_pGraphics->Clear(Gdiplus::Color(255, 255, 255, 255));
 
-	// °£´ÜÇÑ ÀûÀÀÇü ·¹ÀÌ¾î Å©±â (¼º´É vs ¸Ş¸ğ¸® ±ÕÇü)
+	// ê°„ë‹¨í•œ ì ì‘í˜• ë ˆì´ì–´ í¬ê¸° (ì„±ëŠ¥ vs ë©”ëª¨ë¦¬ ê· í˜•)
 
 
-	UINT targetWidth = max(512U, min((UINT)clientRect.right + 256, 1536U));   // ÃÖ´ë 1536px
-	UINT targetHeight = max(512U, min((UINT)clientRect.bottom + 256, 1536U)); // ÃÖ´ë 1536px
+	UINT targetWidth = max(512U, min((UINT)clientRect.right + 256, 1536U));   // ìµœëŒ€ 1536px
+	UINT targetHeight = max(512U, min((UINT)clientRect.bottom + 256, 1536U)); // ìµœëŒ€ 1536px
 
-	// ·¹ÀÌ¾î ºñÆ®¸Ê Àç»ı¼º (Å©±â°¡ Å©°Ô ´Ù¸¦ ¶§¸¸)
+	// ë ˆì´ì–´ ë¹„íŠ¸ë§µ ì¬ìƒì„± (í¬ê¸°ê°€ í¬ê²Œ ë‹¤ë¥¼ ë•Œë§Œ)
 	if (!m_tileLayerBitmap ||
 		abs((int)m_tileLayerBitmap->GetWidth() - (int)targetWidth) > 128 ||
 		abs((int)m_tileLayerBitmap->GetHeight() - (int)targetHeight) > 128) {
@@ -118,16 +118,16 @@ void DontStarve_EditorMain::Render()
 		m_gridLayerDirty = true;
 	}
 
-	// ½º¸¶Æ® ·¹ÀÌ¾î ·»´õ¸µ (ÇÊ¿äÇÒ ¶§¸¸)
+	// ìŠ¤ë§ˆíŠ¸ ë ˆì´ì–´ ë Œë”ë§ (í•„ìš”í•  ë•Œë§Œ)
 	ComposeGridLayer();
 	ComposeTileLayer();
 	ComposeObjectLayer();
 
-	ComposePaletteLayer(); // ÆÈ·¹Æ®´Â Ç×»ó µ¿ÀÏ
+	ComposePaletteLayer(); // íŒ”ë ˆíŠ¸ëŠ” í•­ìƒ ë™ì¼
 
-	// ºäÆ÷Æ® ±â¹İ ·¹ÀÌ¾î ·»´õ¸µ (¼º´É ÃÖÀûÈ­)
+	// ë·°í¬íŠ¸ ê¸°ë°˜ ë ˆì´ì–´ ë Œë”ë§ (ì„±ëŠ¥ ìµœì í™”)
 	if (m_gridLayerBitmap) {
-		// ·¹ÀÌ¾î ºñÆ®¸ÊÀ» 1:1 ½ºÄÉÀÏ·Î È­¸é¿¡ ±×¸®±â (½ºÄÉÀÏ¸µ ¾øÀ½)
+		// ë ˆì´ì–´ ë¹„íŠ¸ë§µì„ 1:1 ìŠ¤ì¼€ì¼ë¡œ í™”ë©´ì— ê·¸ë¦¬ê¸° (ìŠ¤ì¼€ì¼ë§ ì—†ìŒ)
 		m_pGraphics->DrawImage(m_gridLayerBitmap, 0, 0);
 	}
 
@@ -139,7 +139,7 @@ void DontStarve_EditorMain::Render()
 		m_pGraphics->DrawImage(m_objectLayerBitmap, 0, 0);
 	}
 
-	// ÆÈ·¹Æ®´Â Ç×»ó µ¿ÀÏÇÏ°Ô ·»´õ¸µ
+	// íŒ”ë ˆíŠ¸ëŠ” í•­ìƒ ë™ì¼í•˜ê²Œ ë Œë”ë§
 	if (m_paletteLayerBitmap) {
 		m_pGraphics->DrawImage(m_paletteLayerBitmap,
 			(Gdiplus::REAL)m_paletteRect.left, (Gdiplus::REAL)m_paletteRect.top,
@@ -154,7 +154,7 @@ void DontStarve_EditorMain::Render()
 	DrawPlayerSpawn(m_pGraphics);
 	DrawWalkableAreas(m_pGraphics);
 
-	// µğ¹ö±× Á¤º¸ (F1 Å°·Î Åä±Û °¡´É)
+	// ë””ë²„ê·¸ ì •ë³´ (F1 í‚¤ë¡œ í† ê¸€ ê°€ëŠ¥)
 	if (m_showDebugInfo) {
 		DrawDebugInfo(m_pGraphics);
 	}
@@ -167,7 +167,7 @@ void DontStarve_EditorMain::Render()
 
 void DontStarve_EditorMain::Release()
 {
-	ReleaseResources(); // ¸®¼Ò½º (¾ÆÆ²¶ó½º ºñÆ®¸Êµé) ÇØÁ¦
+	ReleaseResources(); // ë¦¬ì†ŒìŠ¤ (ì•„í‹€ë¼ìŠ¤ ë¹„íŠ¸ë§µë“¤) í•´ì œ
 
 	SafeDelete(m_pGraphics);
 	SafeDelete(m_pDoubleBufferBitmap);
@@ -180,15 +180,15 @@ void DontStarve_EditorMain::Release()
 LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 	case WM_CREATE: {
-		// ÃÊ±â À©µµ¿ì »ı¼º ½Ã Ã³¸®ÇÒ ·ÎÁ÷ (ÇöÀç´Â Initialize¿¡¼­ ´ëºÎºĞ Ã³¸®)
+		// ì´ˆê¸° ìœˆë„ìš° ìƒì„± ì‹œ ì²˜ë¦¬í•  ë¡œì§ (í˜„ì¬ëŠ” Initializeì—ì„œ ëŒ€ë¶€ë¶„ ì²˜ë¦¬)
 		return 0;
 	}
 
 	case WM_PAINT: {
-		// Render() ÇÔ¼ö°¡ ÀÌ¹Ì Á÷Á¢ ±×¸®±â ÀÛ¾÷À» ¼öÇàÇÏ°í ¸¶Áö¸·¿¡ BitBltÀ» ÇÏ¹Ç·Î,
-		// WM_PAINT´Â InvalidateRect È£Ãâ ½Ã¿¡¸¸ ¹ß»ıÇÏ°í, ¿©±â¼­´Â ±×¸± ³»¿ëÀÌ ¾øÀ» ¼ö ÀÖ½À´Ï´Ù.
-		// ´Ù¸¸, È¤½Ã ¸ğ¸¦ °æ¿ì¸¦ ´ëºñÇÏ¿© BeginPaint/EndPaint´Â À¯ÁöÇÕ´Ï´Ù.
-		// ±×·¯³ª ÇÙ½É ·»´õ¸µÀº Render() ÇÔ¼ö¿¡¼­ ´ã´çÇÕ´Ï´Ù.
+		// Render() í•¨ìˆ˜ê°€ ì´ë¯¸ ì§ì ‘ ê·¸ë¦¬ê¸° ì‘ì—…ì„ ìˆ˜í–‰í•˜ê³  ë§ˆì§€ë§‰ì— BitBltì„ í•˜ë¯€ë¡œ,
+		// WM_PAINTëŠ” InvalidateRect í˜¸ì¶œ ì‹œì—ë§Œ ë°œìƒí•˜ê³ , ì—¬ê¸°ì„œëŠ” ê·¸ë¦´ ë‚´ìš©ì´ ì—†ì„ ìˆ˜ ìˆìŠµë‹ˆë‹¤.
+		// ë‹¤ë§Œ, í˜¹ì‹œ ëª¨ë¥¼ ê²½ìš°ë¥¼ ëŒ€ë¹„í•˜ì—¬ BeginPaint/EndPaintëŠ” ìœ ì§€í•©ë‹ˆë‹¤.
+		// ê·¸ëŸ¬ë‚˜ í•µì‹¬ ë Œë”ë§ì€ Render() í•¨ìˆ˜ì—ì„œ ë‹´ë‹¹í•©ë‹ˆë‹¤.
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 		// Gdiplus::Graphics screenGraphics(hdc);
@@ -198,8 +198,8 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 	}
 
 	case WM_SIZE: {
-		// À©µµ¿ì Å©±â°¡ º¯°æµÉ ¶§ Ã³¸® (¸ğµç ºñÆ®¸Ê ´Ù½Ã »ı¼º ¹× ÆÈ·¹Æ® À§Ä¡ Àç°è»ê)
-		// m_pDoubleBufferBitmapÀº Ç×»ó À©µµ¿ì Å©±â¿¡ ¸ÂÃç¾ß ÇÔ.
+		// ìœˆë„ìš° í¬ê¸°ê°€ ë³€ê²½ë  ë•Œ ì²˜ë¦¬ (ëª¨ë“  ë¹„íŠ¸ë§µ ë‹¤ì‹œ ìƒì„± ë° íŒ”ë ˆíŠ¸ ìœ„ì¹˜ ì¬ê³„ì‚°)
+		// m_pDoubleBufferBitmapì€ í•­ìƒ ìœˆë„ìš° í¬ê¸°ì— ë§ì¶°ì•¼ í•¨.
 		RECT clientRect;
 		GetClientRect(hWnd, &clientRect);
 
@@ -212,17 +212,17 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		m_pGraphics->SetSmoothingMode(Gdiplus::SmoothingModeDefault);
 		m_pGraphics->SetPixelOffsetMode(Gdiplus::PixelOffsetModeHalf);
 
-		// ÆÈ·¹Æ® À§Ä¡ Àç°è»ê (InitPalette´Â m_paletteRectµµ ÃÊ±âÈ­ÇÏ¹Ç·Î ´Ù½Ã È£Ãâ)
-		InitPalette(); // m_paletteLayerBitmapµµ ¿©±â¼­ Àç»ı¼º ¹× m_paletteLayerDirty = true;
+		// íŒ”ë ˆíŠ¸ ìœ„ì¹˜ ì¬ê³„ì‚° (InitPaletteëŠ” m_paletteRectë„ ì´ˆê¸°í™”í•˜ë¯€ë¡œ ë‹¤ì‹œ í˜¸ì¶œ)
+		InitPalette(); // m_paletteLayerBitmapë„ ì—¬ê¸°ì„œ ì¬ìƒì„± ë° m_paletteLayerDirty = true;
 
-		// ¸Ê ·¹ÀÌ¾îµéµµ Å©±â º¯È­¿¡ µû¶ó Àç±×¸®±â ÇÊ¿ä
-		// (¸Ê ÀÚÃ¼ÀÇ Å©±â´Â °íÁ¤ÀÌÁö¸¸, ·»´õ¸µ ½ºÄÉÀÏ µîÀÌ º¯°æµÇ¾úÀ» ¶§ ÀüÃ¼¸¦ ´Ù½Ã ±×¸± ÇÊ¿ä°¡ ÀÖÀ» ¼ö ÀÖÀ½)
-		// ¿©±â¼­´Â dirty ÇÃ·¡±×¸¸ ¼³Á¤
+		// ë§µ ë ˆì´ì–´ë“¤ë„ í¬ê¸° ë³€í™”ì— ë”°ë¼ ì¬ê·¸ë¦¬ê¸° í•„ìš”
+		// (ë§µ ìì²´ì˜ í¬ê¸°ëŠ” ê³ ì •ì´ì§€ë§Œ, ë Œë”ë§ ìŠ¤ì¼€ì¼ ë“±ì´ ë³€ê²½ë˜ì—ˆì„ ë•Œ ì „ì²´ë¥¼ ë‹¤ì‹œ ê·¸ë¦´ í•„ìš”ê°€ ìˆì„ ìˆ˜ ìˆìŒ)
+		// ì—¬ê¸°ì„œëŠ” dirty í”Œë˜ê·¸ë§Œ ì„¤ì •
 		m_gridLayerDirty = true;
 		m_tileLayerDirty = true;
 		m_objectLayerDirty = true;
 
-		InvalidateRect(hWnd, NULL, FALSE); // È­¸é °»½Å ¿äÃ»
+		InvalidateRect(hWnd, NULL, FALSE); // í™”ë©´ ê°±ì‹  ìš”ì²­
 		return 0;
 	}
 
@@ -232,17 +232,17 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 
 		m_rawMousePos = newMousePos;
 
-		// Ä«¸Ş¶ó µå·¡±× ¸ğµå (¿ìÅ¬¸¯ µå·¡±×) - ´Ü¼øÈ­µÈ ·ÎÁ÷
+		// ì¹´ë©”ë¼ ë“œë˜ê·¸ ëª¨ë“œ (ìš°í´ë¦­ ë“œë˜ê·¸) - ë‹¨ìˆœí™”ëœ ë¡œì§
 		if (m_isDraggingCamera) {
-			// ½ÃÀÛÁ¡ ±âÁØÀ¸·Î Á÷Á¢ °è»ê (´Ü¼øÇÏ°í Á÷°üÀû)
+			// ì‹œì‘ì  ê¸°ì¤€ìœ¼ë¡œ ì§ì ‘ ê³„ì‚° (ë‹¨ìˆœí•˜ê³  ì§ê´€ì )
 			int deltaX = m_rawMousePos.x - m_cameraDragStart.x;
 			int deltaY = m_rawMousePos.y - m_cameraDragStart.y;
 
-			// ¸Ê ¿ÀÇÁ¼Â ¾÷µ¥ÀÌÆ® (µå·¡±× ¹æÇâ°ú ¹İ´ë·Î ÀÌµ¿)
+			// ë§µ ì˜¤í”„ì…‹ ì—…ë°ì´íŠ¸ (ë“œë˜ê·¸ ë°©í–¥ê³¼ ë°˜ëŒ€ë¡œ ì´ë™)
 			m_mapOffset.x = m_initialMapOffset.x + deltaX;
 			m_mapOffset.y = m_initialMapOffset.y + deltaY;
 		
-			// ºäÆ÷Æ® ·»´õ¸µ¿¡¼­´Â ¸Ê ¿ÀÇÁ¼Â º¯°æ ½Ã ÀüÃ¼ Àç±×¸®±â ÇÊ¿ä
+			// ë·°í¬íŠ¸ ë Œë”ë§ì—ì„œëŠ” ë§µ ì˜¤í”„ì…‹ ë³€ê²½ ì‹œ ì „ì²´ ì¬ê·¸ë¦¬ê¸° í•„ìš”
 			m_gridLayerDirty = true;
 			m_tileLayerDirty = true;
 			m_objectLayerDirty = true;
@@ -250,63 +250,63 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			return 0;
 		}
 
-		// Walkable ¿µ¿ª µå·¡±× ¸ğµå
+		// Walkable ì˜ì—­ ë“œë˜ê·¸ ëª¨ë“œ
 		if (m_isDraggingWalkable && m_isWalkableEditMode) {
 			m_walkableDragEnd = m_rawMousePos;
 			InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
 		}
 
-		// Äİ¶óÀÌ´õ µå·¡±× ¸ğµå
+		// ì½œë¼ì´ë” ë“œë˜ê·¸ ëª¨ë“œ
 		if (m_isDraggingCollider && m_editingColliderObject) {
-			// ¸¶¿ì½º ÀÌµ¿·® (È­¸é ÁÂÇ¥)
+			// ë§ˆìš°ìŠ¤ ì´ë™ëŸ‰ (í™”ë©´ ì¢Œí‘œ)
 			int deltaX = m_rawMousePos.x - m_colliderEditStartMousePos.x;
 			int deltaY = m_rawMousePos.y - m_colliderEditStartMousePos.y;
 
-			// ¸Ê ÁÂÇ¥°è·Î º¯È¯µÈ ÀÌµ¿·® (ÁÜ ÆÑÅÍ °í·Á)
+			// ë§µ ì¢Œí‘œê³„ë¡œ ë³€í™˜ëœ ì´ë™ëŸ‰ (ì¤Œ íŒ©í„° ê³ ë ¤)
 			float unzoomedDeltaX = deltaX / m_zoomFactor;
 			float unzoomedDeltaY = deltaY / m_zoomFactor;
 
 			if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
-				// BoxCollider Ã³¸®
+				// BoxCollider ì²˜ë¦¬
 				int unzoomedDeltaXInt = (int)unzoomedDeltaX;
 				int unzoomedDeltaYInt = (int)unzoomedDeltaY;
 
-				if (m_draggingHandle == 4) { // Áß¾Ó ÀÌµ¿ ÇÚµé (Äİ¶óÀÌ´õ ÀüÃ¼ ÀÌµ¿)
+				if (m_draggingHandle == 4) { // ì¤‘ì•™ ì´ë™ í•¸ë“¤ (ì½œë¼ì´ë” ì „ì²´ ì´ë™)
 					m_editingColliderObject->colliderOffsetX = m_initialColliderRect.left + unzoomedDeltaXInt;
 					m_editingColliderObject->colliderOffsetY = m_initialColliderRect.top + unzoomedDeltaYInt;
 				}
-				else { // Å©±â Á¶Àı (¸ğ¼­¸® ÇÚµé µå·¡±×)
+				else { // í¬ê¸° ì¡°ì ˆ (ëª¨ì„œë¦¬ í•¸ë“¤ ë“œë˜ê·¸)
 					int newLeft = m_initialColliderRect.left;
 					int newTop = m_initialColliderRect.top;
 					int newRight = m_initialColliderRect.right;
 					int newBottom = m_initialColliderRect.bottom;
 
-					// µå·¡±×ÇÏ´Â ÇÚµé¿¡ µû¶ó »õ·Î¿î °æ°è °è»ê
-					if (m_draggingHandle == 0 || m_draggingHandle == 2) { // ÁÂÃø ÇÚµé (ÁÂ»ó´Ü, ÁÂÇÏ´Ü)
+					// ë“œë˜ê·¸í•˜ëŠ” í•¸ë“¤ì— ë”°ë¼ ìƒˆë¡œìš´ ê²½ê³„ ê³„ì‚°
+					if (m_draggingHandle == 0 || m_draggingHandle == 2) { // ì¢Œì¸¡ í•¸ë“¤ (ì¢Œìƒë‹¨, ì¢Œí•˜ë‹¨)
 						newLeft = m_initialColliderRect.left + unzoomedDeltaXInt;
 					}
-					if (m_draggingHandle == 0 || m_draggingHandle == 1) { // »ó´Ü ÇÚµé (ÁÂ»ó´Ü, ¿ì»ó´Ü)
+					if (m_draggingHandle == 0 || m_draggingHandle == 1) { // ìƒë‹¨ í•¸ë“¤ (ì¢Œìƒë‹¨, ìš°ìƒë‹¨)
 						newTop = m_initialColliderRect.top + unzoomedDeltaYInt;
 					}
-					if (m_draggingHandle == 1 || m_draggingHandle == 3) { // ¿ìÃø ÇÚµé (¿ì»ó´Ü, ¿ìÇÏ´Ü)
+					if (m_draggingHandle == 1 || m_draggingHandle == 3) { // ìš°ì¸¡ í•¸ë“¤ (ìš°ìƒë‹¨, ìš°í•˜ë‹¨)
 						newRight = m_initialColliderRect.right + unzoomedDeltaXInt;
 					}
-					if (m_draggingHandle == 2 || m_draggingHandle == 3) { // ÇÏ´Ü ÇÚµé (ÁÂÇÏ´Ü, ¿ìÇÏ´Ü)
+					if (m_draggingHandle == 2 || m_draggingHandle == 3) { // í•˜ë‹¨ í•¸ë“¤ (ì¢Œí•˜ë‹¨, ìš°í•˜ë‹¨)
 						newBottom = m_initialColliderRect.bottom + unzoomedDeltaYInt;
 					}
 
-					// ³Êºñ/³ôÀÌ°¡ ÃÖ¼Ò°ª ÀÌÇÏ·Î ÁÙ¾îµéÁö ¾Êµµ·Ï Á¦ÇÑ
+					// ë„ˆë¹„/ë†’ì´ê°€ ìµœì†Œê°’ ì´í•˜ë¡œ ì¤„ì–´ë“¤ì§€ ì•Šë„ë¡ ì œí•œ
 					if (newRight - newLeft < MIN_COLLIDER_SIZE) {
-						if (m_draggingHandle == 0 || m_draggingHandle == 2) newLeft = newRight - MIN_COLLIDER_SIZE; // ÁÂÃø ÇÚµéÀÌ¸é ÁÂÃø °æ°è Á¶Á¤
-						else newRight = newLeft + MIN_COLLIDER_SIZE; // ¿ìÃø ÇÚµéÀÌ¸é ¿ìÃø °æ°è Á¶Á¤
+						if (m_draggingHandle == 0 || m_draggingHandle == 2) newLeft = newRight - MIN_COLLIDER_SIZE; // ì¢Œì¸¡ í•¸ë“¤ì´ë©´ ì¢Œì¸¡ ê²½ê³„ ì¡°ì •
+						else newRight = newLeft + MIN_COLLIDER_SIZE; // ìš°ì¸¡ í•¸ë“¤ì´ë©´ ìš°ì¸¡ ê²½ê³„ ì¡°ì •
 					}
 					if (newBottom - newTop < MIN_COLLIDER_SIZE) {
-						if (m_draggingHandle == 0 || m_draggingHandle == 1) newTop = newBottom - MIN_COLLIDER_SIZE; // »ó´Ü ÇÚµéÀÌ¸é »ó´Ü °æ°è Á¶Á¤
-						else newBottom = newTop + MIN_COLLIDER_SIZE; // ÇÏ´Ü ÇÚµéÀÌ¸é ÇÏ´Ü °æ°è Á¶Á¤
+						if (m_draggingHandle == 0 || m_draggingHandle == 1) newTop = newBottom - MIN_COLLIDER_SIZE; // ìƒë‹¨ í•¸ë“¤ì´ë©´ ìƒë‹¨ ê²½ê³„ ì¡°ì •
+						else newBottom = newTop + MIN_COLLIDER_SIZE; // í•˜ë‹¨ í•¸ë“¤ì´ë©´ í•˜ë‹¨ ê²½ê³„ ì¡°ì •
 					}
 
-					// Äİ¶óÀÌ´õ Á¤º¸ ¾÷µ¥ÀÌÆ®
+					// ì½œë¼ì´ë” ì •ë³´ ì—…ë°ì´íŠ¸
 					m_editingColliderObject->colliderOffsetX = newLeft;
 					m_editingColliderObject->colliderOffsetY = newTop;
 					m_editingColliderObject->colliderWidth = newRight - newLeft;
@@ -314,13 +314,13 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				}
 			}
 			else if (m_editingColliderObject->colliderType == COLLIDER_CIRCLE) {
-				// CircleCollider Ã³¸®
-				if (m_draggingHandle == 4) { // Áß¾Ó ÀÌµ¿ ÇÚµé (¿øÀÇ Áß½ÉÁ¡ ÀÌµ¿)
+				// CircleCollider ì²˜ë¦¬
+				if (m_draggingHandle == 4) { // ì¤‘ì•™ ì´ë™ í•¸ë“¤ (ì›ì˜ ì¤‘ì‹¬ì  ì´ë™)
 					m_editingColliderObject->colliderCenterX = m_initialColliderCenterX + unzoomedDeltaX;
 					m_editingColliderObject->colliderCenterY = m_initialColliderCenterY + unzoomedDeltaY;
 				}
-				else if (m_draggingHandle == 5) { // ¹İÁö¸§ Á¶Àı ÇÚµé
-					// ¸¶¿ì½º À§Ä¡¿¡¼­ ¿øÀÇ Áß½É±îÁöÀÇ °Å¸®¸¦ °è»êÇÏ¿© ¹İÁö¸§À¸·Î ¼³Á¤
+				else if (m_draggingHandle == 5) { // ë°˜ì§€ë¦„ ì¡°ì ˆ í•¸ë“¤
+					// ë§ˆìš°ìŠ¤ ìœ„ì¹˜ì—ì„œ ì›ì˜ ì¤‘ì‹¬ê¹Œì§€ì˜ ê±°ë¦¬ë¥¼ ê³„ì‚°í•˜ì—¬ ë°˜ì§€ë¦„ìœ¼ë¡œ ì„¤ì •
 					float objRenderX = (float)m_editingColliderObject->x * m_zoomFactor + m_mapOffset.x;
 					float objRenderY = (float)m_editingColliderObject->y * m_zoomFactor + m_mapOffset.y;
 					float worldCenterX = m_editingColliderObject->x + m_initialColliderCenterX;
@@ -333,7 +333,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 					float screenDistance = sqrtf(dx * dx + dy * dy);
 					float newRadius = screenDistance / m_zoomFactor;
 
-					// ÃÖ¼Ò ¹İÁö¸§ Á¦ÇÑ
+					// ìµœì†Œ ë°˜ì§€ë¦„ ì œí•œ
 					if (newRadius < MIN_COLLIDER_RADIUS) {
 						newRadius = MIN_COLLIDER_RADIUS;
 					}
@@ -341,29 +341,29 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 					m_editingColliderObject->colliderRadius = newRadius;
 				}
 			}
-			m_objectLayerDirty = true; // Äİ¶óÀÌ´õ º¯°æ -> ·¹ÀÌ¾î ´Ù½Ã ±×·Á¾ß ÇÔ
+			m_objectLayerDirty = true; // ì½œë¼ì´ë” ë³€ê²½ -> ë ˆì´ì–´ ë‹¤ì‹œ ê·¸ë ¤ì•¼ í•¨
 			InvalidateRect(hWnd, NULL, FALSE);
-			return 0; // ¸Ş½ÃÁö Ã³¸® ¿Ï·á
+			return 0; // ë©”ì‹œì§€ ì²˜ë¦¬ ì™„ë£Œ
 		}
 
-		// Pivot ÆíÁı ¸ğµå Áß ½Ç½Ã°£ pivot ¾÷µ¥ÀÌÆ®
+		// Pivot í¸ì§‘ ëª¨ë“œ ì¤‘ ì‹¤ì‹œê°„ pivot ì—…ë°ì´íŠ¸
 		if (m_isPivotEditMode && (GetKeyState(VK_LBUTTON) & 0x8000)) {
 			UpdatePivotEdit(m_rawMousePos);
 			return 0;
 		}
 
-		// ¹èÄ¡ ¸ğµåÀÏ ¶§ ÇÁ¸®ºä À§Ä¡ °è»ê (¿ùµå ÁÂÇ¥)
+		// ë°°ì¹˜ ëª¨ë“œì¼ ë•Œ í”„ë¦¬ë·° ìœ„ì¹˜ ê³„ì‚° (ì›”ë“œ ì¢Œí‘œ)
 		if (m_selectedPaletteIndex != -1 && m_isPlacingMode) {
 			const PaletteItem& selectedItem = m_paletteItems[m_selectedPaletteIndex];
 
 			Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)m_rawMousePos.x, (float)m_rawMousePos.y));
 
 			if (selectedItem.category == CATEGORY_TILE) {
-				// Å¸ÀÏ: ±×¸®µå¿¡ ½º³ÀµÈ ¿ùµå ÁÂÇ¥ (ÁÂ»ó´Ü)
+				// íƒ€ì¼: ê·¸ë¦¬ë“œì— ìŠ¤ëƒ…ëœ ì›”ë“œ ì¢Œí‘œ (ì¢Œìƒë‹¨)
 				int snappedMapX = (int)floor(mouseWorldPos.X / TILE_SIZE);
 				int snappedMapY = (int)floor(mouseWorldPos.Y / TILE_SIZE);
 
-				// ¸Ê °æ°è Ã¼Å©
+				// ë§µ ê²½ê³„ ì²´í¬
 				snappedMapX = max(0, min(MAP_WIDTH - 1, snappedMapX));
 				snappedMapY = max(0, min(MAP_HEIGHT - 1, snappedMapY));
 
@@ -371,7 +371,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				m_snappedPreviewPos.Y = (float)(snappedMapY * TILE_SIZE);
 			}
 			else if (selectedItem.category == CATEGORY_OBJECT) {
-				// ¿ÀºêÁ§Æ®: ¸¶¿ì½º À§Ä¡ ±×´ë·Î (¹ß ¹Ø Áß½É)
+				// ì˜¤ë¸Œì íŠ¸: ë§ˆìš°ìŠ¤ ìœ„ì¹˜ ê·¸ëŒ€ë¡œ (ë°œ ë°‘ ì¤‘ì‹¬)
 				m_snappedPreviewPos.X = mouseWorldPos.X;
 				m_snappedPreviewPos.Y = mouseWorldPos.Y;
 			}
@@ -391,7 +391,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			m_isDraggingWalkable = true;
 			m_walkableDragStart = clickPoint;
 			m_walkableDragEnd = clickPoint;
-			SetCapture(hWnd); // ¸¶¿ì½º Ä¸Ã³ ½ÃÀÛ
+			SetCapture(hWnd); // ë§ˆìš°ìŠ¤ ìº¡ì²˜ ì‹œì‘
 			InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
 		}
@@ -400,7 +400,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		if (m_isPlayerSpawnMode) {
 			Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)clickPoint.x, (float)clickPoint.y));
 
-			// Define.h °ªµéÀ» »ç¿ëÇÑ ¸Ê °æ°è Ã¼Å©
+			// Define.h ê°’ë“¤ì„ ì‚¬ìš©í•œ ë§µ ê²½ê³„ ì²´í¬
 			const float TOTAL_MAP_WIDTH = (float)(MAP_WIDTH * TILE_SIZE);   // 50 * 128 = 6400px
 			const float TOTAL_MAP_HEIGHT = (float)(MAP_HEIGHT * TILE_SIZE); // 50 * 128 = 6400px
 
@@ -410,7 +410,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				m_playerSpawnPoint = mouseWorldPos;
 				m_hasPlayerSpawn = true;
 
-				// Å¸ÀÏ ÁÂÇ¥·Îµµ Ç¥½Ã
+				// íƒ€ì¼ ì¢Œí‘œë¡œë„ í‘œì‹œ
 				int tileX = (int)(mouseWorldPos.X / TILE_SIZE);
 				int tileY = (int)(mouseWorldPos.Y / TILE_SIZE);
 
@@ -449,8 +449,8 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 					m_initialColliderCenterY = m_editingColliderObject->colliderCenterY;
 					m_initialColliderRadius = m_editingColliderObject->colliderRadius;
 				}
-				SetCapture(hWnd); // ¸¶¿ì½º Ä¸Ã³ (µå·¡±× Áß¿¡µµ ¸Ş½ÃÁö ¹Ş±â À§ÇÔ)
-				m_objectLayerDirty = true; // ¼±ÅÃ º¯°æ
+				SetCapture(hWnd); // ë§ˆìš°ìŠ¤ ìº¡ì²˜ (ë“œë˜ê·¸ ì¤‘ì—ë„ ë©”ì‹œì§€ ë°›ê¸° ìœ„í•¨)
+				m_objectLayerDirty = true; // ì„ íƒ ë³€ê²½
 				InvalidateRect(hWnd, NULL, FALSE);
 				return 0;
 			}
@@ -499,7 +499,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				if (PtInRect(&m_paletteItems[i].displayRect, clickPoint)) {
 					m_selectedPaletteIndex = (int)i; // Cast size_t to int
 
-					// ¸ŞÀÎÆÈ·¹Æ® Å¬¸¯ ½Ã¿¡´Â ¹èÄ¡ ¸ğµå ½ÃÀÛÇÏÁö ¾Ê°í ¼­ºêÆÈ·¹Æ®¸¸ ¿­±â
+					// ë©”ì¸íŒ”ë ˆíŠ¸ í´ë¦­ ì‹œì—ëŠ” ë°°ì¹˜ ëª¨ë“œ ì‹œì‘í•˜ì§€ ì•Šê³  ì„œë¸ŒíŒ”ë ˆíŠ¸ë§Œ ì—´ê¸°
 					m_isPlacingMode = false;
 
 					// Populate Sub-Palette based on selected category
@@ -514,7 +514,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 							}
 						}
 						if (!m_subPalette.currentTileVariantDefs.empty()) {
-							m_subPalette.selectedTileVariantIndex = 0; // Ã¹ ¹øÂ° ¾ÆÀÌÅÛÀ» ±âº» ¼±ÅÃ
+							m_subPalette.selectedTileVariantIndex = 0; // ì²« ë²ˆì§¸ ì•„ì´í…œì„ ê¸°ë³¸ ì„ íƒ
 						}
 						else {
 							m_subPalette.selectedTileVariantIndex = -1;
@@ -531,7 +531,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 							}
 						}
 						if (!m_subPalette.currentObjectVariantDefs.empty()) {
-							m_subPalette.selectedObjectVariantIndex = 0; // Ã¹ ¹øÂ° ¾ÆÀÌÅÛÀ» ±âº» ¼±ÅÃ
+							m_subPalette.selectedObjectVariantIndex = 0; // ì²« ë²ˆì§¸ ì•„ì´í…œì„ ê¸°ë³¸ ì„ íƒ
 						}
 						else {
 							m_subPalette.selectedObjectVariantIndex = -1;
@@ -571,7 +571,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 							currentSubY += subItemSize + subPadding;
 						}
 					}
-					m_paletteLayerDirty = true; // ¸ŞÀÎ ÆÈ·¹Æ® ¼±ÅÃ º¯°æ ½Ã ·¹ÀÌ¾î °»½Å
+					m_paletteLayerDirty = true; // ë©”ì¸ íŒ”ë ˆíŠ¸ ì„ íƒ ë³€ê²½ ì‹œ ë ˆì´ì–´ ê°±ì‹ 
 					InvalidateRect(hWnd, NULL, FALSE);
 					return 0; // Handled main palette click
 				}
@@ -588,7 +588,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				const TileVariant* tv = m_subPalette.getSelectedTileVariant();
 
 				if (tv) {
-					// ÇÁ¸®ºä¿Í µ¿ÀÏÇÑ ¹æ½ÄÀ¸·Î Å¸ÀÏ ÀÎµ¦½º °è»ê
+					// í”„ë¦¬ë·°ì™€ ë™ì¼í•œ ë°©ì‹ìœ¼ë¡œ íƒ€ì¼ ì¸ë±ìŠ¤ ê³„ì‚°
 					int mapX = (int)floor(m_snappedPreviewPos.X / TILE_SIZE);
 					int mapY = (int)floor(m_snappedPreviewPos.Y / TILE_SIZE);
 
@@ -598,7 +598,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 						<< L", WorldPos=(" << (int)m_snappedPreviewPos.X << L"," << (int)m_snappedPreviewPos.Y << L")\n";
 					OutputDebugStringW(debugSS.str().c_str());
 
-					if (m_is3x3Mode) { // 3x3 ¹èÄ¡ ¸ğµå
+					if (m_is3x3Mode) { // 3x3 ë°°ì¹˜ ëª¨ë“œ
 						for (int dy = -1; dy <= 1; ++dy) {
 							for (int dx = -1; dx <= 1; ++dx) {
 								int targetX = mapX + dx;
@@ -610,12 +610,12 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 						}
 					}
 					else
-					{ // ´ÜÀÏ Å¸ÀÏ ¹èÄ¡
+					{ // ë‹¨ì¼ íƒ€ì¼ ë°°ì¹˜
 						if (mapX >= 0 && mapX < MAP_WIDTH && mapY >= 0 && mapY < MAP_HEIGHT) {
 							m_tileMap[mapY][mapX] = TileData(tv->type, tv->id, tv->pAtlasBitmap, tv->sourceRect);
 						}
 					}
-					m_tileLayerDirty = true; // Å¸ÀÏ º¯°æ -> ·¹ÀÌ¾î ´Ù½Ã ±×·Á¾ß ÇÔ
+					m_tileLayerDirty = true; // íƒ€ì¼ ë³€ê²½ -> ë ˆì´ì–´ ë‹¤ì‹œ ê·¸ë ¤ì•¼ í•¨
 					InvalidateRect(hWnd, NULL, FALSE);
 				}
 				else {
@@ -629,7 +629,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			else if (selectedItem.category == CATEGORY_OBJECT) {
 				const ObjectVariant* ov = m_subPalette.getSelectedObjectVariant();
 				if (ov) {
-					// ¼­ºêÆÈ·¹Æ®¿¡¼­ ¼±ÅÃµÈ ½ÇÁ¦ ObjectID »ç¿ë
+					// ì„œë¸ŒíŒ”ë ˆíŠ¸ì—ì„œ ì„ íƒëœ ì‹¤ì œ ObjectID ì‚¬ìš©
 					GameObjectID selectedObjectID = m_subPalette.getSelectedGameObjectID();
 
 					std::wstringstream debugSS;
@@ -653,7 +653,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			}
 		}
 		else { // Not in placing mode (object selection/deselection)
-			// ¹èÄ¡ ¸ğµå°¡ ¾Æ´Ò ¶§ Å¬¸¯ÇÑ °æ¿ì µğ¹ö±× Ãâ·Â
+			// ë°°ì¹˜ ëª¨ë“œê°€ ì•„ë‹ ë•Œ í´ë¦­í•œ ê²½ìš° ë””ë²„ê·¸ ì¶œë ¥
 			std::wstringstream debugSS;
 			debugSS << L"Click ignored - Not in placing mode. PlacingMode=" << (m_isPlacingMode ? L"TRUE" : L"FALSE")
 				<< L", SelectedPaletteIdx=" << m_selectedPaletteIndex << L"\n";
@@ -688,7 +688,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 					{
 						ov->pAtlasBitmap->GetPixel(pixelX, pixelY, &color);
 						if (color.GetAlpha() > 0) {
-							// ¿ÀºêÁ§Æ® ¼±ÅÃ (»èÁ¦´Â RÅ°·Î¸¸ °¡´É)
+							// ì˜¤ë¸Œì íŠ¸ ì„ íƒ (ì‚­ì œëŠ” Rí‚¤ë¡œë§Œ ê°€ëŠ¥)
 							m_selectedObjectPtr = &obj;
 							m_objectLayerDirty = true;
 							InvalidateRect(hWnd, NULL, FALSE);
@@ -714,7 +714,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		int mouseY = HIWORD(lParam);
 		POINT clickPoint = { mouseX, mouseY };
 
-		// 1. ÇÏÀ§ ÆÈ·¹Æ®°¡ ¿­·Á ÀÖÀ¸¸é ´İ±â
+		// 1. í•˜ìœ„ íŒ”ë ˆíŠ¸ê°€ ì—´ë ¤ ìˆìœ¼ë©´ ë‹«ê¸°
 		if (m_subPalette.isOpen) {
 			m_subPalette.isOpen = false;
 			m_subPalette.selectedTileVariantIndex = -1;
@@ -725,7 +725,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			return 0;
 		}
 
-		// 2. ¹èÄ¡ ¸ğµå ÁßÀÌ¸é ¹èÄ¡ ¸ğµå ÇØÁ¦
+		// 2. ë°°ì¹˜ ëª¨ë“œ ì¤‘ì´ë©´ ë°°ì¹˜ ëª¨ë“œ í•´ì œ
 		if (m_isPlacingMode) {
 			m_isPlacingMode = false;
 			m_selectedPaletteIndex = -1;
@@ -734,14 +734,14 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			return 0;
 		}
 
-		// 3. Ä«¸Ş¶ó µå·¡±× ½ÃÀÛ (¿ìÅ¬¸¯) - ÆÈ·¹Æ® ¿µ¿ªÀÌ ¾Æ´Ò ¶§¸¸
+		// 3. ì¹´ë©”ë¼ ë“œë˜ê·¸ ì‹œì‘ (ìš°í´ë¦­) - íŒ”ë ˆíŠ¸ ì˜ì—­ì´ ì•„ë‹ ë•Œë§Œ
 		if (!PtInRect(&m_paletteRect, clickPoint)) {
 			m_isDraggingCamera = true;
 			m_cameraDragStart = clickPoint;
 			m_initialMapOffset = m_mapOffset;
-			SetCapture(hWnd); // ¸¶¿ì½º Ä¸Ã³
+			SetCapture(hWnd); // ë§ˆìš°ìŠ¤ ìº¡ì²˜
 			
-			// µğ¹ö±× Á¤º¸ Ãâ·Â
+			// ë””ë²„ê·¸ ì •ë³´ ì¶œë ¥
 			std::wstringstream debugSS;
 			debugSS << L"Camera drag started at (" << clickPoint.x << L", " << clickPoint.y << L")\n";
 			OutputDebugStringW(debugSS.str().c_str());
@@ -751,7 +751,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 
 	case WM_CAPTURECHANGED:
 	{
-		// ¸¶¿ì½º Ä¸Ã³°¡ ¿¹±âÄ¡ ¾Ê°Ô ÇØÁ¦µÈ °æ¿ì µå·¡±× »óÅÂ ÃÊ±âÈ­
+		// ë§ˆìš°ìŠ¤ ìº¡ì²˜ê°€ ì˜ˆê¸°ì¹˜ ì•Šê²Œ í•´ì œëœ ê²½ìš° ë“œë˜ê·¸ ìƒíƒœ ì´ˆê¸°í™”
 		if (m_isDraggingCamera) {
 			m_isDraggingCamera = false;
 			std::wstringstream debugSS;
@@ -771,7 +771,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 	case WM_RBUTTONUP:
 	{
 		if (m_isDraggingCamera) {
-			// µå·¡±× °Å¸® °è»ê (Å¬¸¯ÀÎÁö µå·¡±×ÀÎÁö ÆÇº°)
+			// ë“œë˜ê·¸ ê±°ë¦¬ ê³„ì‚° (í´ë¦­ì¸ì§€ ë“œë˜ê·¸ì¸ì§€ íŒë³„)
 			int deltaX = m_rawMousePos.x - m_cameraDragStart.x;
 			int deltaY = m_rawMousePos.y - m_cameraDragStart.y;
 			int dragDistanceSquared = deltaX * deltaX + deltaY * deltaY;
@@ -779,12 +779,12 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			m_isDraggingCamera = false;
 			ReleaseCapture();
 
-			// µğ¹ö±× Á¤º¸ Ãâ·Â
+			// ë””ë²„ê·¸ ì •ë³´ ì¶œë ¥
 			std::wstringstream debugSS;
 			debugSS << L"Camera drag ended - distance: " << sqrt(dragDistanceSquared) << L" pixels\n";
 			OutputDebugStringW(debugSS.str().c_str());
 
-			// µå·¡±× °Å¸®°¡ 5ÇÈ¼¿ ÀÌÇÏ¸é Å¬¸¯À¸·Î °£ÁÖÇÏ¿© ¿ÀºêÁ§Æ® ¼±ÅÃ Ã³¸® (5^2 = 25)
+			// ë“œë˜ê·¸ ê±°ë¦¬ê°€ 5í”½ì…€ ì´í•˜ë©´ í´ë¦­ìœ¼ë¡œ ê°„ì£¼í•˜ì—¬ ì˜¤ë¸Œì íŠ¸ ì„ íƒ ì²˜ë¦¬ (5^2 = 25)
 			if (dragDistanceSquared <= 25) {
 				POINT clickPoint = { m_rawMousePos.x, m_rawMousePos.y };
 
@@ -814,7 +814,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 							ov->pAtlasBitmap->GetPixel(pixelX, pixelY, &color);
 							if (color.GetAlpha() > 0) { // If pixel is not fully transparent
 								objectClicked = true;
-								// ¿ÀºêÁ§Æ® ¼±ÅÃ (»èÁ¦´Â RÅ°·Î¸¸ °¡´É)
+								// ì˜¤ë¸Œì íŠ¸ ì„ íƒ (ì‚­ì œëŠ” Rí‚¤ë¡œë§Œ ê°€ëŠ¥)
 								m_selectedObjectPtr = &obj;
 								m_objectLayerDirty = true; // Selection state changed, requires recompose
 								InvalidateRect(hWnd, NULL, FALSE);
@@ -857,20 +857,20 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			m_zoomFactor -= m_zoomStep;
 		}
 
-		// ÁÜ ÆÑÅÍ ¹üÀ§ Á¦ÇÑ
+		// ì¤Œ íŒ©í„° ë²”ìœ„ ì œí•œ
 		if (m_zoomFactor < m_minZoom) m_zoomFactor = m_minZoom;
 		if (m_zoomFactor > m_maxZoom) m_zoomFactor = m_maxZoom;
 
-		// ÁÜ ÆÑÅÍ°¡ ½ÇÁ¦·Î º¯°æµÇ¾úÀ» ¶§¸¸ Ã³¸®
+		// ì¤Œ íŒ©í„°ê°€ ì‹¤ì œë¡œ ë³€ê²½ë˜ì—ˆì„ ë•Œë§Œ ì²˜ë¦¬
 		if (m_zoomFactor != oldZoomFactor) {
-			// º¯°æµÈ ÁÜ ÆÑÅÍ·Î ¸¶¿ì½º À§Ä¡¿¡ ÇØ´çÇÏ´Â »õ·Î¿î È­¸é ÁÂÇ¥¸¦ °è»ê
+			// ë³€ê²½ëœ ì¤Œ íŒ©í„°ë¡œ ë§ˆìš°ìŠ¤ ìœ„ì¹˜ì— í•´ë‹¹í•˜ëŠ” ìƒˆë¡œìš´ í™”ë©´ ì¢Œí‘œë¥¼ ê³„ì‚°
 			Gdiplus::PointF mouseScreenPos_after_zoom = WorldToScreen(mouseWorldPos_before_zoom);
 
-			// »õ·Î¿î ¸Ê ¿ÀÇÁ¼Â °è»ê (¸¶¿ì½º°¡ Å¬¸¯ÇÑ ¿ùµå ÁöÁ¡ÀÌ È­¸é»ó¿¡¼­ °°Àº À§Ä¡¿¡ À¯ÁöµÇµµ·Ï)
+			// ìƒˆë¡œìš´ ë§µ ì˜¤í”„ì…‹ ê³„ì‚° (ë§ˆìš°ìŠ¤ê°€ í´ë¦­í•œ ì›”ë“œ ì§€ì ì´ í™”ë©´ìƒì—ì„œ ê°™ì€ ìœ„ì¹˜ì— ìœ ì§€ë˜ë„ë¡)
 			m_mapOffset.x += (LONG)(mouseScreenPos.x - mouseScreenPos_after_zoom.X);
 			m_mapOffset.y += (LONG)(mouseScreenPos.y - mouseScreenPos_after_zoom.Y);
 
-			// ÁÜ º¯°æ ½Ã ¸ğµç ·¹ÀÌ¾î Àç±×¸®±â (È­¸é¿¡¼­ Å©±â°¡ º¯ÇÏ¹Ç·Î)
+			// ì¤Œ ë³€ê²½ ì‹œ ëª¨ë“  ë ˆì´ì–´ ì¬ê·¸ë¦¬ê¸° (í™”ë©´ì—ì„œ í¬ê¸°ê°€ ë³€í•˜ë¯€ë¡œ)
 			m_gridLayerDirty = true;
 			m_tileLayerDirty = true;
 			m_objectLayerDirty = true;
@@ -944,7 +944,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		if (wParam == 'P') {
 			m_isPlayerSpawnMode = !m_isPlayerSpawnMode;
 
-			// ÇÃ·¹ÀÌ¾î ½ºÆù ¸ğµå È°¼ºÈ­ ½Ã ´Ù¸¥ ¸ğµåµé ÇØÁ¦
+			// í”Œë ˆì´ì–´ ìŠ¤í° ëª¨ë“œ í™œì„±í™” ì‹œ ë‹¤ë¥¸ ëª¨ë“œë“¤ í•´ì œ
 			if (m_isPlayerSpawnMode) {
 				m_isPlacingMode = false;
 				m_isPivotEditMode = false;
@@ -979,7 +979,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		if (wParam == 'V') {
 			if (m_selectedObjectPtr) {
 				if (!m_isPivotEditMode) {
-					// ´Ù¸¥ ÆíÁı ¸ğµåµé ÇØÁ¦
+					// ë‹¤ë¥¸ í¸ì§‘ ëª¨ë“œë“¤ í•´ì œ
 					m_isColliderEditMode = false;
 					m_isPlayerSpawnMode = false;
 					m_isPlacingMode = false;
@@ -1002,7 +1002,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				InvalidateRect(hWnd, NULL, FALSE);
 			}
 			else {
-				MessageBox(hWnd, L"¿ÀºêÁ§Æ®¸¦ ¸ÕÀú ¼±ÅÃÇØÁÖ¼¼¿ä.", L"ÇÇ¹ş ÆíÁı", MB_OK | MB_ICONINFORMATION);
+				MessageBox(hWnd, L"ì˜¤ë¸Œì íŠ¸ë¥¼ ë¨¼ì € ì„ íƒí•´ì£¼ì„¸ìš”.", L"í”¼ë²— í¸ì§‘", MB_OK | MB_ICONINFORMATION);
 			}
 			return 0;
 		}
@@ -1011,7 +1011,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		if (wParam == 'C') {
 			if (m_selectedObjectPtr) {
 				if (!m_isColliderEditMode) {
-					// ´Ù¸¥ ÆíÁı ¸ğµåµé ÇØÁ¦
+					// ë‹¤ë¥¸ í¸ì§‘ ëª¨ë“œë“¤ í•´ì œ
 					m_isPivotEditMode = false;
 					m_isPlayerSpawnMode = false;
 					m_isPlacingMode = false;
@@ -1034,7 +1034,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				InvalidateRect(hWnd, NULL, FALSE);
 			}
 			else {
-				MessageBox(hWnd, L"¿ÀºêÁ§Æ®¸¦ ¸ÕÀú ¼±ÅÃÇØÁÖ¼¼¿ä.", L"Äİ¶óÀÌ´õ ÆíÁı", MB_OK | MB_ICONINFORMATION);
+				MessageBox(hWnd, L"ì˜¤ë¸Œì íŠ¸ë¥¼ ë¨¼ì € ì„ íƒí•´ì£¼ì„¸ìš”.", L"ì½œë¼ì´ë” í¸ì§‘", MB_OK | MB_ICONINFORMATION);
 			}
 			return 0;
 		}
@@ -1042,18 +1042,18 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		// B key for Collider Type toggle (Box <-> Circle)
 		if (wParam == 'B') {
 			if (m_isColliderEditMode && m_editingColliderObject) {
-				// Box <-> Circle ÀüÈ¯
+				// Box <-> Circle ì „í™˜
 				if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
 					m_editingColliderObject->colliderType = COLLIDER_CIRCLE;
-					// CircleCollider ÃÊ±âÈ­: Áß½ÉÁ¡À» ÀÌ¹ÌÁö Áß½ÉÀ¸·Î, ¹İÁö¸§À» ÀÌ¹ÌÁö Å©±âÀÇ Àı¹İÀ¸·Î
+					// CircleCollider ì´ˆê¸°í™”: ì¤‘ì‹¬ì ì„ ì´ë¯¸ì§€ ì¤‘ì‹¬ìœ¼ë¡œ, ë°˜ì§€ë¦„ì„ ì´ë¯¸ì§€ í¬ê¸°ì˜ ì ˆë°˜ìœ¼ë¡œ
 					const ObjectVariant* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
 					if (ov) {
 						float imageWidth = ov->sourceRect.Width;
 						float imageHeight = ov->sourceRect.Height;
-						// ÀÌ¹ÌÁö Áß½É °è»ê: (width * (0.5f - pivotX), height * (0.5f - pivotY))
+						// ì´ë¯¸ì§€ ì¤‘ì‹¬ ê³„ì‚°: (width * (0.5f - pivotX), height * (0.5f - pivotY))
 						m_editingColliderObject->colliderCenterX = imageWidth * (0.5f - ov->pivotX);
 						m_editingColliderObject->colliderCenterY = imageHeight * (0.5f - ov->pivotY);
-						// ¹İÁö¸§À» ÀÌ¹ÌÁö Å©±âÀÇ ÀÛÀº ÂÊÀÇ Àı¹İÀ¸·Î ¼³Á¤
+						// ë°˜ì§€ë¦„ì„ ì´ë¯¸ì§€ í¬ê¸°ì˜ ì‘ì€ ìª½ì˜ ì ˆë°˜ìœ¼ë¡œ ì„¤ì •
 						float smallerSize = (imageWidth < imageHeight) ? imageWidth : imageHeight;
 						m_editingColliderObject->colliderRadius = smallerSize * 0.5f;
 					}
@@ -1063,7 +1063,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				}
 				else {
 					m_editingColliderObject->colliderType = COLLIDER_BOX;
-					// BoxCollider ÃÊ±âÈ­: ±âÁ¸ ·ÎÁ÷ »ç¿ë
+					// BoxCollider ì´ˆê¸°í™”: ê¸°ì¡´ ë¡œì§ ì‚¬ìš©
 					const ObjectVariant* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
 					if (ov) {
 						int imageWidth = (int)ov->sourceRect.Width;
@@ -1086,11 +1086,11 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		// R key for Delete selected object
 		if (wParam == 'R') {
 			if (m_selectedObjectPtr) {
-				// È®ÀÎ ´ëÈ­»óÀÚ Ç¥½Ã
-				int result = MessageBox(hWnd, L"¼±ÅÃµÈ ¿ÀºêÁ§Æ®¸¦ »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?", L"¿ÀºêÁ§Æ® »èÁ¦", MB_YESNO | MB_ICONQUESTION);
+				// í™•ì¸ ëŒ€í™”ìƒì í‘œì‹œ
+				int result = MessageBox(hWnd, L"ì„ íƒëœ ì˜¤ë¸Œì íŠ¸ë¥¼ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?", L"ì˜¤ë¸Œì íŠ¸ ì‚­ì œ", MB_YESNO | MB_ICONQUESTION);
 
 				if (result == IDYES) {
-					// ÆíÁı ¸ğµå ÇØÁ¦ (»èÁ¦ÇÒ ¿ÀºêÁ§Æ®°¡ ÆíÁı ÁßÀÌ¶ó¸é)
+					// í¸ì§‘ ëª¨ë“œ í•´ì œ (ì‚­ì œí•  ì˜¤ë¸Œì íŠ¸ê°€ í¸ì§‘ ì¤‘ì´ë¼ë©´)
 					if (m_editingObject == m_selectedObjectPtr) {
 						EndPivotEdit();
 					}
@@ -1098,7 +1098,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 						EndColliderEdit();
 					}
 
-					// ¿ÀºêÁ§Æ® »èÁ¦
+					// ì˜¤ë¸Œì íŠ¸ ì‚­ì œ
 					RemoveObject(m_selectedObjectPtr);
 					m_selectedObjectPtr = nullptr;
 
@@ -1110,7 +1110,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 				}
 			}
 			else {
-				MessageBox(hWnd, L"»èÁ¦ÇÒ ¿ÀºêÁ§Æ®¸¦ ¸ÕÀú ¼±ÅÃÇØÁÖ¼¼¿ä.", L"¿ÀºêÁ§Æ® »èÁ¦", MB_OK | MB_ICONINFORMATION);
+				MessageBox(hWnd, L"ì‚­ì œí•  ì˜¤ë¸Œì íŠ¸ë¥¼ ë¨¼ì € ì„ íƒí•´ì£¼ì„¸ìš”.", L"ì˜¤ë¸Œì íŠ¸ ì‚­ì œ", MB_OK | MB_ICONINFORMATION);
 			}
 			return 0;
 		}
@@ -1119,7 +1119,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		if (wParam == 'G') {
 			m_isWalkableEditMode = !m_isWalkableEditMode;
 
-			// Walkable ÆíÁı ¸ğµå È°¼ºÈ­ ½Ã ´Ù¸¥ ¸ğµåµé ÇØÁ¦
+			// Walkable í¸ì§‘ ëª¨ë“œ í™œì„±í™” ì‹œ ë‹¤ë¥¸ ëª¨ë“œë“¤ í•´ì œ
 			if (m_isWalkableEditMode) {
 				m_isPlacingMode = false;
 				m_isPivotEditMode = false;
@@ -1129,7 +1129,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 					m_subPalette.isOpen = false;
 					m_paletteLayerDirty = true;
 				}
-				// µå·¡±× »óÅÂ ÃÊ±âÈ­
+				// ë“œë˜ê·¸ ìƒíƒœ ì´ˆê¸°í™”
 				m_isDraggingWalkable = false;
 			}
 
@@ -1152,31 +1152,31 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 	case WM_LBUTTONUP:
 	{
 		if (m_isDraggingWalkable && m_isWalkableEditMode) {
-			// µå·¡±× ¿µ¿ªÀÇ Å¸ÀÏµéÀ» walkable·Î ¼³Á¤
+			// ë“œë˜ê·¸ ì˜ì—­ì˜ íƒ€ì¼ë“¤ì„ walkableë¡œ ì„¤ì •
 			Gdiplus::PointF startWorldPos = ScreenToWorld(Gdiplus::PointF((float)m_walkableDragStart.x, (float)m_walkableDragStart.y));
 			Gdiplus::PointF endWorldPos = ScreenToWorld(Gdiplus::PointF((float)m_walkableDragEnd.x, (float)m_walkableDragEnd.y));
 
-			// Å¸ÀÏ ÁÂÇ¥·Î º¯È¯
+			// íƒ€ì¼ ì¢Œí‘œë¡œ ë³€í™˜
 			int startTileX = max(0, min(MAP_WIDTH - 1, (int)floor(startWorldPos.X / TILE_SIZE)));
 			int startTileY = max(0, min(MAP_HEIGHT - 1, (int)floor(startWorldPos.Y / TILE_SIZE)));
 			int endTileX = max(0, min(MAP_WIDTH - 1, (int)floor(endWorldPos.X / TILE_SIZE)));
 			int endTileY = max(0, min(MAP_HEIGHT - 1, (int)floor(endWorldPos.Y / TILE_SIZE)));
 
-			// ½ÃÀÛ°ú ³¡ ÁÂÇ¥ Á¤¸® (min, max)
+			// ì‹œì‘ê³¼ ë ì¢Œí‘œ ì •ë¦¬ (min, max)
 			int minTileX = min(startTileX, endTileX);
 			int maxTileX = max(startTileX, endTileX);
 			int minTileY = min(startTileY, endTileY);
 			int maxTileY = max(startTileY, endTileY);
 
-			// ÇØ´ç ¿µ¿ªÀÇ Å¸ÀÏµéÀ» walkable·Î ¼³Á¤ (Åä±Û ¹æ½Ä)
-			bool newWalkableState = !m_walkableAreaMap[minTileY][minTileX]; // Ã¹ ¹øÂ° Å¸ÀÏÀÇ ¹İ´ë »óÅÂ·Î ¼³Á¤
+			// í•´ë‹¹ ì˜ì—­ì˜ íƒ€ì¼ë“¤ì„ walkableë¡œ ì„¤ì • (í† ê¸€ ë°©ì‹)
+			bool newWalkableState = !m_walkableAreaMap[minTileY][minTileX]; // ì²« ë²ˆì§¸ íƒ€ì¼ì˜ ë°˜ëŒ€ ìƒíƒœë¡œ ì„¤ì •
 			for (int y = minTileY; y <= maxTileY; ++y) {
 				for (int x = minTileX; x <= maxTileX; ++x) {
 					m_walkableAreaMap[y][x] = newWalkableState;
 				}
 			}
 
-			// µå·¡±× »óÅÂ ÇØÁ¦
+			// ë“œë˜ê·¸ ìƒíƒœ í•´ì œ
 			m_isDraggingWalkable = false;
 			ReleaseCapture();
 
@@ -1211,17 +1211,17 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 }
 
 
-// ¸Ê ÀúÀå ÇÔ¼ö ±¸Çö
+// ë§µ ì €ì¥ í•¨ìˆ˜ êµ¬í˜„
 bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 	std::wofstream outFile(filename);
 	if (!outFile.is_open()) {
-		OutputDebugStringW(L"¸Ê ÆÄÀÏ ¿­±â ½ÇÆĞ: ");
+		OutputDebugStringW(L"ë§µ íŒŒì¼ ì—´ê¸° ì‹¤íŒ¨: ");
 		OutputDebugStringW(filename);
 		OutputDebugStringW(L"\n");
 		return false;
 	}
 
-	// ¸Ê ¸ŞÅ¸µ¥ÀÌÅÍ ÀúÀå
+	// ë§µ ë©”íƒ€ë°ì´í„° ì €ì¥
 	outFile << L"# MAP_METADATA\n";
 	outFile << L"MAP_WIDTH=" << MAP_WIDTH << L"\n";
 	outFile << L"MAP_HEIGHT=" << MAP_HEIGHT << L"\n";
@@ -1229,7 +1229,7 @@ bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 		<< L", Memory=" << (int)GetLayerMemoryUsageMB() << L"MB"
 		<< L", Zoom=" << (int)(m_zoomFactor * 100) << L"%\n\n";
 
-	// ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ® ÀúÀå
+	// í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ ì €ì¥
 	outFile << L"# PLAYER_SPAWN\n";
 	if (m_hasPlayerSpawn) {
 		outFile << L"PLAYER_SPAWN_X=" << m_playerSpawnPoint.X << L"\n";
@@ -1241,10 +1241,10 @@ bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 	}
 	outFile << L"\n";
 
-	// Å¸ÀÏ µ¥ÀÌÅÍ ÀúÀå
+	// íƒ€ì¼ ë°ì´í„° ì €ì¥
 	outFile << L"# TILES\n";
-	for (int y = 0; y < MAP_HEIGHT; ++y) { // y¸¦ ¸ÕÀú ¼øÈ¸ (MAP_HEIGHT)
-		for (int x = 0; x < MAP_WIDTH; ++x) { // x¸¦ ³ªÁß¿¡ ¼øÈ¸ (MAP_WIDTH)
+	for (int y = 0; y < MAP_HEIGHT; ++y) { // yë¥¼ ë¨¼ì € ìˆœíšŒ (MAP_HEIGHT)
+		for (int x = 0; x < MAP_WIDTH; ++x) { // xë¥¼ ë‚˜ì¤‘ì— ìˆœíšŒ (MAP_WIDTH)
 			TileData tile = m_tileMap[y][x];
 			outFile << EnumUtils::GetEnumName(tile.type) << L","
 				<< EnumUtils::GetEnumName(tile.id);
@@ -1256,7 +1256,7 @@ bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 	}
 	outFile << L"\n";
 
-	// ¿ÀºêÁ§Æ® µ¥ÀÌÅÍ ÀúÀå
+	// ì˜¤ë¸Œì íŠ¸ ë°ì´í„° ì €ì¥
 	outFile << L"# OBJECTS\n";
 	for (const auto& obj : m_gameObjects) {
 		outFile << EnumUtils::GetEnumName(obj.type) << L","
@@ -1265,7 +1265,7 @@ bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 			<< obj.objectAssetBaseDirectory << L","
 			<< obj.pivotX << L"," << obj.pivotY << L"\n";
 
-		// Äİ¶óÀÌ´õ Á¤º¸ ÀúÀå (Collider ¶óº§ Ãß°¡)
+		// ì½œë¼ì´ë” ì •ë³´ ì €ì¥ (Collider ë¼ë²¨ ì¶”ê°€)
 		outFile << L"Collider," << obj.hasCollider << L","
 			<< (int)obj.colliderType << L","
 			<< obj.colliderOffsetX << L","
@@ -1278,7 +1278,7 @@ bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 	}
 	outFile << L"\n";
 
-	// Walkable Area µ¥ÀÌÅÍ ÀúÀå
+	// Walkable Area ë°ì´í„° ì €ì¥
 	outFile << L"# WALKABLE_AREAS\n";
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < MAP_WIDTH; ++x) {
@@ -1292,7 +1292,7 @@ bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 
 	outFile.close();
 
-	// ÀúÀåµÈ walkable areas Á¤º¸ µğ¹ö±× Ãâ·Â
+	// ì €ì¥ëœ walkable areas ì •ë³´ ë””ë²„ê·¸ ì¶œë ¥
 	int walkableCount = 0;
 	int blockedCount = 0;
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -1307,27 +1307,49 @@ bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
 		<< L", Blocked: " << blockedCount << L" tiles\n";
 	OutputDebugStringW(debugSS.str().c_str());
 
-	OutputDebugStringW(L"¸Ê ÀúÀå ¿Ï·á: ");
+	OutputDebugStringW(L"ë§µ ì €ì¥ ì™„ë£Œ: ");
 	OutputDebugStringW(filename);
 	OutputDebugStringW(L"\n");
 	return true;
 }
 
-// ¸Ê ºÒ·¯¿À±â ÇÔ¼ö ±¸Çö
+// ë§µ ë¶ˆëŸ¬ì˜¤ê¸° í•¨ìˆ˜ êµ¬í˜„
 bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
-	std::wifstream inFile(filename);
-	if (!inFile.is_open()) {
-		OutputDebugStringW(L"¸Ê ÆÄÀÏ ¿­±â ½ÇÆĞ: ");
-		OutputDebugStringW(filename);
-		OutputDebugStringW(L"\n");
+	// íŒŒì¼ ì¡´ì¬ ì—¬ë¶€ í™•ì¸
+	DWORD fileAttributes = GetFileAttributesW(filename);
+	if (fileAttributes == INVALID_FILE_ATTRIBUTES) {
+		std::wstringstream errorSS;
+		errorSS << L"ë§µ íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << filename << L"\n";
+		OutputDebugStringW(errorSS.str().c_str());
 		return false;
 	}
+	
+	// íŒŒì¼ ì—´ê¸° (UTF-8 ì¸ì½”ë”©ìœ¼ë¡œ ì½ê¸°)
+	std::wifstream inFile(filename);
+	if (!inFile.is_open()) {
+		std::wstringstream errorSS;
+		errorSS << L"ë§µ íŒŒì¼ ì—´ê¸° ì‹¤íŒ¨: " << filename << L"\n";
+		OutputDebugStringW(errorSS.str().c_str());
+		return false;
+	}
+	
+	// UTF-8 BOM í™•ì¸ ë° ìŠ¤í‚µ
+	wchar_t bom[3] = { 0 };
+	inFile.read(bom, 3);
+	if (bom[0] != 0xFEFF && !(bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF)) {
+		// BOMì´ ì•„ë‹ˆë©´ íŒŒì¼ í¬ì¸í„°ë¥¼ ì²˜ìŒìœ¼ë¡œ ë˜ëŒë¦¼
+		inFile.seekg(0, std::ios::beg);
+	}
+	else if (bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF) {
+		// UTF-8 BOM ìŠ¤í‚µ
+		inFile.seekg(3, std::ios::beg);
+	}
 
-	// ±âÁ¸ ¸Ê µ¥ÀÌÅÍ ÃÊ±âÈ­
+	// ê¸°ì¡´ ë§µ ë°ì´í„° ì´ˆê¸°í™”
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < MAP_WIDTH; ++x) {
 			m_tileMap[y][x] = TileData();
-			m_walkableAreaMap[y][x] = true; // ±âº»°ª: walkable
+			m_walkableAreaMap[y][x] = true; // ê¸°ë³¸ê°’: walkable
 		}
 	}
 	m_gameObjects.clear();
@@ -1343,7 +1365,7 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 	int walkableRowIndex = 0;
 
 	while (std::getline(inFile, line)) {
-		// ºó ÁÙÀÌ³ª ÁÖ¼® ¹«½Ã
+		// ë¹ˆ ì¤„ì´ë‚˜ ì£¼ì„ ë¬´ì‹œ
 		if (line.empty() || line[0] == L'#') {
 			if (line == L"# PLAYER_SPAWN") {
 				inPlayerSpawnSection = true;
@@ -1375,7 +1397,7 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 		}
 
 		if (inPlayerSpawnSection) {
-			// ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ® ÆÄ½Ì
+			// í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ íŒŒì‹±
 			if (line.find(L"PLAYER_SPAWN_X=") == 0) {
 				float spawnX = std::stof(line.substr(15));
 				if (spawnX >= 0) {
@@ -1391,17 +1413,17 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 			}
 		}
 		else if (inTilesSection && tileRowIndex < MAP_HEIGHT) {
-			// Å¸ÀÏ µ¥ÀÌÅÍ ÆÄ½Ì (SaveMap¿¡¼­ Å¸ÀÔ,ID,Å¸ÀÔ,ID... Çü½ÄÀ¸·Î ÀúÀåµÊ)
+			// íƒ€ì¼ ë°ì´í„° íŒŒì‹± (SaveMapì—ì„œ íƒ€ì…,ID,íƒ€ì…,ID... í˜•ì‹ìœ¼ë¡œ ì €ì¥ë¨)
 			std::wstringstream ss(line);
 			std::wstring token;
 			std::vector<std::wstring> tokens;
 
-			// ¸ğµç ÅäÅ«À» º¤ÅÍ¿¡ ÀúÀå
+			// ëª¨ë“  í† í°ì„ ë²¡í„°ì— ì €ì¥
 			while (std::getline(ss, token, L',')) {
 				tokens.push_back(token);
 			}
 
-			// 2°³¾¿ ¹­¾î¼­ Ã³¸® (Å¸ÀÔ, ID)
+			// 2ê°œì”© ë¬¶ì–´ì„œ ì²˜ë¦¬ (íƒ€ì…, ID)
 			for (int tileX = 0; tileX < MAP_WIDTH && (tileX * 2 + 1) < tokens.size(); ++tileX) {
 				std::wstring tileTypeStr = tokens[tileX * 2];
 				std::wstring tileIdStr = tokens[tileX * 2 + 1];
@@ -1419,7 +1441,7 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 			tileRowIndex++;
 		}
 		else if (inObjectsSection) {
-			// ¿ÀºêÁ§Æ® µ¥ÀÌÅÍ ÆÄ½Ì (2ÁÙ¾¿ Ã³¸®)
+			// ì˜¤ë¸Œì íŠ¸ ë°ì´í„° íŒŒì‹± (2ì¤„ì”© ì²˜ë¦¬)
 			std::wstringstream objStream(line);
 			std::wstring field1, field2, field3, field4, field5, field6, field7;
 
@@ -1443,21 +1465,21 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 
 					GameObjectData newObj(objType, objId, x, y, field5, pivotX, pivotY);
 
-					// ´ÙÀ½ ÁÙ¿¡¼­ Äİ¶óÀÌ´õ Á¤º¸ ÀĞ±â
+					// ë‹¤ìŒ ì¤„ì—ì„œ ì½œë¼ì´ë” ì •ë³´ ì½ê¸°
 					if (std::getline(inFile, line)) {
 						std::wstringstream colliderStream(line);
 						std::wstring labelStr, hasColliderStr, colliderTypeStr, offsetXStr, offsetYStr, widthStr, heightStr, centerXStr, centerYStr, radiusStr;
 
-						// Ã¹ ¹øÂ° ÇÊµå°¡ "Collider" ¶óº§ÀÎÁö È®ÀÎ
+						// ì²« ë²ˆì§¸ í•„ë“œê°€ "Collider" ë¼ë²¨ì¸ì§€ í™•ì¸
 						std::getline(colliderStream, labelStr, L',');
 						
-						// °ø¹é Á¦°Å
+						// ê³µë°± ì œê±°
 						labelStr.erase(0, labelStr.find_first_not_of(L" \t"));
 						labelStr.erase(labelStr.find_last_not_of(L" \t") + 1);
 
-						// "Collider" ¶óº§ÀÌ ÀÖÀ¸¸é ´ÙÀ½ ÇÊµåºÎÅÍ ÀĞ±â, ¾øÀ¸¸é ±âÁ¸ ¹æ½Ä (È£È¯¼º)
+						// "Collider" ë¼ë²¨ì´ ìˆìœ¼ë©´ ë‹¤ìŒ í•„ë“œë¶€í„° ì½ê¸°, ì—†ìœ¼ë©´ ê¸°ì¡´ ë°©ì‹ (í˜¸í™˜ì„±)
 						if (labelStr == L"Collider") {
-							// "Collider" ¶óº§ÀÌ ÀÖ´Â °æ¿ì (»õ Çü½Ä)
+							// "Collider" ë¼ë²¨ì´ ìˆëŠ” ê²½ìš° (ìƒˆ í˜•ì‹)
 							std::getline(colliderStream, hasColliderStr, L',');
 							std::getline(colliderStream, colliderTypeStr, L',');
 							std::getline(colliderStream, offsetXStr, L',');
@@ -1469,19 +1491,19 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 							std::getline(colliderStream, radiusStr);
 						}
 						else {
-							// ±âÁ¸ Çü½Ä (È£È¯¼ºÀ» À§ÇØ "Collider" ¶óº§ÀÌ ¾ø´Â °æ¿ì)
+							// ê¸°ì¡´ í˜•ì‹ (í˜¸í™˜ì„±ì„ ìœ„í•´ "Collider" ë¼ë²¨ì´ ì—†ëŠ” ê²½ìš°)
 							hasColliderStr = labelStr;
 							std::getline(colliderStream, offsetXStr, L',');
 							std::getline(colliderStream, offsetYStr, L',');
 							std::getline(colliderStream, widthStr, L',');
 							std::getline(colliderStream, heightStr);
-							colliderTypeStr = L"0"; // ±âº»°ª BOX
+							colliderTypeStr = L"0"; // ê¸°ë³¸ê°’ BOX
 							centerXStr = L"0";
 							centerYStr = L"0";
 							radiusStr = L"0";
 						}
 
-						// °ø¹é Á¦°Å
+						// ê³µë°± ì œê±°
 						hasColliderStr.erase(0, hasColliderStr.find_first_not_of(L" \t"));
 						hasColliderStr.erase(hasColliderStr.find_last_not_of(L" \t") + 1);
 						if (!colliderTypeStr.empty()) {
@@ -1518,28 +1540,28 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 									colliderTypeValue = std::stoi(colliderTypeStr);
 								}
 								
-								// ÀÌÀü Çü½Ä È£È¯¼º Ã³¸®
-								// colliderTypeÀÌ À½¼öÀÌ°Å³ª À¯È¿ÇÏÁö ¾ÊÀ¸¸é ÀÌÀü Çü½Ä (colliderType ÇÊµå°¡ ¾øÀ½)
-								// ÀÌ °æ¿ì colliderTypeStrÀÌ ½ÇÁ¦·Î´Â offsetXÀÔ´Ï´Ù
+								// ì´ì „ í˜•ì‹ í˜¸í™˜ì„± ì²˜ë¦¬
+								// colliderTypeì´ ìŒìˆ˜ì´ê±°ë‚˜ ìœ íš¨í•˜ì§€ ì•Šìœ¼ë©´ ì´ì „ í˜•ì‹ (colliderType í•„ë“œê°€ ì—†ìŒ)
+								// ì´ ê²½ìš° colliderTypeStrì´ ì‹¤ì œë¡œëŠ” offsetXì…ë‹ˆë‹¤
 								if (colliderTypeValue < 0 || colliderTypeValue > COLLIDER_COUNT) {
-									// ÀÌÀü Çü½Ä: Collider,hasCollider,offsetX,offsetY,width,height
-									newObj.colliderType = COLLIDER_BOX; // ±âº»°ª
+									// ì´ì „ í˜•ì‹: Collider,hasCollider,offsetX,offsetY,width,height
+									newObj.colliderType = COLLIDER_BOX; // ê¸°ë³¸ê°’
 									if (!colliderTypeStr.empty()) {
-										newObj.colliderOffsetX = std::stoi(colliderTypeStr); // ½ÇÁ¦·Î´Â offsetX
+										newObj.colliderOffsetX = std::stoi(colliderTypeStr); // ì‹¤ì œë¡œëŠ” offsetX
 									}
-									newObj.colliderOffsetY = std::stoi(offsetXStr); // ½ÇÁ¦·Î´Â offsetY
-									newObj.colliderWidth = std::stoi(offsetYStr); // ½ÇÁ¦·Î´Â width
-									newObj.colliderHeight = std::stoi(widthStr); // ½ÇÁ¦·Î´Â height
-									// CircleCollider µ¥ÀÌÅÍ´Â ¾øÀ½
+									newObj.colliderOffsetY = std::stoi(offsetXStr); // ì‹¤ì œë¡œëŠ” offsetY
+									newObj.colliderWidth = std::stoi(offsetYStr); // ì‹¤ì œë¡œëŠ” width
+									newObj.colliderHeight = std::stoi(widthStr); // ì‹¤ì œë¡œëŠ” height
+									// CircleCollider ë°ì´í„°ëŠ” ì—†ìŒ
 									newObj.colliderCenterX = 0.0f;
 									newObj.colliderCenterY = 0.0f;
 									newObj.colliderRadius = 0.0f;
 								}
 								else {
-									// »õ Çü½Ä: Collider,hasCollider,colliderType,offsetX,offsetY,width,height,centerX,centerY,radius
-									// colliderTypeÀÌ 0 (COLLIDER_NONE)ÀÌÁö¸¸ BoxCollider µ¥ÀÌÅÍ°¡ ÀÖÀ¸¸é COLLIDER_BOX·Î º¯°æ
+									// ìƒˆ í˜•ì‹: Collider,hasCollider,colliderType,offsetX,offsetY,width,height,centerX,centerY,radius
+									// colliderTypeì´ 0 (COLLIDER_NONE)ì´ì§€ë§Œ BoxCollider ë°ì´í„°ê°€ ìˆìœ¼ë©´ COLLIDER_BOXë¡œ ë³€ê²½
 									if (colliderTypeValue == 0) {
-										// BoxCollider µ¥ÀÌÅÍ°¡ ÀÖ´ÂÁö È®ÀÎ
+										// BoxCollider ë°ì´í„°ê°€ ìˆëŠ”ì§€ í™•ì¸
 										if (!offsetXStr.empty() || !offsetYStr.empty() || !widthStr.empty() || !heightStr.empty()) {
 											colliderTypeValue = COLLIDER_BOX;
 										}
@@ -1547,7 +1569,7 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 									
 									newObj.colliderType = (ColliderType)colliderTypeValue;
 									
-									// CircleCollider µ¥ÀÌÅÍ°¡ À¯È¿ÇÑÁö ¸ÕÀú È®ÀÎ
+									// CircleCollider ë°ì´í„°ê°€ ìœ íš¨í•œì§€ ë¨¼ì € í™•ì¸
 									bool hasCircleData = false;
 									float centerX = 0.0f, centerY = 0.0f, radius = 0.0f;
 									if (!centerXStr.empty() && !centerYStr.empty() && !radiusStr.empty()) {
@@ -1557,20 +1579,20 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 										hasCircleData = (radius > 0.0f);
 									}
 									
-									// BoxCollider µ¥ÀÌÅÍ°¡ À¯È¿ÇÑÁö È®ÀÎ
+									// BoxCollider ë°ì´í„°ê°€ ìœ íš¨í•œì§€ í™•ì¸
 									bool hasBoxData = false;
 									if (!offsetXStr.empty() || !offsetYStr.empty() || !widthStr.empty() || !heightStr.empty()) {
 										hasBoxData = true;
 									}
 									
-									// CircleCollider µ¥ÀÌÅÍ°¡ ÀÖÀ¸¸é CircleCollider·Î Ã³¸®
+									// CircleCollider ë°ì´í„°ê°€ ìˆìœ¼ë©´ CircleColliderë¡œ ì²˜ë¦¬
 									if (hasCircleData) {
 										newObj.colliderType = COLLIDER_CIRCLE;
 										newObj.colliderCenterX = centerX;
 										newObj.colliderCenterY = centerY;
 										newObj.colliderRadius = radius;
 									}
-									// BoxCollider µ¥ÀÌÅÍ°¡ ÀÖÀ¸¸é BoxCollider·Î Ã³¸®
+									// BoxCollider ë°ì´í„°ê°€ ìˆìœ¼ë©´ BoxColliderë¡œ ì²˜ë¦¬
 									else if (hasBoxData && newObj.colliderType == COLLIDER_BOX) {
 										if (!offsetXStr.empty()) newObj.colliderOffsetX = std::stoi(offsetXStr);
 										if (!offsetYStr.empty()) newObj.colliderOffsetY = std::stoi(offsetYStr);
@@ -1578,7 +1600,7 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 										if (!heightStr.empty()) newObj.colliderHeight = std::stoi(heightStr);
 									}
 									else if (newObj.colliderType == COLLIDER_CIRCLE) {
-										// CircleCollider Å¸ÀÔÀÌÁö¸¸ µ¥ÀÌÅÍ°¡ ¾øÀ¸¸é ±âº»°ª »ç¿ë
+										// CircleCollider íƒ€ì…ì´ì§€ë§Œ ë°ì´í„°ê°€ ì—†ìœ¼ë©´ ê¸°ë³¸ê°’ ì‚¬ìš©
 										if (!hasCircleData) {
 											newObj.colliderCenterX = 0.0f;
 											newObj.colliderCenterY = 0.0f;
@@ -1594,17 +1616,17 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 				}
 			}
 			else if (inWalkableAreasSection && walkableRowIndex < MAP_HEIGHT) {
-				// Walkable Areas µ¥ÀÌÅÍ ÆÄ½Ì
+				// Walkable Areas ë°ì´í„° íŒŒì‹±
 				std::wstringstream ss(line);
 				std::wstring token;
 				std::vector<std::wstring> tokens;
 
-				// ¸ğµç ÅäÅ«À» º¤ÅÍ¿¡ ÀúÀå
+				// ëª¨ë“  í† í°ì„ ë²¡í„°ì— ì €ì¥
 				while (std::getline(ss, token, L',')) {
 					tokens.push_back(token);
 				}
 
-				// °¢ Å¸ÀÏÀÇ walkable »óÅÂ ¼³Á¤
+				// ê° íƒ€ì¼ì˜ walkable ìƒíƒœ ì„¤ì •
 				for (int x = 0; x < MAP_WIDTH && x < tokens.size(); ++x) {
 					m_walkableAreaMap[walkableRowIndex][x] = (tokens[x] == L"1");
 				}
@@ -1615,7 +1637,7 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 
 	inFile.close();
 
-	// ·Îµå ¿Ï·á ÈÄ ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ® °ËÁõ (¼³Á¤µÇÁö ¾ÊÀº °æ¿ì Áß¾ÓÀ¸·Î ¼³Á¤)
+	// ë¡œë“œ ì™„ë£Œ í›„ í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ ê²€ì¦ (ì„¤ì •ë˜ì§€ ì•Šì€ ê²½ìš° ì¤‘ì•™ìœ¼ë¡œ ì„¤ì •)
 	if (!m_hasPlayerSpawn) {
 		float centerX = (MAP_WIDTH / 2.0f) * TILE_SIZE;
 		float centerY = (MAP_HEIGHT / 2.0f) * TILE_SIZE;
@@ -1627,12 +1649,12 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 		OutputDebugStringW(debugSS.str().c_str());
 	}
 
-	// ·Îµå ¿Ï·á ÈÄ È­¸é °»½Å
+	// ë¡œë“œ ì™„ë£Œ í›„ í™”ë©´ ê°±ì‹ 
 	m_tileLayerDirty = true;
 	m_objectLayerDirty = true;
 	m_objectsDirty = true;
 
-	// ·ÎµåµÈ walkable areas Á¤º¸ µğ¹ö±× Ãâ·Â
+	// ë¡œë“œëœ walkable areas ì •ë³´ ë””ë²„ê·¸ ì¶œë ¥
 	int walkableCount = 0;
 	int blockedCount = 0;
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -1647,26 +1669,26 @@ bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
 		<< L", Blocked: " << blockedCount << L" tiles\n";
 	OutputDebugStringW(debugSS.str().c_str());
 
-	OutputDebugStringW(L"¸Ê ºÒ·¯¿À±â ¿Ï·á: ");
+	OutputDebugStringW(L"ë§µ ë¶ˆëŸ¬ì˜¤ê¸° ì™„ë£Œ: ");
 	OutputDebugStringW(filename);
 	OutputDebugStringW(L"\n");
 	return true;
 }
 
-// »õ ¸Ê »ı¼º (¸Ê ÃÊ±âÈ­)
+// ìƒˆ ë§µ ìƒì„± (ë§µ ì´ˆê¸°í™”)
 void DontStarve_EditorMain::NewMap() {
-	// ±âÁ¸ ¸Ê µ¥ÀÌÅÍ ÃÊ±âÈ­
+	// ê¸°ì¡´ ë§µ ë°ì´í„° ì´ˆê¸°í™”
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < MAP_WIDTH; ++x) {
-			m_tileMap[y][x] = TileData();  // ºó Å¸ÀÏ·Î ÃÊ±âÈ­
+			m_tileMap[y][x] = TileData();  // ë¹ˆ íƒ€ì¼ë¡œ ì´ˆê¸°í™”
 		}
 	}
 
-	// ¸ğµç ¿ÀºêÁ§Æ® Á¦°Å
+	// ëª¨ë“  ì˜¤ë¸Œì íŠ¸ ì œê±°
 	m_gameObjects.clear();
 	m_selectedObjectPtr = nullptr;
 
-	// ÆíÁı ¸ğµåµé ÇØÁ¦
+	// í¸ì§‘ ëª¨ë“œë“¤ í•´ì œ
 	m_isPlacingMode = false;
 	m_isPivotEditMode = false;
 	m_isColliderEditMode = false;
@@ -1678,32 +1700,32 @@ void DontStarve_EditorMain::NewMap() {
 	m_editingObject = nullptr;
 	m_editingColliderObject = nullptr;
 
-	// ¸¶¿ì½º Ä¸Ã³ ÇØÁ¦ (È¤½Ã³ª ³²¾ÆÀÖÀ» ¼ö ÀÖ´Â Ä¸Ã³ »óÅÂ Á¤¸®)
+	// ë§ˆìš°ìŠ¤ ìº¡ì²˜ í•´ì œ (í˜¹ì‹œë‚˜ ë‚¨ì•„ìˆì„ ìˆ˜ ìˆëŠ” ìº¡ì²˜ ìƒíƒœ ì •ë¦¬)
 	ReleaseCapture();
 
-	// ¼­ºêÆÈ·¹Æ® ´İ±â
+	// ì„œë¸ŒíŒ”ë ˆíŠ¸ ë‹«ê¸°
 	m_subPalette.isOpen = false;
 	m_subPalette.selectedTileVariantIndex = -1;
 	m_subPalette.selectedObjectVariantIndex = -1;
 
-	// ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ®¸¦ ¸Ê Áß¾ÓÀ¸·Î ¼³Á¤
+	// í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ë¥¼ ë§µ ì¤‘ì•™ìœ¼ë¡œ ì„¤ì •
 	float centerX = (MAP_WIDTH / 2.0f) * TILE_SIZE;  // 25 * 128 = 3200px
 	float centerY = (MAP_HEIGHT / 2.0f) * TILE_SIZE; // 25 * 128 = 3200px
 	m_playerSpawnPoint = Gdiplus::PointF(centerX, centerY);
 	m_hasPlayerSpawn = true;
 
-	// walkable area map ÃÊ±âÈ­ (±âº»ÀûÀ¸·Î ¸ğµç ¿µ¿ªÀÌ walkable)
+	// walkable area map ì´ˆê¸°í™” (ê¸°ë³¸ì ìœ¼ë¡œ ëª¨ë“  ì˜ì—­ì´ walkable)
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < MAP_WIDTH; ++x) {
 			m_walkableAreaMap[y][x] = true;
 		}
 	}
 
-	// ¸Ê ºä ¸®¼Â (ÁÜ°ú ¿ÀÇÁ¼Â ÃÊ±âÈ­)
+	// ë§µ ë·° ë¦¬ì…‹ (ì¤Œê³¼ ì˜¤í”„ì…‹ ì´ˆê¸°í™”)
 	m_zoomFactor = 1.0f;
 	m_mapOffset = { 0, 0 };
 
-	// ¸ğµç ·¹ÀÌ¾î ´Ù½Ã ±×¸®±â
+	// ëª¨ë“  ë ˆì´ì–´ ë‹¤ì‹œ ê·¸ë¦¬ê¸°
 	m_tileLayerDirty = true;
 	m_objectLayerDirty = true;
 	m_objectsDirty = true;
@@ -1716,8 +1738,63 @@ void DontStarve_EditorMain::NewMap() {
 	OutputDebugStringW(debugSS.str().c_str());
 }
 
-// ÀúÀå ÆÄÀÏ ´ÙÀÌ¾ó·Î±× Ç¥½Ã
+// ì €ì¥ íŒŒì¼ ë‹¤ì´ì–¼ë¡œê·¸ í‘œì‹œ
 bool DontStarve_EditorMain::ShowSaveFileDialog(WCHAR* fileName, DWORD fileNameSize) {
+	// MapData í´ë” ê²½ë¡œ êµ¬ì„±
+	WCHAR modulePath[MAX_PATH];
+	GetModuleFileNameW(NULL, modulePath, MAX_PATH);
+	
+	// ì‹¤í–‰ íŒŒì¼ ê²½ë¡œì—ì„œ í”„ë¡œì íŠ¸ ë£¨íŠ¸ ì°¾ê¸° (DontStarve_WinApi ë¬¸ìì—´ ê¸°ì¤€)
+	WCHAR projectRoot[MAX_PATH] = { 0 };
+	WCHAR* winApiPos = wcsstr(modulePath, L"DontStarve_WinApi");
+	if (winApiPos) {
+		// "DontStarve_WinApi" ë¬¸ìì—´ì˜ ëê¹Œì§€ ë³µì‚¬
+		size_t len = wcslen(L"DontStarve_WinApi");
+		size_t copyLen = winApiPos - modulePath + len;
+		if (copyLen < MAX_PATH) {
+			wcsncpy_s(projectRoot, MAX_PATH, modulePath, copyLen);
+			projectRoot[copyLen] = L'\0';
+		}
+		else {
+			wcscpy_s(projectRoot, MAX_PATH, modulePath);
+		}
+	}
+	else {
+		// DontStarve_WinApië¥¼ ì°¾ì§€ ëª»í•œ ê²½ìš°, ì‹¤í–‰ íŒŒì¼ ê²½ë¡œì—ì„œ ìƒìœ„ë¡œ ì´ë™
+		wcscpy_s(projectRoot, MAX_PATH, modulePath);
+		// ì‹¤í–‰ íŒŒì¼ ì´ë¦„ ì œê±°
+		WCHAR* lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+		}
+		// Debug/Release í´ë” ì œê±°
+		lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+		}
+		// x64/Win32 í´ë” ì œê±°
+		lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+		}
+		// DontStarve_Editor í´ë” ì œê±°
+		lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+		}
+	}
+	
+	// MapData í´ë” ê²½ë¡œ êµ¬ì„±
+	WCHAR mapDataPath[MAX_PATH];
+	swprintf_s(mapDataPath, MAX_PATH, L"%s\\MapData", projectRoot);
+	
+	// ë””ë²„ê·¸ ì¶œë ¥ (ê²½ë¡œ í™•ì¸ìš©)
+	std::wstringstream debugSS;
+	debugSS << L"[Save Dialog] Module Path: " << modulePath << L"\n";
+	debugSS << L"[Save Dialog] Project Root: " << projectRoot << L"\n";
+	debugSS << L"[Save Dialog] MapData Path: " << mapDataPath << L"\n";
+	OutputDebugStringW(debugSS.str().c_str());
+	
 	OPENFILENAME ofn = {};
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = g_hWnd;
@@ -1727,16 +1804,81 @@ bool DontStarve_EditorMain::ShowSaveFileDialog(WCHAR* fileName, DWORD fileNameSi
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFileTitle = NULL;
 	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.lpstrTitle = L"¸Ê ÀúÀå";
+	ofn.lpstrInitialDir = mapDataPath;
+	ofn.lpstrTitle = L"Save Map";
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
 	ofn.lpstrDefExt = L"dsm";
 
 	return GetSaveFileName(&ofn) != 0;
 }
 
-// ¿­±â ÆÄÀÏ ´ÙÀÌ¾ó·Î±× Ç¥½Ã
+// ì—´ê¸° íŒŒì¼ ë‹¤ì´ì–¼ë¡œê·¸ í‘œì‹œ
 bool DontStarve_EditorMain::ShowOpenFileDialog(WCHAR* fileName, DWORD fileNameSize) {
+	// MapData í´ë” ê²½ë¡œ êµ¬ì„±
+	WCHAR modulePath[MAX_PATH];
+	GetModuleFileNameW(NULL, modulePath, MAX_PATH);
+	
+	// ì‹¤í–‰ íŒŒì¼ ê²½ë¡œì—ì„œ í”„ë¡œì íŠ¸ ë£¨íŠ¸ ì°¾ê¸° (DontStarve_WinApi ë¬¸ìì—´ ê¸°ì¤€)
+	WCHAR projectRoot[MAX_PATH] = { 0 };
+	WCHAR* winApiPos = wcsstr(modulePath, L"DontStarve_WinApi");
+	if (winApiPos) {
+		// "DontStarve_WinApi" ë¬¸ìì—´ì˜ ëê¹Œì§€ ë³µì‚¬
+		size_t len = wcslen(L"DontStarve_WinApi");
+		size_t copyLen = winApiPos - modulePath + len;
+		if (copyLen < MAX_PATH) {
+			wcsncpy_s(projectRoot, MAX_PATH, modulePath, copyLen);
+			projectRoot[copyLen] = L'\0';
+		}
+		else {
+			wcscpy_s(projectRoot, MAX_PATH, modulePath);
+		}
+	}
+	else {
+		// DontStarve_WinApië¥¼ ì°¾ì§€ ëª»í•œ ê²½ìš°, ì‹¤í–‰ íŒŒì¼ ê²½ë¡œì—ì„œ ìƒìœ„ë¡œ ì´ë™
+		wcscpy_s(projectRoot, MAX_PATH, modulePath);
+		// ì‹¤í–‰ íŒŒì¼ ì´ë¦„ ì œê±°
+		WCHAR* lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+		}
+		// Debug/Release í´ë” ì œê±°
+		lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+		}
+		// x64/Win32 í´ë” ì œê±°
+		lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+		}
+		// DontStarve_Editor í´ë” ì œê±°
+		lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+		}
+	}
+	
+	// MapData í´ë” ê²½ë¡œ êµ¬ì„±
+	WCHAR mapDataPath[MAX_PATH];
+	swprintf_s(mapDataPath, MAX_PATH, L"%s\\MapData", projectRoot);
+	
+	// MapData í´ë” ì¡´ì¬ ì—¬ë¶€ í™•ì¸
+	DWORD fileAttributes = GetFileAttributesW(mapDataPath);
+	if (fileAttributes == INVALID_FILE_ATTRIBUTES || !(fileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+		// MapData í´ë”ê°€ ì—†ìœ¼ë©´ í”„ë¡œì íŠ¸ ë£¨íŠ¸ë¥¼ ì´ˆê¸° ë””ë ‰í† ë¦¬ë¡œ ì‚¬ìš©
+		wcscpy_s(mapDataPath, MAX_PATH, projectRoot);
+	}
+	
+	// ë””ë²„ê·¸ ì¶œë ¥ (ê²½ë¡œ í™•ì¸ìš©)
+	std::wstringstream debugSS;
+	debugSS << L"[Open Dialog] Module Path: " << modulePath << L"\n";
+	debugSS << L"[Open Dialog] Project Root: " << projectRoot << L"\n";
+	debugSS << L"[Open Dialog] MapData Path: " << mapDataPath << L"\n";
+	OutputDebugStringW(debugSS.str().c_str());
+	
+	// fileName ë²„í¼ ì´ˆê¸°í™” (ì¤‘ìš”!)
+	fileName[0] = L'\0';
+	
 	OPENFILENAME ofn = {};
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = g_hWnd;
@@ -1746,17 +1888,89 @@ bool DontStarve_EditorMain::ShowOpenFileDialog(WCHAR* fileName, DWORD fileNameSi
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFileTitle = NULL;
 	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.lpstrTitle = L"¸Ê ºÒ·¯¿À±â";
+	ofn.lpstrInitialDir = mapDataPath;
+	ofn.lpstrTitle = L"Open Map";
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
 	return GetOpenFileName(&ofn) != 0;
 }
 
-// ¸®¼Ò½º ·Îµå -> ¾ÆÆ²¶ó½º »ı¼º Æ÷ÇÔ
+// ë¦¬ì†ŒìŠ¤ ê²½ë¡œ ë¹Œë“œ í—¬í¼ í•¨ìˆ˜ (í´ë¼ì´ì–¸íŠ¸ì˜ BuildResourcePath ì°¸ê³ )
+static std::wstring BuildResourcePath(const std::wstring& basePath, const std::wstring& filename) {
+	// í”„ë¡œì íŠ¸ ë£¨íŠ¸ ì°¾ê¸°
+	WCHAR modulePath[MAX_PATH];
+	GetModuleFileNameW(NULL, modulePath, MAX_PATH);
+	
+	WCHAR projectRoot[MAX_PATH] = { 0 };
+	WCHAR* winApiPos = wcsstr(modulePath, L"DontStarve_WinApi");
+	if (winApiPos) {
+		size_t len = wcslen(L"DontStarve_WinApi");
+		size_t copyLen = winApiPos - modulePath + len;
+		if (copyLen < MAX_PATH) {
+			wcsncpy_s(projectRoot, MAX_PATH, modulePath, copyLen);
+			projectRoot[copyLen] = L'\0';
+		}
+		else {
+			wcscpy_s(projectRoot, MAX_PATH, modulePath);
+		}
+	}
+	else {
+		// DontStarve_WinApië¥¼ ì°¾ì§€ ëª»í•œ ê²½ìš°, ì‹¤í–‰ íŒŒì¼ ê²½ë¡œì—ì„œ ìƒìœ„ë¡œ ì´ë™
+		wcscpy_s(projectRoot, MAX_PATH, modulePath);
+		WCHAR* lastSlash = wcsrchr(projectRoot, L'\\');
+		if (lastSlash) {
+			*lastSlash = L'\0';
+			lastSlash = wcsrchr(projectRoot, L'\\');
+			if (lastSlash) {
+				*lastSlash = L'\0';
+			}
+			lastSlash = wcsrchr(projectRoot, L'\\');
+			if (lastSlash) {
+				*lastSlash = L'\0';
+			}
+			lastSlash = wcsrchr(projectRoot, L'\\');
+			if (lastSlash) {
+				*lastSlash = L'\0';
+			}
+		}
+	}
+	
+	// ìƒëŒ€ ê²½ë¡œ êµ¬ì„± (../Resource/...)
+	std::wstring relativePath = L"../" + basePath;
+	if (!filename.empty()) {
+		relativePath += L"/" + filename;
+	}
+	
+	// ê²½ë¡œ êµ¬ë¶„ìë¥¼ ë°±ìŠ¬ë˜ì‹œë¡œ ë³€í™˜
+	for (size_t i = 0; i < relativePath.length(); ++i) {
+		if (relativePath[i] == L'/') {
+			relativePath[i] = L'\\';
+		}
+	}
+	
+	// ìƒëŒ€ ê²½ë¡œ íŒŒì¼ ì¡´ì¬ í™•ì¸
+	DWORD fileAttributes = GetFileAttributesW(relativePath.c_str());
+	if (fileAttributes != INVALID_FILE_ATTRIBUTES) {
+		return relativePath;
+	}
+	
+	// ìƒëŒ€ê²½ë¡œê°€ ì‹¤íŒ¨í•˜ë©´ ì ˆëŒ€ ê²½ë¡œ ë³€í™˜ ì‹œë„
+	wchar_t fullPath[MAX_PATH];
+	if (GetFullPathNameW(relativePath.c_str(), MAX_PATH, fullPath, nullptr) > 0) {
+		std::wstring absolutePath = std::wstring(fullPath);
+		fileAttributes = GetFileAttributesW(absolutePath.c_str());
+		if (fileAttributes != INVALID_FILE_ATTRIBUTES) {
+			return absolutePath;
+		}
+	}
+	
+	return relativePath;
+}
+
+// ë¦¬ì†ŒìŠ¤ ë¡œë“œ -> ì•„í‹€ë¼ìŠ¤ ìƒì„± í¬í•¨
 void DontStarve_EditorMain::LoadResources()
 {
-	// ±âÁ¸ ¸®¼Ò½º Å¬¸®¾î (¾ÆÆ²¶ó½º ºñÆ®¸Êµµ ÇØÁ¦µÊ)
+	// ê¸°ì¡´ ë¦¬ì†ŒìŠ¤ í´ë¦¬ì–´ (ì•„í‹€ë¼ìŠ¤ ë¹„íŠ¸ë§µë„ í•´ì œë¨)
 	ReleaseResources();
 
 	m_tileVariants.clear();
@@ -1779,76 +1993,150 @@ void DontStarve_EditorMain::LoadResources()
 	std::vector<TempImageInfo_Local> tempTilesInfo;
 	std::vector<TempImageInfo_Local> tempObjectsInfo;
 
-	std::wifstream inFile(L"../Resource/resources.txt");
-	if (!inFile.is_open()) {
-		OutputDebugStringW(L"Error: Failed to open resources.txt. Make sure it's in the same directory as the executable.\n");
-		return;
-	}
-	OutputDebugStringW(L"=== Loading resources.txt ===\n");
+	OutputDebugStringW(L"=== Loading resources from code ===\n");
 
-	std::wstring line;
-	bool inTilesSection = false;
-	bool inObjectsSection = false;
+	// íƒ€ì¼ ë¦¬ì†ŒìŠ¤ ì •ì˜ (í´ë¼ì´ì–¸íŠ¸ì˜ GetTilePathForParse ì°¸ê³ )
+	struct TileResourceDef {
+		TileType type;
+		TileID id;
+		const wchar_t* baseDir;
+		const wchar_t* imageName;
+	};
+	
+	TileResourceDef tileDefs[] = {
+		{ TILE_DIRT, TILEID_DIRT_00, L"Resource/Tiles/Dirt", L"dirt_01.png" },
+		{ TILE_DIRT, TILEID_DIRT_01, L"Resource/Tiles/Dirt", L"dirt_02.png" },
+		{ TILE_DIRT, TILEID_DIRT_02, L"Resource/Tiles/Dirt", L"dirt_03.png" },
+		{ TILE_DIRT, TILEID_DIRT_03, L"Resource/Tiles/Dirt", L"dirt_04.png" },
+		{ TILE_GRASS, TILEID_GRASS_00, L"Resource/Tiles/Grass", L"grass_01.png" },
+		{ TILE_GRASS, TILEID_GRASS_01, L"Resource/Tiles/Grass", L"grass_02.png" },
+		{ TILE_GRASS, TILEID_GRASS_02, L"Resource/Tiles/Grass", L"grass_03.png" },
+		{ TILE_GRASS, TILEID_GRASS_03, L"Resource/Tiles/Grass", L"grass_04.png" },
+		{ TILE_FOREST, TILEID_FOREST_00, L"Resource/Tiles/Forest", L"forest_01.png" },
+		{ TILE_FOREST, TILEID_FOREST_01, L"Resource/Tiles/Forest", L"forest_02.png" },
+		{ TILE_FOREST, TILEID_FOREST_02, L"Resource/Tiles/Forest", L"forest_03.png" },
+		{ TILE_FOREST, TILEID_FOREST_03, L"Resource/Tiles/Forest", L"forest_04.png" },
+	};
 
-	// Parse resources.txt line by line
-	while (std::getline(inFile, line)) {
-		if (line.empty() || line[0] == L'#') { // Skip empty lines and comment lines (starting with #)
-			if (line == L"# TILES") { inTilesSection = true; inObjectsSection = false; }
-			else if (line == L"# OBJECTS") { inTilesSection = false; inObjectsSection = true; }
-			continue; // Process next line
+	// íƒ€ì¼ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
+	for (const auto& def : tileDefs) {
+		std::wstring fullImagePath = BuildResourcePath(def.baseDir, def.imageName);
+		Gdiplus::Bitmap* pBitmapRaw = BitmapUtils::LoadBitmapFromFile(fullImagePath.c_str());
+		
+		if (pBitmapRaw && pBitmapRaw->GetLastStatus() == Gdiplus::Ok) {
+			TempImageInfo_Local info;
+			info.pRawBitmap = std::unique_ptr<Gdiplus::Bitmap>(pBitmapRaw);
+			info.tileType = def.type;
+			info.tileId = def.id;
+			info.baseDirectory = def.baseDir;
+			info.imageFileName = def.imageName;
+			tempTilesInfo.push_back(std::move(info));
 		}
-
-		std::wstringstream ss(line);
-		std::wstring field1, field2, field3, field4;
-
-		if (inTilesSection) { // Processing #TILES section
-			std::getline(ss, field1, L','); // Field 1: TileType (e.g., TILE_DIRT)
-			std::getline(ss, field2, L','); // Field 2: TileID (e.g., TILEID_DIRT_00)
-			std::getline(ss, field3, L','); // Field 3: baseDirectory (e.g., Resource/Tiles/Dirt)
-			std::getline(ss, field4);       // Field 4: imageFileName (e.g., dirt_01.png)
-
-			TileType type = EnumUtils::GetEnumValue<TileType>(field1.c_str(), TILE_NONE);
-			TileID id = EnumUtils::GetEnumValue<TileID>(field2.c_str(), TILEID_NONE);
-			std::wstring fullImagePath = L"../" + field3 + L"/" + field4; // Construct full image path
-			Gdiplus::Bitmap* pBitmapRaw = BitmapUtils::LoadBitmapFromFile(fullImagePath.c_str()); // Load raw bitmap
-
-			// Validate loaded bitmap and parsed enums
-			if (type != TILE_NONE && id != TILEID_NONE && pBitmapRaw && pBitmapRaw->GetLastStatus() == Gdiplus::Ok) {
-				TempImageInfo_Local info; info.pRawBitmap = std::unique_ptr<Gdiplus::Bitmap>(pBitmapRaw); // Transfer ownership to unique_ptr
-				info.tileType = type;
-				info.tileId = id;
-				info.baseDirectory = field3;
-				info.imageFileName = field4;
-				tempTilesInfo.push_back(std::move(info)); // Add to temporary list for atlas creation
-			}
-			else { OutputDebugStringW((L"Error: Failed to load tile bitmap or parse enum for: " + fullImagePath + L"\n").c_str()); }
-		}
-		else if (inObjectsSection) { // Processing #OBJECTS section
-			std::getline(ss, field1, L','); // Field 1: GameObjectType (e.g., GOBJ_ITEM)
-			std::getline(ss, field2, L','); // Field 2: GameObjectID (e.g., GOID_ITEM_CUT_NORMAL_GRASS)
-			std::getline(ss, field3, L','); // Field 3: objectAssetBaseDirectory (e.g., Resource/Objects/ingredient)
-			std::getline(ss, field4);       // Field 4: editorDisplayFileName (e.g., cutgrass01-0.png)
-
-
-			GameObjectType type = EnumUtils::GetEnumValue<GameObjectType>(field1.c_str(), GOBJ_NONE);
-			GameObjectID id = EnumUtils::GetEnumValue<GameObjectID>(field2.c_str(), GOID_NONE);
-			std::wstring editorDisplayImagePath = L"../" + field3 + L"/" + field4; // Construct full image path
-
-			Gdiplus::Bitmap* pBitmapRaw = BitmapUtils::LoadBitmapFromFile(editorDisplayImagePath.c_str());
-
-			if (type != GOBJ_NONE && id != GOID_NONE && pBitmapRaw && pBitmapRaw->GetLastStatus() == Gdiplus::Ok) {
-				TempImageInfo_Local info; info.pRawBitmap = std::unique_ptr<Gdiplus::Bitmap>(pBitmapRaw);
-				info.objectType = type;
-				info.gameObjectId = id;
-				info.baseDirectory = field3; // Maps to ObjectVariant's objectAssetBaseDirectory
-				info.imageFileName = field4; // Maps to ObjectVariant's editorDisplayFileName
-				// pivotX, pivotY default to 0.5, 1.0 from TempImageInfo_Local
-				tempObjectsInfo.push_back(std::move(info)); // Add to temporary list
-			}
-			else { OutputDebugStringW((L"Error: Failed to load object bitmap or parse enum for: " + editorDisplayImagePath + L"\n").c_str()); }
+		else {
+			std::wstringstream errorSS;
+			errorSS << L"Error: Failed to load tile bitmap: " << fullImagePath << L"\n";
+			OutputDebugStringW(errorSS.str().c_str());
 		}
 	}
-	inFile.close();
+
+	// ì˜¤ë¸Œì íŠ¸ ë¦¬ì†ŒìŠ¤ ì •ì˜ (í´ë¼ì´ì–¸íŠ¸ì˜ RegisterResources ì°¸ê³ )
+	struct ObjectResourceDef {
+		GameObjectType type;
+		GameObjectID id;
+		const wchar_t* baseDir;
+		const wchar_t* imageName;
+		float pivotX;
+		float pivotY;
+	};
+	
+	ObjectResourceDef objectDefs[] = {
+		// Player
+		{ GOBJ_PLAYER, GOID_PLAYER_WILSON, L"Resource/Objects/Player/Wilson", L"", 0.5f, 1.0f },
+		{ GOBJ_PLAYER, GOID_PLAYER_WILLOW, L"Resource/Objects/Player/Willow", L"", 0.5f, 1.0f },
+		{ GOBJ_PLAYER, GOID_PLAYER_WOLFGANG, L"Resource/Objects/Player/Wolfgang", L"", 0.5f, 1.0f },
+		
+		// Tree
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_SHORT, L"Resource/Objects/Tree1/Short", L"evergreen_evergreen_short_idle_short_01.png", 0.5f, 1.0f },
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_NORMAL, L"Resource/Objects/Tree1/Normal", L"evergreen_evergreen_short_idle_normal_01.png", 0.5f, 1.0f },
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_TALL, L"Resource/Objects/Tree1/Tall", L"evergreen_evergreen_short_idle_tall_01.png", 0.5f, 1.0f },
+		
+		// Rock
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_ROCK, L"Resource/Objects/Rock/Rock_Normal", L"rock01-0.png", 0.5f, 1.0f },
+		{ GOBJ_NATURAL_ENVIR, GOID_GOLD_ROCK, L"Resource/Objects/Rock/Rock_Gold", L"rock02-0.png", 0.5f, 1.0f },
+		
+		// Grass
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_GRASS, L"Resource/Objects/Grass", L"grass.png", 0.5f, 1.0f },
+		
+		// Sapling
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_SAPLING, L"Resource/Objects/Twign", L"sapling.png", 0.5f, 1.0f },
+		
+		// BerryBush
+		{ GOBJ_NATURAL_ENVIR, GOID_BERRY_TREE, L"Resource/Objects/Bush", L"BerryBush.png", 0.5f, 1.0f },
+		
+		// Item
+		{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_GRASS, L"Resource/Objects/ingredient", L"cutgrass01-0.png", 0.5f, 1.0f },
+		{ GOBJ_ITEM, GOID_ITEM_NORMAL_ROCK, L"Resource/Objects/ingredient", L"rocks01-0.png", 0.5f, 1.0f },
+		{ GOBJ_ITEM, GOID_ITEM_NORMAL_TWIGS, L"Resource/Objects/ingredient", L"twigs01-0.png", 0.5f, 1.0f },
+		{ GOBJ_ITEM, GOID_ITEM_NORMAL_TREE_LOG, L"Resource/Objects/ingredient", L"Tree1_log.png", 0.5f, 1.0f },
+		{ GOBJ_ITEM, GOID_ITEM_GOLD_ROCK, L"Resource/Objects/ingredient", L"Gold_Item.png", 0.5f, 1.0f },
+		{ GOBJ_ITEM, GOID_ITEM_ROPE, L"Resource/Objects/ingredient", L"rope01-0.png", 0.5f, 1.0f },
+		{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_STONE, L"Resource/Objects/ingredient", L"cutstone01-0.png", 0.5f, 1.0f },
+		{ GOBJ_ITEM, GOID_ITEM_MEAT, L"Resource/Objects/ingredient", L"meat-0.png", 0.5f, 1.0f },
+		{ GOBJ_ITEM, GOID_ITEM_BERRY, L"Resource/Objects/ingredient", L"Berry.png", 0.5f, 1.0f },
+		
+		// Monster - Spider
+		{ GOBJ_MONSTER, GOID_MONSTER_SPIDER, L"Resource/Objects/Monster/Spider/Normal_Spider", L"Spider_spider_idle_01.png", 0.5f, 1.0f },
+		{ GOBJ_MONSTER, GOID_MONSTER_WARRIOR_SPIDER, L"Resource/Objects/Monster/Spider/Warrior_Spider", L"Warrior_spider_idle_01.png", 0.5f, 1.0f },
+		
+		// Monster - Pig
+		{ GOBJ_MONSTER, GOID_MONSTER_PIG, L"Resource/Objects/Monster/Pig", L"pig_Image.png", 0.5f, 1.0f },
+		
+		// Monster - Hound
+		{ GOBJ_MONSTER, GOID_MONSTER_HOUNDDOG, L"Resource/Objects/Monster/Hound/Normal_Hound", L"Hound_hound_Image.png", 0.5f, 1.0f },
+		
+		// Monster - Boss Spider Queen
+		{ GOBJ_MONSTER, GOID_MONSTER_QUEEN_SPIDER, L"Resource/Objects/Monster/Spider/Queen", L"Queen_spider_queen_Image.png", 0.5f, 1.0f },
+		
+		// Monster - Boss Hound
+		{ GOBJ_MONSTER, GOID_MONSTER_REDHOUNDDOG, L"Resource/Objects/Monster/Hound/Red_Hound", L"RedHound_hound_Image.png", 0.5f, 1.0f },
+		{ GOBJ_MONSTER, GOID_MONSTER_ICEHOUNDDOG, L"Resource/Objects/Monster/Hound/Ice_Hound", L"IceHound_hound_Image.png", 0.5f, 1.0f },
+		
+		// Building - Spider Egg
+		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_SMALLEGG, L"Resource/Objects/Building/Egg", L"Egg_spider_cocoon_small_Image.png", 0.5f, 1.0f },
+		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_NORMALEGG, L"Resource/Objects/Building/Egg", L"Egg_spider_cocoon_medium_Image.png", 0.5f, 1.0f },
+		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_TALLEGG, L"Resource/Objects/Building/Egg", L"Egg_spider_cocoon_large_Image.png", 0.5f, 1.0f },
+		
+		// Building - Pig House
+		{ GOBJ_BUILDING, GOID_BUILDING_PIGHOUSE, L"Resource/Objects/Building/House", L"pig_house.png", 0.5f, 1.0f },
+	};
+
+	// ì˜¤ë¸Œì íŠ¸ ë¦¬ì†ŒìŠ¤ ë¡œë“œ
+	for (const auto& def : objectDefs) {
+		// ì´ë¯¸ì§€ ì´ë¦„ì´ ì—†ìœ¼ë©´ ìŠ¤í‚µ (Player ë“±ì€ ì• ë‹ˆë©”ì´ì…˜ìœ¼ë¡œ ì²˜ë¦¬ë˜ë¯€ë¡œ ì—ë””í„°ì—ì„œ í‘œì‹œí•˜ì§€ ì•ŠìŒ)
+		if (def.imageName[0] == L'\0') {
+			continue;
+		}
+		
+		std::wstring fullImagePath = BuildResourcePath(def.baseDir, def.imageName);
+		Gdiplus::Bitmap* pBitmapRaw = BitmapUtils::LoadBitmapFromFile(fullImagePath.c_str());
+		
+		if (pBitmapRaw && pBitmapRaw->GetLastStatus() == Gdiplus::Ok) {
+			TempImageInfo_Local info;
+			info.pRawBitmap = std::unique_ptr<Gdiplus::Bitmap>(pBitmapRaw);
+			info.objectType = def.type;
+			info.gameObjectId = def.id;
+			info.baseDirectory = def.baseDir;
+			info.imageFileName = def.imageName;
+			info.pivotX = def.pivotX;
+			info.pivotY = def.pivotY;
+			tempObjectsInfo.push_back(std::move(info));
+		}
+		else {
+			std::wstringstream errorSS;
+			errorSS << L"Error: Failed to load object bitmap: " << fullImagePath << L"\n";
+			OutputDebugStringW(errorSS.str().c_str());
+		}
+	}
 
 	// ----------------------------------------------------------------------------------------------------
 	// Create Atlases and populate m_tileVariants / m_objectVariants maps from temp info
@@ -1882,7 +2170,7 @@ void DontStarve_EditorMain::LoadResources()
 		}
 	}
 
-	// ¾ÆÆ²¶ó½º ºñÆ®¸Ê
+	// ì•„í‹€ë¼ìŠ¤ ë¹„íŠ¸ë§µ
 	UINT objectAtlasWidth = 0; UINT maxObjectAtlasHeight = 0;
 	for (const auto& info : tempObjectsInfo) {
 		if (info.pRawBitmap) {
@@ -1925,7 +2213,7 @@ void DontStarve_EditorMain::ReleaseResources()
 	m_objectAtlasBitmapOwner.reset();
 }
 
-// ÆÈ·¹Æ® ÃÊ±âÈ­
+// íŒ”ë ˆíŠ¸ ì´ˆê¸°í™”
 void DontStarve_EditorMain::InitPalette()
 {
 	RECT clientRect;
@@ -1990,47 +2278,47 @@ void DontStarve_EditorMain::InitPalette()
 		m_selectedPaletteIndex = 0;
 	}
 
-	m_paletteLayerDirty = true; // ÆÈ·¹Æ® ¾ÆÀÌÅÛÀÌ Ã¤¿öÁ³À¸¹Ç·Î ·¹ÀÌ¾î ´Ù½Ã ±×¸®±â
+	m_paletteLayerDirty = true; // íŒ”ë ˆíŠ¸ ì•„ì´í…œì´ ì±„ì›Œì¡Œìœ¼ë¯€ë¡œ ë ˆì´ì–´ ë‹¤ì‹œ ê·¸ë¦¬ê¸°
 }
 
-// ºäÆ÷Æ® ±â¹İ ±×¸®µå ·»´õ¸µ
+// ë·°í¬íŠ¸ ê¸°ë°˜ ê·¸ë¦¬ë“œ ë Œë”ë§
 void DontStarve_EditorMain::DrawGrid(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics) return;
 
-	// ±×¸®µå Ææ ¼³Á¤
-	Gdiplus::Pen gridPen(Gdiplus::Color(120, 150, 150, 150), 1.0f);        // ÀÏ¹İ ±×¸®µå ¼±
-	Gdiplus::Pen majorGridPen(Gdiplus::Color(180, 100, 100, 100), 1.5f);   // 10Å¸ÀÏ¸¶´Ù ±½Àº ¼±
-	Gdiplus::Pen mapBoundaryPen(Gdiplus::Color(255, 255, 0, 0), 3.0f);     // ¸Ê °æ°è¼±
+	// ê·¸ë¦¬ë“œ íœ ì„¤ì •
+	Gdiplus::Pen gridPen(Gdiplus::Color(120, 150, 150, 150), 1.0f);        // ì¼ë°˜ ê·¸ë¦¬ë“œ ì„ 
+	Gdiplus::Pen majorGridPen(Gdiplus::Color(180, 100, 100, 100), 1.5f);   // 10íƒ€ì¼ë§ˆë‹¤ êµµì€ ì„ 
+	Gdiplus::Pen mapBoundaryPen(Gdiplus::Color(255, 255, 0, 0), 3.0f);     // ë§µ ê²½ê³„ì„ 
 
-	// ÁÜ ÆÑÅÍ°¡ Àû¿ëµÈ È­¸é»ó Å¸ÀÏ Å©±â
+	// ì¤Œ íŒ©í„°ê°€ ì ìš©ëœ í™”ë©´ìƒ íƒ€ì¼ í¬ê¸°
 	float screenTileSize = (float)TILE_SIZE * m_zoomFactor;
 
-	// ±×¸®µå ¼±ÀÌ ³Ê¹« ÀÛÀ» ¶§´Â °Ç³Ê¶Ù±â
+	// ê·¸ë¦¬ë“œ ì„ ì´ ë„ˆë¬´ ì‘ì„ ë•ŒëŠ” ê±´ë„ˆë›°ê¸°
 	if (screenTileSize < 6.0f) {
 		return; 
 	}
 
-	// ·¹ÀÌ¾î ºñÆ®¸Ê Å©±â (ÇöÀç ºäÆ÷Æ® Å©±â)
+	// ë ˆì´ì–´ ë¹„íŠ¸ë§µ í¬ê¸° (í˜„ì¬ ë·°í¬íŠ¸ í¬ê¸°)
 	UINT layerWidth = m_gridLayerBitmap->GetWidth();
 	UINT layerHeight = m_gridLayerBitmap->GetHeight();
 
-	// ÇöÀç ºäÆ÷Æ®ÀÇ ¿ùµå ÁÂÇ¥ °è»ê
+	// í˜„ì¬ ë·°í¬íŠ¸ì˜ ì›”ë“œ ì¢Œí‘œ ê³„ì‚°
 	Gdiplus::PointF viewTopLeft = ScreenToWorld(Gdiplus::PointF(0, 0));
 
-	// ±×¸®µå °£°İ ÃÖÀûÈ­ (ÁÜ ·¹º§¿¡ µû¶ó)
+	// ê·¸ë¦¬ë“œ ê°„ê²© ìµœì í™” (ì¤Œ ë ˆë²¨ì— ë”°ë¼)
 	int gridSpacing = TILE_SIZE;
-	if (screenTileSize < 16.0f) gridSpacing *= 4;      // ¸Å¿ì ÀÛÀ» ¶§´Â 4Ä­¸¶´Ù
-	else if (screenTileSize < 32.0f) gridSpacing *= 2;  // ÀÛÀ» ¶§´Â 2Ä­¸¶´Ù
+	if (screenTileSize < 16.0f) gridSpacing *= 4;      // ë§¤ìš° ì‘ì„ ë•ŒëŠ” 4ì¹¸ë§ˆë‹¤
+	else if (screenTileSize < 32.0f) gridSpacing *= 2;  // ì‘ì„ ë•ŒëŠ” 2ì¹¸ë§ˆë‹¤
 
-	// ½ÃÀÛ ±×¸®µå ÀÎµ¦½º °è»ê
+	// ì‹œì‘ ê·¸ë¦¬ë“œ ì¸ë±ìŠ¤ ê³„ì‚°
 	int startGridX = (int)floor(viewTopLeft.X / gridSpacing);
 	int startGridY = (int)floor(viewTopLeft.Y / gridSpacing);
 
-	// È­¸é¿¡ ±×·ÁÁú ±×¸®µå °³¼ö °è»ê
+	// í™”ë©´ì— ê·¸ë ¤ì§ˆ ê·¸ë¦¬ë“œ ê°œìˆ˜ ê³„ì‚°
 	int maxGridLines = max(layerWidth / max(8, (int)screenTileSize), layerHeight / max(8, (int)screenTileSize));
 	maxGridLines = min(maxGridLines, 100); 
 
-	// ¼¼·Î¼± ±×¸®±â
+	// ì„¸ë¡œì„  ê·¸ë¦¬ê¸°
 	for (int i = 0; i <= maxGridLines; ++i) {
 		int gridX = startGridX + i;
 		if (gridX < 0 || gridX > MAP_WIDTH) continue;
@@ -2046,7 +2334,7 @@ void DontStarve_EditorMain::DrawGrid(Gdiplus::Graphics* pGraphics) {
 		}
 	}
 
-	// °¡·Î¼± ±×¸®±â
+	// ê°€ë¡œì„  ê·¸ë¦¬ê¸°
 	for (int i = 0; i <= maxGridLines; ++i) {
 		int gridY = startGridY + i;
 		if (gridY < 0 || gridY > MAP_HEIGHT) continue;
@@ -2062,7 +2350,7 @@ void DontStarve_EditorMain::DrawGrid(Gdiplus::Graphics* pGraphics) {
 		}
 	}
 
-	// ¸Ê °æ°è¼± ±×¸®±â
+	// ë§µ ê²½ê³„ì„  ê·¸ë¦¬ê¸°
 	float mapLeftScreen = (0 - viewTopLeft.X) * m_zoomFactor;
 	float mapTopScreen = (0 - viewTopLeft.Y) * m_zoomFactor;
 	float mapWidthScreen = (MAP_WIDTH * TILE_SIZE) * m_zoomFactor;
@@ -2079,21 +2367,21 @@ void DontStarve_EditorMain::DrawGrid(Gdiplus::Graphics* pGraphics) {
 void DontStarve_EditorMain::DrawTileMap(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics) return;
 
-	// ·¹ÀÌ¾î ºñÆ®¸Ê Å©±â
+	// ë ˆì´ì–´ ë¹„íŠ¸ë§µ í¬ê¸°
 	UINT layerWidth = m_tileLayerBitmap->GetWidth();
 	UINT layerHeight = m_tileLayerBitmap->GetHeight();
 
-	// ÇöÀç ºäÆ÷Æ®ÀÇ ¿ùµå ÁÂÇ¥ °è»ê
+	// í˜„ì¬ ë·°í¬íŠ¸ì˜ ì›”ë“œ ì¢Œí‘œ ê³„ì‚°
 	Gdiplus::PointF viewTopLeft = ScreenToWorld(Gdiplus::PointF(0, 0));
 	Gdiplus::PointF viewBottomRight = ScreenToWorld(Gdiplus::PointF((float)layerWidth, (float)layerHeight));
 
-	// Å¸ÀÏ ÀÎµ¦½º ¹üÀ§ °è»ê
+	// íƒ€ì¼ ì¸ë±ìŠ¤ ë²”ìœ„ ê³„ì‚°
 	int startX = max(0, (int)floor(viewTopLeft.X / TILE_SIZE));
 	int endX = min(MAP_WIDTH, (int)ceil(viewBottomRight.X / TILE_SIZE));
 	int startY = max(0, (int)floor(viewTopLeft.Y / TILE_SIZE));
 	int endY = min(MAP_HEIGHT, (int)ceil(viewBottomRight.Y / TILE_SIZE));
 
-	// È­¸é»ó Å¸ÀÏ Å©±â
+	// í™”ë©´ìƒ íƒ€ì¼ í¬ê¸°
 	float screenTileSize = (float)TILE_SIZE * m_zoomFactor;
 
 	for (int y = startY; y < endY; ++y) {
@@ -2101,15 +2389,15 @@ void DontStarve_EditorMain::DrawTileMap(Gdiplus::Graphics* pGraphics) {
 			TileData tile = m_tileMap[y][x];
 			if (tile.type == TILE_NONE || !tile.pAtlasBitmap) continue;
 
-			// ¿ùµå ÁÂÇ¥ °è»ê
+			// ì›”ë“œ ì¢Œí‘œ ê³„ì‚°
 			float worldX = (float)x * TILE_SIZE;
 			float worldY = (float)y * TILE_SIZE;
 
-			// ºäÆ÷Æ® ±âÁØ È­¸é ÁÂÇ¥ °è»ê
+			// ë·°í¬íŠ¸ ê¸°ì¤€ í™”ë©´ ì¢Œí‘œ ê³„ì‚°
 			float screenX = (worldX - viewTopLeft.X) * m_zoomFactor;
 			float screenY = (worldY - viewTopLeft.Y) * m_zoomFactor;
 
-			// È­¸é ¹Û ÄÃ¸µ
+			// í™”ë©´ ë°– ì»¬ë§
 			if (screenX + screenTileSize < 0 || screenX > layerWidth ||
 				screenY + screenTileSize < 0 || screenY > layerHeight) continue;
 
@@ -2138,15 +2426,15 @@ void DontStarve_EditorMain::DrawObjects(Gdiplus::Graphics* pGraphics) {
 		m_objectsDirty = false;
 	}
 
-	// ·¹ÀÌ¾î ºñÆ®¸Ê Å©±â
+	// ë ˆì´ì–´ ë¹„íŠ¸ë§µ í¬ê¸°
 	UINT layerWidth = m_objectLayerBitmap->GetWidth();
 	UINT layerHeight = m_objectLayerBitmap->GetHeight();
 
-	// ÇöÀç ºäÆ÷Æ®ÀÇ ¿ùµå ÁÂÇ¥ °è»ê
+	// í˜„ì¬ ë·°í¬íŠ¸ì˜ ì›”ë“œ ì¢Œí‘œ ê³„ì‚°
 	Gdiplus::PointF viewTopLeft = ScreenToWorld(Gdiplus::PointF(0, 0));
 	Gdiplus::PointF viewBottomRight = ScreenToWorld(Gdiplus::PointF((float)layerWidth, (float)layerHeight));
 
-	// ºäÆ÷Æ® ÄÃ¸µÀ» À§ÇÑ ¿ùµå ¿µ¿ª
+	// ë·°í¬íŠ¸ ì»¬ë§ì„ ìœ„í•œ ì›”ë“œ ì˜ì—­
 	const float CULL_MARGIN = 100.0f;
 	Gdiplus::RectF viewWorldRect(
 		viewTopLeft.X - CULL_MARGIN, viewTopLeft.Y - CULL_MARGIN,
@@ -2168,18 +2456,18 @@ void DontStarve_EditorMain::DrawObjects(Gdiplus::Graphics* pGraphics) {
 
 		Gdiplus::RectF objWorldRect(objRenderLeftWorld, objRenderTopWorld, objRenderWidthWorld, objRenderHeightWorld);
 
-		// ºäÆ÷Æ® ÄÃ¸µ
+		// ë·°í¬íŠ¸ ì»¬ë§
 		if (!objWorldRect.IntersectsWith(viewWorldRect)) {
-			continue; // È­¸é ¹Û¿¡ ÀÖÀ¸¸é ½ºÅµ
+			continue; // í™”ë©´ ë°–ì— ìˆìœ¼ë©´ ìŠ¤í‚µ
 		}
 
-		// ºäÆ÷Æ® ±âÁØ È­¸é ÁÂÇ¥ °è»ê
+		// ë·°í¬íŠ¸ ê¸°ì¤€ í™”ë©´ ì¢Œí‘œ ê³„ì‚°
 		float screenX = (objRenderLeftWorld - viewTopLeft.X) * m_zoomFactor;
 		float screenY = (objRenderTopWorld - viewTopLeft.Y) * m_zoomFactor;
 		float screenWidth = objRenderWidthWorld * m_zoomFactor;
 		float screenHeight = objRenderHeightWorld * m_zoomFactor;
 
-		// Ãß°¡ È­¸é ÄÃ¸µ
+		// ì¶”ê°€ í™”ë©´ ì»¬ë§
 		if (screenX + screenWidth < 0 || screenX > layerWidth ||
 			screenY + screenHeight < 0 || screenY > layerHeight) continue;
 
@@ -2201,7 +2489,7 @@ void DontStarve_EditorMain::DrawObjects(Gdiplus::Graphics* pGraphics) {
 void DontStarve_EditorMain::DrawPalette(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics) return;
 
-	// ÆÈ·¹Æ® ¹è°æ ±×¸®±â (ÀÌ ·¹ÀÌ¾î ºñÆ®¸ÊÀÇ 0,0À» ±âÁØÀ¸·Î ±×¸³´Ï´Ù.)
+	// íŒ”ë ˆíŠ¸ ë°°ê²½ ê·¸ë¦¬ê¸° (ì´ ë ˆì´ì–´ ë¹„íŠ¸ë§µì˜ 0,0ì„ ê¸°ì¤€ìœ¼ë¡œ ê·¸ë¦½ë‹ˆë‹¤.)
 	Gdiplus::SolidBrush paletteBackgroundBrush(Gdiplus::Color(100, 50, 50, 50));
 	pGraphics->FillRectangle(&paletteBackgroundBrush,
 		(Gdiplus::REAL)0, (Gdiplus::REAL)0,
@@ -2210,24 +2498,24 @@ void DontStarve_EditorMain::DrawPalette(Gdiplus::Graphics* pGraphics) {
 	for (size_t i = 0; i < m_paletteItems.size(); ++i) {
 		const PaletteItem& item = m_paletteItems[i];
 
-		// ¾ÆÀÌÄÜ ¹è°æ
+		// ì•„ì´ì½˜ ë°°ê²½
 		Gdiplus::SolidBrush itemBackgroundBrush(Gdiplus::Color(100, 70, 70, 70));
 		pGraphics->FillRectangle(&itemBackgroundBrush,
-			(Gdiplus::REAL)(item.displayRect.left - m_paletteRect.left), // ÆÈ·¹Æ® ·¹ÀÌ¾î ºñÆ®¸Ê ±âÁØ »ó´ë ÁÂÇ¥
-			(Gdiplus::REAL)(item.displayRect.top - m_paletteRect.top),  // ÆÈ·¹Æ® ·¹ÀÌ¾î ºñÆ®¸Ê ±âÁØ »ó´ë ÁÂÇ¥
+			(Gdiplus::REAL)(item.displayRect.left - m_paletteRect.left), // íŒ”ë ˆíŠ¸ ë ˆì´ì–´ ë¹„íŠ¸ë§µ ê¸°ì¤€ ìƒëŒ€ ì¢Œí‘œ
+			(Gdiplus::REAL)(item.displayRect.top - m_paletteRect.top),  // íŒ”ë ˆíŠ¸ ë ˆì´ì–´ ë¹„íŠ¸ë§µ ê¸°ì¤€ ìƒëŒ€ ì¢Œí‘œ
 			(Gdiplus::REAL)(item.displayRect.right - item.displayRect.left), (Gdiplus::REAL)(item.displayRect.bottom - item.displayRect.top));
 
-		// ¾ÆÀÌÄÜ ÀÌ¹ÌÁö ±×¸®±â 
+		// ì•„ì´ì½˜ ì´ë¯¸ì§€ ê·¸ë¦¬ê¸° 
 		if (item.hBitmap && item.hBitmap->GetLastStatus() == Gdiplus::Ok) {
 			pGraphics->DrawImage(item.hBitmap,
-				// ´ë»ó »ç°¢Çü: ÆÈ·¹Æ® ·¹ÀÌ¾î ºñÆ®¸Ê ±âÁØ »ó´ë ÁÂÇ¥
+				// ëŒ€ìƒ ì‚¬ê°í˜•: íŒ”ë ˆíŠ¸ ë ˆì´ì–´ ë¹„íŠ¸ë§µ ê¸°ì¤€ ìƒëŒ€ ì¢Œí‘œ
 				Gdiplus::RectF((Gdiplus::REAL)(item.displayRect.left - m_paletteRect.left), (Gdiplus::REAL)(item.displayRect.top - m_paletteRect.top),
 					(Gdiplus::REAL)(item.displayRect.right - item.displayRect.left), (Gdiplus::REAL)(item.displayRect.bottom - item.displayRect.top)),
 				item.iconSourceRect.X, item.iconSourceRect.Y, item.iconSourceRect.Width, item.iconSourceRect.Height,
 				Gdiplus::UnitPixel);
 		}
 
-		// ¼±ÅÃµÈ ¾ÆÀÌÅÛ °­Á¶
+		// ì„ íƒëœ ì•„ì´í…œ ê°•ì¡°
 		if ((int)i == m_selectedPaletteIndex) {
 			Gdiplus::Pen highlightPen(Gdiplus::Color(255, 255, 255, 0), 3.0f);
 			pGraphics->DrawRectangle(&highlightPen,
@@ -2263,7 +2551,7 @@ void DontStarve_EditorMain::ComposeObjectLayer() {
 	OutputDebugStringW(L"Composing Object Layer: END (Dirty set to false)\n");
 }
 
-// DrawPreview (¹èÄ¡ ÇÁ¸®ºä ±×¸®±â - Åõ¸íÇÏ°í ±×¸®µå Å©±â¿¡ ¸ÂÃã)
+// DrawPreview (ë°°ì¹˜ í”„ë¦¬ë·° ê·¸ë¦¬ê¸° - íˆ¬ëª…í•˜ê³  ê·¸ë¦¬ë“œ í¬ê¸°ì— ë§ì¶¤)
 void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics || m_selectedPaletteIndex == -1 || !m_isPlacingMode) return;
 
@@ -2271,7 +2559,7 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 	Gdiplus::Bitmap* previewBitmap = nullptr;
 	Gdiplus::RectF previewSourceRect;
 
-	// ÇÁ¸®ºä·Î ±×¸± Å¸ÀÏ ¶Ç´Â ¿ÀºêÁ§Æ®ÀÇ ResourceVariant¸¦ °¡Á®¿È
+	// í”„ë¦¬ë·°ë¡œ ê·¸ë¦´ íƒ€ì¼ ë˜ëŠ” ì˜¤ë¸Œì íŠ¸ì˜ ResourceVariantë¥¼ ê°€ì ¸ì˜´
 	if (selectedItem.category == CATEGORY_TILE) {
 		const TileVariant* tv = m_subPalette.getSelectedTileVariant();
 		if (tv) {
@@ -2288,12 +2576,12 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 	}
 
 	if (previewBitmap && previewBitmap->GetLastStatus() == Gdiplus::Ok) {
-		// Åõ¸íµµ ¼³Á¤À» À§ÇÑ ColorMatrix
+		// íˆ¬ëª…ë„ ì„¤ì •ì„ ìœ„í•œ ColorMatrix
 		Gdiplus::ColorMatrix colorMatrix = {
 			1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // Red
 			0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  // Green  
 			0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // Blue
-			0.0f, 0.0f, 0.0f, 0.6f, 0.0f,  // Alpha (60% Åõ¸íµµ)
+			0.0f, 0.0f, 0.0f, 0.6f, 0.0f,  // Alpha (60% íˆ¬ëª…ë„)
 			0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Scale
 		};
 
@@ -2304,25 +2592,25 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 		float finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight;
 
 		if (selectedItem.category == CATEGORY_TILE) {
-			// Å¸ÀÏ: ¿ùµå ÁÂÇ¥°è¿¡¼­ TILE_SIZE Å©±â, È­¸é º¯È¯ Àû¿ë
+			// íƒ€ì¼: ì›”ë“œ ì¢Œí‘œê³„ì—ì„œ TILE_SIZE í¬ê¸°, í™”ë©´ ë³€í™˜ ì ìš©
 			finalRenderWidth = (float)TILE_SIZE * m_zoomFactor;
 			finalRenderHeight = (float)TILE_SIZE * m_zoomFactor;
 			finalRenderX = screenPreviewPos.X;
 			finalRenderY = screenPreviewPos.Y;
 
-			// Å¸ÀÏ ÇÁ¸®ºä ¹è°æ (±×¸®µå ¿µ¿ª Ç¥½Ã)
+			// íƒ€ì¼ í”„ë¦¬ë·° ë°°ê²½ (ê·¸ë¦¬ë“œ ì˜ì—­ í‘œì‹œ)
 			Gdiplus::Pen previewGridPen(Gdiplus::Color(150, 255, 255, 0), 2.0f);
 			Gdiplus::RectF previewGridRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
 			pGraphics->DrawRectangle(&previewGridPen, previewGridRect);
 
-			// 3x3 ¸ğµåÀÏ ¶§ Ãß°¡ ±×¸®µå Ç¥½Ã
+			// 3x3 ëª¨ë“œì¼ ë•Œ ì¶”ê°€ ê·¸ë¦¬ë“œ í‘œì‹œ
 			if (m_is3x3Mode) {
 				Gdiplus::Pen gridPen3x3(Gdiplus::Color(100, 255, 255, 0), 1.5f);
 				float tileSize = (float)TILE_SIZE * m_zoomFactor;
 
 				for (int dy = -1; dy <= 1; ++dy) {
 					for (int dx = -1; dx <= 1; ++dx) {
-						// 3x3 ±×¸®µåÀÇ ¿ùµå ÁÂÇ¥ °è»ê
+						// 3x3 ê·¸ë¦¬ë“œì˜ ì›”ë“œ ì¢Œí‘œ ê³„ì‚°
 						float worldGridX = m_snappedPreviewPos.X + (dx * TILE_SIZE);
 						float worldGridY = m_snappedPreviewPos.Y + (dy * TILE_SIZE);
 						Gdiplus::PointF screenGridPos = WorldToScreen(Gdiplus::PointF(worldGridX, worldGridY));
@@ -2334,7 +2622,7 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 			}
 		}
 		else if (selectedItem.category == CATEGORY_OBJECT) {
-			// ¿ÀºêÁ§Æ®: ¿øº» Å©±â À¯Áö
+			// ì˜¤ë¸Œì íŠ¸: ì›ë³¸ í¬ê¸° ìœ ì§€
 			const ObjectVariant* ov_preview = m_subPalette.getSelectedObjectVariant();
 			if (ov_preview) {
 				finalRenderWidth = previewSourceRect.Width * m_zoomFactor;
@@ -2342,12 +2630,12 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 				finalRenderX = screenPreviewPos.X - (ov_preview->pivotX * finalRenderWidth);
 				finalRenderY = screenPreviewPos.Y - (ov_preview->pivotY * finalRenderHeight);
 
-				// ¿ÀºêÁ§Æ® ÇÁ¸®ºä ¹è°æ (¹Ù¿îµù ¹Ú½º Ç¥½Ã)
+				// ì˜¤ë¸Œì íŠ¸ í”„ë¦¬ë·° ë°°ê²½ (ë°”ìš´ë”© ë°•ìŠ¤ í‘œì‹œ)
 				Gdiplus::Pen previewBBoxPen(Gdiplus::Color(150, 0, 255, 255), 1.5f);
 				Gdiplus::RectF previewBBoxRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
 				pGraphics->DrawRectangle(&previewBBoxPen, previewBBoxRect);
 
-				// ÇÇ¹ş Æ÷ÀÎÆ® Ç¥½Ã
+				// í”¼ë²— í¬ì¸íŠ¸ í‘œì‹œ
 				float pivotScreenX = screenPreviewPos.X;
 				float pivotScreenY = screenPreviewPos.Y;
 				Gdiplus::SolidBrush pivotBrush(Gdiplus::Color(200, 255, 0, 0));
@@ -2355,17 +2643,17 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 				pGraphics->FillEllipse(&pivotBrush, pivotRect);
 			}
 			else {
-				return; // ObjectVariant°¡ ¾øÀ¸¸é ±×¸®Áö ¾ÊÀ½
+				return; // ObjectVariantê°€ ì—†ìœ¼ë©´ ê·¸ë¦¬ì§€ ì•ŠìŒ
 			}
 		}
 
-		// Åõ¸í ÇÁ¸®ºä ÀÌ¹ÌÁö ±×¸®±â
+		// íˆ¬ëª… í”„ë¦¬ë·° ì´ë¯¸ì§€ ê·¸ë¦¬ê¸°
 		Gdiplus::RectF destRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
 		pGraphics->DrawImage(previewBitmap, destRect,
 			previewSourceRect.X, previewSourceRect.Y, previewSourceRect.Width, previewSourceRect.Height,
 			Gdiplus::UnitPixel, &imageAttr);
 
-		// ÇÁ¸®ºä Á¤º¸ ÅØ½ºÆ® (¸¶¿ì½º ±ÙÃ³¿¡ Ç¥½Ã)
+		// í”„ë¦¬ë·° ì •ë³´ í…ìŠ¤íŠ¸ (ë§ˆìš°ìŠ¤ ê·¼ì²˜ì— í‘œì‹œ)
 		Gdiplus::Font infoFont(L"Arial", 10);
 		Gdiplus::SolidBrush infoBrush(Gdiplus::Color(255, 255, 255, 255));
 		Gdiplus::SolidBrush infoBackBrush(Gdiplus::Color(150, 0, 0, 0));
@@ -2386,14 +2674,14 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 		std::wstring infoText = infoSS.str();
 		Gdiplus::RectF infoRect(finalRenderX, finalRenderY - 25, 200, 40);
 
-		// È­¸é °æ°è Ã¼Å© (ÅØ½ºÆ®°¡ È­¸é ¹ÛÀ¸·Î ³ª°¡Áö ¾Êµµ·Ï)
+		// í™”ë©´ ê²½ê³„ ì²´í¬ (í…ìŠ¤íŠ¸ê°€ í™”ë©´ ë°–ìœ¼ë¡œ ë‚˜ê°€ì§€ ì•Šë„ë¡)
 		RECT clientRect;
 		GetClientRect(g_hWnd, &clientRect);
 		if (infoRect.Y < 0) {
-			infoRect.Y = finalRenderY + finalRenderHeight + 5; // ¾Æ·¡·Î ÀÌµ¿
+			infoRect.Y = finalRenderY + finalRenderHeight + 5; // ì•„ë˜ë¡œ ì´ë™
 		}
 		if (infoRect.X + infoRect.Width > clientRect.right) {
-			infoRect.X = clientRect.right - infoRect.Width - 10; // ¿ŞÂÊÀ¸·Î ÀÌµ¿
+			infoRect.X = clientRect.right - infoRect.Width - 10; // ì™¼ìª½ìœ¼ë¡œ ì´ë™
 		}
 
 		pGraphics->FillRectangle(&infoBackBrush, infoRect);
@@ -2401,27 +2689,27 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 	}
 }
 
-// µğ¹ö±× Á¤º¸ ±×¸®±â
+// ë””ë²„ê·¸ ì •ë³´ ê·¸ë¦¬ê¸°
 void DontStarve_EditorMain::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 
-	// ·ºÀ» ÁÙÀÌ±â À§ÇØ µğ¹ö±× Á¤º¸ ¾÷µ¥ÀÌÆ® ºóµµ Á¶Àı (ÃÊ´ç 4È¸)
+	// ë ‰ì„ ì¤„ì´ê¸° ìœ„í•´ ë””ë²„ê·¸ ì •ë³´ ì—…ë°ì´íŠ¸ ë¹ˆë„ ì¡°ì ˆ (ì´ˆë‹¹ 4íšŒ)
 	static ULONGLONG lastUpdateTick = 0;
-	static std::wstring debugInfoString; // Á¤Àû º¯¼ö·Î ¹®ÀÚ¿­À» Ä³½Ã
+	static std::wstring debugInfoString; // ì •ì  ë³€ìˆ˜ë¡œ ë¬¸ìì—´ì„ ìºì‹œ
 	ULONGLONG currentTick = GetTickCount64();
 
-	if (currentTick - lastUpdateTick > 250) { // 250ms (ÃÊ´ç 4¹ø)¸¶´Ù ¾÷µ¥ÀÌÆ®
+	if (currentTick - lastUpdateTick > 250) { // 250ms (ì´ˆë‹¹ 4ë²ˆ)ë§ˆë‹¤ ì—…ë°ì´íŠ¸
 		lastUpdateTick = currentTick;
 
 		std::wstringstream ss;
 		ss << L"Mouse: " << m_rawMousePos.x << L", " << m_rawMousePos.y << L"\n";
 
-		// ¸Ê Á¤º¸ Ç¥½Ã
+		// ë§µ ì •ë³´ í‘œì‹œ
 		ss << L"Map Size: " << MAP_WIDTH << L"x" << MAP_HEIGHT << L" tiles (Tile: " << TILE_SIZE << L"px)\n";
 		ss << L"World Size: " << (MAP_WIDTH * TILE_SIZE) << L"x" << (MAP_HEIGHT * TILE_SIZE) << L"px\n";
 
 		ss << L"Map Offset: " << m_mapOffset.x << L", " << m_mapOffset.y << L"\n";
 
-		// ÁÂÇ¥ º¯È¯ µğ¹ö±× Á¤º¸
+		// ì¢Œí‘œ ë³€í™˜ ë””ë²„ê·¸ ì •ë³´
 		Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)m_rawMousePos.x, (float)m_rawMousePos.y));
 		ss << L"World Pos: (" << (int)mouseWorldPos.X << L", " << (int)mouseWorldPos.Y << L")\n";
 
@@ -2432,7 +2720,7 @@ void DontStarve_EditorMain::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 		}
 		ss << L"\n";
 
-		// ÆíÁı ¸ğµå »óÅÂ
+		// í¸ì§‘ ëª¨ë“œ ìƒíƒœ
 		ss << L"Pivot Edit Mode: " << (m_isPivotEditMode ? L"ON" : L"OFF") << L"\n";
 		ss << L"Collider Edit Mode: " << (m_isColliderEditMode ? L"ON" : L"OFF") << L"\n";
 		ss << L"Walkable Area Edit Mode: " << (m_isWalkableEditMode ? L"ON" : L"OFF") << L"\n";
@@ -2440,38 +2728,38 @@ void DontStarve_EditorMain::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 
 		if (m_isPlacingMode)
 		{
-			ss << L"\n Selected Tile Info\n";
+			ss << L"\n ì„ íƒëœ íƒ€ì¼ ì •ë³´\n";
 			const TileVariant* tv = m_subPalette.getSelectedTileVariant();
 			if (tv) {
-				ss << L"¼±ÅÃµÈ Å¸ÀÏ - Type: " << EnumUtils::GetEnumName(tv->type)
+				ss << L"ì„ íƒëœ íƒ€ì¼ - Type: " << EnumUtils::GetEnumName(tv->type)
 					<< L", ID: " << EnumUtils::GetEnumName(tv->id) << L"\n";
 			}
 
 			const ObjectVariant* ov = m_subPalette.getSelectedObjectVariant();
 			if (ov) {
-				ss << L"¼±ÅÃµÈ ¿ÀºêÁ§Æ® - Type: " << EnumUtils::GetEnumName(ov->type)
+				ss << L"ì„ íƒëœ ì˜¤ë¸Œì íŠ¸ - Type: " << EnumUtils::GetEnumName(ov->type)
 					<< L", ID: " << EnumUtils::GetEnumName(ov->id) << L"\n";
 			}
 		}
 
 
 
-		// ¼±ÅÃµÈ ¿ÀºêÁ§Æ®
+		// ì„ íƒëœ ì˜¤ë¸Œì íŠ¸
 		if (m_selectedObjectPtr) {
-			ss << L"\n¼±ÅÃµÈ ¸Ê ¿ÀºêÁ§Æ®:" << L"\n";
+			ss << L"\nì„ íƒëœ ë§µ ì˜¤ë¸Œì íŠ¸:" << L"\n";
 			ss << L"Type: " << EnumUtils::GetEnumName(m_selectedObjectPtr->type)
 				<< L", ID: " << EnumUtils::GetEnumName(m_selectedObjectPtr->id) << L"\n";
-			ss << L"À§Ä¡ - X: " << m_selectedObjectPtr->x << L", Y: " << m_selectedObjectPtr->y << L"\n";
+			ss << L"ìœ„ì¹˜ - X: " << m_selectedObjectPtr->x << L", Y: " << m_selectedObjectPtr->y << L"\n";
 			ss << L"Pivot: " << m_selectedObjectPtr->pivotX << L", " << m_selectedObjectPtr->pivotY << L"\n";
 		}
 
-		ss << L"\n¼º´É Á¤º¸ È®ÀÎ" << L"\n";
+		ss << L"\nì„±ëŠ¥ ì •ë³´ í™•ì¸" << L"\n";
 
-		// ¼º´É Á¤º¸
+		// ì„±ëŠ¥ ì •ë³´
 		ss << L"FPS: " << (int)m_currentFPS << L"\n";
 		ss << L"Layer Memory: " << (int)GetLayerMemoryUsageMB() << L"MB\n";
 
-		// ÁÜ ¹× È­¸é Å©±â Á¤º¸
+		// ì¤Œ ë° í™”ë©´ í¬ê¸° ì •ë³´
 		float screenTileSize = (float)TILE_SIZE * m_zoomFactor;
 		ss << L"\nScreen Tile Size: " << (int)screenTileSize << L"px (World: " << TILE_SIZE << L"px)\n";
 		ss << L"Zoom Factor: " << (int)(m_zoomFactor * 100) << L"%\n";
@@ -2479,7 +2767,7 @@ void DontStarve_EditorMain::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 			ss << L"Layer Size: " << m_tileLayerBitmap->GetWidth() << L"x" << m_tileLayerBitmap->GetHeight() << L"px\n";
 		}
 
-		// ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ® Á¤º¸
+		// í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ ì •ë³´
 		ss << L"\nPlayer Spawn Mode: " << (m_isPlayerSpawnMode ? L"ON" : L"OFF") << L"\n";
 		if (m_hasPlayerSpawn) {
 			ss << L"Player Spawn: (" << (int)m_playerSpawnPoint.X << L", " << (int)m_playerSpawnPoint.Y << L")\n";
@@ -2490,7 +2778,7 @@ void DontStarve_EditorMain::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 
 		ss << L"Objects in Map: " << m_gameObjects.size() << L"\n";
 
-		// Walkable Areas Åë°è
+		// Walkable Areas í†µê³„
 		if (m_isWalkableEditMode) {
 			int walkableCount = 0;
 			int blockedCount = 0;
@@ -2517,25 +2805,27 @@ void DontStarve_EditorMain::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 		ss << L"Ctrl+S: Save Map\n";
 		ss << L"Ctrl+O: Load Map\n";
 
-		debugInfoString = ss.str(); // ¹®ÀÚ¿­ Ä³½Ã
+		debugInfoString = ss.str(); // ë¬¸ìì—´ ìºì‹œ
 	}
 
-	Gdiplus::Font font(L"Arial", 10);
+	// í•œê¸€ í‘œì‹œë¥¼ ìœ„í•œ í°íŠ¸ ì‚¬ìš© (ë§‘ì€ ê³ ë”•ì€ í•œê¸€ ë¬¸ìë¥¼ ì§€ì›í•¨)
+	Gdiplus::Font font(L"Malgun Gothic", 10, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
 	Gdiplus::SolidBrush brush(Gdiplus::Color(255, 0, 0, 0));
+	pGraphics->SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
 	pGraphics->DrawString(debugInfoString.c_str(), -1, &font, Gdiplus::PointF(10, 10), &brush);
 }
 
-// DrawSubPalette (ÇÏÀ§ ÆÈ·¹Æ® ³»¿ë ±×¸®±â)
+// DrawSubPalette (í•˜ìœ„ íŒ”ë ˆíŠ¸ ë‚´ìš© ê·¸ë¦¬ê¸°)
 void DontStarve_EditorMain::DrawSubPalette(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics || !m_subPalette.isOpen) return;
 
-	// ÇÏÀ§ ÆÈ·¹Æ® ¹è°æ ±×¸®±â
+	// í•˜ìœ„ íŒ”ë ˆíŠ¸ ë°°ê²½ ê·¸ë¦¬ê¸°
 	Gdiplus::SolidBrush subPaletteBackgroundBrush(Gdiplus::Color(100, 50, 50, 50));
 	pGraphics->FillRectangle(&subPaletteBackgroundBrush,
 		(Gdiplus::REAL)m_subPalette.rect.left, (Gdiplus::REAL)m_subPalette.rect.top,
 		(Gdiplus::REAL)(m_subPalette.rect.right - m_subPalette.rect.left), (Gdiplus::REAL)(m_subPalette.rect.bottom - m_subPalette.rect.top));
 
-	// ÇÏÀ§ ÆÈ·¹Æ® ¾ÆÀÌÅÛ ±×¸®±â
+	// í•˜ìœ„ íŒ”ë ˆíŠ¸ ì•„ì´í…œ ê·¸ë¦¬ê¸°
 	int subItemSize = 48;
 	for (size_t i = 0; i < m_subPalette.itemRects.size(); ++i)
 	{
@@ -2564,26 +2854,26 @@ void DontStarve_EditorMain::DrawSubPalette(Gdiplus::Graphics* pGraphics) {
 
 		if (itemBitmap && itemBitmap->GetLastStatus() == Gdiplus::Ok)
 		{
-			// ¾ÆÀÌÄÜ ¹è°æ (¼±ÅÃ ¿©ºÎ¿¡ µû¶ó »ö»ó º¯°æ °¡´É)
+			// ì•„ì´ì½˜ ë°°ê²½ (ì„ íƒ ì—¬ë¶€ì— ë”°ë¼ ìƒ‰ìƒ ë³€ê²½ ê°€ëŠ¥)
 			Gdiplus::SolidBrush itemBackgroundBrush(Gdiplus::Color(100, 70, 70, 70));
 			pGraphics->FillRectangle(&itemBackgroundBrush,
 				(Gdiplus::REAL)itemRect.left, (Gdiplus::REAL)itemRect.top,
 				(Gdiplus::REAL)(itemRect.right - itemRect.left), (Gdiplus::REAL)(itemRect.bottom - itemRect.top));
 
-			// ¾ÆÀÌÄÜ ÀÌ¹ÌÁö ±×¸®±â 
+			// ì•„ì´ì½˜ ì´ë¯¸ì§€ ê·¸ë¦¬ê¸° 
 			pGraphics->DrawImage(itemBitmap,
 				Gdiplus::RectF((float)itemRect.left, (float)itemRect.top, (float)itemRect.right - itemRect.left, (float)itemRect.bottom - itemRect.top),
 				itemSourceRect.X, itemSourceRect.Y, itemSourceRect.Width, itemSourceRect.Height,
 				Gdiplus::UnitPixel);
 
-			// ÅØ½ºÆ® ±×¸®±â (¾ÆÀÌÅÛ ÀÌ¸§)
+			// í…ìŠ¤íŠ¸ ê·¸ë¦¬ê¸° (ì•„ì´í…œ ì´ë¦„)
 			Gdiplus::Font font(L"Arial", 7);
 			Gdiplus::SolidBrush textBrush(Gdiplus::Color(255, 255, 255, 255));
 			pGraphics->DrawString(itemName.c_str(), -1, &font,
 				Gdiplus::PointF((float)itemRect.left, (float)itemRect.bottom - 12), &textBrush);
 		}
 
-		// ¼±ÅÃµÈ ÇÏÀ§ ÆÈ·¹Æ® ¾ÆÀÌÅÛ °­Á¶
+		// ì„ íƒëœ í•˜ìœ„ íŒ”ë ˆíŠ¸ ì•„ì´í…œ ê°•ì¡°
 		if ((m_subPalette.category == CATEGORY_TILE && (int)i == m_subPalette.selectedTileVariantIndex) ||
 			(m_subPalette.category == CATEGORY_OBJECT && (int)i == m_subPalette.selectedObjectVariantIndex)) {
 			Gdiplus::Pen highlightPen(Gdiplus::Color(255, 255, 255, 0), 3.0f);
@@ -2594,7 +2884,7 @@ void DontStarve_EditorMain::DrawSubPalette(Gdiplus::Graphics* pGraphics) {
 	}
 }
 
-// Pivot ÆíÁı °ü·Ã ÇÔ¼öµé
+// Pivot í¸ì§‘ ê´€ë ¨ í•¨ìˆ˜ë“¤
 void DontStarve_EditorMain::StartPivotEdit(GameObjectData* pObject)
 {
 	if (!pObject) return;
@@ -2604,31 +2894,31 @@ void DontStarve_EditorMain::StartPivotEdit(GameObjectData* pObject)
 	m_currentPivotY = pObject->pivotY;
 	m_isPivotEditMode = true;
 
-	// ÆíÁı ÁßÀÎ ¿ÀºêÁ§Æ®ÀÇ ObjectVariant Á¤ÀÇ¸¦ °¡Á®¿È
+	// í¸ì§‘ ì¤‘ì¸ ì˜¤ë¸Œì íŠ¸ì˜ ObjectVariant ì •ì˜ë¥¼ ê°€ì ¸ì˜´
 	const ObjectVariant* ov = GetObjectVariant(pObject->type, pObject->id);
 	if (!ov) {
 		OutputDebugStringW(L"Error: ObjectVariant not found for pivot edit.\n");
-		return; // ObjectVariant ¾øÀ¸¸é ÇÇ¹ş ÆíÁı ºÒ°¡
+		return; // ObjectVariant ì—†ìœ¼ë©´ í”¼ë²— í¸ì§‘ ë¶ˆê°€
 	}
 
-	// ¿ÀºêÁ§Æ® ÀÌ¹ÌÁöÀÇ ½ÇÁ¦ Å©±â (ObjectVariant.sourceRect¿¡¼­ °¡Á®¿È)
+	// ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ì˜ ì‹¤ì œ í¬ê¸° (ObjectVariant.sourceRectì—ì„œ ê°€ì ¸ì˜´)
 	float objWidth = (float)ov->sourceRect.Width;
 	float objHeight = (float)ov->sourceRect.Height;
 
-	// ¿ÀºêÁ§Æ®ÀÇ ¿ùµå ÁÂÇ¥ (pObject->x, pObject->y´Â ¹ß ¹Ø Áß½É)
-	// È­¸é ÁÂÇ¥·Î º¯È¯ (m_mapOffset, zoomFactor)
+	// ì˜¤ë¸Œì íŠ¸ì˜ ì›”ë“œ ì¢Œí‘œ (pObject->x, pObject->yëŠ” ë°œ ë°‘ ì¤‘ì‹¬)
+	// í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜ (m_mapOffset, zoomFactor)
 	float screenX_center = (float)pObject->x * m_zoomFactor + m_mapOffset.x;
 	float screenY_center = (float)pObject->y * m_zoomFactor + m_mapOffset.y;
 
-	// ½ºÄÉÀÏµÈ ÀÌ¹ÌÁö Å©±â
+	// ìŠ¤ì¼€ì¼ëœ ì´ë¯¸ì§€ í¬ê¸°
 	float scaledWidth = objWidth * m_zoomFactor;
 	float scaledHeight = objHeight * m_zoomFactor;
 
-	// ¿ÀºêÁ§Æ® ÀÌ¹ÌÁöÀÇ ÁÂ»ó´Ü (ÇÇ¹ş °í·Á ÈÄ)
+	// ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ì˜ ì¢Œìƒë‹¨ (í”¼ë²— ê³ ë ¤ í›„)
 	float imageRenderLeft = screenX_center - (ov->pivotX * scaledWidth);
 	float imageRenderTop = screenY_center - (ov->pivotY * scaledHeight);
 
-	// ÆíÁı±âÀÇ ½ÃÀÛ À§Ä¡ (ÇöÀç ÇÇ¹ş °ª¿¡ ÇØ´çÇÏ´Â ÀÌ¹ÌÁöÀÇ È­¸é»ó ÁöÁ¡)
+	// í¸ì§‘ê¸°ì˜ ì‹œì‘ ìœ„ì¹˜ (í˜„ì¬ í”¼ë²— ê°’ì— í•´ë‹¹í•˜ëŠ” ì´ë¯¸ì§€ì˜ í™”ë©´ìƒ ì§€ì )
 	m_pivotEditPos.x = (LONG)(imageRenderLeft + (m_currentPivotX * scaledWidth));
 	m_pivotEditPos.y = (LONG)(imageRenderTop + (m_currentPivotY * scaledHeight));
 }
@@ -2637,43 +2927,43 @@ void DontStarve_EditorMain::UpdatePivotEdit(POINT mousePos)
 {
 	if (!m_editingObject || !m_isPivotEditMode) return;
 
-	// ÆíÁı ÁßÀÎ ¿ÀºêÁ§Æ®ÀÇ ObjectVariant Á¤ÀÇ¸¦ °¡Á®¿È
+	// í¸ì§‘ ì¤‘ì¸ ì˜¤ë¸Œì íŠ¸ì˜ ObjectVariant ì •ì˜ë¥¼ ê°€ì ¸ì˜´
 	const ObjectVariant* ov = GetObjectVariant(m_editingObject->type, m_editingObject->id);
 	if (!ov) {
 		OutputDebugStringW(L"Error: ObjectVariant not found during pivot update.\n");
 		return;
 	}
 
-	// ¿ÀºêÁ§Æ® ÀÌ¹ÌÁöÀÇ ½ÇÁ¦ Å©±â
+	// ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ì˜ ì‹¤ì œ í¬ê¸°
 	float objWidth = (float)ov->sourceRect.Width;
 	float objHeight = (float)ov->sourceRect.Height;
 
-	// ¿ÀºêÁ§Æ®ÀÇ ¿ùµå ÁÂÇ¥ (m_editingObject->x, m_editingObject->y´Â ¹ß ¹Ø Áß½É)
-	// È­¸é ÁÂÇ¥·Î º¯È¯
+	// ì˜¤ë¸Œì íŠ¸ì˜ ì›”ë“œ ì¢Œí‘œ (m_editingObject->x, m_editingObject->yëŠ” ë°œ ë°‘ ì¤‘ì‹¬)
+	// í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜
 	float screenX_center = (float)m_editingObject->x * m_zoomFactor + m_mapOffset.x;
 	float screenY_center = (float)m_editingObject->y * m_zoomFactor + m_mapOffset.y;
 
 	float scaledWidth = objWidth * m_zoomFactor;
 	float scaledHeight = objHeight * m_zoomFactor;
 
-	// ¿ÀºêÁ§Æ® ÀÌ¹ÌÁöÀÇ ÁÂ»ó´Ü (ÇÇ¹ş °í·Á ÈÄ)
+	// ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ì˜ ì¢Œìƒë‹¨ (í”¼ë²— ê³ ë ¤ í›„)
 	float imageRenderLeft = screenX_center - (ov->pivotX * scaledWidth);
 	float imageRenderTop = screenY_center - (ov->pivotY * scaledHeight);
 
-	// ¸¶¿ì½º À§Ä¡¸¦ ¿ÀºêÁ§Æ® ÀÌ¹ÌÁöÀÇ ·ÎÄÃ ÁÂÇ¥ (0.0f ~ 1.0f)·Î º¯È¯
-	// mousePos´Â È­¸é Àı´ë ÁÂÇ¥
+	// ë§ˆìš°ìŠ¤ ìœ„ì¹˜ë¥¼ ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ì˜ ë¡œì»¬ ì¢Œí‘œ (0.0f ~ 1.0f)ë¡œ ë³€í™˜
+	// mousePosëŠ” í™”ë©´ ì ˆëŒ€ ì¢Œí‘œ
 	float localX = (mousePos.x - imageRenderLeft) / scaledWidth;
 	float localY = (mousePos.y - imageRenderTop) / scaledHeight;
 
-	// ÇÇ¹ş °ª (0.0f ~ 1.0f) ¹üÀ§ Á¦ÇÑ
+	// í”¼ë²— ê°’ (0.0f ~ 1.0f) ë²”ìœ„ ì œí•œ
 	m_currentPivotX = max(0.0f, min(1.0f, localX));
 	m_currentPivotY = max(0.0f, min(1.0f, localY));
 
-	// GameObjectData¿¡ ÇÇ¹ş °ª ÀúÀå
+	// GameObjectDataì— í”¼ë²— ê°’ ì €ì¥
 	m_editingObject->pivotX = m_currentPivotX;
 	m_editingObject->pivotY = m_currentPivotY;
 
-	// ¿ÀºêÁ§Æ® ·¹ÀÌ¾î ´Ù½Ã ±×¸®±â (ÇÇ¹ş º¯°æ ¹İ¿µ)
+	// ì˜¤ë¸Œì íŠ¸ ë ˆì´ì–´ ë‹¤ì‹œ ê·¸ë¦¬ê¸° (í”¼ë²— ë³€ê²½ ë°˜ì˜)
 	m_objectLayerDirty = true;
 }
 
@@ -2681,7 +2971,7 @@ void DontStarve_EditorMain::EndPivotEdit()
 {
 	m_isPivotEditMode = false;
 	m_editingObject = nullptr;
-	m_objectLayerDirty = true; // ÇÇ¹ş ÆíÁı Á¾·á ½Ã ·¹ÀÌ¾î °»½Å
+	m_objectLayerDirty = true; // í”¼ë²— í¸ì§‘ ì¢…ë£Œ ì‹œ ë ˆì´ì–´ ê°±ì‹ 
 }
 
 void DontStarve_EditorMain::StartColliderEdit(GameObjectData* obj)
@@ -2689,43 +2979,43 @@ void DontStarve_EditorMain::StartColliderEdit(GameObjectData* obj)
 	m_isColliderEditMode = true;
 	m_editingColliderObject = obj;
 	if (m_editingColliderObject) {
-		// Äİ¶óÀÌ´õ°¡ ¾øÀ¸¸é ¿ÀºêÁ§Æ® ÀÌ¹ÌÁö Å©±â¿¡ ¸Â°Ô ÃÊ±âÈ­ (ÇÇ¹şÀ» °í·ÁÇÑ ·»´õ¸µ ¿µ¿ª°ú µ¿ÀÏÇÏ°Ô)
+		// ì½œë¼ì´ë”ê°€ ì—†ìœ¼ë©´ ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ í¬ê¸°ì— ë§ê²Œ ì´ˆê¸°í™” (í”¼ë²—ì„ ê³ ë ¤í•œ ë Œë”ë§ ì˜ì—­ê³¼ ë™ì¼í•˜ê²Œ)
 		if (!m_editingColliderObject->hasCollider) {
 			m_editingColliderObject->hasCollider = true;
-			m_editingColliderObject->colliderType = COLLIDER_BOX; // ±âº»°ªÀº BOX
+			m_editingColliderObject->colliderType = COLLIDER_BOX; // ê¸°ë³¸ê°’ì€ BOX
 
-			// ObjectVariant¿¡¼­ ¿ÀºêÁ§Æ® ÀÌ¹ÌÁö Å©±â °¡Á®¿À±â
+			// ObjectVariantì—ì„œ ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ í¬ê¸° ê°€ì ¸ì˜¤ê¸°
 			const ObjectVariant* ov = GetObjectVariant(obj->type, obj->id);
 			if (!ov) {
 				OutputDebugStringW(L"Error: ObjectVariant not found for collider edit.\n");
-				m_isColliderEditMode = false; // Variant ¾øÀ¸¸é ¸ğµå Á¾·á
+				m_isColliderEditMode = false; // Variant ì—†ìœ¼ë©´ ëª¨ë“œ ì¢…ë£Œ
 				m_editingColliderObject = nullptr;
 				return;
 			}
 
-			// ¿ÀºêÁ§Æ® ÀÌ¹ÌÁö Å©±â
+			// ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ í¬ê¸°
 			int imageWidth = (int)ov->sourceRect.Width;
 			int imageHeight = (int)ov->sourceRect.Height;
 
-			// ÇÇ¹şÀ» °í·ÁÇÑ ·»´õ¸µ ¿µ¿ªÀÇ ¿ŞÂÊ »ó´Ü ¿ÀÇÁ¼Â °è»ê
+			// í”¼ë²—ì„ ê³ ë ¤í•œ ë Œë”ë§ ì˜ì—­ì˜ ì™¼ìª½ ìƒë‹¨ ì˜¤í”„ì…‹ ê³„ì‚°
 			// objRenderLeftWorld = obj.x - (ov->pivotX * ov->sourceRect.Width)
-			// µû¶ó¼­ colliderOffsetX = -pivotX * imageWidth
+			// ë”°ë¼ì„œ colliderOffsetX = -pivotX * imageWidth
 			m_editingColliderObject->colliderOffsetX = -(int)(ov->pivotX * imageWidth);
 			m_editingColliderObject->colliderOffsetY = -(int)(ov->pivotY * imageHeight);
 
-			// Äİ¶óÀÌ´õ Å©±â¸¦ ÀÌ¹ÌÁö Å©±â¿¡ ¸Â°Ô ¼³Á¤
+			// ì½œë¼ì´ë” í¬ê¸°ë¥¼ ì´ë¯¸ì§€ í¬ê¸°ì— ë§ê²Œ ì„¤ì •
 			m_editingColliderObject->colliderWidth = imageWidth;
 			m_editingColliderObject->colliderHeight = imageHeight;
 
-			// CircleCollider ÃÊ±âÈ­ (ÀÌ¹ÌÁö Áß½É¿¡ À§Ä¡)
-			// ÀÌ¹ÌÁö Áß½É °è»ê: (width * (0.5f - pivotX), height * (0.5f - pivotY))
+			// CircleCollider ì´ˆê¸°í™” (ì´ë¯¸ì§€ ì¤‘ì‹¬ì— ìœ„ì¹˜)
+			// ì´ë¯¸ì§€ ì¤‘ì‹¬ ê³„ì‚°: (width * (0.5f - pivotX), height * (0.5f - pivotY))
 			m_editingColliderObject->colliderCenterX = imageWidth * (0.5f - ov->pivotX);
 			m_editingColliderObject->colliderCenterY = imageHeight * (0.5f - ov->pivotY);
-			// ¹İÁö¸§À» ÀÌ¹ÌÁö Å©±âÀÇ ÀÛÀº ÂÊÀÇ Àı¹İÀ¸·Î ¼³Á¤
+			// ë°˜ì§€ë¦„ì„ ì´ë¯¸ì§€ í¬ê¸°ì˜ ì‘ì€ ìª½ì˜ ì ˆë°˜ìœ¼ë¡œ ì„¤ì •
 			float smallerSize = (imageWidth < imageHeight) ? (float)imageWidth : (float)imageHeight;
 			m_editingColliderObject->colliderRadius = smallerSize * 0.5f;
 		}
-		// ÆíÁı ½ÃÀÛ ½Ã Äİ¶óÀÌ´õÀÇ ÃÊ±â »óÅÂ ÀúÀå (¿ÀºêÁ§Æ® ·ÎÄÃ ÁÂÇ¥°è ±âÁØ)
+		// í¸ì§‘ ì‹œì‘ ì‹œ ì½œë¼ì´ë”ì˜ ì´ˆê¸° ìƒíƒœ ì €ì¥ (ì˜¤ë¸Œì íŠ¸ ë¡œì»¬ ì¢Œí‘œê³„ ê¸°ì¤€)
 		if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
 			m_initialColliderRect = {
 				m_editingColliderObject->colliderOffsetX,
@@ -2740,10 +3030,10 @@ void DontStarve_EditorMain::StartColliderEdit(GameObjectData* obj)
 			m_initialColliderRadius = m_editingColliderObject->colliderRadius;
 		}
 	}
-	m_objectLayerDirty = true; // Äİ¶óÀÌ´õ ÆíÁı ¸ğµå ½ÃÀÛ ½Ã ·¹ÀÌ¾î °»½Å (¼±ÅÃ Ç¥½Ã µî)
+	m_objectLayerDirty = true; // ì½œë¼ì´ë” í¸ì§‘ ëª¨ë“œ ì‹œì‘ ì‹œ ë ˆì´ì–´ ê°±ì‹  (ì„ íƒ í‘œì‹œ ë“±)
 }
 
-// GetTileVariant (m_tileVariants ¸Ê¿¡¼­ TileVariant °Ë»ö)
+// GetTileVariant (m_tileVariants ë§µì—ì„œ TileVariant ê²€ìƒ‰)
 const TileVariant* DontStarve_EditorMain::GetTileVariant(TileType type, TileID id) const {
 	auto type_it = m_tileVariants.find(type);
 	if (type_it != m_tileVariants.end()) {
@@ -2755,7 +3045,7 @@ const TileVariant* DontStarve_EditorMain::GetTileVariant(TileType type, TileID i
 	return nullptr;
 }
 
-// GetObjectVariant (m_objectVariants ¸Ê¿¡¼­ ObjectVariant °Ë»ö)
+// GetObjectVariant (m_objectVariants ë§µì—ì„œ ObjectVariant ê²€ìƒ‰)
 const ObjectVariant* DontStarve_EditorMain::GetObjectVariant(GameObjectType type, GameObjectID id) const {
 	auto type_it = m_objectVariants.find(type);
 	if (type_it != m_objectVariants.end()) {
@@ -2767,26 +3057,26 @@ const ObjectVariant* DontStarve_EditorMain::GetObjectVariant(GameObjectType type
 	return nullptr;
 }
 
-// Äİ¶óÀÌ´õ ÆíÁı Á¾·á ÇÔ¼ö
+// ì½œë¼ì´ë” í¸ì§‘ ì¢…ë£Œ í•¨ìˆ˜
 void DontStarve_EditorMain::EndColliderEdit() {
 	m_isColliderEditMode = false;
 	m_editingColliderObject = nullptr;
 	m_isDraggingCollider = false;
 	m_draggingHandle = -1;
-	ReleaseCapture(); // È¤½Ã ¸ğ¸¦ Ä¸Ã³ ÇØÁ¦
+	ReleaseCapture(); // í˜¹ì‹œ ëª¨ë¥¼ ìº¡ì²˜ í•´ì œ
 }
 
-// ¸¶¿ì½º À§Ä¡¿¡ Äİ¶óÀÌ´õ ÇÚµéÀÌ ÀÖ´ÂÁö È®ÀÎÇÏ´Â ÇÔ¼ö
-// ¹İÈ¯°ª: 0:ÁÂ»ó´Ü, 1:¿ì»ó´Ü, 2:ÁÂÇÏ´Ü, 3:¿ìÇÏ´Ü, 4:Áß¾Ó(ÀÌµ¿), 5:¹İÁö¸§Á¶Àı(CircleCollider), -1:¾øÀ½
+// ë§ˆìš°ìŠ¤ ìœ„ì¹˜ì— ì½œë¼ì´ë” í•¸ë“¤ì´ ìˆëŠ”ì§€ í™•ì¸í•˜ëŠ” í•¨ìˆ˜
+// ë°˜í™˜ê°’: 0:ì¢Œìƒë‹¨, 1:ìš°ìƒë‹¨, 2:ì¢Œí•˜ë‹¨, 3:ìš°í•˜ë‹¨, 4:ì¤‘ì•™(ì´ë™), 5:ë°˜ì§€ë¦„ì¡°ì ˆ(CircleCollider), -1:ì—†ìŒ
 int DontStarve_EditorMain::GetColliderHandleAt(POINT screenPos) {
 	if (!m_isColliderEditMode || !m_editingColliderObject || !m_editingColliderObject->hasCollider) return -1;
 
-	float handleSize = 8.0f; // ÇÚµé Å©±â (È­¸é ÇÈ¼¿)
+	float handleSize = 8.0f; // í•¸ë“¤ í¬ê¸° (í™”ë©´ í”½ì…€)
 	float halfHandle = handleSize / 2.0f;
-	float clickTolerance = handleSize / 2.0f; // Å¬¸¯ Çã¿ë ¿ÀÂ÷ (ÇÚµé Áß½ÉÀ¸·ÎºÎÅÍ)
+	float clickTolerance = handleSize / 2.0f; // í´ë¦­ í—ˆìš© ì˜¤ì°¨ (í•¸ë“¤ ì¤‘ì‹¬ìœ¼ë¡œë¶€í„°)
 
 	if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
-		// BoxCollider Ã³¸®
+		// BoxCollider ì²˜ë¦¬
 		float objRenderX = (float)m_editingColliderObject->x * m_zoomFactor + m_mapOffset.x;
 		float objRenderY = (float)m_editingColliderObject->y * m_zoomFactor + m_mapOffset.y;
 
@@ -2795,29 +3085,29 @@ int DontStarve_EditorMain::GetColliderHandleAt(POINT screenPos) {
 		float colliderRenderWidth = (float)m_editingColliderObject->colliderWidth * m_zoomFactor;
 		float colliderRenderHeight = (float)m_editingColliderObject->colliderHeight * m_zoomFactor;
 
-		// ÇÚµé ¿µ¿ª (ÁÂ»ó´Ü, ¿ì»ó´Ü, ÁÂÇÏ´Ü, ¿ìÇÏ´Ü)
+		// í•¸ë“¤ ì˜ì—­ (ì¢Œìƒë‹¨, ìš°ìƒë‹¨, ì¢Œí•˜ë‹¨, ìš°í•˜ë‹¨)
 		Gdiplus::PointF handleCenters[4];
-		handleCenters[0] = Gdiplus::PointF(colliderRenderX, colliderRenderY); // ÁÂ»ó´Ü
-		handleCenters[1] = Gdiplus::PointF(colliderRenderX + colliderRenderWidth, colliderRenderY); // ¿ì»ó´Ü
-		handleCenters[2] = Gdiplus::PointF(colliderRenderX, colliderRenderY + colliderRenderHeight); // ÁÂÇÏ´Ü
-		handleCenters[3] = Gdiplus::PointF(colliderRenderX + colliderRenderWidth, colliderRenderY + colliderRenderHeight); // ¿ìÇÏ´Ü
+		handleCenters[0] = Gdiplus::PointF(colliderRenderX, colliderRenderY); // ì¢Œìƒë‹¨
+		handleCenters[1] = Gdiplus::PointF(colliderRenderX + colliderRenderWidth, colliderRenderY); // ìš°ìƒë‹¨
+		handleCenters[2] = Gdiplus::PointF(colliderRenderX, colliderRenderY + colliderRenderHeight); // ì¢Œí•˜ë‹¨
+		handleCenters[3] = Gdiplus::PointF(colliderRenderX + colliderRenderWidth, colliderRenderY + colliderRenderHeight); // ìš°í•˜ë‹¨
 
 		for (int i = 0; i < 4; ++i) {
-			// ¸¶¿ì½º Å¬¸¯ÀÌ ÇÚµé Áß½ÉÀ¸·ÎºÎÅÍ Çã¿ë ¿ÀÂ÷ ¹üÀ§ ³»¿¡ ÀÖ´ÂÁö È®ÀÎ
+			// ë§ˆìš°ìŠ¤ í´ë¦­ì´ í•¸ë“¤ ì¤‘ì‹¬ìœ¼ë¡œë¶€í„° í—ˆìš© ì˜¤ì°¨ ë²”ìœ„ ë‚´ì— ìˆëŠ”ì§€ í™•ì¸
 			if (abs(screenPos.x - handleCenters[i].X) < clickTolerance &&
 				abs(screenPos.y - handleCenters[i].Y) < clickTolerance) {
-				return i; // ÇÚµé ÀÎµ¦½º ¹İÈ¯
+				return i; // í•¸ë“¤ ì¸ë±ìŠ¤ ë°˜í™˜
 			}
 		}
 
-		// Áß¾Ó ÀÌµ¿ ÇÚµé ¶Ç´Â Äİ¶óÀÌ´õ ³»ºÎ (ÀÌµ¿)
+		// ì¤‘ì•™ ì´ë™ í•¸ë“¤ ë˜ëŠ” ì½œë¼ì´ë” ë‚´ë¶€ (ì´ë™)
 		Gdiplus::RectF colliderBounds(colliderRenderX, colliderRenderY, colliderRenderWidth, colliderRenderHeight);
 		if (colliderBounds.Contains((float)screenPos.x, (float)screenPos.y)) {
-			return 4; // Áß¾Ó (ÀÌµ¿) ÇÚµé
+			return 4; // ì¤‘ì•™ (ì´ë™) í•¸ë“¤
 		}
 	}
 	else if (m_editingColliderObject->colliderType == COLLIDER_CIRCLE) {
-		// CircleCollider Ã³¸®
+		// CircleCollider ì²˜ë¦¬
 		float worldCenterX = m_editingColliderObject->x + m_editingColliderObject->colliderCenterX;
 		float worldCenterY = m_editingColliderObject->y + m_editingColliderObject->colliderCenterY;
 		float radius = m_editingColliderObject->colliderRadius;
@@ -2826,31 +3116,31 @@ int DontStarve_EditorMain::GetColliderHandleAt(POINT screenPos) {
 		float screenCenterY = worldCenterY * m_zoomFactor + m_mapOffset.y;
 		float screenRadius = radius * m_zoomFactor;
 
-		// ¹İÁö¸§ Á¶Àı ÇÚµé (¿øÀÇ ¿À¸¥ÂÊ Áß¾Ó)
+		// ë°˜ì§€ë¦„ ì¡°ì ˆ í•¸ë“¤ (ì›ì˜ ì˜¤ë¥¸ìª½ ì¤‘ì•™)
 		float radiusHandleX = screenCenterX + screenRadius;
 		float radiusHandleY = screenCenterY;
 		float dx = (float)screenPos.x - radiusHandleX;
 		float dy = (float)screenPos.y - radiusHandleY;
 		float distance = sqrtf(dx * dx + dy * dy);
 		if (distance < clickTolerance) {
-			return 5; // ¹İÁö¸§ Á¶Àı ÇÚµé
+			return 5; // ë°˜ì§€ë¦„ ì¡°ì ˆ í•¸ë“¤
 		}
 
-		// Áß½ÉÁ¡ ÀÌµ¿ ÇÚµé (¿øÀÇ Áß½É)
+		// ì¤‘ì‹¬ì  ì´ë™ í•¸ë“¤ (ì›ì˜ ì¤‘ì‹¬)
 		dx = (float)screenPos.x - screenCenterX;
 		dy = (float)screenPos.y - screenCenterY;
 		distance = sqrtf(dx * dx + dy * dy);
 		if (distance < clickTolerance) {
-			return 4; // Áß½ÉÁ¡ ÀÌµ¿ ÇÚµé
+			return 4; // ì¤‘ì‹¬ì  ì´ë™ í•¸ë“¤
 		}
 
-		// ¿ø ³»ºÎ Å¬¸¯ (ÀÌµ¿)
+		// ì› ë‚´ë¶€ í´ë¦­ (ì´ë™)
 		if (distance <= screenRadius) {
-			return 4; // Áß¾Ó (ÀÌµ¿) ÇÚµé
+			return 4; // ì¤‘ì•™ (ì´ë™) í•¸ë“¤
 		}
 	}
 
-	return -1; // ÇÚµé ¾øÀ½
+	return -1; // í•¸ë“¤ ì—†ìŒ
 }
 
 void DontStarve_EditorMain::ComposePaletteLayer() {
@@ -2864,43 +3154,43 @@ void DontStarve_EditorMain::ComposePaletteLayer() {
 	m_paletteLayerDirty = false;
 }
 
-// ComposeGridLayer (±×¸®µå ·¹ÀÌ¾î ºñÆ®¸ÊÀ» ¹Ì¸® ±×¸®´Â ÇÔ¼ö)
+// ComposeGridLayer (ê·¸ë¦¬ë“œ ë ˆì´ì–´ ë¹„íŠ¸ë§µì„ ë¯¸ë¦¬ ê·¸ë¦¬ëŠ” í•¨ìˆ˜)
 void DontStarve_EditorMain::ComposeGridLayer() {
-	// m_gridLayerDirty ÇÃ·¡±×°¡ falseÀÌ°Å³ª, m_gridLayerBitmapÀÌ À¯È¿ÇÏÁö ¾ÊÀ¸¸é ´Ù½Ã ±×¸®Áö ¾Ê½À´Ï´Ù.
+	// m_gridLayerDirty í”Œë˜ê·¸ê°€ falseì´ê±°ë‚˜, m_gridLayerBitmapì´ ìœ íš¨í•˜ì§€ ì•Šìœ¼ë©´ ë‹¤ì‹œ ê·¸ë¦¬ì§€ ì•ŠìŠµë‹ˆë‹¤.
 	if (!m_gridLayerDirty || !m_gridLayerBitmap) return;
 
-	// --- µğ¹ö±ë ½ÃÀÛ: ±×¸®µå ·¹ÀÌ¾î Àç±¸¼º ½ÃÀÛ ---
+	// --- ë””ë²„ê¹… ì‹œì‘: ê·¸ë¦¬ë“œ ë ˆì´ì–´ ì¬êµ¬ì„± ì‹œì‘ ---
 	// OutputDebugStringW(L"Composing Grid Layer: START\n"); 
-	// --- µğ¹ö±ë ³¡ ---
+	// --- ë””ë²„ê¹… ë ---
 
 	Gdiplus::Graphics gridLayerGraphics(m_gridLayerBitmap);
-	// ±×¸®µå ºñÆ®¸ÊÀ» Åõ¸íÇÏ°Ô Å¬¸®¾îÇÕ´Ï´Ù.
+	// ê·¸ë¦¬ë“œ ë¹„íŠ¸ë§µì„ íˆ¬ëª…í•˜ê²Œ í´ë¦¬ì–´í•©ë‹ˆë‹¤.
 	gridLayerGraphics.Clear(Gdiplus::Color(0, 0, 0, 0));
 
-	// DrawGrid ÇÔ¼ö¸¦ È£ÃâÇÏ¿© ¸ğµç ±×¸®µå ¼±À» m_gridLayerBitmap À§¿¡ ±×¸³´Ï´Ù.
-	// DrawGrid´Â ¸Ê ÁÂÇ¥°è¸¦ ±âÁØÀ¸·Î ±×¸®µå ¼±À» ±×¸³´Ï´Ù.
-	// m_zoomFactor¿Í g_displayScaleFactor°¡ DrawGrid ³»ºÎ¿¡¼­ Àû¿ëµË´Ï´Ù.
+	// DrawGrid í•¨ìˆ˜ë¥¼ í˜¸ì¶œí•˜ì—¬ ëª¨ë“  ê·¸ë¦¬ë“œ ì„ ì„ m_gridLayerBitmap ìœ„ì— ê·¸ë¦½ë‹ˆë‹¤.
+	// DrawGridëŠ” ë§µ ì¢Œí‘œê³„ë¥¼ ê¸°ì¤€ìœ¼ë¡œ ê·¸ë¦¬ë“œ ì„ ì„ ê·¸ë¦½ë‹ˆë‹¤.
+	// m_zoomFactorì™€ g_displayScaleFactorê°€ DrawGrid ë‚´ë¶€ì—ì„œ ì ìš©ë©ë‹ˆë‹¤.
 	DrawGrid(&gridLayerGraphics);
 
-	// ±×¸®µå ·¹ÀÌ¾î°¡ ¼º°øÀûÀ¸·Î Àç±¸¼ºµÇ¾úÀ¸¹Ç·Î Dirty ÇÃ·¡±×¸¦ false·Î ¼³Á¤ÇÕ´Ï´Ù.
+	// ê·¸ë¦¬ë“œ ë ˆì´ì–´ê°€ ì„±ê³µì ìœ¼ë¡œ ì¬êµ¬ì„±ë˜ì—ˆìœ¼ë¯€ë¡œ Dirty í”Œë˜ê·¸ë¥¼ falseë¡œ ì„¤ì •í•©ë‹ˆë‹¤.
 	m_gridLayerDirty = false;
 
-	// --- µğ¹ö±ë ½ÃÀÛ: ±×¸®µå ·¹ÀÌ¾î Àç±¸¼º ¿Ï·á ---
+	// --- ë””ë²„ê¹… ì‹œì‘: ê·¸ë¦¬ë“œ ë ˆì´ì–´ ì¬êµ¬ì„± ì™„ë£Œ ---
 	// OutputDebugStringW(L"Composing Grid Layer: END (Dirty set to false)\n");
-	// --- µğ¹ö±ë ³¡ ---
+	// --- ë””ë²„ê¹… ë ---
 }
 
 Gdiplus::RectF DontStarve_EditorMain::GetViewWorldRect(float cullingMargin) const {
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
 
-	// È­¸é ÁÂÇ¥(ÇÈ¼¿)¸¦ ¿ùµå ÁÂÇ¥·Î ¿ªº¯È¯
+	// í™”ë©´ ì¢Œí‘œ(í”½ì…€)ë¥¼ ì›”ë“œ ì¢Œí‘œë¡œ ì—­ë³€í™˜
 	float viewWorldX = -(Gdiplus::REAL)m_mapOffset.x / (m_zoomFactor);
 	float viewWorldY = -(Gdiplus::REAL)m_mapOffset.y / (m_zoomFactor);
 	float viewWorldWidth = (Gdiplus::REAL)clientRect.right / (m_zoomFactor);
 	float viewWorldHeight = (Gdiplus::REAL)clientRect.bottom / (m_zoomFactor);
 
-	// ÄÃ¸µ ¸¶Áø Àû¿ë
+	// ì»¬ë§ ë§ˆì§„ ì ìš©
 	if (cullingMargin > 0.0f) {
 		viewWorldX -= cullingMargin;
 		viewWorldY -= cullingMargin;
@@ -2918,7 +3208,7 @@ Gdiplus::PointF DontStarve_EditorMain::WorldToScreen(Gdiplus::PointF worldPos) c
 	);
 }
 
-// ¿ùµå Rect¸¦ È­¸é Rect·Î º¯È¯
+// ì›”ë“œ Rectë¥¼ í™”ë©´ Rectë¡œ ë³€í™˜
 Gdiplus::RectF DontStarve_EditorMain::WorldToScreen(Gdiplus::RectF worldRect) const {
 	Gdiplus::PointF screenTopLeft = WorldToScreen(Gdiplus::PointF(worldRect.X, worldRect.Y));
 	return Gdiplus::RectF(
@@ -2929,7 +3219,7 @@ Gdiplus::RectF DontStarve_EditorMain::WorldToScreen(Gdiplus::RectF worldRect) co
 	);
 }
 
-// È­¸é ÁÂÇ¥¸¦ ¿ùµå ÁÂÇ¥·Î º¯È¯
+// í™”ë©´ ì¢Œí‘œë¥¼ ì›”ë“œ ì¢Œí‘œë¡œ ë³€í™˜
 Gdiplus::PointF DontStarve_EditorMain::ScreenToWorld(Gdiplus::PointF screenPos) const {
 	return Gdiplus::PointF(
 		(screenPos.X - m_mapOffset.x) / m_zoomFactor,
@@ -2941,41 +3231,41 @@ Gdiplus::PointF DontStarve_EditorMain::ScreenToWorld(Gdiplus::PointF screenPos) 
 void DontStarve_EditorMain::DrawPivotEditor(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics || !m_isPivotEditMode || !m_editingObject) return;
 
-	// ¿ÀºêÁ§Æ®ÀÇ ObjectVariant °¡Á®¿À±â
+	// ì˜¤ë¸Œì íŠ¸ì˜ ObjectVariant ê°€ì ¸ì˜¤ê¸°
 	const ObjectVariant* ov = GetObjectVariant(m_editingObject->type, m_editingObject->id);
 	if (!ov || !ov->pAtlasBitmap) return;
 
-	// ¿ÀºêÁ§Æ®ÀÇ ¿ùµå ÁÂÇ¥ (m_editingObject->x,y´Â ¹ß ¹Ø Áß¾Ó)
+	// ì˜¤ë¸Œì íŠ¸ì˜ ì›”ë“œ ì¢Œí‘œ (m_editingObject->x,yëŠ” ë°œ ë°‘ ì¤‘ì•™)
 	float objWorldX = (float)m_editingObject->x;
 	float objWorldY = (float)m_editingObject->y;
 
-	// ÀÌ¹ÌÁöÀÇ ½ÇÁ¦ Å©±â (ObjectVariant.sourceRect¿¡¼­ °¡Á®¿È)
+	// ì´ë¯¸ì§€ì˜ ì‹¤ì œ í¬ê¸° (ObjectVariant.sourceRectì—ì„œ ê°€ì ¸ì˜´)
 	float objWidth = (float)ov->sourceRect.Width;
 	float objHeight = (float)ov->sourceRect.Height;
 
-	// È­¸é»ó¿¡ ¿ÀºêÁ§Æ®°¡ ±×·ÁÁú ¿µ¿ªÀÇ ÁÂ»ó´Ü (ÇÇ¹ş °í·Á Àü) ¹× Å©±â (m_mapOffset, zoom, g_displayScaleFactor Àû¿ë)
-	// ¿ÀºêÁ§Æ®ÀÇ (x,y)´Â ¹ß ¹Ø Áß½É ¿ùµå ÁÂÇ¥ÀÌ¹Ç·Î, ÀÌ¸¦ È­¸é ÁÂÇ¥·Î º¯È¯
+	// í™”ë©´ìƒì— ì˜¤ë¸Œì íŠ¸ê°€ ê·¸ë ¤ì§ˆ ì˜ì—­ì˜ ì¢Œìƒë‹¨ (í”¼ë²— ê³ ë ¤ ì „) ë° í¬ê¸° (m_mapOffset, zoom, g_displayScaleFactor ì ìš©)
+	// ì˜¤ë¸Œì íŠ¸ì˜ (x,y)ëŠ” ë°œ ë°‘ ì¤‘ì‹¬ ì›”ë“œ ì¢Œí‘œì´ë¯€ë¡œ, ì´ë¥¼ í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜
 	float screenX_center = objWorldX * m_zoomFactor + m_mapOffset.x;
 	float screenY_center = objWorldY * m_zoomFactor + m_mapOffset.y;
 
 	float scaledWidth = objWidth * m_zoomFactor;
 	float scaledHeight = objHeight * m_zoomFactor;
 
-	// ÇÇ¹ş Æ÷ÀÎÆ® ±×¸®±â (ÇÇ¹ş À§Ä¡¿¡ ½ÊÀÚ¼± ¶Ç´Â Á¡)
-	// È­¸é»ó¿¡¼­ ¿ÀºêÁ§Æ® ÀÌ¹ÌÁöÀÇ ÁÂ»ó´Ü À§Ä¡ (ÇÇ¹ş °í·Á ÈÄ)
+	// í”¼ë²— í¬ì¸íŠ¸ ê·¸ë¦¬ê¸° (í”¼ë²— ìœ„ì¹˜ì— ì‹­ìì„  ë˜ëŠ” ì )
+	// í™”ë©´ìƒì—ì„œ ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ì˜ ì¢Œìƒë‹¨ ìœ„ì¹˜ (í”¼ë²— ê³ ë ¤ í›„)
 	float imageRenderLeft = screenX_center - (ov->pivotX * scaledWidth);
 	float imageRenderTop = screenY_center - (ov->pivotY * scaledHeight);
 
-	// ÇÇ¹ş ÁöÁ¡ (½ºÅ©¸° ÁÂÇ¥) - ÇöÀç ÆíÁı ÁßÀÎ m_editingObject->pivotX/Y¸¦ »ç¿ë
+	// í”¼ë²— ì§€ì  (ìŠ¤í¬ë¦° ì¢Œí‘œ) - í˜„ì¬ í¸ì§‘ ì¤‘ì¸ m_editingObject->pivotX/Yë¥¼ ì‚¬ìš©
 	float pivotScreenX = imageRenderLeft + (m_editingObject->pivotX * scaledWidth);
 	float pivotScreenY = imageRenderTop + (m_editingObject->pivotY * scaledHeight);
 
-	// ½ÊÀÚ¼±
+	// ì‹­ìì„ 
 	Gdiplus::Pen pivotPen(Gdiplus::Color(255, 255, 0, 0), 2.0f);
 	pGraphics->DrawLine(&pivotPen, pivotScreenX - 10, pivotScreenY, pivotScreenX + 10, pivotScreenY);
 	pGraphics->DrawLine(&pivotPen, pivotScreenX, pivotScreenY - 10, pivotScreenX, pivotScreenY + 10);
 
-	// ¿ÀºêÁ§Æ®ÀÇ ¹Ù¿îµù ¹Ú½º ±×¸®±â (ÇÇ¹ş°ú °ü°è¾øÀÌ ¿ÀºêÁ§Æ® ÀÌ¹ÌÁö°¡ Â÷ÁöÇÏ´Â ÀüÃ¼ ¿µ¿ª)
+	// ì˜¤ë¸Œì íŠ¸ì˜ ë°”ìš´ë”© ë°•ìŠ¤ ê·¸ë¦¬ê¸° (í”¼ë²—ê³¼ ê´€ê³„ì—†ì´ ì˜¤ë¸Œì íŠ¸ ì´ë¯¸ì§€ê°€ ì°¨ì§€í•˜ëŠ” ì „ì²´ ì˜ì—­)
 	Gdiplus::Pen bboxPen(Gdiplus::Color(255, 0, 255, 255), 1.0f);
 	pGraphics->DrawRectangle(&bboxPen, imageRenderLeft, imageRenderTop, scaledWidth, scaledHeight);
 }
@@ -2986,18 +3276,18 @@ void DontStarve_EditorMain::DrawColliders(Gdiplus::Graphics* pGraphics) {
 
 	GameObjectData& obj = *m_editingColliderObject;
 
-	// ¿ÀºêÁ§Æ®ÀÇ ObjectVariant °¡Á®¿À±â
+	// ì˜¤ë¸Œì íŠ¸ì˜ ObjectVariant ê°€ì ¸ì˜¤ê¸°
 	const ObjectVariant* ov = GetObjectVariant(obj.type, obj.id);
 	if (!ov || !ov->pAtlasBitmap) return;
 
-	Gdiplus::Pen colliderPen(Gdiplus::Color(255, 0, 255, 0), 2.0f); // ÃÊ·Ï»ö
-	Gdiplus::SolidBrush handleBrush(Gdiplus::Color(255, 0, 255, 255)); // Ã»·Ï»ö
+	Gdiplus::Pen colliderPen(Gdiplus::Color(255, 0, 255, 0), 2.0f); // ì´ˆë¡ìƒ‰
+	Gdiplus::SolidBrush handleBrush(Gdiplus::Color(255, 0, 255, 255)); // ì²­ë¡ìƒ‰
 	int handleSize = 8;
 	Gdiplus::REAL handleSizeReal = (Gdiplus::REAL)handleSize;
 	Gdiplus::REAL halfHandleReal = handleSizeReal / 2.0f;
 
 	if (obj.colliderType == COLLIDER_BOX) {
-		// BoxCollider ±×¸®±â
+		// BoxCollider ê·¸ë¦¬ê¸°
 		float colliderWorldX_top_left = (float)obj.x + obj.colliderOffsetX;
 		float colliderWorldY_top_left = (float)obj.y + obj.colliderOffsetY;
 		float colliderWidth = (float)obj.colliderWidth;
@@ -3008,18 +3298,18 @@ void DontStarve_EditorMain::DrawColliders(Gdiplus::Graphics* pGraphics) {
 		float colliderScaledWidth = colliderWidth * m_zoomFactor;
 		float colliderScaledHeight = colliderHeight * m_zoomFactor;
 
-		// Äİ¶óÀÌ´õ »ç°¢Çü ±×¸®±â
+		// ì½œë¼ì´ë” ì‚¬ê°í˜• ê·¸ë¦¬ê¸°
 		pGraphics->DrawRectangle(&colliderPen,
 			colliderScreenX, colliderScreenY, colliderScaledWidth, colliderScaledHeight);
 
-		// Å©±â Á¶Àı ÇÚµé ±×¸®±â (4°³ ¸ğ¼­¸®)
+		// í¬ê¸° ì¡°ì ˆ í•¸ë“¤ ê·¸ë¦¬ê¸° (4ê°œ ëª¨ì„œë¦¬)
 		pGraphics->FillRectangle(&handleBrush, colliderScreenX - halfHandleReal, colliderScreenY - halfHandleReal, handleSizeReal, handleSizeReal);
 		pGraphics->FillRectangle(&handleBrush, colliderScreenX + colliderScaledWidth - halfHandleReal, colliderScreenY - halfHandleReal, handleSizeReal, handleSizeReal);
 		pGraphics->FillRectangle(&handleBrush, colliderScreenX - halfHandleReal, colliderScreenY + colliderScaledHeight - halfHandleReal, handleSizeReal, handleSizeReal);
 		pGraphics->FillRectangle(&handleBrush, colliderScreenX + colliderScaledWidth - halfHandleReal, colliderScreenY + colliderScaledHeight - halfHandleReal, handleSizeReal, handleSizeReal);
 	}
 	else if (obj.colliderType == COLLIDER_CIRCLE) {
-		// CircleCollider ±×¸®±â
+		// CircleCollider ê·¸ë¦¬ê¸°
 		float worldCenterX = obj.x + obj.colliderCenterX;
 		float worldCenterY = obj.y + obj.colliderCenterY;
 		float radius = obj.colliderRadius;
@@ -3028,30 +3318,30 @@ void DontStarve_EditorMain::DrawColliders(Gdiplus::Graphics* pGraphics) {
 		float screenCenterY = worldCenterY * m_zoomFactor + m_mapOffset.y;
 		float screenRadius = radius * m_zoomFactor;
 
-		// ¿ø ±×¸®±â
+		// ì› ê·¸ë¦¬ê¸°
 		Gdiplus::RectF circleRect(screenCenterX - screenRadius, screenCenterY - screenRadius, screenRadius * 2.0f, screenRadius * 2.0f);
 		pGraphics->DrawEllipse(&colliderPen, circleRect);
 
-		// Áß½ÉÁ¡ ÀÌµ¿ ÇÚµé (¿øÀÇ Áß½É)
+		// ì¤‘ì‹¬ì  ì´ë™ í•¸ë“¤ (ì›ì˜ ì¤‘ì‹¬)
 		float centerHandleX = screenCenterX - halfHandleReal;
 		float centerHandleY = screenCenterY - halfHandleReal;
 		pGraphics->FillRectangle(&handleBrush, centerHandleX, centerHandleY, handleSizeReal, handleSizeReal);
 
-		// ¹İÁö¸§ Á¶Àı ÇÚµé (¿øÀÇ ¿À¸¥ÂÊ Áß¾Ó)
+		// ë°˜ì§€ë¦„ ì¡°ì ˆ í•¸ë“¤ (ì›ì˜ ì˜¤ë¥¸ìª½ ì¤‘ì•™)
 		float radiusHandleX = screenCenterX + screenRadius - halfHandleReal;
 		float radiusHandleY = screenCenterY - halfHandleReal;
 		pGraphics->FillRectangle(&handleBrush, radiusHandleX, radiusHandleY, handleSizeReal, handleSizeReal);
 	}
 }
 
-// AddObject ÇÔ¼ö (¿ÀºêÁ§Æ® Ãß°¡)
+// AddObject í•¨ìˆ˜ (ì˜¤ë¸Œì íŠ¸ ì¶”ê°€)
 void DontStarve_EditorMain::AddObject(const GameObjectData& obj) {
 	m_gameObjects.push_back(obj);
 	m_objectsDirty = true;
 	m_objectLayerDirty = true;
 }
 
-// RemoveObject ÇÔ¼ö (ÀÎµ¦½º·Î ¿ÀºêÁ§Æ® »èÁ¦)
+// RemoveObject í•¨ìˆ˜ (ì¸ë±ìŠ¤ë¡œ ì˜¤ë¸Œì íŠ¸ ì‚­ì œ)
 void DontStarve_EditorMain::RemoveObject(size_t idx) {
 	if (idx < m_gameObjects.size()) {
 		m_gameObjects.erase(m_gameObjects.begin() + idx);
@@ -3059,7 +3349,7 @@ void DontStarve_EditorMain::RemoveObject(size_t idx) {
 		m_objectLayerDirty = true;
 	}
 }
-// RemoveObject ÇÔ¼ö (Æ÷ÀÎÅÍ·Î ¿ÀºêÁ§Æ® »èÁ¦)
+// RemoveObject í•¨ìˆ˜ (í¬ì¸í„°ë¡œ ì˜¤ë¸Œì íŠ¸ ì‚­ì œ)
 void DontStarve_EditorMain::RemoveObject(GameObjectData* objToRemove) {
 	auto it = std::remove_if(m_gameObjects.begin(), m_gameObjects.end(),
 		[objToRemove](const GameObjectData& obj) { return &obj == objToRemove; });
@@ -3070,7 +3360,7 @@ void DontStarve_EditorMain::RemoveObject(GameObjectData* objToRemove) {
 	}
 }
 
-// UpdateObjectPosition ÇÔ¼ö (¿ÀºêÁ§Æ® À§Ä¡ ¾÷µ¥ÀÌÆ®)
+// UpdateObjectPosition í•¨ìˆ˜ (ì˜¤ë¸Œì íŠ¸ ìœ„ì¹˜ ì—…ë°ì´íŠ¸)
 void DontStarve_EditorMain::UpdateObjectPosition(GameObjectData* obj, int newX, int newY) {
 	if (obj) {
 		obj->x = newX;
@@ -3080,60 +3370,60 @@ void DontStarve_EditorMain::UpdateObjectPosition(GameObjectData* obj, int newX, 
 	}
 }
 
-// ¼º´É ¸ğ´ÏÅÍ¸µ ÇÔ¼ö
-// ·¹ÀÌ¾î ¸Ş¸ğ¸® »ç¿ë·® ¹İÈ¯ (MB)
+// ì„±ëŠ¥ ëª¨ë‹ˆí„°ë§ í•¨ìˆ˜
+// ë ˆì´ì–´ ë©”ëª¨ë¦¬ ì‚¬ìš©ëŸ‰ ë°˜í™˜ (MB)
 float DontStarve_EditorMain::GetLayerMemoryUsageMB() const {
 	if (!m_tileLayerBitmap) return 0.0f;
 
-	UINT totalPixels = m_tileLayerBitmap->GetWidth() * m_tileLayerBitmap->GetHeight() * 3; // 3°³ ·¹ÀÌ¾î
-	return (totalPixels * 4) / (1024.0f * 1024.0f); // 4¹ÙÀÌÆ®/ÇÈ¼¿ (ARGB)
+	UINT totalPixels = m_tileLayerBitmap->GetWidth() * m_tileLayerBitmap->GetHeight() * 3; // 3ê°œ ë ˆì´ì–´
+	return (totalPixels * 4) / (1024.0f * 1024.0f); // 4ë°”ì´íŠ¸/í”½ì…€ (ARGB)
 }
 
-// Walkable ¿µ¿ª ±×¸®±â
+// Walkable ì˜ì—­ ê·¸ë¦¬ê¸°
 void DontStarve_EditorMain::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics) return;
 
-	// Walkable ÆíÁı ¸ğµå°¡ ¾Æ´Ò ¶§´Â ±×¸®Áö ¾ÊÀ½
+	// Walkable í¸ì§‘ ëª¨ë“œê°€ ì•„ë‹ ë•ŒëŠ” ê·¸ë¦¬ì§€ ì•ŠìŒ
 	if (!m_isWalkableEditMode) return;
 
-	// ÇöÀç ºäÆ÷Æ®ÀÇ ¿ùµå ÁÂÇ¥ °è»ê
+	// í˜„ì¬ ë·°í¬íŠ¸ì˜ ì›”ë“œ ì¢Œí‘œ ê³„ì‚°
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
 	Gdiplus::PointF viewTopLeft = ScreenToWorld(Gdiplus::PointF(0, 0));
 	Gdiplus::PointF viewBottomRight = ScreenToWorld(Gdiplus::PointF((float)clientRect.right, (float)clientRect.bottom));
 
-	// Å¸ÀÏ ÀÎµ¦½º ¹üÀ§ °è»ê (ºäÆ÷Æ®¿¡ º¸ÀÌ´Â Å¸ÀÏ¸¸)
+	// íƒ€ì¼ ì¸ë±ìŠ¤ ë²”ìœ„ ê³„ì‚° (ë·°í¬íŠ¸ì— ë³´ì´ëŠ” íƒ€ì¼ë§Œ)
 	int startX = max(0, (int)floor(viewTopLeft.X / TILE_SIZE));
 	int endX = min(MAP_WIDTH, (int)ceil(viewBottomRight.X / TILE_SIZE));
 	int startY = max(0, (int)floor(viewTopLeft.Y / TILE_SIZE));
 	int endY = min(MAP_HEIGHT, (int)ceil(viewBottomRight.Y / TILE_SIZE));
 
-	// ºê·¯½Ã »ı¼º
-	Gdiplus::SolidBrush blockedBrush(Gdiplus::Color(100, 255, 0, 0));    // ¹İÅõ¸í »¡°£»ö (Blocked)
-	Gdiplus::SolidBrush walkableBrush(Gdiplus::Color(50, 0, 255, 0));    // ¹İÅõ¸í ÃÊ·Ï»ö (Walkable)
-	Gdiplus::Pen gridPen(Gdiplus::Color(150, 255, 255, 255), 1.0f);      // ÇÏ¾á»ö °İÀÚ
+	// ë¸ŒëŸ¬ì‹œ ìƒì„±
+	Gdiplus::SolidBrush blockedBrush(Gdiplus::Color(100, 255, 0, 0));    // ë°˜íˆ¬ëª… ë¹¨ê°„ìƒ‰ (Blocked)
+	Gdiplus::SolidBrush walkableBrush(Gdiplus::Color(50, 0, 255, 0));    // ë°˜íˆ¬ëª… ì´ˆë¡ìƒ‰ (Walkable)
+	Gdiplus::Pen gridPen(Gdiplus::Color(150, 255, 255, 255), 1.0f);      // í•˜ì–€ìƒ‰ ê²©ì
 
-	// È­¸é»ó Å¸ÀÏ Å©±â
+	// í™”ë©´ìƒ íƒ€ì¼ í¬ê¸°
 	float screenTileSize = (float)TILE_SIZE * m_zoomFactor;
 
-	// walkable »óÅÂ¿¡ µû¶ó Å¸ÀÏ »öÄ¥
+	// walkable ìƒíƒœì— ë”°ë¼ íƒ€ì¼ ìƒ‰ì¹ 
 	for (int y = startY; y < endY; ++y) {
 		for (int x = startX; x < endX; ++x) {
-			// ¿ùµå ÁÂÇ¥ °è»ê
+			// ì›”ë“œ ì¢Œí‘œ ê³„ì‚°
 			float worldX = (float)x * TILE_SIZE;
 			float worldY = (float)y * TILE_SIZE;
 
-			// ºäÆ÷Æ® ±âÁØ È­¸é ÁÂÇ¥ °è»ê
+			// ë·°í¬íŠ¸ ê¸°ì¤€ í™”ë©´ ì¢Œí‘œ ê³„ì‚°
 			float screenX = (worldX - viewTopLeft.X) * m_zoomFactor;
 			float screenY = (worldY - viewTopLeft.Y) * m_zoomFactor;
 
-			// È­¸é ¹Û ÄÃ¸µ
+			// í™”ë©´ ë°– ì»¬ë§
 			if (screenX + screenTileSize < 0 || screenX > clientRect.right ||
 				screenY + screenTileSize < 0 || screenY > clientRect.bottom) continue;
 
 			Gdiplus::RectF tileRect(screenX, screenY, screenTileSize, screenTileSize);
 
-			// walkable »óÅÂ¿¡ µû¶ó »öÄ¥
+			// walkable ìƒíƒœì— ë”°ë¼ ìƒ‰ì¹ 
 			if (m_walkableAreaMap[y][x]) {
 				pGraphics->FillRectangle(&walkableBrush, tileRect);
 			}
@@ -3141,12 +3431,12 @@ void DontStarve_EditorMain::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) {
 				pGraphics->FillRectangle(&blockedBrush, tileRect);
 			}
 
-			// °İÀÚ ±×¸®±â
+			// ê²©ì ê·¸ë¦¬ê¸°
 			pGraphics->DrawRectangle(&gridPen, tileRect);
 		}
 	}
 
-	// µå·¡±× ÁßÀÏ ¶§ µå·¡±× ¿µ¿ª Ç¥½Ã
+	// ë“œë˜ê·¸ ì¤‘ì¼ ë•Œ ë“œë˜ê·¸ ì˜ì—­ í‘œì‹œ
 	if (m_isDraggingWalkable) {
 		int minX = min(m_walkableDragStart.x, m_walkableDragEnd.x);
 		int maxX = max(m_walkableDragStart.x, m_walkableDragEnd.x);
@@ -3161,7 +3451,7 @@ void DontStarve_EditorMain::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) {
 		pGraphics->DrawRectangle(&dragPen, dragRect);
 	}
 
-	// ¸ğµå ¾È³» ÅØ½ºÆ®
+	// ëª¨ë“œ ì•ˆë‚´ í…ìŠ¤íŠ¸
 	Gdiplus::Font font(L"Arial", 14, Gdiplus::FontStyleBold);
 	Gdiplus::SolidBrush textBrush(Gdiplus::Color(255, 255, 255, 255));
 	Gdiplus::SolidBrush backgroundBrush(Gdiplus::Color(150, 0, 0, 0));
@@ -3169,17 +3459,17 @@ void DontStarve_EditorMain::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) {
 	std::wstring modeText = L"[WALKABLE AREA EDIT MODE] Drag to toggle walkable areas (G to exit)";
 	Gdiplus::RectF textRect(10, 70, 700, 30);
 
-	// ¹è°æ
+	// ë°°ê²½
 	pGraphics->FillRectangle(&backgroundBrush, textRect);
-	// ÅØ½ºÆ®
+	// í…ìŠ¤íŠ¸
 	pGraphics->DrawString(modeText.c_str(), -1, &font, textRect, nullptr, &textBrush);
 }
 
-// ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ® ±×¸®±â
+// í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ ê·¸ë¦¬ê¸°
 void DontStarve_EditorMain::DrawPlayerSpawn(Gdiplus::Graphics* pGraphics) {
 	if (!pGraphics) return;
 
-	// ÇÃ·¹ÀÌ¾î ½ºÆù ¸ğµåÀÏ ¶§ ¾È³» ÅØ½ºÆ® Ç¥½Ã
+	// í”Œë ˆì´ì–´ ìŠ¤í° ëª¨ë“œì¼ ë•Œ ì•ˆë‚´ í…ìŠ¤íŠ¸ í‘œì‹œ
 	if (m_isPlayerSpawnMode) {
 		Gdiplus::Font font(L"Arial", 14, Gdiplus::FontStyleBold);
 		Gdiplus::SolidBrush textBrush(Gdiplus::Color(255, 255, 255, 0));
@@ -3188,35 +3478,35 @@ void DontStarve_EditorMain::DrawPlayerSpawn(Gdiplus::Graphics* pGraphics) {
 		std::wstring modeText = L"[PLAYER SPAWN MODE] Click to set spawn point (P to exit)";
 		Gdiplus::RectF textRect(10, 40, 600, 30);
 
-		// ¹è°æ
+		// ë°°ê²½
 		pGraphics->FillRectangle(&backgroundBrush, textRect);
-		// ÅØ½ºÆ®
+		// í…ìŠ¤íŠ¸
 		pGraphics->DrawString(modeText.c_str(), -1, &font, textRect, nullptr, &textBrush);
 	}
 
-	// ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ®°¡ ¼³Á¤µÇ¾î ÀÖÀ¸¸é ±×¸®±â
+	// í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ê°€ ì„¤ì •ë˜ì–´ ìˆìœ¼ë©´ ê·¸ë¦¬ê¸°
 	if (m_hasPlayerSpawn) {
-		// ¿ùµå ÁÂÇ¥¸¦ È­¸é ÁÂÇ¥·Î º¯È¯
+		// ì›”ë“œ ì¢Œí‘œë¥¼ í™”ë©´ ì¢Œí‘œë¡œ ë³€í™˜
 		Gdiplus::PointF screenPos = WorldToScreen(m_playerSpawnPoint);
 
-		// ÇÃ·¹ÀÌ¾î ¾ÆÀÌÄÜ Å©±â (È­¸é ÁÂÇ¥ ±âÁØ)
+		// í”Œë ˆì´ì–´ ì•„ì´ì½˜ í¬ê¸° (í™”ë©´ ì¢Œí‘œ ê¸°ì¤€)
 		float iconRadius = 16.0f;
 
-		// ÇÃ·¹ÀÌ¾î ½ºÆù Æ÷ÀÎÆ® ¿øÇü ¹è°æ
+		// í”Œë ˆì´ì–´ ìŠ¤í° í¬ì¸íŠ¸ ì›í˜• ë°°ê²½
 		Gdiplus::SolidBrush spawnBrush(Gdiplus::Color(200, 0, 255, 0));
 		Gdiplus::Pen spawnPen(Gdiplus::Color(255, 255, 255, 255), 3.0f);
 
-		// ¿øÇü ¹è°æ
+		// ì›í˜• ë°°ê²½
 		pGraphics->FillEllipse(&spawnBrush,
 			screenPos.X - iconRadius, screenPos.Y - iconRadius,
 			iconRadius * 2, iconRadius * 2);
 
-		// ¿øÇü Å×µÎ¸®
+		// ì›í˜• í…Œë‘ë¦¬
 		pGraphics->DrawEllipse(&spawnPen,
 			screenPos.X - iconRadius, screenPos.Y - iconRadius,
 			iconRadius * 2, iconRadius * 2);
 
-		// ÇÃ·¹ÀÌ¾î ½Éº¼ (P ¹®ÀÚ)
+		// í”Œë ˆì´ì–´ ì‹¬ë³¼ (P ë¬¸ì)
 		Gdiplus::Font playerFont(L"Arial", 12, Gdiplus::FontStyleBold);
 		Gdiplus::SolidBrush playerTextBrush(Gdiplus::Color(255, 255, 255, 255));
 
@@ -3227,7 +3517,7 @@ void DontStarve_EditorMain::DrawPlayerSpawn(Gdiplus::Graphics* pGraphics) {
 
 		pGraphics->DrawString(L"P", 1, &playerFont, playerTextRect, &centerFormat, &playerTextBrush);
 
-		// ÁÂÇ¥ Á¤º¸ Ç¥½Ã
+		// ì¢Œí‘œ ì •ë³´ í‘œì‹œ
 		if (m_isPlayerSpawnMode) {
 			Gdiplus::Font coordFont(L"Arial", 10);
 			Gdiplus::SolidBrush coordBrush(Gdiplus::Color(255, 255, 255, 255));

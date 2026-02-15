@@ -1,6 +1,11 @@
 #pragma once
 
-#include "SpriteSheet.h" 
+#include <functional>
+#include <map>
+#include <string>
+#include <vector>
+#include <memory>
+#include "SpriteSheet.h"
 
 // 애니메이션 이벤트 콜백 타입 정의
 typedef std::function<void(int, const std::wstring&)> AnimationEventCallback;

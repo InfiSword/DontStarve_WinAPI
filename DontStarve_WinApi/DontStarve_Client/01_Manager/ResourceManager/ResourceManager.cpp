@@ -91,6 +91,7 @@ const MapData* ResourceManager::LoadMapData(const std::wstring& mapFileName)
 	if (it != m_mapDataCache.end()) {
 		return &it->second;
 	}
+
 	MapData mapData;
 	ParseMapFileInto(mapFileName, mapData);
 	m_mapDataCache[mapFileName] = std::move(mapData);
@@ -239,7 +240,7 @@ std::wstring ResourceManager::BuildResourcePath(const std::wstring& basePath, co
 
 	std::wstring relativePath = L"../" + path;
 
-	// 경로 구분자를 백슬래시로 변환 (Windows 표준, 파일 시스템 호환)
+	// 경로 구분자를 백슬래시로 변환
 	for (size_t i = 0; i < relativePath.length(); ++i) {
 		if (relativePath[i] == L'/') {
 			relativePath[i] = L'\\';
@@ -283,29 +284,7 @@ std::shared_ptr<Sprite> ResourceManager::LoadSprite(const std::wstring& fullPath
 		return nullptr;
 	}
 	Gdiplus::RectF src(0, 0, static_cast<float>(bmp->GetWidth()), static_cast<float>(bmp->GetHeight()));
-	std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(bmp, src, 0.5f, 0.5f, fullPath, false);
+	std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(bmp, src, 0.5f, 0.5f, fullPath);
 	m_spriteCache[fullPath] = sprite;
-	return sprite;
-}
-
-std::shared_ptr<Sprite> ResourceManager::LoadSpriteFromAtlas(const std::wstring& atlasPath, const Gdiplus::RectF& srcRect, float pivotX, float pivotY)
-{
-	std::wstring key = atlasPath + L"|" +
-		std::to_wstring(srcRect.X) + L"," + std::to_wstring(srcRect.Y) + L"," +
-		std::to_wstring(srcRect.Width) + L"," + std::to_wstring(srcRect.Height);
-
-	auto found = m_spriteCache.find(key);
-	if (found != m_spriteCache.end()) {
-		if (auto cached = found->second.lock()) {
-			return cached;
-		}
-	}
-
-	auto bmp = std::make_shared<Gdiplus::Bitmap>(atlasPath.c_str());
-	if (!bmp || bmp->GetLastStatus() != Gdiplus::Ok) {
-		return nullptr;
-	}
-	auto sprite = std::make_shared<Sprite>(bmp, srcRect, pivotX, pivotY, key, true);
-	m_spriteCache[key] = sprite;
 	return sprite;
 }

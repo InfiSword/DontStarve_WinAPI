@@ -105,17 +105,27 @@ bool Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 
 	ButtonState previousState = m_buttonState;
 
-	POINT mousePos = InputManager::GetInstance()->GetMousePos();
+	// 마우스 위치 가져오기 (모든 상태 판정에 공통으로 사용)
+	InputManager* inputManager = InputManager::GetInstance();
+	if (!inputManager) return false;
+	
+	POINT mousePos = inputManager->GetMousePos();
 	float mouseX = static_cast<float>(mousePos.x);
 	float mouseY = static_cast<float>(mousePos.y);
-
 	bool inside = IsPointInside(rectTransform, image, mouseX, mouseY);
 	m_isMouseOver = inside && !m_isDisabled;
 
+	// 비활성화 상태 처리
 	if (m_isDisabled) {
 		m_buttonState = ButtonState::DISABLED;
+		if (previousState != m_buttonState) {
+			ApplyVisualState(image);
+		}
+		return false;
 	}
-	else if (inside && InputManager::GetInstance()->IsLButtonClicked()) {
+
+	// 클릭 처리 (가장 우선순위)
+	if (inside && inputManager->IsLButtonClicked()) {
 		m_buttonState = ButtonState::CLICKED;
 		// 콜백 호출 전에 상태 적용 (콜백에서 객체가 삭제될 수 있음)
 		if (previousState != m_buttonState) {
@@ -128,23 +138,27 @@ bool Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 		}
 		return false;
 	}
-	else if (m_buttonState == ButtonState::CLICKED && !InputManager::GetInstance()->IsLButtonDown()) {
-		// 클릭 상태에서 마우스 버튼이 떼어지면 hover 또는 normal로 전환
+
+	// 클릭 상태에서 버튼을 떼었을 때 처리
+	if (m_buttonState == ButtonState::CLICKED && !inputManager->IsLButtonDown()) {
 		m_buttonState = inside ? ButtonState::HOVER : ButtonState::NORMAL;
-	}
-	else if (inside) {
-		m_buttonState = ButtonState::HOVER;
-	}
-	else {
-		m_buttonState = ButtonState::NORMAL;
+		if (previousState != m_buttonState) {
+			ApplyVisualState(image);
+		}
+		return false;
 	}
 
-	// 상태가 변경되었을 때 시각적 상태 적용
-	if (previousState != m_buttonState) {
-		ApplyVisualState(image);
+	// hover/normal 상태 처리 (WM_MOUSEMOVE에서 즉시 호출되므로 즉각적인 반응)
+	if (m_buttonState != ButtonState::CLICKED && m_buttonState != ButtonState::DISABLED) {
+		m_buttonState = inside ? ButtonState::HOVER : ButtonState::NORMAL;
+		if (previousState != m_buttonState) {
+			ApplyVisualState(image);
+		}
 	}
+
 	return false;
 }
+
 
 void Button::ApplyVisualState(ComponentElement::Image* image)
 {

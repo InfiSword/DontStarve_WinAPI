@@ -37,6 +37,9 @@ public:
 	// UI 상태 관리
 	void SetUIVisibility(bool visible);
 	bool IsUIVisible() const { return m_isUIVisible; }
+	
+	// 마우스 이동 시 즉시 hover 상태 업데이트 (InputManager에서 호출)
+	void UpdateButtonHoverStates();
 
 private:
 	std::vector<UIImage*> m_uiImages;

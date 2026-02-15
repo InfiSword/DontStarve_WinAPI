@@ -1,5 +1,8 @@
 #include "99_Default/pch.h"
 #include "Player.h"
+#include <fstream>
+#include <chrono>
+#include <windows.h>
 
 #include "../../../01_Manager/InputManager/InputManager.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
@@ -18,6 +21,19 @@
 #include "../../Item/Tool/Tool.h"
 
 #include "../../Component/Transform/Transform.h"
+
+// #region agent log helper
+static std::wstring GetLogPath() {
+	wchar_t exePath[MAX_PATH];
+	GetModuleFileNameW(NULL, exePath, MAX_PATH);
+	std::wstring path(exePath);
+	size_t pos = path.find_last_of(L"\\");
+	if (pos != std::wstring::npos) {
+		path = path.substr(0, pos);
+	}
+	return path + L"\\debug.log";
+}
+// #endregion
 #include "../../Component/Sprite/SpriteRenderer.h"
 
 namespace {
@@ -229,6 +245,10 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 
 void Player::Update(float deltaTime)
 {
+	// #region agent log
+	auto startTime = std::chrono::high_resolution_clock::now();
+	// #endregion
+	
 	HandleMovement();
 
 	float moveSpeedThisFrame = m_playerSpeed * deltaTime;
@@ -249,22 +269,29 @@ void Player::Update(float deltaTime)
 			// 목표 위치에 상호작용 가능한 오브젝트가 있으면 상호작용 시작
 			if (m_currentInteractionTarget && m_currentInteractionTarget->IsEnabled()) {
 				// 상호작용 방향 계산
-				float objDx = m_currentInteractionTarget->GetComponent<Transform>()->GetX() - transform->GetX();
-				float objDy = m_currentInteractionTarget->GetComponent<Transform>()->GetY() - transform->GetY();
+				Transform* targetTransform = m_currentInteractionTarget->GetComponent<Transform>();
+				if (targetTransform) {
+					float objDx = targetTransform->GetX() - transform->GetX();
+					float objDy = targetTransform->GetY() - transform->GetY();
 
-				Direction interactionDirection;
-				if (std::abs(objDx) > std::abs(objDy)) {
-					interactionDirection = (objDx > 0) ? DIR_RIGHT : DIR_LEFT;
+					Direction interactionDirection;
+					if (std::abs(objDx) > std::abs(objDy)) {
+						interactionDirection = (objDx > 0) ? DIR_RIGHT : DIR_LEFT;
+					}
+					else {
+						interactionDirection = (objDy > 0) ? DIR_DOWN : DIR_UP;
+					}
+
+					transform->SetDirection(interactionDirection);
+					UpdateAnimatorState();
+
+					// 상호작용 시작
+					OnInteraction(m_currentInteractionTarget);
 				}
 				else {
-					interactionDirection = (objDy > 0) ? DIR_DOWN : DIR_UP;
+					// Transform이 없으면 상호작용 불가
+					m_currentInteractionTarget = nullptr;
 				}
-
-				transform->SetDirection(interactionDirection);
-				UpdateAnimatorState();
-
-				// 상호작용 시작
-				OnInteraction(m_currentInteractionTarget);
 			}
 			else {
 				m_state = PlayerState::IDLE;
@@ -443,23 +470,31 @@ void Player::HandleClickInteraction(float worldX, float worldY)
 	
 	// CameraManager의 FindObjectAtPosition 사용
 	GameObject* targetItem = cameraManager->FindObjectAtPosition(worldPos.X, worldPos.Y);
+	
+	// nullptr 체크를 먼저 수행 (안전성)
+	if (!targetItem) {
+		return;
+	}
+	
+	// Transform 컴포넌트 가져오기 (nullptr 체크)
 	Transform* targetItemTrans = targetItem->GetComponent<Transform>();
-
-	if (targetItem) {
-		// Item 타입의 오브젝트인지 확인
-		if (targetItem->GetType() == GOBJ_ITEM) {
+	if (!targetItemTrans) {
+		return; // Transform이 없으면 처리 불가
+	}
+	
+	// Item 타입의 오브젝트인지 확인
+	if (targetItem->GetType() == GOBJ_ITEM) {
+		SetTargetPosition(targetItemTrans->GetX(), targetItemTrans->GetY());
+		SetInteractionTarget(targetItem);
+		OutputDebugStringW((L"Player: Item 추가됨 - ID: " + std::to_wstring(targetItem->GetID()) + L"\n").c_str());
+	}
+	// 자연 환경 오브젝트인지 확인 (BerryBush, Grass, Sapling)
+	else if (targetItem->GetType() == GOBJ_NATURAL_ENVIR) {
+		GameObjectID objID = targetItem->GetID();
+		if (objID == GOID_BERRY_TREE || objID == GOID_NORMAL_GRASS || objID == GOID_NORMAL_SAPLING) {
 			SetTargetPosition(targetItemTrans->GetX(), targetItemTrans->GetY());
 			SetInteractionTarget(targetItem);
-			OutputDebugStringW((L"Player: Item 추가됨 - ID: " + std::to_wstring(targetItem->GetID()) + L"\n").c_str());
-		}
-		// 자연 환경 오브젝트인지 확인 (BerryBush, Grass, Sapling)
-		else if (targetItem->GetType() == GOBJ_NATURAL_ENVIR) {
-			GameObjectID objID = targetItem->GetID();
-			if (objID == GOID_BERRY_TREE || objID == GOID_NORMAL_GRASS || objID == GOID_NORMAL_SAPLING) {
-				SetTargetPosition(targetItemTrans->GetX(), targetItemTrans->GetY());
-				SetInteractionTarget(targetItem);
-				OutputDebugStringW((L"Player: 자연 환경 오브젝트 추가됨 - ID: " + std::to_wstring(targetItem->GetID()) + L"\n").c_str());
-			}
+			OutputDebugStringW((L"Player: 자연 환경 오브젝트 추가됨 - ID: " + std::to_wstring(targetItem->GetID()) + L"\n").c_str());
 		}
 	}
 }
@@ -471,8 +506,23 @@ void Player::HandleRightClick(float worldX, float worldY)
 
 void Player::HandleMovement()
 {
+	// #region agent log
+	auto startTime = std::chrono::high_resolution_clock::now();
+	// #endregion
+	
 	InputManager* inputManager = InputManager::GetInstance();
-	if (!inputManager) return;
+	if (!inputManager) {
+		// #region agent log
+		auto endTime = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+		std::ofstream logFile(GetLogPath(), std::ios::app);
+		if (logFile.is_open()) {
+			logFile << "{\"runId\":\"perf1\",\"hypothesisId\":\"F\",\"location\":\"Player.cpp:487\",\"message\":\"Player::HandleMovement\",\"data\":{\"duration_us\":" << duration << "},\"timestamp\":" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << "}\n";
+			logFile.close();
+		}
+		// #endregion
+		return;
+	}
 
 	// 마우스클릭으로 Item 또는 자연 환경 오브젝트 상호작용
 	if (inputManager->IsLButtonClicked()) {
@@ -496,6 +546,16 @@ void Player::HandleMovement()
 			HandleRightClick(worldPos.X, worldPos.Y);
 		}
 	}
+	
+	// #region agent log
+	auto endTime = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
+	std::ofstream logFile(GetLogPath(), std::ios::app);
+	if (logFile.is_open()) {
+		logFile << "{\"runId\":\"perf1\",\"hypothesisId\":\"F\",\"location\":\"Player.cpp:493\",\"message\":\"Player::HandleMovement\",\"data\":{\"duration_us\":" << duration << "},\"timestamp\":" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << "}\n";
+		logFile.close();
+	}
+	// #endregion
 }
 
 

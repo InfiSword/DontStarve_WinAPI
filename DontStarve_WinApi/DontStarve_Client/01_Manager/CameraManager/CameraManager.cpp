@@ -1,5 +1,6 @@
 #include "99_Default/pch.h"
 #include "CameraManager.h"
+#include <set>
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Transform/RectTransform.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
@@ -15,7 +16,7 @@ CameraManager::CameraManager()
     : m_cameraPos({ 0,0 }), m_zoomFactor(1.0f), m_target(nullptr),
     m_followMode(true), m_viewportChanged(true),
     m_lastStartTileX(0), m_lastStartTileY(0), m_lastEndTileX(0), m_lastEndTileY(0),
-    m_tileViewportChanged(true)
+    m_tileViewportChanged(true), m_tileRangeInitialized(false)
 {
 }
 
@@ -34,6 +35,7 @@ void CameraManager::Init()
     
     m_tileCache.clear();
     m_tileViewportChanged = true;
+    m_tileRangeInitialized = false;
 }
 
 void CameraManager::Update(float deltaTime)
@@ -49,8 +51,10 @@ void CameraManager::Update(float deltaTime)
     CheckViewportChanged();
     
     // 카메라 뷰포트 내에 있는 게임오브젝트를 찾아서 저장
-    // 게임오브젝트 생성/삭제/이동으로 인한 변경 처리
-    UpdateVisibleObjects();
+    // 뷰포트가 변경되었을 때만 업데이트 (성능 최적화)
+    if (m_viewportChanged) {
+        UpdateVisibleObjects();
+    }
 }
 
 void CameraManager::Release()
@@ -118,8 +122,14 @@ void CameraManager::FollowTarget()
 	if (!m_target) return;
 	Transform* transform = m_target->GetComponent<Transform>();
 	if (transform) {
-		m_cameraPos.X = transform->GetX();
-		m_cameraPos.Y = transform->GetY();
+		float newX = transform->GetX();
+		float newY = transform->GetY();
+		// 부동소수점 비교를 사용하여 미세한 변경은 무시 (성능 최적화)
+		const float EPSILON = 0.1f;
+		if (std::abs(newX - m_cameraPos.X) > EPSILON || std::abs(newY - m_cameraPos.Y) > EPSILON) {
+			m_cameraPos.X = newX;
+			m_cameraPos.Y = newY;
+		}
 	}
 }
 
@@ -147,13 +157,22 @@ void CameraManager::UpdateVisibleObjects()
 	float startY = viewportRect.Y - MARGIN;
 	float endY = viewportRect.Y + viewportRect.Height + MARGIN;
 	
-	std::unordered_set<std::wstring> addedIngredients; // Ingredient 중복 방지
+	std::unordered_set<size_t> addedIngredients; // Ingredient 중복 방지 (성능 최적화: 문자열 대신 해시 사용)
 	
+	// 성능 최적화: 미리 reserve로 메모리 재할당 방지
+	m_visibleObjects.reserve(allObjects.size() / 4); // 예상 크기의 1/4 정도로 예약
 	for (GameObject* obj : allObjects) {
 		if (!obj || !obj->IsEnabled()) continue;
 		
 		Transform* transform = obj->GetComponent<Transform>();
 		if (!transform) continue;
+		
+		// 간단한 위치 체크로 먼저 필터링 (성능 최적화)
+		float objX = transform->GetX();
+		float objY = transform->GetY();
+		if (objX < startX || objX > endX || objY < startY || objY > endY) {
+			continue; // 뷰포트 밖이면 스킵
+		}
 		
 		// 렌더링 가능한 오브젝트인지 확인
 		SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>();
@@ -161,22 +180,67 @@ void CameraManager::UpdateVisibleObjects()
 		bool hasAnimator = (obj->GetComponent<Animator>() != nullptr);
 		if (!hasSprite && !hasAnimator) continue;
 		
-		// Ingredient 중복 체크
+		// Ingredient 중복 체크 (성능 최적화: 문자열 대신 해시 사용)
 		if (obj->GetType() == GOBJ_ITEM) {
-			std::wstring key = std::to_wstring(obj->GetID()) + L"_" + 
-				std::to_wstring(transform->GetX()) + L"_" + std::to_wstring(transform->GetY());
+			// 해시 기반 키 생성 (문자열 변환보다 빠름)
+			size_t key = std::hash<GameObjectID>()(obj->GetID()) ^ 
+				(std::hash<float>()(objX) << 1) ^ 
+				(std::hash<float>()(objY) << 2);
 			if (addedIngredients.find(key) != addedIngredients.end()) continue;
 			addedIngredients.insert(key);
 		}
 		
-		// 뷰포트 내에 있는지 확인
+		// 정확한 바운딩 박스 체크 (필요한 경우에만)
 		Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
-		if (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
-			objBounds.Y < endY && objBounds.Y + objBounds.Height > startY) {
+		bool boundsIntersect = (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
+		                        objBounds.Y < endY && objBounds.Y + objBounds.Height > startY);
+		
+		if (!boundsIntersect) {
+			continue; // 월드 좌표 기준으로 뷰포트 밖이면 스킵
+		}
+		
+		// 화면 영역과의 실제 교차 체크 (월드 좌표 -> 화면 좌표 변환)
+		// 바운딩 박스의 4개 모서리를 모두 화면 좌표로 변환하여 정확한 교차 체크
+		Gdiplus::PointF screenTopLeft = WorldToScreen(objBounds.X, objBounds.Y);
+		Gdiplus::PointF screenTopRight = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y);
+		Gdiplus::PointF screenBottomLeft = WorldToScreen(objBounds.X, objBounds.Y + objBounds.Height);
+		Gdiplus::PointF screenBottomRight = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y + objBounds.Height);
+		
+		// 4개 모서리 중 최소/최대값으로 화면 바운딩 박스 계산
+		float screenLeft = screenTopLeft.X;
+		if (screenTopRight.X < screenLeft) screenLeft = screenTopRight.X;
+		if (screenBottomLeft.X < screenLeft) screenLeft = screenBottomLeft.X;
+		if (screenBottomRight.X < screenLeft) screenLeft = screenBottomRight.X;
+		
+		float screenRight = screenTopLeft.X;
+		if (screenTopRight.X > screenRight) screenRight = screenTopRight.X;
+		if (screenBottomLeft.X > screenRight) screenRight = screenBottomLeft.X;
+		if (screenBottomRight.X > screenRight) screenRight = screenBottomRight.X;
+		
+		float screenTop = screenTopLeft.Y;
+		if (screenTopRight.Y < screenTop) screenTop = screenTopRight.Y;
+		if (screenBottomLeft.Y < screenTop) screenTop = screenBottomLeft.Y;
+		if (screenBottomRight.Y < screenTop) screenTop = screenBottomRight.Y;
+		
+		float screenBottom = screenTopLeft.Y;
+		if (screenTopRight.Y > screenBottom) screenBottom = screenTopRight.Y;
+		if (screenBottomLeft.Y > screenBottom) screenBottom = screenBottomLeft.Y;
+		if (screenBottomRight.Y > screenBottom) screenBottom = screenBottomRight.Y;
+		
+		// 화면 영역과 교차하는지 확인 (정확한 체크)
+		// 교차 조건: 오브젝트의 오른쪽이 화면 왼쪽보다 크고, 왼쪽이 화면 오른쪽보다 작고,
+		//            오브젝트의 아래쪽이 화면 위쪽보다 크고, 위쪽이 화면 아래쪽보다 작아야 함
+		bool screenIntersects = !(screenRight < 0 || screenLeft > WINCX || screenBottom < 0 || screenTop > WINCY);
+		
+		// 화면 영역과 교차하는 경우에만 visibleObjects에 추가
+		if (screenIntersects) {
 			m_visibleObjects.push_back(obj);
 			m_visibleObjectSet.insert(obj);
 		}
 	}
+	
+	// 성능 최적화: 업데이트 완료 후 플래그 리셋 (다음 프레임에서 불필요한 호출 방지)
+	m_viewportChanged = false;
 }
 
 GameObject* CameraManager::FindObjectAtPosition(float worldX, float worldY)
@@ -252,12 +316,17 @@ Gdiplus::RectF CameraManager::GetSpriteBoundingBox(GameObject* obj) const
 void CameraManager::CheckViewportChanged()
 {
 	Gdiplus::RectF currentViewport = GetViewportWorldRect();
-	if (currentViewport.X != m_lastViewportRect.X || 
-		currentViewport.Y != m_lastViewportRect.Y ||
-		currentViewport.Width != m_lastViewportRect.Width || 
-		currentViewport.Height != m_lastViewportRect.Height) {
+	const float EPSILON = 0.1f; // 부동소수점 비교를 위한 작은 오차 범위
+	
+	if (std::abs(currentViewport.X - m_lastViewportRect.X) > EPSILON || 
+		std::abs(currentViewport.Y - m_lastViewportRect.Y) > EPSILON ||
+		std::abs(currentViewport.Width - m_lastViewportRect.Width) > EPSILON || 
+		std::abs(currentViewport.Height - m_lastViewportRect.Height) > EPSILON) {
 		m_viewportChanged = true;
 		m_lastViewportRect = currentViewport;
+	} else {
+		// 뷰포트가 변경되지 않았으면 플래그 리셋
+		m_viewportChanged = false;
 	}
 }
 
@@ -270,24 +339,7 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData)
 	RenderManager* renderManager = RenderManager::GetInstance();
 	if (!renderManager) return;
 
-	// 뷰포트 변경 확인
-	if (m_viewportChanged) {
-		m_tileViewportChanged = true;
-		m_viewportChanged = false;
-	}
-
-	// 뷰포트가 변경되지 않았으면 캐시된 타일 렌더링
-	if (!m_tileViewportChanged) {
-		for (int y = m_lastStartTileY; y < m_lastEndTileY; ++y) {
-			float worldY = y * TILE_SIZE + TILE_SIZE / 2.0f;
-			for (int x = m_lastStartTileX; x < m_lastEndTileX; ++x) {
-				RenderSingleTile(mapData, x, y, worldY);
-			}
-		}
-		return;
-	}
-
-	// 뷰포트 변경 시 새로운 타일 범위 계산
+	// 카메라 위치 기반으로 현재 뷰포트 계산 (매 프레임마다)
 	Gdiplus::RectF viewport = GetViewportWorldRect();
 	const float MARGIN = TILE_SIZE;
 	float startX = viewport.X - MARGIN;
@@ -300,17 +352,74 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData)
 	int startTileY = max(0, (int)floor(startY / TILE_SIZE));
 	int endTileY = min(MAP_HEIGHT, (int)ceil(endY / TILE_SIZE));
 
-	m_lastStartTileX = startTileX;
-	m_lastStartTileY = startTileY;
-	m_lastEndTileX = endTileX;
-	m_lastEndTileY = endTileY;
-	m_tileViewportChanged = false;
+	// 타일 범위가 변경되었을 때만 캐시 정리
+	bool tileRangeChanged = (startTileX != m_lastStartTileX || endTileX != m_lastEndTileX ||
+	                         startTileY != m_lastStartTileY || endTileY != m_lastEndTileY);
+	
+	if (tileRangeChanged || !m_tileRangeInitialized) {
+		// 사용하지 않는 타일 캐시 정리 (메모리 최적화)
+		CleanupUnusedTileCache(mapData, startTileX, endTileX, startTileY, endTileY);
 
-	// 타일 렌더링
-	for (int y = startTileY; y < endTileY; ++y) {
+		m_lastStartTileX = startTileX;
+		m_lastStartTileY = startTileY;
+		m_lastEndTileX = endTileX;
+		m_lastEndTileY = endTileY;
+		m_tileRangeInitialized = true;
+	}
+	
+	// 카메라 변환 정보 미리 계산
+	Gdiplus::PointF cameraPos = GetCameraPos();
+	float halfScreenWidth = WINCX / 2.0f;
+	float halfScreenHeight = WINCY / 2.0f;
+	
+	for (int y = m_lastStartTileY; y < m_lastEndTileY; ++y) {
 		float worldY = y * TILE_SIZE + TILE_SIZE / 2.0f;
-		for (int x = startTileX; x < endTileX; ++x) {
-			RenderSingleTile(mapData, x, y, worldY);
+		// Y 좌표 변환을 미리 계산 (같은 행의 모든 타일에 대해 동일)
+		float screenYBase = worldY - cameraPos.Y + halfScreenHeight;
+		
+		for (int x = m_lastStartTileX; x < m_lastEndTileX; ++x) {
+			const TileData& tileData = mapData->tiles[x][y];
+			if (tileData.id == TILEID_NONE || tileData.type == TILE_NONE) {
+				continue;
+			}
+
+			// 타일 캐시에서 비트맵 찾기
+			auto cacheIt = m_tileCache.find(tileData.id);
+			if (cacheIt == m_tileCache.end()) {
+				TileCacheData newCacheData;
+				newCacheData.id = tileData.id;
+				LoadTileBitmap(tileData, newCacheData);
+				if (newCacheData.bitmap) {
+					m_tileCache[tileData.id] = newCacheData;
+					cacheIt = m_tileCache.find(tileData.id);
+				} else {
+					continue;
+				}
+			}
+
+			Gdiplus::Bitmap* tileBitmap = cacheIt->second.bitmap;
+			if (!tileBitmap) {
+				LoadTileBitmap(tileData, cacheIt->second);
+				tileBitmap = cacheIt->second.bitmap;
+				if (!tileBitmap) {
+					m_tileCache.erase(cacheIt);
+					continue;
+				}
+			}
+
+			// 성능 최적화: WorldToScreen 변환을 직접 계산 (함수 호출 오버헤드 제거)
+			float worldX = x * TILE_SIZE + TILE_SIZE / 2.0f;
+			float screenX = worldX - cameraPos.X + halfScreenWidth;
+			float screenY = screenYBase;
+			
+			// RenderManager에 직접 명령 추가 (RenderTile 함수 호출 오버헤드 제거)
+			float renderX = screenX - TILE_SIZE * 0.5f;
+			float renderY = screenY - TILE_SIZE * 0.5f;
+			Gdiplus::RectF destRect(renderX, renderY, TILE_SIZE, TILE_SIZE);
+			Gdiplus::RectF sourceRect(0, 0, static_cast<float>(tileBitmap->GetWidth()), static_cast<float>(tileBitmap->GetHeight()));
+			Gdiplus::PointF screenPos(screenX, screenY);
+			
+			renderManager->AddDrawCommand(tileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, LAYER_WORLD_TILE, DIR_DOWN);
 		}
 	}
 }
@@ -338,6 +447,7 @@ void CameraManager::RenderSingleTile(const MapData* mapData, int x, int y, float
 	// 타일 캐시에서 비트맵 찾기
 	auto cacheIt = m_tileCache.find(tileData.id);
 	if (cacheIt == m_tileCache.end()) {
+		// 캐시에 없으면 로드 (성능 최적화: 첫 프레임에만 로드)
 		TileCacheData newCacheData;
 		newCacheData.id = tileData.id;
 		LoadTileBitmap(tileData, newCacheData);
@@ -345,15 +455,18 @@ void CameraManager::RenderSingleTile(const MapData* mapData, int x, int y, float
 			m_tileCache[tileData.id] = newCacheData;
 			cacheIt = m_tileCache.find(tileData.id);
 		} else {
+			// 로드 실패 시 빈 타일로 처리 (렌더링 스킵)
 			return;
 		}
 	}
 
 	Gdiplus::Bitmap* tileBitmap = cacheIt->second.bitmap;
 	if (!tileBitmap) {
+		// 비트맵이 없으면 다시 로드 시도
 		LoadTileBitmap(tileData, cacheIt->second);
 		tileBitmap = cacheIt->second.bitmap;
 		if (!tileBitmap) {
+			// 로드 실패 시 캐시에서 제거
 			m_tileCache.erase(cacheIt);
 			return;
 		}
@@ -361,9 +474,44 @@ void CameraManager::RenderSingleTile(const MapData* mapData, int x, int y, float
 
 	// 타일 렌더링
 	RenderManager* renderManager = RenderManager::GetInstance();
-	if (renderManager) {
+	if (renderManager && tileBitmap) {
 		float worldX = x * TILE_SIZE + TILE_SIZE / 2.0f;
 		renderManager->RenderTile(tileBitmap, worldX, worldY, TILE_SIZE, TILE_SIZE);
+	}
+}
+
+void CameraManager::CleanupUnusedTileCache(const MapData* mapData, int startTileX, int endTileX, int startTileY, int endTileY)
+{
+	if (!mapData) return;
+
+	// 현재 뷰포트에 보이는 타일 ID 수집
+	std::set<UINT> visibleTileIDs;
+	for (int y = startTileY; y < endTileY; ++y) {
+		for (int x = startTileX; x < endTileX; ++x) {
+			if (x >= 0 && x < mapData->mapWidth && 
+				y >= 0 && y < mapData->mapHeight) {
+				const TileData& tileData = mapData->tiles[x][y];
+				if (tileData.id != TILEID_NONE && tileData.type != TILE_NONE) {
+					visibleTileIDs.insert(static_cast<UINT>(tileData.id));
+				}
+			}
+		}
+	}
+
+	// 사용하지 않는 타일 캐시 제거 (메모리 최적화)
+	auto it = m_tileCache.begin();
+	while (it != m_tileCache.end()) {
+		// 현재 뷰포트에 보이지 않는 타일이면 제거
+		if (visibleTileIDs.find(it->first) == visibleTileIDs.end()) {
+			if (it->second.bitmap) {
+				delete it->second.bitmap;
+				it->second.bitmap = nullptr;
+			}
+			it = m_tileCache.erase(it);
+		}
+		else {
+			++it;
+		}
 	}
 }
 
@@ -388,9 +536,7 @@ void CameraManager::LoadTileBitmap(const TileData& tileData, TileCacheData& cach
 	std::wstring fullPath = resourceManager->BuildResourcePath(tileData.tileAssetBaseDirectory, L"", tileData.tileImageName);
 
 	cacheData.bitmap = new Gdiplus::Bitmap(fullPath.c_str());
-	if (cacheData.bitmap && cacheData.bitmap->GetLastStatus() == Gdiplus::Ok) {
-		cacheData.isAtlasBased = false;
-	} else {
+	if (!(cacheData.bitmap && cacheData.bitmap->GetLastStatus() == Gdiplus::Ok)) {
 		if (cacheData.bitmap) {
 			delete cacheData.bitmap;
 			cacheData.bitmap = nullptr;

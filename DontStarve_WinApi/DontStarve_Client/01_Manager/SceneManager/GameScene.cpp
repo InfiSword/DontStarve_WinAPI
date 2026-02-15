@@ -9,6 +9,23 @@
 #include "../ResourceManager/ResourceManager.h"
 #include "../ColliderManager/ColliderManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
+#include <chrono>
+#include <fstream>
+#include <windows.h>
+
+// #region agent log helper
+static std::wstring GetLogPath() {
+	wchar_t exePath[MAX_PATH];
+	GetModuleFileNameW(NULL, exePath, MAX_PATH);
+	std::wstring path(exePath);
+	size_t pos = path.find_last_of(L"\\");
+	if (pos != std::wstring::npos) {
+		path = path.substr(0, pos); // 실행 파일 디렉토리
+	}
+	// 실행 파일과 같은 디렉토리에 로그 파일 생성
+	return path + L"\\debug.log";
+}
+// #endregion
 
 GameScene::GameScene() : m_selectedCharacterID(GOID_NONE)
 {
@@ -22,13 +39,29 @@ GameScene::~GameScene()
 void GameScene::Init()
 {
 	// GameScene에 필요한 매니저들 초기화
+	// 주의: 일부 매니저는 이미 MainGame::Init()에서 초기화되었을 수 있음
+	// 중복 초기화를 피하기 위해 필요한 경우에만 초기화
+	
+	// UI 매니저는 씬마다 초기화 필요 (UI 리스트 클리어)
 	UIManager::GetInstance()->Init();
-	InputManager::GetInstance()->Init();
+	
+	// InputManager는 이미 메인 루프에서 초기화됨 (중복 초기화 불필요)
+	// InputManager::GetInstance()->Init();
+	
+	// ObjectManager 초기화 (게임 오브젝트 관리)
 	ObjectManager::GetInstance()->Init();
+	
+	// CameraManager 초기화 (카메라 위치 등)
 	CameraManager::GetInstance()->Init();
-	RenderManager::GetInstance()->Init();
+	
+	// RenderManager는 이미 MainGame::Init()에서 초기화됨 (중복 초기화 불필요)
+	// RenderManager::GetInstance()->Init();
+	
+	// InventoryManager 초기화
 	InventoryManager::GetInstance()->Init();
-	ResourceManager::GetInstance()->Init();
+	
+	// ResourceManager는 이미 MainGame::Init()에서 초기화됨 (중복 초기화 불필요)
+	// ResourceManager::GetInstance()->Init();
 
 	// UI 생성
 	// CreateUI();
@@ -56,13 +89,57 @@ void GameScene::Init(const MapData& mapData)
 
 void GameScene::Update(float deltaTime)
 {
+	// #region agent log
+	auto totalStartTime = std::chrono::high_resolution_clock::now();
+	long long uiDuration = 0, objDuration = 0, camDuration = 0, renderDuration = 0, invDuration = 0;
+	// #endregion
+	
 	// 매니저들 업데이트
+	// InputManager는 메인 루프에서 가장 먼저 업데이트됨 (반응 속도 개선)
+	// #region agent log
+	auto t0 = std::chrono::high_resolution_clock::now();
+	// #endregion
 	UIManager::GetInstance()->Update(deltaTime);
-	InputManager::GetInstance()->Update(deltaTime);
+	// #region agent log
+	auto t1 = std::chrono::high_resolution_clock::now();
+	uiDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+	// #endregion
+	
+	// #region agent log
+	t0 = std::chrono::high_resolution_clock::now();
+	// #endregion
 	ObjectManager::GetInstance()->Update(deltaTime);
+	// #region agent log
+	t1 = std::chrono::high_resolution_clock::now();
+	objDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+	// #endregion
+	
+	// #region agent log
+	t0 = std::chrono::high_resolution_clock::now();
+	// #endregion
 	CameraManager::GetInstance()->Update(deltaTime);
+	// #region agent log
+	t1 = std::chrono::high_resolution_clock::now();
+	camDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+	// #endregion
+	
+	// #region agent log
+	t0 = std::chrono::high_resolution_clock::now();
+	// #endregion
 	RenderManager::GetInstance()->Update(deltaTime);
+	// #region agent log
+	t1 = std::chrono::high_resolution_clock::now();
+	renderDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+	// #endregion
+	
+	// #region agent log
+	t0 = std::chrono::high_resolution_clock::now();
+	// #endregion
 	InventoryManager::GetInstance()->Update(deltaTime);
+	// #region agent log
+	t1 = std::chrono::high_resolution_clock::now();
+	invDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+	// #endregion
 
 	// 플레이어 이동 처리 제거 - Player::Update()에서 처리됨
 	
@@ -74,13 +151,28 @@ void GameScene::Update(float deltaTime)
 			objectManager->ToggleBoundsDisplay();
 		}
 	}
+	
+	// #region agent log
+	auto totalEndTime = std::chrono::high_resolution_clock::now();
+	auto totalDuration = std::chrono::duration_cast<std::chrono::microseconds>(totalEndTime - totalStartTime).count();
+	// 로그 파일 I/O는 프레임당 한 번만 수행 (성능 최적화)
+	static int frameCount = 0;
+	frameCount++;
+	if (frameCount % 60 == 0) { // 60프레임마다 한 번만 로깅 (1초마다)
+		std::ofstream logFile(GetLogPath(), std::ios::app);
+		if (logFile.is_open()) {
+			logFile << "{\"runId\":\"perf2\",\"hypothesisId\":\"G\",\"location\":\"GameScene.cpp:90\",\"message\":\"GameScene::Update\",\"data\":{\"total_us\":" << totalDuration << ",\"ui_us\":" << uiDuration << ",\"obj_us\":" << objDuration << ",\"cam_us\":" << camDuration << ",\"render_us\":" << renderDuration << ",\"inv_us\":" << invDuration << "},\"timestamp\":" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << "}\n";
+			logFile.close();
+		}
+	}
+	// #endregion
 }
 
 void GameScene::LateUpdate()
 {
 	// 매니저들 LateUpdate
+	// InputManager::LateUpdate는 메인 루프에서 처리됨
 	UIManager::GetInstance()->LateUpdate();
-	InputManager::GetInstance()->LateUpdate();
 	ObjectManager::GetInstance()->LateUpdate();
 	InventoryManager::GetInstance()->LateUpdate();	
 }
