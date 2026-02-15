@@ -65,7 +65,7 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,
 					pRM->BuildResourcePath(base, L"", L"Queen_spider_queen_Image.png"),
-					120, 120, 1, 1, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+					120, 120, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			}
 
 			// WALK
@@ -73,7 +73,7 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_WALK, (Direction)dir,
 					walkPath,
-					120, 120, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+					120, 120, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			}
 
 			// ATTACK
@@ -81,17 +81,17 @@ void Boss_SpiderQueen::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_ATTACK, (Direction)dir,
 					attackPath,
-					140, 140, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+					140, 140, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			}
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Queen_spider_queen_hit_side.png"),
-				120, 120, 3, 3, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				120, 120, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 
 			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Queen_spider_queen_death.png"),
-				120, 120, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				120, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 		}
 
 		m_animator->SetState((int)m_state, this->transform->GetDirection());

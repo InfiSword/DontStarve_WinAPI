@@ -1,7 +1,6 @@
 #pragma once
-#include <vector>
-#include <memory>
 
+class UIElement;
 class UIImage;
 class UIButton;
 class UIText;
@@ -20,7 +19,7 @@ public:
 	void Render();
 	void Release();
 
-	// UI 오브젝트 관리
+	// UI 오브젝트 관리 (모두 UIElement로 통합 보관)
 	void AddUIImage(UIImage* image);
 	void AddUIButton(UIButton* button);
 	void AddUIText(UIText* text);
@@ -37,13 +36,8 @@ public:
 	// UI 상태 관리
 	void SetUIVisibility(bool visible);
 	bool IsUIVisible() const { return m_isUIVisible; }
-	
-	// 마우스 이동 시 즉시 hover 상태 업데이트 (InputManager에서 호출)
-	void UpdateButtonHoverStates();
 
 private:
-	std::vector<UIImage*> m_uiImages;
-	std::vector<UIButton*> m_uiButtons;
-	std::vector<UIText*> m_uiTexts;
+	std::vector<UIElement*> m_uiElements;
 	bool m_isUIVisible;
 }; 

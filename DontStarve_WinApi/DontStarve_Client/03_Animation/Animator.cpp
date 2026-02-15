@@ -17,24 +17,23 @@ void Animator::Init() {
     Component::Init();
 }
 
-// 애니메이션 등록 구현
+// 애니메이션 등록 (frameDuration: 모든 프레임에 적용되는 지속 시간, 기본 0.03초)
 void Animator::RegisterAnimation(int state, Direction dir, 
                                 const std::wstring& imagePath,
                                 UINT frameWidth, UINT frameHeight,
                                 UINT framesPerRow, UINT totalFrames,
-                                float frameDuration,
                                 float pivotX, float pivotY,
                                 bool loop,
-                                const std::map<int, std::wstring>& events) 
+                                const std::map<int, std::wstring>& events,
+                                bool flipHorizontal,
+                                float frameDuration) 
 {
     int key = GetAnimationKey(state, static_cast<int>(dir));
     
-    // SpriteSheet 생성
-    auto sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames);
+    auto sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, flipHorizontal);
     if (!sheet) return;
 
-    // AnimationClip 생성
-    auto clip = std::make_unique<AnimationClip>(L"", std::move(sheet), frameDuration, pivotX, pivotY, loop);
+    auto clip = std::make_unique<AnimationClip>(L"", std::move(sheet), pivotX, pivotY, loop, flipHorizontal, frameDuration);
     
     if (!clip) return;
     
@@ -64,11 +63,12 @@ void Animator::SetState(int state, Direction direction) {
 
 void Animator::SelectAndPlayAnimation() {
     int key = GetAnimationKey(m_currentState, m_currentDirection);
-    OutputDebugStringW((L"Animator: SelectAndPlayAnimation - State: " + std::to_wstring(m_currentState) + 
-                       L", Direction: " + std::to_wstring(m_currentDirection) + L", Key: " + std::to_wstring(key) + L"\n").c_str());
-    
     auto it = m_animations.find(key);
-    
+    // 같은 state에서 방향만 DIR_DOWN으로 폴백 시도 (클립 누락 시 PICKUP 등이 재생되도록)
+    if (it == m_animations.end() && m_currentDirection != static_cast<int>(DIR_DOWN)) {
+        key = GetAnimationKey(m_currentState, static_cast<int>(DIR_DOWN));
+        it = m_animations.find(key);
+    }
     if (it != m_animations.end()) {
         AnimationClip* newClip = it->second.get();
         if (m_currentClip != newClip) {
@@ -76,20 +76,6 @@ void Animator::SelectAndPlayAnimation() {
             m_elapsed = 0.0f;
             m_isPlaying = true;
             m_lastTriggeredFrame = -1;
-            
-            OutputDebugStringW((L"Animator: 애니메이션 재생 - State: " + 
-                               std::to_wstring(m_currentState) + L", Direction: " + 
-                               std::to_wstring(m_currentDirection) + L"\n").c_str());
-        }
-    } else {
-        OutputDebugStringW((L"Animator: 애니메이션을 찾을 수 없음 - State: " + 
-                           std::to_wstring(m_currentState) + L", Direction: " + 
-                           std::to_wstring(m_currentDirection) + L", Key: " + std::to_wstring(key) + L"\n").c_str());
-        
-        // 등록된 애니메이션 목록 출력
-        OutputDebugStringW(L"Animator: 등록된 애니메이션 목록:\n");
-        for (const auto& pair : m_animations) {
-            OutputDebugStringW((L"  - Key: " + std::to_wstring(pair.first) + L"\n").c_str());
         }
     }
 }
@@ -151,6 +137,8 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
     Gdiplus::RectF sourceRect(currentFrame.sourceRect.X, currentFrame.sourceRect.Y, 
                              currentFrame.sourceRect.Width, currentFrame.sourceRect.Height); 
 
+    // preFlipped 클립은 이미 비트맵이 반전되어 있으므로 Transform 불필요 (DIR_DOWN으로 그리기)
+    Direction drawDir = (m_currentClip->IsPreFlipped() ? DIR_DOWN : currentDir);
     RenderManager::GetInstance()->AddDrawCommand(
         currentSheet->GetBitmap(),
         destRect,
@@ -159,7 +147,7 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
         characterFootCenterScreenPos,
         layer,
         sortKey,
-        currentDir
+        drawDir
     );
 }
 

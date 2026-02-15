@@ -1,5 +1,5 @@
 #pragma once
-#include  "../Entity.h"
+#include "../Entity.h"
 #include "../../Item/Item.h"
 
 class Inventory;
@@ -20,24 +20,18 @@ public:
 	virtual void Release() override;
 
 	void SetTargetPosition(float worldX, float worldY);
-	void SetInteractionTarget(GameObject* obj); 
-	void HandleClickInteraction(float worldX, float worldY);
 	void HandleRightClick(float worldX, float worldY);
-	
 	void HandleMovement();
+	void TryStartInteraction(float worldX, float worldY);
+	void FinalizePickup();
 	virtual void OnInteraction(GameObject* obj) override;
-	void FinalizeInteraction();
 
 	Inventory* GetInventory() { return m_inventory; }
-	void SetInventory(std::vector<Gdiplus::RectF> rectSize);
 
 	PlayerState GetPlayerState() const { return (PlayerState)m_state; }
-	void SetPlayerState(PlayerState newState) { m_state = newState; }
 
-	float GetInteractionRadius() const { return m_stopThreshold + 10.0f; }
 	Item* GetEquippedItem() const { return m_equippedItem; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
-	GameObject* GetInteractionTarget() const { return m_currentInteractionTarget; }
 
 	void ToggleEquipItem(int slotIndex);
 
@@ -45,9 +39,13 @@ public:
 
 private:
 	void UpdateAnimatorState();
+	void SetDirectionToward(float dx, float dy);
+	// 목표까지의 거리로 도착 여부 판정 (이동/상호작용 공통)
+	bool IsArrivedAtTarget(float distance, float moveSpeedThisFrame = 0.f) const;
 
 	Inventory* m_inventory;
-	GameObject* m_currentInteractionTarget;
+	GameObject* m_pendingInteractionTarget;  // 이동 후 상호작용할 대상
+	GameObject* m_activeInteractionTarget;   // 현재 상호작용 중인 대상 (FinalizePickup용)
 
 	PlayerState m_state;
 	int hp;
@@ -59,6 +57,7 @@ private:
 	float m_playerSpeed;
 	Gdiplus::PointF m_targetWorldPos;
 	float m_stopThreshold;
+	float m_pickupElapsed;  // PICKUP 상태 경과 시간 (타임아웃용)
 
 	int m_equippedSlotIndex;
 	Item* m_equippedItem;

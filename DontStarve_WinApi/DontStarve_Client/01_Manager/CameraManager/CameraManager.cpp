@@ -2,9 +2,7 @@
 #include "CameraManager.h"
 #include <set>
 #include "../../02_GameObject/Component/Transform/Transform.h"
-#include "../../02_GameObject/Component/Transform/RectTransform.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
-#include "../../02_GameObject/Component/Sprite/Image.h"
 #include "../InputManager/InputManager.h" 
 #include "../ObjectManager/ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
@@ -13,10 +11,9 @@
 #include "../../02_GameObject/GameObject.h"
 
 CameraManager::CameraManager()
-    : m_cameraPos({ 0,0 }), m_zoomFactor(1.0f), m_target(nullptr),
-    m_followMode(true), m_viewportChanged(true),
+    : m_cameraPos({ 0,0 }), m_target(nullptr), m_followMode(true), m_viewportChanged(true),
     m_lastStartTileX(0), m_lastStartTileY(0), m_lastEndTileX(0), m_lastEndTileY(0),
-    m_tileViewportChanged(true), m_tileRangeInitialized(false)
+    m_tileRangeInitialized(false)
 {
 }
 
@@ -27,21 +24,16 @@ CameraManager::~CameraManager()
 
 void CameraManager::Init()
 {
-    m_cameraPos = { 0,0 }; 
-    m_zoomFactor = 1.0f; 
+    m_cameraPos = { 0,0 };
     m_viewportChanged = true;
     m_visibleObjects.clear();
     m_visibleObjectSet.clear();
-    
     m_tileCache.clear();
-    m_tileViewportChanged = true;
     m_tileRangeInitialized = false;
 }
 
 void CameraManager::Update(float deltaTime)
 {
-    if (!InputManager::GetInstance()) return;
-
     // 플레이어 추적 모드가 활성화되어 있으면 플레이어를 추적
     if (m_followMode && m_target) {
         FollowTarget();
@@ -206,30 +198,11 @@ void CameraManager::UpdateVisibleObjects()
 		Gdiplus::PointF screenBottomLeft = WorldToScreen(objBounds.X, objBounds.Y + objBounds.Height);
 		Gdiplus::PointF screenBottomRight = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y + objBounds.Height);
 		
-		// 4개 모서리 중 최소/최대값으로 화면 바운딩 박스 계산
-		float screenLeft = screenTopLeft.X;
-		if (screenTopRight.X < screenLeft) screenLeft = screenTopRight.X;
-		if (screenBottomLeft.X < screenLeft) screenLeft = screenBottomLeft.X;
-		if (screenBottomRight.X < screenLeft) screenLeft = screenBottomRight.X;
-		
-		float screenRight = screenTopLeft.X;
-		if (screenTopRight.X > screenRight) screenRight = screenTopRight.X;
-		if (screenBottomLeft.X > screenRight) screenRight = screenBottomLeft.X;
-		if (screenBottomRight.X > screenRight) screenRight = screenBottomRight.X;
-		
-		float screenTop = screenTopLeft.Y;
-		if (screenTopRight.Y < screenTop) screenTop = screenTopRight.Y;
-		if (screenBottomLeft.Y < screenTop) screenTop = screenBottomLeft.Y;
-		if (screenBottomRight.Y < screenTop) screenTop = screenBottomRight.Y;
-		
-		float screenBottom = screenTopLeft.Y;
-		if (screenTopRight.Y > screenBottom) screenBottom = screenTopRight.Y;
-		if (screenBottomLeft.Y > screenBottom) screenBottom = screenBottomLeft.Y;
-		if (screenBottomRight.Y > screenBottom) screenBottom = screenBottomRight.Y;
-		
-		// 화면 영역과 교차하는지 확인 (정확한 체크)
-		// 교차 조건: 오브젝트의 오른쪽이 화면 왼쪽보다 크고, 왼쪽이 화면 오른쪽보다 작고,
-		//            오브젝트의 아래쪽이 화면 위쪽보다 크고, 위쪽이 화면 아래쪽보다 작아야 함
+		// 4개 모서리로 화면 AABB 계산 후 화면 영역과 교차 여부 확인
+		float screenLeft = (std::min)((std::min)(screenTopLeft.X, screenTopRight.X), (std::min)(screenBottomLeft.X, screenBottomRight.X));
+		float screenRight = (std::max)((std::max)(screenTopLeft.X, screenTopRight.X), (std::max)(screenBottomLeft.X, screenBottomRight.X));
+		float screenTop = (std::min)((std::min)(screenTopLeft.Y, screenTopRight.Y), (std::min)(screenBottomLeft.Y, screenBottomRight.Y));
+		float screenBottom = (std::max)((std::max)(screenTopLeft.Y, screenTopRight.Y), (std::max)(screenBottomLeft.Y, screenBottomRight.Y));
 		bool screenIntersects = !(screenRight < 0 || screenLeft > WINCX || screenBottom < 0 || screenTop > WINCY);
 		
 		// 화면 영역과 교차하는 경우에만 visibleObjects에 추가
@@ -243,19 +216,26 @@ void CameraManager::UpdateVisibleObjects()
 	m_viewportChanged = false;
 }
 
-GameObject* CameraManager::FindObjectAtPosition(float worldX, float worldY)
+void CameraManager::RemoveFromVisibleObjects(GameObject* obj)
 {
-	// 화면에 보이는 게임오브젝트만 검색 (성능 최적화)
+	if (!obj) return;
+	auto setIt = m_visibleObjectSet.find(obj);
+	if (setIt != m_visibleObjectSet.end()) {
+		m_visibleObjectSet.erase(setIt);
+	}
+	auto it = std::find(m_visibleObjects.begin(), m_visibleObjects.end(), obj);
+	if (it != m_visibleObjects.end()) {
+		m_visibleObjects.erase(it);
+	}
+}
+
+GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float worldY)
+{
 	for (int i = (int)m_visibleObjects.size() - 1; i >= 0; --i) {
 		GameObject* obj = m_visibleObjects[i];
-		if (!obj || !obj->IsEnabled()) {
-			continue;
-		}
-		
+		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) continue;
 		Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
-		if (objBounds.Contains(worldX, worldY)) {
-			return obj;
-		}
+		if (objBounds.Contains(worldX, worldY)) return obj;
 	}
 	return nullptr;
 }
@@ -434,49 +414,6 @@ void CameraManager::RenderVisibleGameObjects()
 			continue;
 		}
 		renderManager->RenderGameObject(obj);
-	}
-}
-
-void CameraManager::RenderSingleTile(const MapData* mapData, int x, int y, float worldY)
-{
-	const TileData& tileData = mapData->tiles[x][y];
-	if (tileData.id == TILEID_NONE || tileData.type == TILE_NONE) {
-		return;
-	}
-
-	// 타일 캐시에서 비트맵 찾기
-	auto cacheIt = m_tileCache.find(tileData.id);
-	if (cacheIt == m_tileCache.end()) {
-		// 캐시에 없으면 로드 (성능 최적화: 첫 프레임에만 로드)
-		TileCacheData newCacheData;
-		newCacheData.id = tileData.id;
-		LoadTileBitmap(tileData, newCacheData);
-		if (newCacheData.bitmap) {
-			m_tileCache[tileData.id] = newCacheData;
-			cacheIt = m_tileCache.find(tileData.id);
-		} else {
-			// 로드 실패 시 빈 타일로 처리 (렌더링 스킵)
-			return;
-		}
-	}
-
-	Gdiplus::Bitmap* tileBitmap = cacheIt->second.bitmap;
-	if (!tileBitmap) {
-		// 비트맵이 없으면 다시 로드 시도
-		LoadTileBitmap(tileData, cacheIt->second);
-		tileBitmap = cacheIt->second.bitmap;
-		if (!tileBitmap) {
-			// 로드 실패 시 캐시에서 제거
-			m_tileCache.erase(cacheIt);
-			return;
-		}
-	}
-
-	// 타일 렌더링
-	RenderManager* renderManager = RenderManager::GetInstance();
-	if (renderManager && tileBitmap) {
-		float worldX = x * TILE_SIZE + TILE_SIZE / 2.0f;
-		renderManager->RenderTile(tileBitmap, worldX, worldY, TILE_SIZE, TILE_SIZE);
 	}
 }
 

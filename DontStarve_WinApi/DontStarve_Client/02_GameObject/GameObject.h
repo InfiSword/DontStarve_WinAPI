@@ -36,9 +36,8 @@ public:
 
 	// 상호작용 관련
 	virtual void OnInteraction(GameObject* obj);
-	bool IsInteractive() const { return m_isInteractive; }
-	void SetInteractive(bool interactive) { m_isInteractive = interactive; }
-	
+	virtual bool CanInteract() const { return m_isInteractive; }
+
     template <typename T, typename... Args>
     T* AddComponent(Args&&... args) {
         T* newComponent = new T(this, std::forward<Args>(args)...);

@@ -7,13 +7,15 @@
 AnimationClip::AnimationClip(
     const std::wstring& name,
     std::unique_ptr<SpriteSheet> spriteSheet,
-    float frameDuration,
     float pivotX,
     float pivotY,
-    bool loop) 
+    bool loop,
+    bool preFlipped,
+    float frameDuration) 
     : m_pSpriteSheet(std::move(spriteSheet)),
       m_isLooping(loop), 
-      m_totalDuration(0.0f) {
+      m_totalDuration(0.0f),
+      m_preFlipped(preFlipped) {
     // 생성 시점에 SpriteSheet -> Frames 초기화까지 완료
     if (m_pSpriteSheet) {
         m_frames = m_pSpriteSheet->ExtractFrames(frameDuration, pivotX, pivotY);

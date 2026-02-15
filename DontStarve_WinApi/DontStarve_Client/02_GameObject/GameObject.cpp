@@ -75,9 +75,6 @@ void GameObject::Release()
 
 void GameObject::OnInteraction(GameObject* obj)
 {
-	// 기본 구현: 상호작용 가능한 경우에만 처리
-	if (!m_isInteractive || !IsEnabled() || !obj) {
-		return;
-	}
+	if (!obj || !IsEnabled() || !CanInteract()) return;
 	// 파생 클래스에서 오버라이드하여 구체적인 상호작용 로직 구현
 }

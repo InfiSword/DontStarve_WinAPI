@@ -63,44 +63,44 @@ void Spider::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,
 					pRM->BuildResourcePath(base, L"", L"Spider_spider_idle_01.png"),
-					80, 80, 1, 1, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+					80, 80, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			}
 
 			// WALK
 			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_walk_loop_down.png"),
-				80, 80, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_UP,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_walk_loop_up.png"),
-				80, 80, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_LEFT,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_walk_loop_side.png"),
-				80, 80, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_RIGHT,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_walk_loop_side.png"),
-				80, 80, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 
 			// ATTACK
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_atk_down.png"),
-				100, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_atk_up.png"),
-				100, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_atk_side.png"),
-				100, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_atk_side.png"),
-				100, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_hit.png"),
-				80, 80, 3, 3, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				80, 80, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Spider_spider_death.png"),
-				80, 80, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				80, 80, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 		}
 		else if (m_id == GOID_MONSTER_WARRIOR_SPIDER) {
 			const GameObjectData* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_WARRIOR_SPIDER);
@@ -110,44 +110,44 @@ void Spider::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,
 					pRM->BuildResourcePath(base, L"", L"Warrior_spider_idle_01.png"),
-					80, 80, 1, 1, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+					80, 80, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			}
 
 			// WALK
 			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_walk_loop_down.png"),
-				80, 80, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_UP,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_walk_loop_up.png"),
-				80, 80, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_LEFT,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_walk_loop_side.png"),
-				80, 80, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_RIGHT,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_walk_loop_side.png"),
-				80, 80, 6, 6, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), true);
+				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 
 			// ATTACK
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_atk_down.png"),
-				100, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_atk_up.png"),
-				100, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_atk_side.png"),
-				100, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_atk_side.png"),
-				100, 100, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_hit.png"),
-				80, 80, 3, 3, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				80, 80, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"", L"Warrior_spider_death.png"),
-				80, 80, 8, 8, 0.1f, this->transform->GetPivotX(), this->transform->GetPivotY(), false);
+				80, 80, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 		}
 
 		// 초기 상태 적용

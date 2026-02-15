@@ -6,11 +6,8 @@ struct TileData;
 struct TileCacheData {
 	TileID id;
 	Gdiplus::Bitmap* bitmap;
-	Gdiplus::RectF sourceRect;
-	
+
 	TileCacheData() : id(TILEID_NONE), bitmap(nullptr) {}
-	TileCacheData(TileID _id, Gdiplus::Bitmap* _bitmap, const Gdiplus::RectF& _rect) 
-		: id(_id), bitmap(_bitmap), sourceRect(_rect) {}
 };
 
 class GameObject;
@@ -47,10 +44,12 @@ public:
 
 	// 뷰포트 내 보이는 오브젝트 업데이트
 	void UpdateVisibleObjects();
-	
-	// 월드 좌표에 있는 오브젝트 찾기
-	GameObject* FindObjectAtPosition(float worldX, float worldY);
-	
+	// 제거된 오브젝트를 visible 목록에서 즉시 제거 (삭제 전 호출하여 댕글링 포인터 방지)
+	void RemoveFromVisibleObjects(GameObject* obj);
+
+	// 월드 좌표에 있는 상호작용 가능 오브젝트 찾기 (화면 역순, AABB, CanInteract()만 후보)
+	GameObject* FindInteractableObjectAtPosition(float worldX, float worldY);
+
 	// Sprite 바운딩 박스 계산
 	Gdiplus::RectF GetSpriteBoundingBox(GameObject* obj) const;
 
@@ -67,8 +66,6 @@ private:
     GameObject* m_target;
 	Gdiplus::PointF m_cameraPos;
 
-	float m_zoomFactor;             // 줌 인수
-	
 	bool m_followMode;
 	
 	// 뷰포트 관리
@@ -77,13 +74,11 @@ private:
 	Gdiplus::RectF m_lastViewportRect;
 	bool m_viewportChanged;
 	void CheckViewportChanged();
-	
+
 	// 타일 캐시 관리
 	std::map<UINT, TileCacheData> m_tileCache;
 	int m_lastStartTileX, m_lastStartTileY, m_lastEndTileX, m_lastEndTileY;
-	bool m_tileViewportChanged;
-	bool m_tileRangeInitialized;  // 타일 범위가 한 번이라도 계산되었는지 여부
+	bool m_tileRangeInitialized;
 	void LoadTileBitmap(const TileData& tileData, TileCacheData& cacheData);
-	void RenderSingleTile(const MapData* mapData, int x, int y, float worldY);
 	void CleanupUnusedTileCache(const MapData* mapData, int startTileX, int endTileX, int startTileY, int endTileY);
 };

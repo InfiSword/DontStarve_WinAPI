@@ -26,7 +26,8 @@ public:
     virtual void Init() override;
     virtual void Update(float deltaTime) override;
     virtual void Release() override;
-    
+    bool CanInteract() const override { return true; }
+
     // inline 함수
     inline const std::wstring& GetDescription() const { return m_description; }
 };

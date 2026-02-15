@@ -68,7 +68,7 @@ void SpiderEgg::Init()
 
         if (!imagePath.empty()) {
             m_animator->RegisterAnimation((int)BUILDING_NOON, DIR_DOWN, imagePath,
-                80, 80, 1, 1, 0.1f, transform->GetPivotX(), transform->GetPivotY(), true);
+                80, 80, 1, 1, transform->GetPivotX(), transform->GetPivotY(), true, {}, false, 0.03f);
             m_animator->SetState((int)m_buildingState, transform->GetDirection());
         }
     }

@@ -276,29 +276,18 @@ void RenderManager::Clear() {
 	m_drawCommands.clear();
 }
 
-// 방향에 따른 스프라이트 반전 적용 (월드 오브젝트만)
+// 방향에 따른 스프라이트 반전 적용 (월드 오브젝트만) — 단일 Matrix로 X축 반전
 void RenderManager::ApplyDirectionFlip(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight)
 {
 	if (command.layer >= LAYER_UI_BACKGROUND || command.type == DRAW_COMMAND_TEXT)
-	{
 		return;
-	}
+	if (command.direction != DIR_LEFT)
+		return;
 
-	float transformCenterX = command.destRect.X + scaledWidth / 2.0f;
-	float transformCenterY = command.destRect.Y + scaledHeight / 2.0f;
-	switch (command.direction) {
-	case DIR_DOWN:
-		break;
-	case DIR_UP:
-		break;
-	case DIR_LEFT:
-		pGraphics->TranslateTransform(transformCenterX, transformCenterY);
-		pGraphics->ScaleTransform(-1.0f, 1.0f); // X축 반전
-		pGraphics->TranslateTransform(-transformCenterX, -transformCenterY);
-		break;
-	case DIR_RIGHT:
-		break;
-	}
+	float centerX = command.destRect.X + scaledWidth * 0.5f;
+	// 단일 변환: x -> 2*centerX - x (destRect 중심 기준 X축 반전)
+	Gdiplus::Matrix flipMatrix(-1.0f, 0.0f, 0.0f, 1.0f, 2.0f * centerX, 0.0f);
+	pGraphics->MultiplyTransform(&flipMatrix);
 }
 
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
@@ -325,33 +314,28 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 	Gdiplus::Color lastTintColor(0, 0, 0, 0);
 	bool imageAttrCached = false;
 	
-	// 성능 최적화: DIR_LEFT가 아닌 명령들은 Save/Restore 스킵
+	// DIR_LEFT일 때만 Transform(단일 Matrix)으로 X축 반전 후 그리기
 	for (const auto& cmd : m_drawCommands) {
-		bool needsTransform = (cmd.type == DRAW_COMMAND_IMAGE && cmd.direction == DIR_LEFT && cmd.layer < LAYER_UI_BACKGROUND);
-		Gdiplus::GraphicsState commandSpecificState = 0;
-		
-		if (needsTransform) {
-			commandSpecificState = pGraphics->Save();
-		}
+		bool useFlipTransform = (cmd.type == DRAW_COMMAND_IMAGE && cmd.direction == DIR_LEFT && cmd.layer < LAYER_UI_BACKGROUND);
+		Gdiplus::GraphicsState gstate = 0;
+		if (useFlipTransform)
+			gstate = pGraphics->Save();
 
 		if (cmd.type == DRAW_COMMAND_IMAGE) {
 			// 비트맵 유효성 확인 (빠른 실패)
 			if (!cmd.pBitmap || cmd.pBitmap->GetLastStatus() != Gdiplus::Ok ||
 				cmd.sourceRect.Width <= 0 || cmd.sourceRect.Height <= 0 ||
 				cmd.destRect.Width <= 0 || cmd.destRect.Height <= 0) {
-				if (needsTransform) {
-					pGraphics->Restore(commandSpecificState);
-				}
+				if (useFlipTransform)
+					pGraphics->Restore(gstate);
 				continue;
 			}
 
-			if (needsTransform) {
+			if (useFlipTransform)
 				ApplyDirectionFlip(pGraphics, cmd, cmd.destRect.Width, cmd.destRect.Height);
-			}
 			
 			// 색상 틴트 적용 (ImageAttributes 재사용 최적화)
 			if (cmd.hasTint) {
-				// 틴트 색상이 변경된 경우에만 ImageAttributes 재생성
 				if (!imageAttrCached || lastTintColor.GetValue() != cmd.tintColor.GetValue()) {
 					float r = cmd.tintColor.GetR() / 255.0f;
 					float g = cmd.tintColor.GetG() / 255.0f;
@@ -378,10 +362,9 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 				pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
 					cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
 			}
-			
-			if (needsTransform) {
-				pGraphics->Restore(commandSpecificState);
-			}
+
+			if (useFlipTransform)
+				pGraphics->Restore(gstate);
 		}
 		else if (cmd.type == DRAW_COMMAND_TEXT) {
 			if (cmd.pFont && cmd.pBrush && cmd.pStringFormat) {

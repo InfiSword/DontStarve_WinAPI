@@ -156,6 +156,9 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 	if (!pObj) return;
 	auto pendingIt = std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj);
 	if (pendingIt != m_pendingDeletions.end()) return;
+	
+	CameraManager* cam = CameraManager::GetInstance();
+	if (cam) cam->RemoveFromVisibleObjects(pObj);
 	m_pendingDeletions.push_back(pObj);
 }
 

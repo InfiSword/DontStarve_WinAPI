@@ -1,7 +1,6 @@
 #include "99_Default/pch.h"
 #include "InputManager.h"
 #include "../CameraManager/CameraManager.h"
-#include "../UIManager/UIManager.h"
 
 InputManager::InputManager() 
 	: s_lButtonState(false), s_lButtonPrevState(false), s_mousePos({0,0})
@@ -106,16 +105,11 @@ Gdiplus::PointF InputManager::GetMouseClickWorldPos() const {
 // Windows 메시지 직접 처리 (즉시 반응을 위해)
 void InputManager::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	UIManager* uiManager = UIManager::GetInstance();
 	switch (message)
 	{
 	case WM_MOUSEMOVE:
 		s_mousePos.x = LOWORD(lParam);
 		s_mousePos.y = HIWORD(lParam);
-				
-		if (uiManager) {
-			uiManager->UpdateButtonHoverStates();
-		}
 		break;
 		
 	case WM_LBUTTONDOWN:

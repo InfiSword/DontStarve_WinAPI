@@ -1,26 +1,11 @@
 #include "99_Default/pch.h"
 #include "UIManager.h"
+#include "../../02_GameObject/UI/UIElement.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
 #include "../../02_GameObject/UI/UIText.h"
 #include "../RenderManager/RenderManager.h"
 #include "../InputManager/InputManager.h"
-#include <chrono>
-#include <fstream>
-#include <windows.h>
-
-// #region agent log helper
-static std::wstring GetLogPath() {
-	wchar_t exePath[MAX_PATH];
-	GetModuleFileNameW(NULL, exePath, MAX_PATH);
-	std::wstring path(exePath);
-	size_t pos = path.find_last_of(L"\\");
-	if (pos != std::wstring::npos) {
-		path = path.substr(0, pos); // 실행 파일 디렉토리
-	}
-	return path + L"\\debug.log";
-}
-// #endregion
 
 UIManager::UIManager() : m_isUIVisible(true)
 {
@@ -42,41 +27,11 @@ void UIManager::LateInit()
 
 void UIManager::Update(float deltaTime)
 {
-	// #region agent log
-	auto startTime = std::chrono::high_resolution_clock::now();
-	// #endregion
-	
-	for (size_t i = 0; i < m_uiImages.size(); ++i) {
-		auto* image = m_uiImages[i];
-		if (image && image->IsEnabled()) {
-			image->Update(deltaTime);
+	for (auto* element : m_uiElements) {
+		if (element && element->IsEnabled()) {
+			element->Update(deltaTime);
 		}
 	}
-
-	for (size_t i = 0; i < m_uiButtons.size(); ++i) {
-		auto* button = m_uiButtons[i];
-		if (button && button->IsEnabled()) {
-			button->Update(deltaTime);
-		}
-	}
-
-	for (size_t i = 0; i < m_uiTexts.size(); ++i) {
-		auto* text = m_uiTexts[i];
-		if (text && text->IsEnabled()) {
-			text->Update(deltaTime);
-		}
-	}
-	
-	// #region agent log
-	auto endTime = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
-	// 로그 파일 I/O는 성능 테스트를 위해 임시로 비활성화
-	// std::ofstream logFile(GetLogPath(), std::ios::app);
-	// if (logFile.is_open()) {
-	// 	logFile << "{\"runId\":\"perf1\",\"hypothesisId\":\"K\",\"location\":\"UIManager.cpp:27\",\"message\":\"UIManager::Update\",\"data\":{\"duration_us\":" << duration << ",\"imageCount\":" << m_uiImages.size() << ",\"buttonCount\":" << m_uiButtons.size() << ",\"textCount\":" << m_uiTexts.size() << "},\"timestamp\":" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << "}\n";
-	// 	logFile.close();
-	// }
-	// #endregion
 }
 
 void UIManager::LateUpdate()
@@ -88,29 +43,9 @@ void UIManager::Render()
 	RenderManager* renderManager = RenderManager::GetInstance();
 	if (!renderManager) return;
 
-	// 디버그: 렌더링할 UI 개수 출력
-	static int frameCount = 0;
-	if (frameCount++ % 60 == 0) {  // 60프레임마다 한 번씩 출력
-		OutputDebugStringW((L"UIManager::Render - Images: " + std::to_wstring(m_uiImages.size()) +
-			L", Buttons: " + std::to_wstring(m_uiButtons.size()) +
-			L", Texts: " + std::to_wstring(m_uiTexts.size()) + L"\n").c_str());
-	}
-
-	for (auto* image : m_uiImages) {
-		if (image && image->IsEnabled()) {
-			image->Render();
-		}
-	}
-
-	for (auto* button : m_uiButtons) {
-		if (button && button->IsEnabled()) {
-			button->Render();
-		}
-	}
-
-	for (auto* text : m_uiTexts) {
-		if (text && text->IsEnabled()) {
-			text->Render();
+	for (auto* element : m_uiElements) {
+		if (element && element->IsEnabled()) {
+			element->Render();
 		}
 	}
 }
@@ -123,9 +58,9 @@ void UIManager::Release()
 void UIManager::AddUIImage(UIImage* image)
 {
 	if (image) {
-		auto it = std::find(m_uiImages.begin(), m_uiImages.end(), image);
-		if (it == m_uiImages.end()) {
-			m_uiImages.push_back(image);
+		auto it = std::find(m_uiElements.begin(), m_uiElements.end(), static_cast<UIElement*>(image));
+		if (it == m_uiElements.end()) {
+			m_uiElements.push_back(image);
 		}
 	}
 }
@@ -133,9 +68,9 @@ void UIManager::AddUIImage(UIImage* image)
 void UIManager::AddUIButton(UIButton* button)
 {
 	if (button) {
-		auto it = std::find(m_uiButtons.begin(), m_uiButtons.end(), button);
-		if (it == m_uiButtons.end()) {
-			m_uiButtons.push_back(button);
+		auto it = std::find(m_uiElements.begin(), m_uiElements.end(), static_cast<UIElement*>(button));
+		if (it == m_uiElements.end()) {
+			m_uiElements.push_back(button);
 		}
 	}
 }
@@ -143,9 +78,9 @@ void UIManager::AddUIButton(UIButton* button)
 void UIManager::AddUIText(UIText* text)
 {
 	if (text) {
-		auto it = std::find(m_uiTexts.begin(), m_uiTexts.end(), text);
-		if (it == m_uiTexts.end()) {
-			m_uiTexts.push_back(text);
+		auto it = std::find(m_uiElements.begin(), m_uiElements.end(), static_cast<UIElement*>(text));
+		if (it == m_uiElements.end()) {
+			m_uiElements.push_back(text);
 		}
 	}
 }
@@ -153,65 +88,47 @@ void UIManager::AddUIText(UIText* text)
 void UIManager::RemoveUIImage(UIImage* image)
 {
 	if (!image) return;
-
-	auto it = std::find(m_uiImages.begin(), m_uiImages.end(), image);
-	if (it != m_uiImages.end()) {
-		m_uiImages.erase(it);
+	auto it = std::find(m_uiElements.begin(), m_uiElements.end(), static_cast<UIElement*>(image));
+	if (it != m_uiElements.end()) {
+		m_uiElements.erase(it);
 	}
 }
 
 void UIManager::RemoveUIButton(UIButton* button)
 {
 	if (!button) return;
-
-	auto it = std::find(m_uiButtons.begin(), m_uiButtons.end(), button);
-	if (it != m_uiButtons.end()) {
-		m_uiButtons.erase(it);
+	auto it = std::find(m_uiElements.begin(), m_uiElements.end(), static_cast<UIElement*>(button));
+	if (it != m_uiElements.end()) {
+		m_uiElements.erase(it);
 	}
 }
 
 void UIManager::RemoveUIText(UIText* text)
 {
 	if (!text) return;
-
-	auto it = std::find(m_uiTexts.begin(), m_uiTexts.end(), text);
-	if (it != m_uiTexts.end()) {
-		m_uiTexts.erase(it);
+	auto it = std::find(m_uiElements.begin(), m_uiElements.end(), static_cast<UIElement*>(text));
+	if (it != m_uiElements.end()) {
+		m_uiElements.erase(it);
 	}
 }
 
 void UIManager::ClearAllUI()
 {
-	for (auto* image : m_uiImages) {
-		if (image) {
-			image->Release();
-			delete image;
+	for (auto* element : m_uiElements) {
+		if (element) {
+			element->Release();
+			delete element;
 		}
 	}
-	m_uiImages.clear();
-
-	for (auto* button : m_uiButtons) {
-		if (button) {
-			button->Release();
-			delete button;
-		}
-	}
-	m_uiButtons.clear();
-
-	for (auto* text : m_uiTexts) {
-		if (text) {
-			text->Release();
-			delete text;
-		}
-	}
-	m_uiTexts.clear();
+	m_uiElements.clear();
 }
 
 UIImage* UIManager::FindUIImage(GameObjectID id)
 {
-	for (auto* image : m_uiImages) {
-		if (image && image->GetID() == id) {
-			return image;
+	for (auto* element : m_uiElements) {
+		if (element && element->GetID() == id) {
+			UIImage* img = dynamic_cast<UIImage*>(element);
+			if (img) return img;
 		}
 	}
 	return nullptr;
@@ -219,9 +136,10 @@ UIImage* UIManager::FindUIImage(GameObjectID id)
 
 UIButton* UIManager::FindUIButton(GameObjectID id)
 {
-	for (auto* button : m_uiButtons) {
-		if (button && button->GetID() == id) {
-			return button;
+	for (auto* element : m_uiElements) {
+		if (element && element->GetID() == id) {
+			UIButton* btn = dynamic_cast<UIButton*>(element);
+			if (btn) return btn;
 		}
 	}
 	return nullptr;
@@ -229,9 +147,10 @@ UIButton* UIManager::FindUIButton(GameObjectID id)
 
 UIText* UIManager::FindUIText(GameObjectID id)
 {
-	for (auto* text : m_uiTexts) {
-		if (text && text->GetID() == id) {
-			return text;
+	for (auto* element : m_uiElements) {
+		if (element && element->GetID() == id) {
+			UIText* txt = dynamic_cast<UIText*>(element);
+			if (txt) return txt;
 		}
 	}
 	return nullptr;
@@ -240,16 +159,4 @@ UIText* UIManager::FindUIText(GameObjectID id)
 void UIManager::SetUIVisibility(bool visible)
 {
 	m_isUIVisible = visible;
-}
-
-void UIManager::UpdateButtonHoverStates()
-{
-	// 모든 버튼의 hover 상태를 즉시 업데이트 (마우스 이동 시 호출)
-	// 역순 순회로 버튼이 삭제되는 경우에도 안전하게 처리
-	for (int i = static_cast<int>(m_uiButtons.size()) - 1; i >= 0; --i) {
-		auto* button = m_uiButtons[i];
-		if (button && button->IsEnabled()) {
-			button->UpdateHoverStateImmediate();
-		}
-	}
 }

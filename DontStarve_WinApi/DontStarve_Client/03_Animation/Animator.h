@@ -16,10 +16,11 @@ public:
                           const std::wstring& imagePath,
                           UINT frameWidth, UINT frameHeight,
                           UINT framesPerRow, UINT totalFrames,
-                          float frameDuration = 0.1f,
                           float pivotX = 0.5f, float pivotY = 1.0f,
                           bool loop = true,
-                          const std::map<int, std::wstring>& events = {});
+                          const std::map<int, std::wstring>& events = {},
+                          bool flipHorizontal = false,
+                          float frameDuration = 0.03f);
 
     void SetState(int state, Direction direction);
     void SetEventCallback(std::function<void(int, const std::wstring&)> callback) { m_globalEventCallback = callback; }
