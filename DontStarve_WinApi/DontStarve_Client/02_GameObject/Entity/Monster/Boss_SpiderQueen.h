@@ -6,8 +6,6 @@ class ResourceManager;
 class Boss_SpiderQueen : public Monster
 {
 public:
-	static void RegisterResources(ResourceManager* rm);
-
     Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName = L"");
     virtual ~Boss_SpiderQueen();
 

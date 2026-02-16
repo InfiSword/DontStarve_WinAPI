@@ -9,23 +9,6 @@
 #include "../ResourceManager/ResourceManager.h"
 #include "../ColliderManager/ColliderManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
-#include <chrono>
-#include <fstream>
-#include <windows.h>
-
-// #region agent log helper
-static std::wstring GetLogPath() {
-	wchar_t exePath[MAX_PATH];
-	GetModuleFileNameW(NULL, exePath, MAX_PATH);
-	std::wstring path(exePath);
-	size_t pos = path.find_last_of(L"\\");
-	if (pos != std::wstring::npos) {
-		path = path.substr(0, pos); // 실행 파일 디렉토리
-	}
-	// 실행 파일과 같은 디렉토리에 로그 파일 생성
-	return path + L"\\debug.log";
-}
-// #endregion
 
 GameScene::GameScene() : m_selectedCharacterID(GOID_NONE)
 {
@@ -89,83 +72,12 @@ void GameScene::Init(const MapData& mapData)
 
 void GameScene::Update(float deltaTime)
 {
-	// #region agent log
-	auto totalStartTime = std::chrono::high_resolution_clock::now();
-	long long uiDuration = 0, objDuration = 0, camDuration = 0, renderDuration = 0, invDuration = 0;
-	// #endregion
-	
-	// 매니저들 업데이트
-	// InputManager는 메인 루프에서 가장 먼저 업데이트됨 (반응 속도 개선)
-	// #region agent log
-	auto t0 = std::chrono::high_resolution_clock::now();
-	// #endregion
+	// 매니저들 업데이트 (InputManager는 메인 루프에서 가장 먼저 업데이트됨)
 	UIManager::GetInstance()->Update(deltaTime);
-	// #region agent log
-	auto t1 = std::chrono::high_resolution_clock::now();
-	uiDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
-	// #endregion
-	
-	// #region agent log
-	t0 = std::chrono::high_resolution_clock::now();
-	// #endregion
 	ObjectManager::GetInstance()->Update(deltaTime);
-	// #region agent log
-	t1 = std::chrono::high_resolution_clock::now();
-	objDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
-	// #endregion
-	
-	// #region agent log
-	t0 = std::chrono::high_resolution_clock::now();
-	// #endregion
 	CameraManager::GetInstance()->Update(deltaTime);
-	// #region agent log
-	t1 = std::chrono::high_resolution_clock::now();
-	camDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
-	// #endregion
-	
-	// #region agent log
-	t0 = std::chrono::high_resolution_clock::now();
-	// #endregion
 	RenderManager::GetInstance()->Update(deltaTime);
-	// #region agent log
-	t1 = std::chrono::high_resolution_clock::now();
-	renderDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
-	// #endregion
-	
-	// #region agent log
-	t0 = std::chrono::high_resolution_clock::now();
-	// #endregion
 	InventoryManager::GetInstance()->Update(deltaTime);
-	// #region agent log
-	t1 = std::chrono::high_resolution_clock::now();
-	invDuration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
-	// #endregion
-
-	// 플레이어 이동 처리 제거 - Player::Update()에서 처리됨
-	
-	// 테두리 표시 토글 (B 키)
-	InputManager* inputManager = InputManager::GetInstance();
-	if (inputManager && inputManager->IsKeyPressed('B')) {
-		ObjectManager* objectManager = ObjectManager::GetInstance();
-		if (objectManager) {
-			objectManager->ToggleBoundsDisplay();
-		}
-	}
-	
-	// #region agent log
-	auto totalEndTime = std::chrono::high_resolution_clock::now();
-	auto totalDuration = std::chrono::duration_cast<std::chrono::microseconds>(totalEndTime - totalStartTime).count();
-	// 로그 파일 I/O는 프레임당 한 번만 수행 (성능 최적화)
-	static int frameCount = 0;
-	frameCount++;
-	if (frameCount % 60 == 0) { // 60프레임마다 한 번만 로깅 (1초마다)
-		std::ofstream logFile(GetLogPath(), std::ios::app);
-		if (logFile.is_open()) {
-			logFile << "{\"runId\":\"perf2\",\"hypothesisId\":\"G\",\"location\":\"GameScene.cpp:90\",\"message\":\"GameScene::Update\",\"data\":{\"total_us\":" << totalDuration << ",\"ui_us\":" << uiDuration << ",\"obj_us\":" << objDuration << ",\"cam_us\":" << camDuration << ",\"render_us\":" << renderDuration << ",\"inv_us\":" << invDuration << "},\"timestamp\":" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << "}\n";
-			logFile.close();
-		}
-	}
-	// #endregion
 }
 
 void GameScene::LateUpdate()
@@ -243,23 +155,10 @@ void GameScene::CreateGameObjectsFromMapData()
 	}
 
 	int createdCount = 0;
-	for (const GameObjectData& objData : m_mapData.gameObjects) 
+	for (const ResourcePathUtils::ObjectResourceDef& objData : m_mapData.gameObjects) 
 	{
-		// 맵 파일의 콜라이더 정보를 포함한 resourceData 생성
-		GameObjectData resourceData;
-		resourceData.id = objData.id;
-		resourceData.type = objData.type;
-		resourceData.x = objData.x;
-		resourceData.y = objData.y;
-		resourceData.objectAssetBaseDirectory = objData.objectAssetBaseDirectory;
-		resourceData.assetImageName = objData.assetImageName;
-		resourceData.pivotX = objData.pivotX;
-		resourceData.pivotY = objData.pivotY;
-		resourceData.hasCollider = objData.hasCollider;
-		resourceData.colliderOffsetX = objData.colliderOffsetX;
-		resourceData.colliderOffsetY = objData.colliderOffsetY;
-		resourceData.colliderWidth = objData.colliderWidth;
-		resourceData.colliderHeight = objData.colliderHeight;
+		// 맵 파일의 콜라이더 정보를 포함한 resourceData 생성 (objData를 직접 사용)
+		ResourcePathUtils::ObjectResourceDef resourceData = objData;
 		
 		// 리소스 데이터와 함께 게임 오브젝트 생성
 		GameObject* obj = objectManager->CreateGameObject(objData.id, objData.x, objData.y, &resourceData);

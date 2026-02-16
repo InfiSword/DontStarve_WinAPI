@@ -1,32 +1,48 @@
-﻿  DontStarve_MainGame.cpp
-  CameraManager.cpp
+﻿  CameraManager.cpp
   ColliderManager.cpp
-  InputManager.cpp
+  InventoryManager.cpp
   ObjectManager.cpp
   RenderManager.cpp
+  ResourceManager.cpp
+  CharacterSelectScene.cpp
   GameScene.cpp
-  SceneManager.cpp
+  TitleScene.cpp
+  UIManager.cpp
   Building.cpp
   PigHouse.cpp
   SpiderEgg.cpp
+  Button.cpp
   BoxCollider.cpp
   CircleCollider.cpp
+  Collider.cpp
+  Image.cpp
+  RectTransform.cpp
   Entity.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
   BerryBush.cpp
   Grass.cpp
   Rock.cpp
   Sapling.cpp
   Tree.cpp
   Boss_Hound.cpp
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
   Boss_SpiderQueen.cpp
   Hound.cpp
   Monster.cpp
   Pig.cpp
   Spider.cpp
   Player.cpp
+  GameObject.cpp
   Ingredient.cpp
+  Item.cpp
+  Axe.cpp
+  Tool.cpp
+  Inventory.cpp
   UIButton.cpp
+  UIElement.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
+  UIImage.cpp
+  UIText.cpp
   코드를 생성하고 있습니다...
   DontStarve_Client.vcxproj -> E:\Project\DontStarve_WinAPI\DontStarve_WinApi\Build\DontStarve_Client.exe

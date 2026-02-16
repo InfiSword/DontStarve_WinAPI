@@ -233,7 +233,7 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float 
 {
 	for (int i = (int)m_visibleObjects.size() - 1; i >= 0; --i) {
 		GameObject* obj = m_visibleObjects[i];
-		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) continue;
+		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) continue;  // m_isInteractive가 false면 건너뜀 (플레이어 등)
 		Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
 		if (objBounds.Contains(worldX, worldY)) return obj;
 	}
@@ -358,7 +358,7 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData)
 		float screenYBase = worldY - cameraPos.Y + halfScreenHeight;
 		
 		for (int x = m_lastStartTileX; x < m_lastEndTileX; ++x) {
-			const TileData& tileData = mapData->tiles[x][y];
+			const ResourcePathUtils::TileResourceDef& tileData = mapData->tiles[x][y];
 			if (tileData.id == TILEID_NONE || tileData.type == TILE_NONE) {
 				continue;
 			}
@@ -427,7 +427,7 @@ void CameraManager::CleanupUnusedTileCache(const MapData* mapData, int startTile
 		for (int x = startTileX; x < endTileX; ++x) {
 			if (x >= 0 && x < mapData->mapWidth && 
 				y >= 0 && y < mapData->mapHeight) {
-				const TileData& tileData = mapData->tiles[x][y];
+				const ResourcePathUtils::TileResourceDef& tileData = mapData->tiles[x][y];
 				if (tileData.id != TILEID_NONE && tileData.type != TILE_NONE) {
 					visibleTileIDs.insert(static_cast<UINT>(tileData.id));
 				}
@@ -464,13 +464,12 @@ void CameraManager::ClearTileCache()
 	m_tileCache.clear();
 }
 
-void CameraManager::LoadTileBitmap(const TileData& tileData, TileCacheData& cacheData)
+void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& tileData, TileCacheData& cacheData)
 {
-	if (tileData.tileAssetBaseDirectory.empty() || tileData.tileImageName.empty()) {
+	if (tileData.baseDir.empty() || tileData.imageName.empty()) {
 		return;
 	}
-	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	std::wstring fullPath = resourceManager->BuildResourcePath(tileData.tileAssetBaseDirectory, L"", tileData.tileImageName);
+	std::wstring fullPath = ResourcePathUtils::BuildResourcePath(tileData.baseDir, tileData.imageName);
 
 	cacheData.bitmap = new Gdiplus::Bitmap(fullPath.c_str());
 	if (!(cacheData.bitmap && cacheData.bitmap->GetLastStatus() == Gdiplus::Ok)) {

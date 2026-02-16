@@ -68,7 +68,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
     catch (...) {
         MessageBox(nullptr, L"에디터 초기화 중 오류가 발생했습니다.", L"초기화 오류", MB_OK | MB_ICONERROR);
-        SafeDelete(mainEditor);
+        Utils::SafeDelete(mainEditor);
         Gdiplus::GdiplusShutdown(g_gdiplusToken);
         return FALSE;
     }
@@ -142,7 +142,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if (mainEditor) {
         mainEditor->Release();
-        SafeDelete(mainEditor);
+        Utils::SafeDelete(mainEditor);
     }
     Gdiplus::GdiplusShutdown(g_gdiplusToken);     // GDI+ 종료
     return (int)msg.wParam;

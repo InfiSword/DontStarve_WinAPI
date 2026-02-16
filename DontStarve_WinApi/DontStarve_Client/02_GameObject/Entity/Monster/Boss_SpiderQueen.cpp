@@ -8,19 +8,6 @@
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
 
-void Boss_SpiderQueen::RegisterResources(ResourceManager* rm)
-{
-	if (!rm) return;
-	GameObjectData d;
-	d.type = GOBJ_MONSTER;
-	d.pivotX = 0.5f;
-	d.pivotY = 1.0f;
-	d.id = GOID_MONSTER_QUEEN_SPIDER;
-	d.objectAssetBaseDirectory = L"Resource/Objects/Monster/Spider/Queen";
-	d.assetImageName = L"Queen_spider_queen_Image.png";
-	rm->RegisterObjectResource(GOID_MONSTER_QUEEN_SPIDER, d);
-}
-
 Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
 	: Monster(id, x, y, pivotX, pivotY, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
 {
@@ -58,9 +45,9 @@ void Boss_SpiderQueen::Init()
 		ResourceManager* pRM = ResourceManager::GetInstance();
 
 		if (m_id == GOID_MONSTER_QUEEN_SPIDER) {
-			const GameObjectData* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_QUEEN_SPIDER);
+			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_QUEEN_SPIDER);
 			if (!objData) return;
-			const std::wstring& base = objData->objectAssetBaseDirectory;
+			const std::wstring& base = objData->baseDir;
 			// IDLE
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,

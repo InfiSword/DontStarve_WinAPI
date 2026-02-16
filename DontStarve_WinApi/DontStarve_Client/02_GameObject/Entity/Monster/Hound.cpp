@@ -7,19 +7,6 @@
 #include "../../Component/Transform/Transform.h"
 #include "Hound.h"
 
-void Hound::RegisterResources(ResourceManager* rm)
-{
-	if (!rm) return;
-	GameObjectData d;
-	d.type = GOBJ_MONSTER;
-	d.pivotX = 0.5f;
-	d.pivotY = 1.0f;
-	d.id = GOID_MONSTER_HOUNDDOG;
-	d.objectAssetBaseDirectory = L"Resource/Objects/Monster/Hound/Normal_Hound";
-	d.assetImageName = L"Hound_hound_Image.png";
-	rm->RegisterObjectResource(GOID_MONSTER_HOUNDDOG, d);
-}
-
 Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
 	: Monster(id, x, y, pivotX, pivotY, imageName)
 {
@@ -50,10 +37,10 @@ void Hound::Init()
 	}
 	if (m_animator) {
 		ResourceManager* pRM = ResourceManager::GetInstance();
-		const GameObjectData* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_HOUNDDOG);
+		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_HOUNDDOG);
 
 		if (m_id == GOID_MONSTER_HOUNDDOG && objData) {
-			const std::wstring& base = objData->objectAssetBaseDirectory;
+			const std::wstring& base = objData->baseDir;
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"Normal_Hound", L"Hound_hound_idle_down.png"),
 				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);

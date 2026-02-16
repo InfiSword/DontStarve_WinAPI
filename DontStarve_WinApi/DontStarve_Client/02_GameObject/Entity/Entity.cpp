@@ -24,14 +24,10 @@ Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float piv
 	spriteRenderer->SetLayer(LAYER_WORLD_OBJECT);
 	if (!imageName.empty())
 	{
+		// 이미지 경로는 절대경로로 전달되므로 그대로 사용
 		ResourceManager* pRM = ResourceManager::GetInstance();
-		const GameObjectData* data = pRM->GetObjectResourceInfo(id);
-		std::wstring fullPath = data ? pRM->BuildResourcePath(data->objectAssetBaseDirectory, L"", imageName) : L"";
-
-		if (!fullPath.empty()) {
-			if (auto sprite = pRM->LoadSprite(fullPath)) {
-				spriteRenderer->SetSprite(sprite);
-			}
+		if (auto sprite = pRM->LoadSprite(imageName)) {
+			spriteRenderer->SetSprite(sprite);
 		}
 	}
 }

@@ -7,23 +7,6 @@
 #include "../../Component/Transform/Transform.h"
 #include "Spider.h"
 
-void Spider::RegisterResources(ResourceManager* rm)
-{
-	if (!rm) return;
-	GameObjectData d;
-	d.type = GOBJ_MONSTER;
-	d.pivotX = 0.5f;
-	d.pivotY = 1.0f;
-	d.id = GOID_MONSTER_SPIDER;
-	d.objectAssetBaseDirectory = L"Resource/Objects/Monster/Spider/Normal_Spider";
-	d.assetImageName = L"Spider_spider_idle_01.png";
-	rm->RegisterObjectResource(GOID_MONSTER_SPIDER, d);
-	d.id = GOID_MONSTER_WARRIOR_SPIDER;
-	d.objectAssetBaseDirectory = L"Resource/Objects/Monster/Spider/Warrior_Spider";
-	d.assetImageName = L"Warrior_spider_idle_01.png";
-	rm->RegisterObjectResource(GOID_MONSTER_WARRIOR_SPIDER, d);
-}
-
 Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
 	: Monster(id, x, y, pivotX, pivotY, imageName)
 {
@@ -56,9 +39,9 @@ void Spider::Init()
 		ResourceManager* pRM = ResourceManager::GetInstance();
 
 		if (m_id == GOID_MONSTER_SPIDER) {
-			const GameObjectData* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_SPIDER);
+			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_SPIDER);
 			if (!objData) return;
-			const std::wstring& base = objData->objectAssetBaseDirectory;
+			const std::wstring& base = objData->baseDir;
 			// IDLE
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,
@@ -103,9 +86,9 @@ void Spider::Init()
 				80, 80, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 		}
 		else if (m_id == GOID_MONSTER_WARRIOR_SPIDER) {
-			const GameObjectData* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_WARRIOR_SPIDER);
+			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_WARRIOR_SPIDER);
 			if (!objData) return;
-			const std::wstring& base = objData->objectAssetBaseDirectory;
+			const std::wstring& base = objData->baseDir;
 			// IDLE
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,

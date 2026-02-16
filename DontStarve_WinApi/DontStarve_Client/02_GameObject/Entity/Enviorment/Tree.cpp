@@ -3,18 +3,6 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "Tree.h"
 
-void Tree::RegisterResources(ResourceManager* rm)
-{
-	if (!rm) return;
-	GameObjectData d;
-	d.type = GOBJ_NATURAL_ENVIR;
-	d.pivotX = 0.5f;
-	d.pivotY = 1.0f;
-	d.objectAssetBaseDirectory = L"Resource/Objects/Tree1/Short";  d.id = GOID_NORMAL_TREE_SHORT;  d.assetImageName = L"evergreen_evergreen_short_idle_short_01.png";  rm->RegisterObjectResource(GOID_NORMAL_TREE_SHORT, d);
-	d.objectAssetBaseDirectory = L"Resource/Objects/Tree1/Normal"; d.id = GOID_NORMAL_TREE_NORMAL; d.assetImageName = L"evergreen_evergreen_short_idle_normal_01.png"; rm->RegisterObjectResource(GOID_NORMAL_TREE_NORMAL, d);
-	d.objectAssetBaseDirectory = L"Resource/Objects/Tree1/Tall";  d.id = GOID_NORMAL_TREE_TALL;  d.assetImageName = L"evergreen_evergreen_short_idle_tall_01.png";  rm->RegisterObjectResource(GOID_NORMAL_TREE_TALL, d);
-}
-
 Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, imageName, true, true),
 	m_hp(100), m_hitAnimTimer(0.0f), m_state(TreeState::TREE_IDLE)

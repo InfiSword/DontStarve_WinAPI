@@ -6,8 +6,6 @@ class ResourceManager;
 class Grass : public Entity
 {
 public:
-	static void RegisterResources(ResourceManager* rm);
-
     Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
     virtual ~Grass();
 

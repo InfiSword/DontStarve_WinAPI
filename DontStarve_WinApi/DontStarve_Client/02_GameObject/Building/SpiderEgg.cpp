@@ -6,19 +6,6 @@
 #include "../../03_Animation/AnimationClip.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
 
-void SpiderEgg::RegisterResources(ResourceManager* rm)
-{
-	if (!rm) return;
-	GameObjectData d;
-	d.type = GOBJ_BUILDING;
-	d.pivotX = 0.5f;
-	d.pivotY = 1.0f;
-	d.objectAssetBaseDirectory = L"Resource/Objects/Building/Egg";
-	d.id = GOID_BUILDING_SPIDER_SMALLEGG;  d.assetImageName = L"Egg_spider_cocoon_small_Image.png";  rm->RegisterObjectResource(GOID_BUILDING_SPIDER_SMALLEGG, d);
-	d.id = GOID_BUILDING_SPIDER_NORMALEGG; d.assetImageName = L"Egg_spider_cocoon_medium_Image.png"; rm->RegisterObjectResource(GOID_BUILDING_SPIDER_NORMALEGG, d);
-	d.id = GOID_BUILDING_SPIDER_TALLEGG;   d.assetImageName = L"Egg_spider_cocoon_large_Image.png";  rm->RegisterObjectResource(GOID_BUILDING_SPIDER_TALLEGG, d);
-}
-
 SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivotY,
     Direction _dir, const std::wstring& resourcePath,
     const std::wstring& imageName, int hp)
@@ -53,16 +40,16 @@ void SpiderEgg::Init()
     if (m_animator && transform) {
         ResourceManager* pRM = ResourceManager::GetInstance();
         std::wstring imagePath;
-        const GameObjectData* data = pRM->GetObjectResourceInfo(m_id);
+        const ResourcePathUtils::ObjectResourceDef* data = pRM->GetObjectResourceInfo(m_id);
         if (data) {
             if (m_id == GOID_BUILDING_SPIDER_SMALLEGG) {
-                imagePath = pRM->BuildResourcePath(data->objectAssetBaseDirectory, L"", L"Egg_spider_cocoon_small_Image.png");
+                imagePath = pRM->BuildResourcePath(data->baseDir, L"", L"Egg_spider_cocoon_small_Image.png");
             }
             else if (m_id == GOID_BUILDING_SPIDER_NORMALEGG) {
-                imagePath = pRM->BuildResourcePath(data->objectAssetBaseDirectory, L"", L"Egg_spider_cocoon_medium_Image.png");
+                imagePath = pRM->BuildResourcePath(data->baseDir, L"", L"Egg_spider_cocoon_medium_Image.png");
             }
             else if (m_id == GOID_BUILDING_SPIDER_TALLEGG) {
-                imagePath = pRM->BuildResourcePath(data->objectAssetBaseDirectory, L"", L"Egg_spider_cocoon_large_Image.png");
+                imagePath = pRM->BuildResourcePath(data->baseDir, L"", L"Egg_spider_cocoon_large_Image.png");
             }
         }
 

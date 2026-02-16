@@ -172,6 +172,68 @@ namespace EnumUtils {
 
 // ====================== 데이터 구조 =======================
 
+// 리소스 경로 관련 구조체
+namespace ResourcePathUtils
+{
+	// 타일 리소스 정의 구조체 (절대경로로 확정)
+	struct TileResourceDef {
+		TileType type;
+		TileID id;
+		std::wstring baseDir;    // 절대경로 (리소스 기본 디렉토리)
+		std::wstring imageName;  // 절대경로 (이미지 파일명 포함 전체 경로)
+
+		TileResourceDef()
+			: type(TILE_NONE), id(TILEID_NONE)
+		{}
+
+		TileResourceDef(TileType _type, TileID _id, const std::wstring& _baseDir, const std::wstring& _imageName)
+			: type(_type), id(_id), baseDir(_baseDir), imageName(_imageName)
+		{}
+	};
+
+	// 오브젝트 리소스 정의 구조체 (절대경로로 확정)
+	struct ObjectResourceDef {
+		GameObjectType type;
+		GameObjectID id;
+		std::wstring baseDir;    // 절대경로 (리소스 기본 디렉토리)
+		std::wstring imageName;  // 절대경로 (이미지 파일명 포함 전체 경로)
+		float pivotX;
+		float pivotY;
+		
+		// 게임 오브젝트 데이터용 필드
+		float x = 0, y = 0;  // 위치
+		
+		// 콜라이더 정보
+		bool hasCollider = false;
+		ColliderType colliderType = COLLIDER_BOX;
+		int colliderOffsetX = 0;
+		int colliderOffsetY = 0;
+		int colliderWidth = 0;
+		int colliderHeight = 0;
+		float colliderCenterX = 0.0f;
+		float colliderCenterY = 0.0f;
+		float colliderRadius = 0.0f;
+
+		ObjectResourceDef()
+			: type(GOBJ_NONE), id(GOID_NONE), pivotX(0.5f), pivotY(1.0f), x(0), y(0)
+		{}
+
+		ObjectResourceDef(GameObjectType type_val, GameObjectID id_val, float x_val, float y_val,
+			const std::wstring& baseDir_val, const std::wstring& imageName_val, float pivotX_val, float pivotY_val,
+			bool hasCollider_val = false, ColliderType colliderType_val = COLLIDER_BOX,
+			int colliderOffsetX_val = 0, int colliderOffsetY_val = 0,
+			int colliderWidth_val = 0, int colliderHeight_val = 0,
+			float colliderCenterX_val = 0.0f, float colliderCenterY_val = 0.0f, float colliderRadius_val = 0.0f)
+			: type(type_val), id(id_val), baseDir(baseDir_val), imageName(imageName_val),
+			pivotX(pivotX_val), pivotY(pivotY_val), x(x_val), y(y_val),
+			hasCollider(hasCollider_val), colliderType(colliderType_val),
+			colliderOffsetX(colliderOffsetX_val), colliderOffsetY(colliderOffsetY_val),
+			colliderWidth(colliderWidth_val), colliderHeight(colliderHeight_val),
+			colliderCenterX(colliderCenterX_val), colliderCenterY(colliderCenterY_val), colliderRadius(colliderRadius_val)
+		{}
+	};
+}
+
 struct PaletteItem {
 	ItemCategory category;     // CATEGORY_TILE, CATEGORY_OBJECT
 	int typeId;                // TileType 또는 GameObjectType
@@ -205,127 +267,6 @@ struct DrawCommand {
 	bool hasTint = false;  // 틴트 적용 여부
 };
 
-struct TileData
-{
-	TileType type;
-	TileID id;
-	Gdiplus::Bitmap* pAtlasBitmap;
-	Gdiplus::RectF sourceRect;
-
-	std::wstring tileAssetBaseDirectory;
-	std::wstring tileImageName;
-
-	TileData()
-		: type(TILE_NONE), id(TILEID_NONE), pAtlasBitmap(nullptr), sourceRect({ 0.0f, 0.0f, 0.0f, 0.0f })
-	{}
-
-	TileData(TileType _type, TileID _id, Gdiplus::Bitmap* _bitMap, Gdiplus::RectF _rect)
-		: type(_type), id(_id), pAtlasBitmap(_bitMap), sourceRect(_rect)
-	{}
-};
-
-struct GameObjectData {
-	GameObjectType  type;
-	GameObjectID id;
-
-	float x, y;
-	std::wstring objectAssetBaseDirectory;
-	std::wstring assetImageName;
-
-	float pivotX;
-	float pivotY;
-	// 렌더링 기준점
-
-	bool hasCollider = false; // 에디터 사용 여부
-	ColliderType colliderType = COLLIDER_BOX;  // 콜라이더 타입 (BOX 또는 CIRCLE)
-	
-	// BoxCollider용 필드
-	int colliderOffsetX = 0;  // 에디터 오프셋 X
-	int colliderOffsetY = 0;  // 에디터 오프셋 Y
-	int colliderWidth = 0;    // 에디터 너비
-	int colliderHeight = 0;   // 에디터 높이
-	
-	// CircleCollider용 필드
-	float colliderCenterX = 0.0f;  // 로컬 좌표 기준 중심 X
-	float colliderCenterY = 0.0f;  // 로컬 좌표 기준 중심 Y
-	float colliderRadius = 0.0f;   // 반지름
-
-	GameObjectData()
-		: type(GOBJ_NONE), id(GOID_NONE), x(0), y(0), pivotX(0.5f), pivotY(1.0f)
-	{}
-
-	GameObjectData(GameObjectType type_val, GameObjectID id_val, float x_val, float y_val,
-		const std::wstring& objectAssetBaseDirectory_val, float pivotX_val, float pivotY_val,
-		bool hasCollider_val = false, ColliderType colliderType_val = COLLIDER_BOX,
-		int colliderOffsetX_val = 0, int colliderOffsetY_val = 0,
-		int colliderWidth_val = 0, int colliderHeight_val = 0,
-		float colliderCenterX_val = 0.0f, float colliderCenterY_val = 0.0f, float colliderRadius_val = 0.0f)
-		: type(type_val), id(id_val), x(x_val), y(y_val), objectAssetBaseDirectory(objectAssetBaseDirectory_val),
-		pivotX(pivotX_val), pivotY(pivotY_val), hasCollider(hasCollider_val), colliderType(colliderType_val),
-		colliderOffsetX(colliderOffsetX_val), colliderOffsetY(colliderOffsetY_val),
-		colliderWidth(colliderWidth_val), colliderHeight(colliderHeight_val),
-		colliderCenterX(colliderCenterX_val), colliderCenterY(colliderCenterY_val), colliderRadius(colliderRadius_val)
-	{}
-};
-
-struct ResourceVariant {
-	Gdiplus::Bitmap* pAtlasBitmap;
-	Gdiplus::RectF sourceRect;
-
-	ResourceVariant() : pAtlasBitmap(nullptr), sourceRect(0, 0, 0, 0) {}
-
-	ResourceVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect)
-		: pAtlasBitmap(atlasBmp), sourceRect(srcRect)
-	{}
-};
-
-struct TileVariant : public ResourceVariant {
-
-	TileType type;
-	TileID id;
-	std::wstring baseDirectory;
-	std::wstring imageFileName;
-
-	TileVariant()
-		: ResourceVariant(), type(TILE_NONE), id(TILEID_NONE), baseDirectory(L""), imageFileName(L"") {}
-
-	TileVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect,
-		TileType type_val, TileID id_val,
-		const std::wstring& baseDir, const std::wstring& fileName)
-		: ResourceVariant(atlasBmp, srcRect), type(type_val), id(id_val),
-		baseDirectory(baseDir), imageFileName(fileName) {}
-};
-
-struct ObjectVariant : public ResourceVariant
-{
-	GameObjectType type;
-	GameObjectID id;
-
-	std::wstring objectAssetBaseDirectory;
-	std::wstring editorDisplayFileName;
-	float pivotX;
-	float pivotY;
-
-	ObjectVariant()
-		: ResourceVariant(), type(GOBJ_NONE), id(GOID_NONE), objectAssetBaseDirectory(L""), editorDisplayFileName(L""), pivotX(0.5f), pivotY(1.0f) {}
-
-	// resources.txt에 pivotX,Y가 없는 경우 (기본 기준점)
-	ObjectVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect,
-		GameObjectType type_val, GameObjectID id_val,
-		const std::wstring& baseDir, const std::wstring& fileName)
-		: ResourceVariant(atlasBmp, srcRect), type(type_val), id(id_val),
-		objectAssetBaseDirectory(baseDir), editorDisplayFileName(fileName), pivotX(0.5f), pivotY(1.0f) {}
-
-	// resources.txt에 pivotX,Y가 있는 경우
-	ObjectVariant(Gdiplus::Bitmap* atlasBmp, const Gdiplus::RectF& srcRect,
-		GameObjectType type_val, GameObjectID id_val,
-		const std::wstring& baseDir, const std::wstring& fileName,
-		float px, float py)
-		: ResourceVariant(atlasBmp, srcRect), type(type_val), id(id_val),
-		objectAssetBaseDirectory(baseDir), editorDisplayFileName(fileName),
-		pivotX(px), pivotY(py) {}
-};
-
 // 플레이어 스폰 위치 정보
 struct PlayerSpawnData {
 	float x, y;
@@ -343,8 +284,8 @@ struct MapData {
 	int mapHeight;
 	PlayerSpawnData playerSpawn; // 플레이어 스폰 시작 위치
 
-	TileData tiles[MAP_WIDTH][MAP_HEIGHT];        // 타일 데이터
-	std::vector<GameObjectData> gameObjects;      // 게임 오브젝트 리스트
+	ResourcePathUtils::TileResourceDef tiles[MAP_WIDTH][MAP_HEIGHT];        // 타일 데이터
+	std::vector<ResourcePathUtils::ObjectResourceDef> gameObjects;      // 게임 오브젝트 리스트
 	bool walkableAreas[MAP_WIDTH][MAP_HEIGHT];    // 이동 가능 영역
 
 	MapData()
@@ -352,7 +293,7 @@ struct MapData {
 	{
 		for (int y = 0; y < MAP_HEIGHT; ++y)
 			for (int x = 0; x < MAP_WIDTH; ++x) {
-				tiles[x][y] = TileData();
+				tiles[x][y] = ResourcePathUtils::TileResourceDef();
 				walkableAreas[x][y] = true;
 			}
 	}
@@ -362,7 +303,7 @@ struct MapData {
 	{
 		for (int y = 0; y < MAP_HEIGHT; ++y)
 			for (int x = 0; x < MAP_WIDTH; ++x) {
-				tiles[x][y] = TileData();
+				tiles[x][y] = ResourcePathUtils::TileResourceDef();
 				walkableAreas[x][y] = true;
 			}
 	}
@@ -502,16 +443,6 @@ struct GameProgress
 				charInfo.isUnlocked = IsSceneCleared(charInfo.requiredScene);
 		}
 	}
-};
-
-// 애니메이션 파라미터 구조체
-struct AnimationParameters {
-    int state = 0;
-    int direction = 0;
-    bool trigger = false;
-    
-    AnimationParameters() = default;
-    AnimationParameters(int s, int d) : state(s), direction(d) {}
 };
 
 struct AnimationFrame {

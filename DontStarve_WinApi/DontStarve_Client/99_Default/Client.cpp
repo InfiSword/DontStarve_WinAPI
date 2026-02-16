@@ -76,7 +76,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
    if (mainGame) {
        mainGame->Release();
-   SafeDelete(mainGame);
+   Utils::SafeDelete(mainGame);
    }
 
     // GDI+ 종료

@@ -1,7 +1,21 @@
 #pragma once
 
+class EditorView;
+class EditorResourceManager;
+class EditorMapFileIO;
+class EditorPalette;
+class EditorPivotEditor;
+class EditorColliderEditor;
+class EditorLayerComposer;
+
 class DontStarve_EditorMain
 {
+	friend class EditorMapFileIO;
+	friend class EditorColliderEditor;
+	friend class EditorWalkableEditor;
+	friend class EditorDebugPanel;
+	friend class EditorLayerComposer;
+
 public:
 	DontStarve_EditorMain();
 	~DontStarve_EditorMain();
@@ -15,19 +29,16 @@ public:
 	LRESULT HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 	// Map save/load/new functions
-	void NewMap();                                  // Create new map (initialize)
+	void NewMap();                          
 	bool SaveMap(const WCHAR* filename);
 	bool LoadMap(const WCHAR* filename);
-
-	// File dialog functions
 	bool ShowSaveFileDialog(WCHAR* fileName, DWORD fileNameSize);
 	bool ShowOpenFileDialog(WCHAR* fileName, DWORD fileNameSize);
 
-	// Object add/remove/position update functions (m_objectsDirty flag management)
-	void AddObject(const GameObjectData& obj);
+	void AddObject(const ResourcePathUtils::ObjectResourceDef& obj);
 	void RemoveObject(size_t idx); // Remove by index
-	void RemoveObject(GameObjectData* objToRemove); // Remove by pointer (fast search)
-	void UpdateObjectPosition(GameObjectData* obj, int newX, int newY); // Update object position
+	void RemoveObject(ResourcePathUtils::ObjectResourceDef* objToRemove); // Remove by pointer (fast search)
+	void UpdateObjectPosition(ResourcePathUtils::ObjectResourceDef* obj, int newX, int newY); // Update object position
 
 	// Performance info get/set (set from Editor.cpp)
 	void SetCurrentFPS(float fps) { m_currentFPS = fps; }
@@ -35,8 +46,8 @@ public:
 	float GetLayerMemoryUsageMB() const;
 
 	// Debug info
-	void SetDebugInfoVisible(bool visible) { m_showDebugInfo = visible; }
-	bool IsDebugInfoVisible() const { return m_showDebugInfo; }
+	void SetDebugInfoVisible(bool visible);
+	bool IsDebugInfoVisible() const;
 
 private:
 	// GDI+ rendering related member variables
@@ -44,18 +55,13 @@ private:
 	Gdiplus::Bitmap* m_pDoubleBufferBitmap;
 
 	// Map data related member variables
-	TileData m_tileMap[MAP_WIDTH][MAP_HEIGHT]; // Tile map data
-	std::vector<GameObjectData> m_gameObjects;
+	ResourcePathUtils::TileResourceDef m_tileMap[MAP_WIDTH][MAP_HEIGHT]; // Tile map data
+	std::vector<ResourcePathUtils::ObjectResourceDef> m_gameObjects;
 
 	// Player spawn point related
 	bool m_hasPlayerSpawn = false;				// Whether player spawn point is set
 	Gdiplus::PointF m_playerSpawnPoint;			// Player spawn point coordinates (map center)
 	bool m_isPlayerSpawnMode = false;			// Player spawn point edit mode
-
-	// Palette related member variables
-	std::vector<PaletteItem> m_paletteItems;    // Palette item list
-	RECT m_paletteRect;                         // Palette area
-	int m_selectedPaletteIndex;                 // Currently selected palette item index (-1 means not selected)
 
 	// Placement mode related member variables
 	bool m_isPlacingMode;                       // Whether currently in placement mode
@@ -63,117 +69,54 @@ private:
 	POINT m_rawMousePos;                        // Raw mouse cursor screen coordinates
 	Gdiplus::PointF m_snappedPreviewPos;        // Snapped preview position screen coordinates (float precision)
 
-	// Pivot edit mode related member variables
-	bool m_isPivotEditMode;                     // Pivot edit mode flag
-	POINT m_pivotEditPos;                       // Pivot edit position
-	float m_currentPivotX;                      // Currently editing Pivot X
-	float m_currentPivotY;                      // Currently editing Pivot Y
-	GameObjectData* m_editingObject;            // Currently editing object
+	// Pivot edit (owned by EditorPivotEditor; access via m_pPivotEditor)
+	std::unique_ptr<EditorPivotEditor> m_pPivotEditor;
 
-	const int MIN_COLLIDER_SIZE = 4;
-	const float MIN_COLLIDER_RADIUS = 2.0f;    // CircleCollider minimum radius
-	bool m_isColliderEditMode = false;          // Collider edit mode flag
-	GameObjectData* m_editingColliderObject = nullptr; // Currently editing collider object
-	bool m_isDraggingCollider = false;          // Collider dragging state flag
-	POINT m_colliderEditStartMousePos;          // Collider size/position edit start mouse position (screen coordinates)
-	RECT m_initialColliderRect;                 // Collider edit start initial collider position/size (object local coordinates) - BoxCollider
-	float m_initialColliderCenterX;            // Collider edit start CircleCollider initial center X
-	float m_initialColliderCenterY;            // Collider edit start CircleCollider initial center Y
-	float m_initialColliderRadius;             // Collider edit start CircleCollider initial radius
-	int m_draggingHandle = -1;                  // Dragging handle index (0:top-left, 1:top-right, 2:bottom-left, 3:bottom-right, 4:move, 5:radius-adjust)
+	// Collider edit (owned by EditorColliderEditor; access via m_pColliderEditor)
+	std::unique_ptr<EditorColliderEditor> m_pColliderEditor;
 
-	// Map offset related member variables
-	POINT m_mapOffset;                          // Map rendering offset (camera position)
+	// Collider template (영구 저장): 타입별 기본 콜라이더, 맵 저장/로드 시 파일로 유지
+	struct ColliderTemplate {
+		bool hasCollider = false;
+		ColliderType colliderType = COLLIDER_BOX;
+		int colliderOffsetX = 0, colliderOffsetY = 0, colliderWidth = 0, colliderHeight = 0;
+		float colliderCenterX = 0.0f, colliderCenterY = 0.0f, colliderRadius = 0.0f;
+	};
+	std::map<std::pair<int, int>, ColliderTemplate> m_colliderTemplates; // key = (GameObjectType, GameObjectID)
+	std::wstring m_lastMapDirectory;            // 마지막 맵 파일 디렉터리 (템플릿 파일 경로용)
 
-	// Sub palette related structure
-	struct SubPaletteData {
-		bool isOpen = false;
-		ItemCategory category = CATEGORY_NONE;
-		int targetCategoryId = -1;
-		// TileType or GameObjectType (category ID selected from main palette)
+	// View (map offset, zoom, coordinate conversion)
+	std::unique_ptr<EditorView> m_pView;
 
-		RECT rect = { 0 };			 // Sub palette UI area
-		std::vector<RECT> itemRects; // Sub palette item UI Rect
+	// Resources (tile/object variants, atlases)
+	std::unique_ptr<EditorResourceManager> m_pResources;
 
-		std::vector<std::pair<TileID, const TileVariant*>> currentTileVariantDefs;
-		std::vector<std::pair<GameObjectID, const ObjectVariant*>> currentObjectVariantDefs;
+	// Palette (items, sub-palette, selection)
+	std::unique_ptr<EditorPalette> m_pPalette;
 
-		int selectedTileVariantIndex = -1;
-		int selectedObjectVariantIndex = -1;
+	// Layer composer (grid/tile/object layer bitmap management)
+	std::unique_ptr<EditorLayerComposer> m_pLayerComposer;
 
-		const TileVariant* getSelectedTileVariant() const {
-			if (selectedTileVariantIndex != -1 && category == CATEGORY_TILE && selectedTileVariantIndex < currentTileVariantDefs.size())
-			{
-				return currentTileVariantDefs[selectedTileVariantIndex].second;
-			}
-			return nullptr;
-		}
-		const ObjectVariant* getSelectedObjectVariant() const {
-			if (selectedObjectVariantIndex != -1 && category == CATEGORY_OBJECT && selectedObjectVariantIndex < currentObjectVariantDefs.size()) {
-				return currentObjectVariantDefs[selectedObjectVariantIndex].second;
-			}
-			return nullptr;
-		}
-
-		TileID getSelectedTileID() const {
-			if (selectedTileVariantIndex != -1 &&
-				selectedTileVariantIndex < currentTileVariantDefs.size())
-			{
-				return currentTileVariantDefs[selectedTileVariantIndex].first;
-			}
-			return TILEID_NONE;
-		}
-
-		GameObjectID getSelectedGameObjectID() const {
-			if (selectedObjectVariantIndex != -1 && selectedObjectVariantIndex < currentObjectVariantDefs.size()) {
-				return currentObjectVariantDefs[selectedObjectVariantIndex].first;
-			}
-			return GOID_NONE;
-		}
-	} m_subPalette;
-
-
-	// Resource variant related member variables	
-	std::map<TileType, std::map<TileID, TileVariant>> m_tileVariants;
-	std::map<GameObjectType, std::map<GameObjectID, ObjectVariant>> m_objectVariants;
-
-	// Atlas bitmap owners
-	std::unique_ptr<Gdiplus::Bitmap> m_tileAtlasBitmapOwner;
-	std::unique_ptr<Gdiplus::Bitmap> m_objectAtlasBitmapOwner;
-
-	// Zoom related member variables
-	float m_zoomFactor;
-	const float m_minZoom;
-	const float m_maxZoom;
-	const float m_zoomStep;
-
-	// Object layer optimization related
-	std::vector<const GameObjectData*> m_sortedObjects;
+	// Object layer optimization related (Client CameraManager 방식: visible만 그리기)
+	std::vector<const ResourcePathUtils::ObjectResourceDef*> m_sortedObjects;          // Y 좌표로 정렬된 오브젝트 포인터 목록
+	std::vector<const ResourcePathUtils::ObjectResourceDef*> m_visibleObjectsCache;   // 뷰포트 내 오브젝트만 (갱신 시에만 재계산)
+	Gdiplus::RectF m_lastViewportWorldRect;                     // visible 캐시 갱신 시점의 뷰포트
 	bool m_objectsDirty = true;
-	GameObjectData* m_selectedObjectPtr;
+	ResourcePathUtils::ObjectResourceDef* m_selectedObjectPtr;
 
-	// Layer bitmap caching related member variables
-	Gdiplus::Bitmap* m_tileLayerBitmap;
-	bool m_tileLayerDirty = true;
-	Gdiplus::Bitmap* m_objectLayerBitmap;
-	bool m_objectLayerDirty = true;
+	// Palette layer bitmap (owned by Main, managed by EditorPalette)
 	Gdiplus::Bitmap* m_paletteLayerBitmap;
 	bool m_paletteLayerDirty = true;
-	Gdiplus::Bitmap* m_gridLayerBitmap;
-	bool m_gridLayerDirty = true;
 
 	// Performance info member variables (set from Editor.cpp)
 	float m_currentFPS = 0.0f;		// Current FPS (updated from outside)
 
-	// Debug info
-	bool m_showDebugInfo = true;			// Debug info display flag
+	// Debug panel (owned by EditorDebugPanel; access via m_pDebugPanel)
+	std::unique_ptr<EditorDebugPanel> m_pDebugPanel;
 
-	// Walkable Area edit mode related member variables
-	bool m_isWalkableEditMode = false;		// Walkable area edit mode flag
-	bool m_isDraggingWalkable = false;		// Walkable area dragging state flag
-	POINT m_walkableDragStart;				// Drag start point (screen coordinates)
-	POINT m_walkableDragEnd;				// Drag end point (screen coordinates)
-	bool m_walkableAreaMap[MAP_HEIGHT][MAP_WIDTH];	// Per tile walkable area
+	// Walkable edit (owned by EditorWalkableEditor; access via m_pWalkableEditor)
+	std::unique_ptr<EditorWalkableEditor> m_pWalkableEditor;
+	bool m_walkableAreaMap[MAP_HEIGHT][MAP_WIDTH];	// Per tile walkable area (owned by Main, accessed by EditorWalkableEditor via friend)
 
 	// Camera dragging related member variables
 	bool m_isDraggingCamera = false;		// Camera dragging state flag
@@ -183,43 +126,18 @@ private:
 private:
 	// Initialization related functions
 	void InitPalette();                             // Palette initialization
-	void LoadResources();                           // Image resource loading
-	void ReleaseResources();                        // Image resource release
 
 	// Drawing related functions
-	void ComposeTileLayer();
-	void ComposeObjectLayer();
-	void ComposePaletteLayer();
-	void ComposeGridLayer();
-
-	// Performance info function (memory usage)
-
-	void DrawGrid(Gdiplus::Graphics* pGraphics);
-	void DrawTileMap(Gdiplus::Graphics* pGraphics);
-	void DrawObjects(Gdiplus::Graphics* pGraphics);
-	void DrawPalette(Gdiplus::Graphics* pGraphics);
 	void DrawPreview(Gdiplus::Graphics* pGraphics);
-	void DrawSubPalette(Gdiplus::Graphics* pGraphics);
-	void DrawPivotEditor(Gdiplus::Graphics* pGraphics); // Draw pivot editor (as mentioned in comments)
-	void DrawColliders(Gdiplus::Graphics* pGraphics);
 	void DrawPlayerSpawn(Gdiplus::Graphics* pGraphics);	// Draw player spawn point
-	void DrawWalkableAreas(Gdiplus::Graphics* pGraphics);	// Draw walkable areas
-	void DrawDebugInfo(Gdiplus::Graphics* pGraphics);
 
-	const TileVariant* GetTileVariant(TileType type, TileID id) const;
-	const ObjectVariant* GetObjectVariant(GameObjectType type, GameObjectID id)const;
+	// HandleMessage helper functions
+	void HandlePlacingModeClick(POINT clickPoint, HWND hWnd);
+	void HandleObjectSelectionClick(POINT clickPoint, HWND hWnd);
+	void DeselectObject(HWND hWnd);
+	void ExitAllEditModes();
 
-	// Pivot edit mode related functions (as mentioned in comments)
-	void UpdatePivotEdit(POINT clickPoint);
-	void StartPivotEdit(GameObjectData* obj);
-	void EndPivotEdit();
-
-	// Collider edit
-	void StartColliderEdit(GameObjectData* obj);
-	void EndColliderEdit();
-	int GetColliderHandleAt(POINT screenPos); // Check if collider handle exists at mouse position
-
-	// Convert world coordinates visible on screen (map coordinates) to screen coordinates.
+	// Coordinate conversion (delegate to EditorView; client size from g_hWnd)
 	Gdiplus::RectF GetViewWorldRect(float cullingMargin = 0.0f) const;
 	Gdiplus::PointF WorldToScreen(Gdiplus::PointF worldPos) const;
 	Gdiplus::RectF WorldToScreen(Gdiplus::RectF worldRect) const;

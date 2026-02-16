@@ -6,8 +6,6 @@ class ResourceManager;
 class Pig : public Monster
 {
 public:
-	static void RegisterResources(ResourceManager* rm);
-
     Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName = L"");
     virtual ~Pig();
 

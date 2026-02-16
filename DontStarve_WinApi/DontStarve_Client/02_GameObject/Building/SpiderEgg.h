@@ -6,8 +6,6 @@ class ResourceManager;
 class SpiderEgg : public Building
 {
 public:
-	static void RegisterResources(ResourceManager* rm);
-
     SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivotY, 
         Direction _dir, const std::wstring& resourcePath = L"",
         const std::wstring& imageName = L"", int hp = 100);

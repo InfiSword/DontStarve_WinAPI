@@ -67,7 +67,7 @@ void GameObject::Release()
 	for (auto& component : m_components) {
 		if (component) {
 			component->Release();
-			SafeDelete(component);
+			Utils::SafeDelete(component);
 		}
 	}
 	m_components.clear();

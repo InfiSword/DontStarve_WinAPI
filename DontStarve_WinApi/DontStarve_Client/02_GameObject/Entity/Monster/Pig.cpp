@@ -8,19 +8,6 @@
 #include "../../Component/Transform/Transform.h"
 #include "Pig.h"
 
-void Pig::RegisterResources(ResourceManager* rm)
-{
-	if (!rm) return;
-	GameObjectData d;
-	d.type = GOBJ_MONSTER;
-	d.pivotX = 0.5f;
-	d.pivotY = 1.0f;
-	d.id = GOID_MONSTER_PIG;
-	d.objectAssetBaseDirectory = L"Resource/Objects/Monster/Pig";
-	d.assetImageName = L"pig_Image.png";
-	rm->RegisterObjectResource(GOID_MONSTER_PIG, d);
-}
-
 Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
 	: Monster(id, x, y, pivotX, pivotY, imageName)
 {
@@ -51,9 +38,9 @@ void Pig::Init()
 	}
 	if (m_animator) {
 		ResourceManager* pRM = ResourceManager::GetInstance();
-		const GameObjectData* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_PIG);
+		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_PIG);
 		if (m_id == GOID_MONSTER_PIG && objData) {
-			const std::wstring& base = objData->objectAssetBaseDirectory;
+			const std::wstring& base = objData->baseDir;
 			// IDLE
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
 				pRM->BuildResourcePath(base, L"Action", L"pig_pigman_idle_loop_down.png"),

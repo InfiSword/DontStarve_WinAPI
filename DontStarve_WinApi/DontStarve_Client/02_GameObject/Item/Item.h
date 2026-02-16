@@ -7,9 +7,6 @@ class ResourceManager;
 
 class Item : public GameObject
 {
-public:
-	static void RegisterResources(ResourceManager* rm);
-
 protected:
     // Component 캐싱 (최적화)
     Transform* transform;

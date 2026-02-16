@@ -241,10 +241,14 @@ void CharacterSelectScene::InitializeCharacters()
 	);
 	
 	// Willow 캐릭터 추가 (불타는 나무 클릭 시 해금)
+	ResourceManager* pRM = ResourceManager::GetInstance();
+	const GameObjectData* willowData = pRM->GetObjectResourceInfo(GOID_PLAYER_WILLOW);
+	std::wstring willowPortraitPath = willowData ? pRM->BuildResourcePath(willowData->objectAssetBaseDirectory, L"", L"willow_portrait.png") : L"../Resource/Objects/Player/Willow/willow_portrait.png";
+	std::wstring willowCharacterPath = willowData ? pRM->BuildResourcePath(willowData->objectAssetBaseDirectory, L"", L"willow_character.png") : L"../Resource/Objects/Player/Willow/willow_character.png";
 	m_characterList.emplace_back(
 		L"Willow",
-		L"../Resource/Objects/Player/Willson/willow_portrait.png",
-		L"../Resource/Objects/Player/Willson/willow_character.png",
+		willowPortraitPath,
+		willowCharacterPath,
 		L"불의 마법사입니다.\n불을 두려워하지 않고 활용할 수 있습니다.\n\n해금 조건: 불타는 나무 클릭",
 		startX + spacing,
 		characterY,
@@ -253,10 +257,13 @@ void CharacterSelectScene::InitializeCharacters()
 	);
 	
 	// Wolfgang 캐릭터 추가 (돌멩이 던지기 클릭 시 해금)
+	const GameObjectData* wolfgangData = pRM->GetObjectResourceInfo(GOID_PLAYER_WOLFGANG);
+	std::wstring wolfgangPortraitPath = wolfgangData ? pRM->BuildResourcePath(wolfgangData->objectAssetBaseDirectory, L"", L"wolfgang_portrait.png") : L"../Resource/Objects/Player/Wolfgang/wolfgang_portrait.png";
+	std::wstring wolfgangCharacterPath = wolfgangData ? pRM->BuildResourcePath(wolfgangData->objectAssetBaseDirectory, L"", L"wolfgang_character.png") : L"../Resource/Objects/Player/Wolfgang/wolfgang_character.png";
 	m_characterList.emplace_back(
 		L"Wolfgang",
-		L"../Resource/Objects/Player/Willson/wolfgang_portrait.png",
-		L"../Resource/Objects/Player/Willson/wolfgang_character.png",
+		wolfgangPortraitPath,
+		wolfgangCharacterPath,
 		L"강한 캐릭터입니다.\n체력이 높을수록 더 강해지는 캐릭터입니다.\n\n해금 조건: 돌멩이 던지기 클릭",
 		startX + spacing * 2,
 		characterY,
