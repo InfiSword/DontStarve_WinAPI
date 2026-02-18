@@ -13,6 +13,8 @@ public:
 	const POINT& GetMapOffset() const { return m_mapOffset; }
 	void SetMapOffset(int x, int y);
 	void SetMapOffset(POINT p) { SetMapOffset(p.x, p.y); }
+	/// 클라이언트 크기 및 맵 크기(타일 수) 기준으로 오프셋을 맵 범위 안으로 클램프
+	void SetMapOffsetClamped(int x, int y, int clientWidth, int clientHeight, int mapWidthTiles, int mapHeightTiles);
 
 	// Zoom
 	float GetZoomFactor() const { return m_zoomFactor; }

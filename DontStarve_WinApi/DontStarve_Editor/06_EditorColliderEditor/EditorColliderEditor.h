@@ -1,6 +1,6 @@
 #pragma once
 
-struct GameObjectData;
+namespace ResourcePathUtils { struct ObjectResourceDef; }
 class EditorView;
 class EditorResourceManager;
 class DontStarve_EditorMain;
@@ -15,16 +15,16 @@ public:
 
 	void SetDependencies(EditorView* pView, const EditorResourceManager* pResources, DontStarve_EditorMain* pMain);
 
-	void StartColliderEdit(GameObjectData* obj);
+	void StartColliderEdit(ResourcePathUtils::ObjectResourceDef* obj);
 	void EndColliderEdit();
 	int GetColliderHandleAt(POINT screenPos);
 	void UpdateColliderDrag(POINT mousePos);
-	void ApplyColliderToSameType(GameObjectData* source = nullptr);
+	void ApplyColliderToSameType(ResourcePathUtils::ObjectResourceDef* source = nullptr);
 
 	void DrawColliders(Gdiplus::Graphics* pGraphics) const;
 
 	bool IsColliderEditMode() const { return m_isColliderEditMode; }
-	GameObjectData* GetEditingColliderObject() const { return m_editingColliderObject; }
+	ResourcePathUtils::ObjectResourceDef* GetEditingColliderObject() const { return m_editingColliderObject; }
 	bool IsDraggingCollider() const { return m_isDraggingCollider; }
 	int GetDraggingHandle() const { return m_draggingHandle; }
 
@@ -33,6 +33,10 @@ public:
 	void OnMouseMove(POINT mousePos, HWND hWnd);
 
 	void ToggleColliderType();
+	void ShowColliderDialog(HWND parent);
+
+	int GetMinColliderSize() const { return MIN_COLLIDER_SIZE; }
+	float GetMinColliderRadius() const { return MIN_COLLIDER_RADIUS; }
 
 private:
 	static const int MIN_COLLIDER_SIZE = 4;
@@ -43,7 +47,7 @@ private:
 	DontStarve_EditorMain* m_pMain = nullptr;
 
 	bool m_isColliderEditMode = false;
-	GameObjectData* m_editingColliderObject = nullptr;
+	ResourcePathUtils::ObjectResourceDef* m_editingColliderObject = nullptr;
 	bool m_isDraggingCollider = false;
 	POINT m_colliderEditStartMousePos = { 0, 0 };
 	RECT m_initialColliderRect = { 0 };
@@ -52,5 +56,5 @@ private:
 	float m_initialColliderRadius = 0.0f;
 	int m_draggingHandle = -1;
 
-	const ObjectVariant* GetObjectVariant(GameObjectType type, GameObjectID id) const;
+	const ResourcePathUtils::ObjectResourceDef* GetObjectVariant(GameObjectType type, GameObjectID id) const;
 };

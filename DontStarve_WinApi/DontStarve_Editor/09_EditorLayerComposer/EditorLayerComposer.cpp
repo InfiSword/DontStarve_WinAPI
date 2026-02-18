@@ -64,7 +64,7 @@ void EditorLayerComposer::ComposeGridLayer()
 void EditorLayerComposer::ComposeTileLayer()
 {
 	if (!m_tileLayerDirty || !m_tileLayerBitmap || !m_pView || !m_pMain) return;
-
+	
 	Gdiplus::Graphics tileLayerGraphics(m_tileLayerBitmap);
 	tileLayerGraphics.SetInterpolationMode(Gdiplus::InterpolationModeNearestNeighbor);
 	tileLayerGraphics.SetSmoothingMode(Gdiplus::SmoothingModeHighSpeed);
@@ -79,7 +79,7 @@ void EditorLayerComposer::ComposeTileLayer()
 void EditorLayerComposer::ComposeObjectLayer()
 {
 	if (!m_objectLayerDirty || !m_objectLayerBitmap || !m_pView || !m_pResources || !m_pMain) return;
-
+	
 	Gdiplus::Graphics objectLayerGraphics(m_objectLayerBitmap);
 	objectLayerGraphics.SetInterpolationMode(Gdiplus::InterpolationModeNearestNeighbor);
 	objectLayerGraphics.SetSmoothingMode(Gdiplus::SmoothingModeHighSpeed);
@@ -95,6 +95,7 @@ void EditorLayerComposer::DrawLayers(Gdiplus::Graphics* pGraphics)
 {
 	if (!pGraphics) return;
 
+	// 레이어 비트맵은 이미 뷰포트 기반으로 렌더링되어 있으므로 (0, 0)에 그리기
 	if (m_gridLayerBitmap) {
 		pGraphics->DrawImage(m_gridLayerBitmap, 0, 0);
 	}
@@ -146,13 +147,13 @@ void EditorLayerComposer::DrawGrid(Gdiplus::Graphics* pGraphics)
 	// 세로선 그리기
 	for (int i = 0; i <= maxGridLines; ++i) {
 		int gridX = startGridX + i;
-		if (gridX < 0 || gridX > MAP_WIDTH) continue;
+		if (gridX < 0 || gridX > m_pMain->GetMapWidth()) continue;
 
 		float worldX = (float)(gridX * gridSpacing);
 		float screenX = (worldX - viewTopLeft.X) * m_pView->GetZoomFactor();
 
 		if (screenX >= 0 && screenX <= layerWidth) {
-			bool isMajor = (gridX % 10 == 0) && (gridX != 0) && (gridX != MAP_WIDTH);
+			bool isMajor = (gridX % 10 == 0) && (gridX != 0) && (gridX != m_pMain->GetMapWidth());
 			Gdiplus::Pen* currentPen = isMajor ? &majorGridPen : &gridPen;
 
 			pGraphics->DrawLine(currentPen, screenX, 0.0f, screenX, (float)layerHeight);
@@ -162,13 +163,13 @@ void EditorLayerComposer::DrawGrid(Gdiplus::Graphics* pGraphics)
 	// 가로선 그리기
 	for (int i = 0; i <= maxGridLines; ++i) {
 		int gridY = startGridY + i;
-		if (gridY < 0 || gridY > MAP_HEIGHT) continue;
+		if (gridY < 0 || gridY > m_pMain->GetMapHeight()) continue;
 
 		float worldY = (float)(gridY * gridSpacing);
 		float screenY = (worldY - viewTopLeft.Y) * m_pView->GetZoomFactor();
 
 		if (screenY >= 0 && screenY <= layerHeight) {
-			bool isMajor = (gridY % 10 == 0) && (gridY != 0) && (gridY != MAP_HEIGHT);
+			bool isMajor = (gridY % 10 == 0) && (gridY != 0) && (gridY != m_pMain->GetMapHeight());
 			Gdiplus::Pen* currentPen = isMajor ? &majorGridPen : &gridPen;
 
 			pGraphics->DrawLine(currentPen, 0.0f, screenY, (float)layerWidth, screenY);
@@ -178,8 +179,8 @@ void EditorLayerComposer::DrawGrid(Gdiplus::Graphics* pGraphics)
 	// 맵 경계선 그리기
 	float mapLeftScreen = (0 - viewTopLeft.X) * m_pView->GetZoomFactor();
 	float mapTopScreen = (0 - viewTopLeft.Y) * m_pView->GetZoomFactor();
-	float mapWidthScreen = (MAP_WIDTH * TILE_SIZE) * m_pView->GetZoomFactor();
-	float mapHeightScreen = (MAP_HEIGHT * TILE_SIZE) * m_pView->GetZoomFactor();
+	float mapWidthScreen = (m_pMain->GetMapWidth() * TILE_SIZE) * m_pView->GetZoomFactor();
+	float mapHeightScreen = (m_pMain->GetMapHeight() * TILE_SIZE) * m_pView->GetZoomFactor();
 
 	if (mapLeftScreen < layerWidth && mapTopScreen < layerHeight &&
 		mapLeftScreen + mapWidthScreen > 0 && mapTopScreen + mapHeightScreen > 0) {
@@ -203,25 +204,29 @@ void EditorLayerComposer::DrawTileMap(Gdiplus::Graphics* pGraphics)
 
 	// 타일 인덱스 범위 계산
 	int startX = max(0, (int)floor(viewTopLeft.X / TILE_SIZE));
-	int endX = min(MAP_WIDTH, (int)ceil(viewBottomRight.X / TILE_SIZE));
+	int endX = min(m_pMain->GetMapWidth(), (int)ceil(viewBottomRight.X / TILE_SIZE));
 	int startY = max(0, (int)floor(viewTopLeft.Y / TILE_SIZE));
-	int endY = min(MAP_HEIGHT, (int)ceil(viewBottomRight.Y / TILE_SIZE));
+	int endY = min(m_pMain->GetMapHeight(), (int)ceil(viewBottomRight.Y / TILE_SIZE));
 
 	// 화면상 타일 크기
 	float screenTileSize = (float)TILE_SIZE * m_pView->GetZoomFactor();
 
-	// Main의 타일 맵에 접근 (friend)
+	// Main의 타일 맵에 접근 (friend) - [행][열] 형식
 	const ResourcePathUtils::TileResourceDef(&tileMap)[MAP_HEIGHT][MAP_WIDTH] = m_pMain->m_tileMap;
-
+	
 	for (int y = startY; y < endY; ++y) {
 		for (int x = startX; x < endX; ++x) {
 			const ResourcePathUtils::TileResourceDef& tile = tileMap[y][x];
 			if (tile.type == TILE_NONE || tile.id == TILEID_NONE || tile.imageName.empty()) continue;
 
-			// 절대경로에서 비트맵 로드
-			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(tile.baseDir, tile.imageName);
-			std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
-			if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) continue;
+			// 캐시된 비트맵 로드
+			std::wstring fullPath = tile.baseDir;
+			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+				fullPath += L"\\";
+			}
+			fullPath += tile.imageName;
+			std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
+			if (!pBitmap) continue;
 
 			// 월드 좌표 계산
 			float worldX = (float)x * TILE_SIZE;
@@ -281,25 +286,34 @@ void EditorLayerComposer::DrawObjects(Gdiplus::Graphics* pGraphics)
 	);
 
 	// Client CameraManager처럼: 뷰포트/오브젝트 목록이 바뀐 경우에만 visible 캐시 갱신
-	bool viewportChanged = (std::abs(viewWorldRect.X - lastViewportWorldRect.X) > 0.1f ||
-		std::abs(viewWorldRect.Y - lastViewportWorldRect.Y) > 0.1f ||
-		std::abs(viewWorldRect.Width - lastViewportWorldRect.Width) > 0.1f ||
-		std::abs(viewWorldRect.Height - lastViewportWorldRect.Height) > 0.1f);
+	auto rectChanged = [](const Gdiplus::RectF& a, const Gdiplus::RectF& b, float threshold = 0.1f) {
+		return std::abs(a.X - b.X) > threshold || std::abs(a.Y - b.Y) > threshold ||
+		       std::abs(a.Width - b.Width) > threshold || std::abs(a.Height - b.Height) > threshold;
+	};
+	
+	bool viewportChanged = rectChanged(viewWorldRect, lastViewportWorldRect);
 	if (hadObjectsDirty || viewportChanged || visibleObjectsCache.empty()) {
 		lastViewportWorldRect = viewWorldRect;
 		visibleObjectsCache.clear();
 		visibleObjectsCache.reserve(sortedObjects.size() / 4 + 32);  // 대략 보이는 비율만 예약
 		for (const ResourcePathUtils::ObjectResourceDef* objData : sortedObjects) {
 			if (objData->imageName.empty()) continue;
-			// 절대경로에서 비트맵 로드하여 크기 확인
-			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(objData->baseDir, objData->imageName);
-			std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
-			if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) continue;
+			
+			// 캐시된 비트맵 로드하여 크기 확인
+			std::wstring fullPath = objData->baseDir;
+			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+				fullPath += L"\\";
+			}
+			fullPath += objData->imageName;
+			std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
+			if (!pBitmap) continue;
+			
 			float objWidth = (float)pBitmap->GetWidth();
 			float objHeight = (float)pBitmap->GetHeight();
 			float objRenderLeftWorld = (float)objData->x - (objData->pivotX * objWidth);
 			float objRenderTopWorld = (float)objData->y - (objData->pivotY * objHeight);
 			Gdiplus::RectF objWorldRect(objRenderLeftWorld, objRenderTopWorld, objWidth, objHeight);
+			
 			if (objWorldRect.IntersectsWith(viewWorldRect))
 				visibleObjectsCache.push_back(objData);
 		}
@@ -308,10 +322,15 @@ void EditorLayerComposer::DrawObjects(Gdiplus::Graphics* pGraphics)
 	// 보이는 오브젝트만 그리기 (Client RenderVisibleGameObjects와 동일 사상)
 	for (const ResourcePathUtils::ObjectResourceDef* objData : visibleObjectsCache) {
 		if (objData->imageName.empty()) continue;
-		// 절대경로에서 비트맵 로드
-		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(objData->baseDir, objData->imageName);
-		std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
-		if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) continue;
+		
+		// 캐시된 비트맵 로드
+		std::wstring fullPath = objData->baseDir;
+		if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+			fullPath += L"\\";
+		}
+		fullPath += objData->imageName;
+		std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
+		if (!pBitmap) continue;
 
 		float objWidth = (float)pBitmap->GetWidth();
 		float objHeight = (float)pBitmap->GetHeight();

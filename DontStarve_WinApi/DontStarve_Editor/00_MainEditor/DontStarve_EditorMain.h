@@ -2,7 +2,7 @@
 
 class EditorView;
 class EditorResourceManager;
-class EditorMapFileIO;
+class EditorMap;
 class EditorPalette;
 class EditorPivotEditor;
 class EditorColliderEditor;
@@ -10,7 +10,7 @@ class EditorLayerComposer;
 
 class DontStarve_EditorMain
 {
-	friend class EditorMapFileIO;
+	friend class EditorMap;
 	friend class EditorColliderEditor;
 	friend class EditorWalkableEditor;
 	friend class EditorDebugPanel;
@@ -35,6 +35,12 @@ public:
 	bool ShowSaveFileDialog(WCHAR* fileName, DWORD fileNameSize);
 	bool ShowOpenFileDialog(WCHAR* fileName, DWORD fileNameSize);
 
+	// 맵 크기 (타일 단위, 1~MAP_WIDTH / 1~MAP_HEIGHT)
+	int GetMapWidth() const { return m_mapWidth; }
+	int GetMapHeight() const { return m_mapHeight; }
+	void SetMapSize(int width, int height);
+	void ShowMapSizeDialog(HWND parent);
+
 	void AddObject(const ResourcePathUtils::ObjectResourceDef& obj);
 	void RemoveObject(size_t idx); // Remove by index
 	void RemoveObject(ResourcePathUtils::ObjectResourceDef* objToRemove); // Remove by pointer (fast search)
@@ -55,7 +61,9 @@ private:
 	Gdiplus::Bitmap* m_pDoubleBufferBitmap;
 
 	// Map data related member variables
-	ResourcePathUtils::TileResourceDef m_tileMap[MAP_WIDTH][MAP_HEIGHT]; // Tile map data
+	int m_mapWidth;   // 현재 맵 가로 타일 수 (1 ~ MAP_WIDTH)
+	int m_mapHeight; // 현재 맵 세로 타일 수 (1 ~ MAP_HEIGHT)
+	ResourcePathUtils::TileResourceDef m_tileMap[MAP_HEIGHT][MAP_WIDTH]; // Tile map data ([행][열] 형식)
 	std::vector<ResourcePathUtils::ObjectResourceDef> m_gameObjects;
 
 	// Player spawn point related
@@ -136,6 +144,9 @@ private:
 	void HandleObjectSelectionClick(POINT clickPoint, HWND hWnd);
 	void DeselectObject(HWND hWnd);
 	void ExitAllEditModes();
+	
+	// 유틸리티 헬퍼 함수
+	bool IsPointInDebugPanel(POINT clickPoint) const;
 
 	// Coordinate conversion (delegate to EditorView; client size from g_hWnd)
 	Gdiplus::RectF GetViewWorldRect(float cullingMargin = 0.0f) const;

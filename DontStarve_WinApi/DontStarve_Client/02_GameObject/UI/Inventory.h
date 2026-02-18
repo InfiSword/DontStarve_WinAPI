@@ -9,7 +9,7 @@ struct ItemSlot {
 
 	ItemSlot() : item(nullptr), count(0) {}
 	bool IsEmpty() const { return item == nullptr || count == 0; }
-	void Clear() { item = nullptr; count = 0; }
+	void Clear();  // cpp 파일에서 구현 (Item의 완전한 정의 필요)
 };
 
 class Inventory {
@@ -39,12 +39,13 @@ public:
 	void ReleaseUIBitmaps();
 
 	bool HandleMouseClick(float mouseScreenX, float mouseScreenY, Player* player);
+	bool HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player);
 
 private:
 	int FindFirstEmptySlot() const;
 	int FindExistingStack(UINT itemId) const;
 
-	// UI �������� ��� ������
+	// UI 이미지 캐시
 	Gdiplus::Bitmap* m_inventoryBgBitmap;
 	Gdiplus::Bitmap* m_slotBgBitmap;
 	Gdiplus::Font* m_font;

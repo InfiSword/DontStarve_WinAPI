@@ -37,9 +37,6 @@ private:
 	CharacterSelectionState m_currentState;
 	int m_selectedCharacterIndex;       // 선택된 캐릭터 인덱스 (-1: 선택 안됨)
 	
-	// 게임 진행 정보
-	GameProgress m_gameProgress;
-	
 	// 선택 상태 관리 변수
 	bool m_isLockedCharacterSelected;   // 잠금 캐릭터가 선택되었는지 여부
 	bool m_isSelectButtonDisabled;      // 선택 버튼 비활성화 여부
@@ -59,9 +56,6 @@ public:
 	// 캐릭터 선택 public 함수들
 	std::wstring GetSelectedCharacterName() const;
 	int GetSelectedCharacterIndex() const { return m_selectedCharacterIndex; }
-	
-	// 게임 진행 정보 설정 함수
-	void SetGameProgress(const GameProgress& progress) { m_gameProgress = progress; }
 	
 	// 선택된 캐릭터 ID 반환
 	GameObjectID GetSelectedCharacterID() const;

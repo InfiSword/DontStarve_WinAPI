@@ -121,6 +121,7 @@ void UIManager::ClearAllUI()
 		}
 	}
 	m_uiElements.clear();
+	m_uiElements.shrink_to_fit();
 }
 
 UIImage* UIManager::FindUIImage(GameObjectID id)

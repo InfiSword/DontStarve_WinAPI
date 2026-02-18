@@ -63,6 +63,9 @@ void GameObject::Release()
 	}
 	m_bReleased = true;
 
+	// 문자열 멤버 강제 해제 (swap으로 CRT 누수 탐지에 반영)
+	std::wstring().swap(m_name);
+
 	// 컴포넌트 해제
 	for (auto& component : m_components) {
 		if (component) {
@@ -71,6 +74,7 @@ void GameObject::Release()
 		}
 	}
 	m_components.clear();
+	m_components.shrink_to_fit(); // 벡터 capacity도 해제
 }
 
 void GameObject::OnInteraction(GameObject* obj)

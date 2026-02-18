@@ -3,8 +3,32 @@
 #include "Client.h"
 #include "../00_MainGame/DontStarve_MainGame.h"
 #include "../01_Manager/InputManager/InputManager.h"
+#include <shlwapi.h>
+
+#pragma comment(lib, "shlwapi.lib")
 
 #define MAX_LOADSTRING 100
+
+// 실행 파일 위치에서 Resource·MapData가 있는 프로젝트 루트로 작업 디렉터리 설정
+static void EnsureResourceWorkingDirectory()
+{
+    wchar_t exePath[MAX_PATH];
+    if (GetModuleFileNameW(NULL, exePath, MAX_PATH) == 0) return;
+    std::wstring dir = exePath;
+    size_t lastSlash = dir.find_last_of(L"\\/");
+    if (lastSlash != std::wstring::npos) dir.resize(lastSlash + 1);
+    for (int level = 0; level < 5; ++level) {
+        std::wstring resourceDir = dir + L"Resource";
+        if (PathFileExistsW(resourceDir.c_str())) {
+            if (SetCurrentDirectoryW(dir.c_str())) {
+                break;
+            }
+        }
+        size_t prev = dir.find_last_of(L"\\/", dir.length() - 2);
+        if (prev == std::wstring::npos) break;
+        dir.resize(prev + 1);
+    }
+}
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
@@ -27,10 +51,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     //메모리 누수 검사 플래그
 #ifdef _DEBUG
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+    // N번째 할당 시점에 중단 (누수 추적 시 주석 해제)
+    // _CrtSetBreakAlloc(254);
 #endif
 
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+
+    // Resource/MapData 상대 경로가 맞도록 작업 디렉터리를 프로젝트 루트로 설정
+    EnsureResourceWorkingDirectory();
 
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);

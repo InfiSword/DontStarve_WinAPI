@@ -9,7 +9,7 @@
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
 Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
-	const std::wstring& imageName, bool isActive, bool isInteractive)
+	const std::wstring& baseDir, const std::wstring& imageName, bool isActive, bool isInteractive)
 	:GameObject(type, id, L"", imageName, isActive, isInteractive),
 	m_animator(nullptr)
 {
@@ -19,14 +19,23 @@ Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float piv
 	transform->SetPivot(pivotX, pivotY);
 	transform->SetDirection(_dir);
 
-	// SpriteRenderer 컴포넌트 추가
+	// SpriteRenderer 컴포넌트 추가 (baseDir + imageName으로 전체 경로 구성)
 	SpriteRenderer* spriteRenderer = AddComponent<SpriteRenderer>();
 	spriteRenderer->SetLayer(LAYER_WORLD_OBJECT);
 	if (!imageName.empty())
 	{
-		// 이미지 경로는 절대경로로 전달되므로 그대로 사용
 		ResourceManager* pRM = ResourceManager::GetInstance();
-		if (auto sprite = pRM->LoadSprite(imageName)) {
+		std::wstring fullPath;
+		if (baseDir.empty()) {
+			fullPath = imageName;
+		} else {
+			fullPath = baseDir;
+			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+				fullPath += L"\\";
+			}
+			fullPath += imageName;
+		}
+		if (auto sprite = pRM->LoadSprite(fullPath)) {
 			spriteRenderer->SetSprite(sprite);
 		}
 	}

@@ -3,6 +3,7 @@
 #include <set>
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
+#include "../../02_GameObject/Component/Collider/Collider.h"
 #include "../InputManager/InputManager.h" 
 #include "../ObjectManager/ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
@@ -52,6 +53,7 @@ void CameraManager::Update(float deltaTime)
 void CameraManager::Release()
 {
 	m_visibleObjects.clear();
+	m_visibleObjects.shrink_to_fit();
 	m_visibleObjectSet.clear();
 	
 	// 타일 캐시 해제
@@ -234,8 +236,13 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float 
 	for (int i = (int)m_visibleObjects.size() - 1; i >= 0; --i) {
 		GameObject* obj = m_visibleObjects[i];
 		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) continue;  // m_isInteractive가 false면 건너뜀 (플레이어 등)
-		Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
-		if (objBounds.Contains(worldX, worldY)) return obj;
+
+		// 상호작용 범위: 콜라이더가 있고 활성화된 경우에만 콜라이더 영역으로 판정 (스프라이트 바운딩 미사용)
+		Collider* collider = obj->GetComponent<Collider>();
+		if (!collider || !collider->IsEnabled())
+			continue;
+		if (collider->ContainsPoint(worldX, worldY))
+			return obj;
 	}
 	return nullptr;
 }
@@ -469,7 +476,11 @@ void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& til
 	if (tileData.baseDir.empty() || tileData.imageName.empty()) {
 		return;
 	}
-	std::wstring fullPath = ResourcePathUtils::BuildResourcePath(tileData.baseDir, tileData.imageName);
+	std::wstring fullPath = tileData.baseDir;
+	if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+		fullPath += L"\\";
+	}
+	fullPath += tileData.imageName;
 
 	cacheData.bitmap = new Gdiplus::Bitmap(fullPath.c_str());
 	if (!(cacheData.bitmap && cacheData.bitmap->GetLastStatus() == Gdiplus::Ok)) {

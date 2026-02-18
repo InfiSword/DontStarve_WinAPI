@@ -4,18 +4,18 @@
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../../Header/Function.h"
 #include "../../../02_GameObject/UI/Inventory.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../Item/Tool/Tool.h"
 #include "../../Component/Transform/Transform.h"
+#include "../../Component/Collider/Collider.h"
 
 // Chop 스프라이트는 Idle/Run과 프레임 크기가 달라(284x248 등), 발 위치 정렬을 위해 별도 피벗 사용. 필요 시 값만 조정.
-static const float CHOP_PIVOT_X = 0.6f;
-static const float CHOP_PIVOT_Y = 1.0f;
+static const float CHOP_PIVOT_X = 0.3f;
+static const float CHOP_PIVOT_Y = 0.9f;
 
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, imageName, true, false),  // isInteractive=false: 자기 자신에 대한 상호작용 대상 제외
+	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),  // baseDir 빈 경우 imageName만 사용(플레이어는 Animator에서 경로 사용)
 	hp(100), maxHp(100), m_playerSpeed(300.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr), m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr), m_state(PlayerState::IDLE), isMoveToGoal(false), m_pickupElapsed(0.f)
 {
@@ -35,41 +35,51 @@ void Player::Init()
 	ResourceManager* pRM = ResourceManager::GetInstance();
 	const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GetID());
 	if (!objData) return;
-	const std::wstring& base = objData->baseDir;
+	std::wstring base = objData->baseDir;
 
 	// IDLE
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN, pRM->BuildResourcePath(base, L"Idle", L"Wilson_Idle_Down.png"),
+	std::wstring idleDownPath = base + L"\\Idle\\Wilson_Idle_Down.png";
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN, idleDownPath,
 		126, 189, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP, pRM->BuildResourcePath(base, L"Idle", L"Wilson_Idle_Up.png"),
+	
+	std::wstring idleUpPath = base + L"\\Idle\\Wilson_Idle_Up.png";
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP, idleUpPath,
 		128, 193, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT, pRM->BuildResourcePath(base, L"Idle", L"Wilson_Idle_Side.png"),
+	
+	std::wstring idleSidePath = base + L"\\Idle\\Wilson_Idle_Side.png";
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT, idleSidePath,
 		135, 194, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, true, 0.03f);
-	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, pRM->BuildResourcePath(base, L"Idle", L"Wilson_Idle_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, idleSidePath,
 		135, 194, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 
 	// WALK(RUN)
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN, pRM->BuildResourcePath(base, L"Run", L"Wilson_Run_Down.png"),
+	std::wstring runDownPath = base + L"\\Run\\Wilson_Run_Down.png";
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN, runDownPath,
 		139, 226, 6, 33, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP, pRM->BuildResourcePath(base, L"Run", L"Wilson_Run_Up.png"),
+	
+	std::wstring runUpPath = base + L"\\Run\\Wilson_Run_Up.png";
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP, runUpPath,
 		133, 231, 6, 33, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, pRM->BuildResourcePath(base, L"Run", L"Wilson_Run_Side.png"),
+	
+	std::wstring runSidePath = base + L"\\Run\\Wilson_Run_Side.png";
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, runSidePath,
 		142, 226, 6, 33, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, true, 0.03f);
-	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, pRM->BuildResourcePath(base, L"Run", L"Wilson_Run_Side.png"),
+	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, runSidePath,
 		141, 226, 6, 33, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 
 	// PICKUP
-	std::wstring pickupPath = pRM->BuildResourcePath(base, L"Interact", L"Interact_wilson_pickup_pst_down.png");
+	std::wstring pickupPath = base + L"\\Interact\\Interact_wilson_pickup_pst_down.png";
 	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
-			127, 201, 6, 20, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+			127, 201, 6, 20, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.02f);
 	}
 
 	// CHOP (이벤트 적용, Idle과 발 위치 맞춤용 피벗)
 	std::map<int, std::wstring> chopEvents = { {4, L"chop_hit"} };
-	std::wstring chopPath = pRM->BuildResourcePath(base, L"Axe", L"axe_wilson_chop_loop_down.png");
+	std::wstring chopPath = base + L"\\Axe\\axe_wilson_chop_loop_down.png";
 	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::CHOP, (Direction)dir, chopPath,
-			284, 248, 6, 54, CHOP_PIVOT_X, CHOP_PIVOT_Y, false, chopEvents, false, 0.03f);
+			284, 248, 6, 36, CHOP_PIVOT_X, CHOP_PIVOT_Y, false, chopEvents, false, 0.01f);
 	}
 
 
@@ -199,14 +209,17 @@ void Player::Update(float deltaTime)
 	GameObject::Update(deltaTime);
 
 	// CHOP/PICKUP 종료 시 IDLE 전환 및 상호작용 해제 (HandleMovement보다 앞에서 처리)
-	if (m_state == PlayerState::CHOP) {
-		if (m_animator && m_animator->IsAnimationDone()) {
-			m_state = PlayerState::IDLE;
-			m_activeInteractionTarget = nullptr;
-			m_pendingInteractionTarget = nullptr;
-			UpdateAnimatorState();
+		if (m_state == PlayerState::CHOP) {
+			if (m_animator && m_animator->IsAnimationDone()) {
+				// Idle 애니메이션 피벗(0.5f)으로 복구 및 Idle Down 애니메이션으로 전환
+				transform->SetPivot(0.5f, transform->GetPivotY());
+				transform->SetDirection(DIR_DOWN);
+				m_state = PlayerState::IDLE;
+				m_activeInteractionTarget = nullptr;
+				m_pendingInteractionTarget = nullptr;
+				UpdateAnimatorState();
+			}
 		}
-	}
 	else if (m_state == PlayerState::PICKUP) {
 		m_pickupElapsed += deltaTime;
 		if ((m_animator && m_animator->IsAnimationDone()) || m_pickupElapsed >= 1.5f) {
@@ -265,11 +278,13 @@ void Player::TryStartInteraction(float worldX, float worldY)
 	GameObject* target = cameraManager->FindInteractableObjectAtPosition(worldX, worldY);
 	if (!target) return;
 
+	float tx, ty;
 	Transform* targetTransform = target->GetComponent<Transform>();
 	if (!targetTransform) return;
-
-	float tx = targetTransform->GetX();
-	float ty = targetTransform->GetY();
+	
+	// Transform 위치(피벗 기준)로 이동 (콜라이더 중심이 아닌 피벗 위치 사용)
+	tx = targetTransform->GetX();
+	ty = targetTransform->GetY();
 
 	SetTargetPosition(tx, ty);
 	m_pendingInteractionTarget = target;
@@ -288,8 +303,15 @@ void Player::FinalizePickup()
 	if (objType == GOBJ_ITEM) {
 		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(objID, 0.0f, 0.0f, nullptr, false);
 		Item* item = dynamic_cast<Item*>(itemObj);
-		if (item && m_inventory->AddItem(item, 1))
-			ObjectManager::GetInstance()->RemoveGameObject(m_activeInteractionTarget);
+		if (item) {
+			if (m_inventory->AddItem(item, 1)) {
+				ObjectManager::GetInstance()->RemoveGameObject(m_activeInteractionTarget);
+			}
+			else {
+				// 인벤토리 추가 실패 시 생성된 Item 삭제 (메모리 누수 방지)
+				delete item;
+			}
+		}
 	}
 	else if (objType == GOBJ_NATURAL_ENVIR) {
 		Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
@@ -298,8 +320,15 @@ void Player::FinalizePickup()
 		if (itemID != GOID_NONE && itemCount > 0) {
 			GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(itemID, 0.0f, 0.0f, nullptr, false);
 			Item* item = dynamic_cast<Item*>(itemObj);
-			if (item && m_inventory->AddItem(item, itemCount))
-				ObjectManager::GetInstance()->RemoveGameObject(m_activeInteractionTarget);
+			if (item) {
+				if (m_inventory->AddItem(item, itemCount)) {
+					ObjectManager::GetInstance()->RemoveGameObject(m_activeInteractionTarget);
+				}
+				else {
+					// 인벤토리 추가 실패 시 생성된 Item 삭제 (메모리 누수 방지)
+					delete item;
+				}
+			}
 		}
 	}
 
@@ -322,6 +351,8 @@ void Player::OnInteraction(GameObject* obj)
 	{
 	case GOBJ_NATURAL_ENVIR:
 		if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
+			// CHOP 애니메이션 피벗으로 변경
+			transform->SetPivot(CHOP_PIVOT_X, CHOP_PIVOT_Y);
 			m_state = PlayerState::CHOP;
 		}
 		else {

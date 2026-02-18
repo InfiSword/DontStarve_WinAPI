@@ -24,9 +24,18 @@ Item::Item(GameObjectType type, GameObjectID id, const std::wstring& name, const
     SpriteRenderer* sprite = AddComponent<SpriteRenderer>();
     sprite->SetLayer(LAYER_WORLD_OBJECT);
     if (!imagePath.empty()) {
-		// 이미지 경로는 절대경로로 전달되므로 그대로 사용
 		ResourceManager* pRM = ResourceManager::GetInstance();
-		if (auto handle = pRM->LoadSprite(imagePath)) {
+		std::wstring fullPath;
+		if (resourcePath.empty()) {
+			fullPath = imagePath;
+		} else {
+			fullPath = resourcePath;
+			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+				fullPath += L"\\";
+			}
+			fullPath += imagePath;
+		}
+		if (auto handle = pRM->LoadSprite(fullPath)) {
 			sprite->SetSprite(handle);
 		}
     }
@@ -34,7 +43,7 @@ Item::Item(GameObjectType type, GameObjectID id, const std::wstring& name, const
 
 Item::~Item() 
 {
-  
+	Release();
 }
 
 void Item::Init()
@@ -54,11 +63,14 @@ void Item::Update(float deltaTime)
 
 void Item::Release()
 {
+	// Item 문자열 멤버 강제 해제 (swap으로 CRT 누수 탐지에 반영)
+	std::wstring().swap(m_description);
+	
 	// Item 전용 정리 작업
 	transform = nullptr;
 	spriteRenderer = nullptr;
 	
-	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
+	// 부모 클래스의 Release() 호출 (m_name 정리 포함)
 	GameObject::Release();
 }
 

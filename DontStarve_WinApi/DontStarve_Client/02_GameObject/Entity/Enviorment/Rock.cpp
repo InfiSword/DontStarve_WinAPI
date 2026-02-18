@@ -4,12 +4,24 @@
 #include "Rock.h"
 
 Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, imageName, true, true),
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true),
 	m_hp(100), m_hitAnimTimer(0.0f), m_state(RockState::ROCK_INTACT)
 {
 	maxHp = m_hp;
-	m_rockCracked = new Gdiplus::Bitmap((resourcePath + L"rock01-1").c_str());
-	m_rockBroken = new Gdiplus::Bitmap((resourcePath + L"rock01-2").c_str());
+	std::wstring pathCracked = resourcePath;
+	if (!pathCracked.empty() && pathCracked.back() != L'\\' && pathCracked.back() != L'/') {
+		pathCracked += L"\\";
+	}
+	pathCracked += L"rock01-1.png";
+	
+	std::wstring pathBroken = resourcePath;
+	if (!pathBroken.empty() && pathBroken.back() != L'\\' && pathBroken.back() != L'/') {
+		pathBroken += L"\\";
+	}
+	pathBroken += L"rock01-2.png";
+	
+	m_rockCracked = new Gdiplus::Bitmap(pathCracked.c_str());
+	m_rockBroken = new Gdiplus::Bitmap(pathBroken.c_str());
 }
 
 Rock::~Rock() {}

@@ -8,9 +8,11 @@
 #include "../InventoryManager/InventoryManager.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../ColliderManager/ColliderManager.h"
+#include "../GameProgressManager/GameProgressManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
+#include "../../02_GameObject/UI/CraftingUI.h"
 
-GameScene::GameScene() : m_selectedCharacterID(GOID_NONE)
+GameScene::GameScene() : m_selectedCharacterID(GOID_NONE), m_craftingUI(nullptr)
 {
 }
 
@@ -42,20 +44,27 @@ void GameScene::Init()
 	
 	// InventoryManager 초기화
 	InventoryManager::GetInstance()->Init();
+
+	// ColliderManager 초기화 (콜라이더 목록 등, 씬별로 정리 후 사용)
+	ColliderManager::GetInstance()->Init();
 	
 	// ResourceManager는 이미 MainGame::Init()에서 초기화됨 (중복 초기화 불필요)
 	// ResourceManager::GetInstance()->Init();
 
-	// UI 생성
-	// CreateUI();
+	// 크래프팅 UI 생성
+	m_craftingUI = new CraftingUI();
+	if (m_craftingUI) {
+		m_craftingUI->Init();
+		// CraftingUI는 내부적으로 필요한 UI 요소들을 UIManager에 추가함
+	}
 
-	// 게임 진행 정보 로드
-	LoadGameProgress();
+	// GameProgressManager 초기화 (게임 진행도 로드)
+	GameProgressManager::GetInstance()->Init();
 }
 
-void GameScene::Init(const MapData& mapData)
+void GameScene::Init(const MapData* mapData)
 {
-	// 맵 데이터 저장
+	// 맵 데이터 참조만 저장 (복사 없음, SceneManager가 소유)
 	m_mapData = mapData;
 
 	// 기본 초기화
@@ -98,8 +107,8 @@ void GameScene::Render()
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (cameraManager) {
 		// 맵 데이터가 있는 경우에만 타일 렌더링
-		if (m_mapData.mapWidth > 0 && m_mapData.mapHeight > 0) {
-			cameraManager->RenderVisibleTiles(&m_mapData);
+		if (m_mapData && m_mapData->mapWidth > 0 && m_mapData->mapHeight > 0) {
+			cameraManager->RenderVisibleTiles(m_mapData);
 		}
 	}
 	
@@ -110,10 +119,10 @@ void GameScene::Render()
 	}
 	
 	// 3. 디버그용 콜라이더 Gizmo 렌더링
-	ColliderManager* colliderManager = ColliderManager::GetInstance();
-	if (colliderManager) {
-		colliderManager->RenderGizmos();
-	}
+	// ColliderManager* colliderManager = ColliderManager::GetInstance();
+	// if (colliderManager) {
+	// 	colliderManager->RenderGizmos();
+	// }
 	
 	// 4. InputManager (입력 관련 렌더링)
 	InputManager* inputManager = InputManager::GetInstance();
@@ -138,24 +147,36 @@ void GameScene::Render()
 
 void GameScene::Release()
 {
+	// 크래프팅 UI 해제
+	if (m_craftingUI) {
+		m_craftingUI->Release();
+		delete m_craftingUI;
+		m_craftingUI = nullptr;
+	}
+
 	// GameScene에서 사용한 매니저/포인터 정리 (소멸자에서 호출)
+	// 콜라이더 목록을 먼저 비워서 오브젝트 해제 시 댕글링 포인터 방지
+	ColliderManager::GetInstance()->Release();
 	InventoryManager::GetInstance()->Release();
 	RenderManager::GetInstance()->Release();
 	CameraManager::GetInstance()->Release();
 	ObjectManager::GetInstance()->Release();
 	InputManager::GetInstance()->Release();
 	UIManager::GetInstance()->Release();
+	
+	// MapData는 SceneManager가 소유하므로 여기서는 포인터만 해제
+	m_mapData = nullptr;
 }
 
 void GameScene::CreateGameObjectsFromMapData()
 {
 	ObjectManager* objectManager = ObjectManager::GetInstance();
-	if (!objectManager) {
+	if (!objectManager || !m_mapData) {
 		return;
 	}
 
 	int createdCount = 0;
-	for (const ResourcePathUtils::ObjectResourceDef& objData : m_mapData.gameObjects) 
+	for (const ResourcePathUtils::ObjectResourceDef& objData : m_mapData->gameObjects) 
 	{
 		// 맵 파일의 콜라이더 정보를 포함한 resourceData 생성 (objData를 직접 사용)
 		ResourcePathUtils::ObjectResourceDef resourceData = objData;
@@ -176,7 +197,7 @@ void GameScene::SpawnPlayer()
 	}
 
 	// 플레이어 생성 (ID 기반)
-	GameObject* player = objectManager->CreateGameObject(m_selectedCharacterID, m_mapData.playerSpawn.x, m_mapData.playerSpawn.y);
+	GameObject* player = objectManager->CreateGameObject(m_selectedCharacterID, m_mapData->playerSpawn.x, m_mapData->playerSpawn.y);
 
 	if (player) {
 		// ObjectManager에서 캐싱된 플레이어 가져오기
@@ -190,41 +211,4 @@ void GameScene::SpawnPlayer()
 			}
 		}
 	}
-}
-
-
-void GameScene::ClearScene(SceneType sceneType)
-{
-	// 씬 클리어 로직
-	//m_gameProgress.SetSceneCleared(sceneType, true);
-	SaveGameProgress();
-}
-
-bool GameScene::IsSceneCleared(SceneType sceneType) const
-{
-	return m_gameProgress.IsSceneCleared(sceneType);
-}
-
-bool GameScene::CheckSceneClearCondition(SceneType sceneType) const
-{
-	// 씬 클리어 조건 확인 로직
-	switch (sceneType) {
-	case SCENE_GAME_FARMING_AREA:
-		// 농장 지역 클리어 조건: 특정 아이템 수집 등
-		return true; // 임시로 항상 클리어된 것으로 처리
-	default:
-		return false;
-	}
-}
-
-void GameScene::SaveGameProgress()
-{
-	// 게임 진행 정보 저장
-	//m_gameProgress.SaveToFile(L"game_progress.txt");
-}
-
-void GameScene::LoadGameProgress()
-{
-	// 게임 진행 정보 로드
-	//m_gameProgress.LoadFromFile(L"game_progress.txt");
 }

@@ -42,14 +42,19 @@ void SpiderEgg::Init()
         std::wstring imagePath;
         const ResourcePathUtils::ObjectResourceDef* data = pRM->GetObjectResourceInfo(m_id);
         if (data) {
+            std::wstring base = data->baseDir;
+            if (!base.empty() && base.back() != L'\\' && base.back() != L'/') {
+                base += L"\\";
+            }
+            
             if (m_id == GOID_BUILDING_SPIDER_SMALLEGG) {
-                imagePath = pRM->BuildResourcePath(data->baseDir, L"", L"Egg_spider_cocoon_small_Image.png");
+                imagePath = base + L"Egg_spider_cocoon_small_Image.png";
             }
             else if (m_id == GOID_BUILDING_SPIDER_NORMALEGG) {
-                imagePath = pRM->BuildResourcePath(data->baseDir, L"", L"Egg_spider_cocoon_medium_Image.png");
+                imagePath = base + L"Egg_spider_cocoon_medium_Image.png";
             }
             else if (m_id == GOID_BUILDING_SPIDER_TALLEGG) {
-                imagePath = pRM->BuildResourcePath(data->baseDir, L"", L"Egg_spider_cocoon_large_Image.png");
+                imagePath = base + L"Egg_spider_cocoon_large_Image.png";
             }
         }
 

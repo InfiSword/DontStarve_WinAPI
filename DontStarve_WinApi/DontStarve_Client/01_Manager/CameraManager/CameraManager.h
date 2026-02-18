@@ -1,6 +1,6 @@
 #pragma once
 
-struct TileData;
+namespace ResourcePathUtils { struct TileResourceDef; }
 
 // 타일 캐시 데이터 구조체
 struct TileCacheData {
@@ -79,6 +79,6 @@ private:
 	std::map<UINT, TileCacheData> m_tileCache;
 	int m_lastStartTileX, m_lastStartTileY, m_lastEndTileX, m_lastEndTileY;
 	bool m_tileRangeInitialized;
-	void LoadTileBitmap(const TileData& tileData, TileCacheData& cacheData);
+	void LoadTileBitmap(const ResourcePathUtils::TileResourceDef& tileData, TileCacheData& cacheData);
 	void CleanupUnusedTileCache(const MapData* mapData, int startTileX, int endTileX, int startTileY, int endTileY);
 };

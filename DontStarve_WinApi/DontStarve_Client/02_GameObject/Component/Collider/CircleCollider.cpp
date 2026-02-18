@@ -60,12 +60,30 @@ bool CircleCollider::IntersectsCollider(const Collider* other) const
 
 RECT CircleCollider::GetWorldBoundingBox() const
 {
+	// BoxCollider와 동일하게 월드 좌표 기준 AABB 반환 (Transform 반영)
+	float worldCenterX, worldCenterY, worldRadius;
+	GetWorldCircle(worldCenterX, worldCenterY, worldRadius);
 	return {
-		(int)(m_centerX - m_radius),
-		(int)(m_centerY - m_radius),
-		(int)(m_centerX + m_radius),
-		(int)(m_centerY + m_radius)
+		(int)(worldCenterX - worldRadius),
+		(int)(worldCenterY - worldRadius),
+		(int)(worldCenterX + worldRadius),
+		(int)(worldCenterY + worldRadius)
 	};
+}
+
+bool CircleCollider::ContainsPoint(float worldX, float worldY) const
+{
+	float centerX, centerY, radius;
+	GetWorldCircle(centerX, centerY, radius);
+	float dx = worldX - centerX;
+	float dy = worldY - centerY;
+	return (dx * dx + dy * dy) <= (radius * radius);
+}
+
+void CircleCollider::GetCenterWorld(float& outX, float& outY) const
+{
+	float radius;
+	GetWorldCircle(outX, outY, radius);
 }
 
 void CircleCollider::SetCircle(float centerX, float centerY, float radius)
@@ -78,9 +96,11 @@ void CircleCollider::SetCircle(float centerX, float centerY, float radius)
 void CircleCollider::GetWorldCircle(float& centerX, float& centerY, float& radius) const
 {
 	GameObject* owner = GetOwner();
-	Transform* transform = owner->GetComponent<Transform>();
-	centerX = transform->GetX() + m_centerX;
-	centerY = transform->GetY() + m_centerY;
+	Transform* transform = owner ? owner->GetComponent<Transform>() : nullptr;
+	float ox = transform ? transform->GetX() : 0.0f;
+	float oy = transform ? transform->GetY() : 0.0f;
+	centerX = ox + m_centerX;
+	centerY = oy + m_centerY;
 	radius = m_radius;
 }
 

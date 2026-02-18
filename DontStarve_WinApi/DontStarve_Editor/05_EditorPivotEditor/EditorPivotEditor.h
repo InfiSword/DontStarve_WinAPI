@@ -1,6 +1,6 @@
 #pragma once
 
-struct GameObjectData;
+namespace ResourcePathUtils { struct ObjectResourceDef; }
 class EditorView;
 class EditorResourceManager;
 
@@ -12,14 +12,16 @@ public:
 
 	void SetDependencies(EditorView* pView, const EditorResourceManager* pResources);
 
-	void StartPivotEdit(GameObjectData* pObject);
+	void StartPivotEdit(ResourcePathUtils::ObjectResourceDef* pObject);
 	void EndPivotEdit();
 	void UpdatePivotEdit(POINT mousePos);
 
 	void DrawPivotEditor(Gdiplus::Graphics* pGraphics) const;
 
 	bool IsPivotEditMode() const { return m_isPivotEditMode; }
-	GameObjectData* GetEditingObject() const { return m_editingObject; }
+	ResourcePathUtils::ObjectResourceDef* GetEditingObject() const { return m_editingObject; }
+
+	void ShowPivotDialog(HWND parent);
 
 private:
 	EditorView* m_pView = nullptr;
@@ -29,5 +31,5 @@ private:
 	POINT m_pivotEditPos = { 0, 0 };
 	float m_currentPivotX = 0.5f;
 	float m_currentPivotY = 1.0f;
-	GameObjectData* m_editingObject = nullptr;
+	ResourcePathUtils::ObjectResourceDef* m_editingObject = nullptr;
 };

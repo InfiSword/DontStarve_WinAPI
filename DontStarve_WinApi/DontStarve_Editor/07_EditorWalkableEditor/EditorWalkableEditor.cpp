@@ -45,10 +45,10 @@ void EditorWalkableEditor::OnLeftButtonUp() {
 	Gdiplus::PointF startWorldPos = m_pView->ScreenToWorld(Gdiplus::PointF((float)m_walkableDragStart.x, (float)m_walkableDragStart.y));
 	Gdiplus::PointF endWorldPos = m_pView->ScreenToWorld(Gdiplus::PointF((float)m_walkableDragEnd.x, (float)m_walkableDragEnd.y));
 
-	int startTileX = max(0, min(MAP_WIDTH - 1, (int)floor(startWorldPos.X / TILE_SIZE)));
-	int startTileY = max(0, min(MAP_HEIGHT - 1, (int)floor(startWorldPos.Y / TILE_SIZE)));
-	int endTileX = max(0, min(MAP_WIDTH - 1, (int)floor(endWorldPos.X / TILE_SIZE)));
-	int endTileY = max(0, min(MAP_HEIGHT - 1, (int)floor(endWorldPos.Y / TILE_SIZE)));
+	int startTileX = max(0, min(m_pMain->GetMapWidth() - 1, (int)floor(startWorldPos.X / TILE_SIZE)));
+	int startTileY = max(0, min(m_pMain->GetMapHeight() - 1, (int)floor(startWorldPos.Y / TILE_SIZE)));
+	int endTileX = max(0, min(m_pMain->GetMapWidth() - 1, (int)floor(endWorldPos.X / TILE_SIZE)));
+	int endTileY = max(0, min(m_pMain->GetMapHeight() - 1, (int)floor(endWorldPos.Y / TILE_SIZE)));
 
 	int minTileX = min(startTileX, endTileX);
 	int maxTileX = max(startTileX, endTileX);
@@ -89,9 +89,9 @@ void EditorWalkableEditor::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) const
 	Gdiplus::PointF viewBottomRight = m_pView->ScreenToWorld(Gdiplus::PointF((float)clientRect.right, (float)clientRect.bottom));
 
 	int startX = max(0, (int)floor(viewTopLeft.X / TILE_SIZE));
-	int endX = min(MAP_WIDTH, (int)ceil(viewBottomRight.X / TILE_SIZE));
+	int endX = min(m_pMain->GetMapWidth(), (int)ceil(viewBottomRight.X / TILE_SIZE));
 	int startY = max(0, (int)floor(viewTopLeft.Y / TILE_SIZE));
-	int endY = min(MAP_HEIGHT, (int)ceil(viewBottomRight.Y / TILE_SIZE));
+	int endY = min(m_pMain->GetMapHeight(), (int)ceil(viewBottomRight.Y / TILE_SIZE));
 
 	Gdiplus::SolidBrush blockedBrush(Gdiplus::Color(100, 255, 0, 0));
 	Gdiplus::SolidBrush walkableBrush(Gdiplus::Color(50, 0, 255, 0));

@@ -40,6 +40,10 @@ public:
 
 private:
 	BaseScene* m_currentScene;
+	
+	// 게임 시작 시 모든 맵 데이터 로드 (씬 전환 시 재사용)
+	std::map<std::wstring, MapData> m_mapDataStorage;
+	const MapData* m_currentMapData;  // 현재 활성 맵 (m_mapDataStorage의 참조)
 
 	// Unity 스타일: 지연 전환 (프레임 끝에 한 번에 처리)
 	PendingSceneType m_pendingScene;
@@ -47,6 +51,8 @@ private:
 	GameObjectID m_pendingCharacterID;
 
 	void ReleaseCurrentScene();
+	void LoadAllMapData();  // 게임 시작 시 모든 맵 파일 로드
+	bool ParseMapFile(const std::wstring& mapFileName, MapData& outMapData);  // 맵 파일 파싱 (성공 여부 반환)
 	
 	// 실제 씬 로드 구현 (ProcessPendingSceneLoad에서 호출)
 	void DoLoadTitleScene();

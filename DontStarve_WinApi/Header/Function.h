@@ -7,14 +7,82 @@
 #include <sstream>
 #include <locale>
 #include <codecvt>
-#include "Struct.h"
+#include <cstring>
+#include "Enum.h"
 
 using namespace Gdiplus;
+
+// ====================== Enum 문자열 변환 유틸리티 함수 =======================
+
+namespace EnumTables {
+	// TileType -> 문자열
+	inline const WCHAR* GetEnumName(TileType value) {
+		for (const auto& entry : TileTypeTable) {
+			if (entry.value == value) return entry.name;
+		}
+		return L"UNKNOWN";
+	}
+
+	// 문자열 -> TileType
+	inline TileType GetTileType(const WCHAR* name) {
+		for (const auto& entry : TileTypeTable) {
+			if (std::wcscmp(entry.name, name) == 0) return entry.value;
+		}
+		return TILE_NONE;
+	}
+
+	// TileID -> 문자열
+	inline const WCHAR* GetEnumName(TileID value) {
+		for (const auto& entry : TileIDTable) {
+			if (entry.value == value) return entry.name;
+		}
+		return L"UNKNOWN";
+	}
+
+	// 문자열 -> TileID
+	inline TileID GetTileID(const WCHAR* name) {
+		for (const auto& entry : TileIDTable) {
+			if (std::wcscmp(entry.name, name) == 0) return entry.value;
+		}
+		return TILEID_NONE;
+	}
+
+	// GameObjectType -> 문자열
+	inline const WCHAR* GetEnumName(GameObjectType value) {
+		for (const auto& entry : GameObjectTypeTable) {
+			if (entry.value == value) return entry.name;
+		}
+		return L"UNKNOWN";
+	}
+
+	// 문자열 -> GameObjectType
+	inline GameObjectType GetGameObjectType(const WCHAR* name) {
+		for (const auto& entry : GameObjectTypeTable) {
+			if (std::wcscmp(entry.name, name) == 0) return entry.value;
+		}
+		return GOBJ_NONE;
+	}
+
+	// GameObjectID -> 문자열
+	inline const WCHAR* GetEnumName(GameObjectID value) {
+		for (const auto& entry : GameObjectIDTable) {
+			if (entry.value == value) return entry.name;
+		}
+		return L"UNKNOWN";
+	}
+
+	// 문자열 -> GameObjectID
+	inline GameObjectID GetGameObjectID(const WCHAR* name) {
+		for (const auto& entry : GameObjectIDTable) {
+			if (std::wcscmp(entry.name, name) == 0) return entry.value;
+		}
+		return GOID_NONE;
+	}
+}
 
 // 유틸리티 함수들
 namespace Utils
 {
-	// 안전한 포인터 삭제
 	template<typename T>
 	inline void SafeDelete(T& obj)
 	{
@@ -51,210 +119,9 @@ namespace Utils
 	}
 }
 
-// 비트맵 관련 전역 유틸 함수들
-namespace BitmapUtils
-{
-	inline Bitmap* LoadBitmapFromFile(const WCHAR* filename) {
-		if (!filename) return nullptr;
-		Bitmap* pBitmap = Bitmap::FromFile(filename);
-		if (!pBitmap || pBitmap->GetLastStatus() != Ok) {
-			Utils::SafeDelete(pBitmap);
-			return nullptr;
-		}
-		return pBitmap;
-	}
-}
-
-// 리소스 경로 관련 구조체 및 함수들
+// 리소스 경로 관련 유틸리티 함수들
 namespace ResourcePathUtils
 {
-	// 리소스 경로 빌드 헬퍼 함수 (Editor와 Client 공통 사용)
-	inline std::wstring BuildResourcePath(const std::wstring& basePath, const std::wstring& filename)
-	{
-		WCHAR modulePath[MAX_PATH];
-		GetModuleFileNameW(NULL, modulePath, MAX_PATH);
-
-		WCHAR projectRoot[MAX_PATH] = { 0 };
-		WCHAR* winApiPos = wcsstr(modulePath, L"DontStarve_WinApi");
-		if (winApiPos) {
-			size_t len = wcslen(L"DontStarve_WinApi");
-			size_t copyLen = winApiPos - modulePath + len;
-			if (copyLen < MAX_PATH) {
-				wcsncpy_s(projectRoot, MAX_PATH, modulePath, copyLen);
-				projectRoot[copyLen] = L'\0';
-			}
-			else {
-				wcscpy_s(projectRoot, MAX_PATH, modulePath);
-			}
-		}
-		else {
-			wcscpy_s(projectRoot, MAX_PATH, modulePath);
-			WCHAR* lastSlash = wcsrchr(projectRoot, L'\\');
-			if (lastSlash) {
-				*lastSlash = L'\0';
-				lastSlash = wcsrchr(projectRoot, L'\\');
-				if (lastSlash) *lastSlash = L'\0';
-				lastSlash = wcsrchr(projectRoot, L'\\');
-				if (lastSlash) *lastSlash = L'\0';
-				lastSlash = wcsrchr(projectRoot, L'\\');
-				if (lastSlash) *lastSlash = L'\0';
-			}
-		}
-
-		std::wstring relativePath = L"../" + basePath;
-		if (!filename.empty()) {
-			relativePath += L"/" + filename;
-		}
-		for (size_t i = 0; i < relativePath.length(); ++i) {
-			if (relativePath[i] == L'/') relativePath[i] = L'\\';
-		}
-		DWORD fileAttributes = GetFileAttributesW(relativePath.c_str());
-		if (fileAttributes != INVALID_FILE_ATTRIBUTES) {
-			return relativePath;
-		}
-		wchar_t fullPath[MAX_PATH];
-		if (GetFullPathNameW(relativePath.c_str(), MAX_PATH, fullPath, nullptr) > 0) {
-			std::wstring absolutePath = std::wstring(fullPath);
-			fileAttributes = GetFileAttributesW(absolutePath.c_str());
-			if (fileAttributes != INVALID_FILE_ATTRIBUTES) {
-				return absolutePath;
-			}
-		}
-		return relativePath;
-	}
-
-	// Client용 BuildResourcePath (subFolder 포함)
-	inline std::wstring BuildResourcePath(const std::wstring& basePath, const std::wstring& subFolder, const std::wstring& filename)
-	{
-		std::wstring path = basePath;
-		if (!subFolder.empty()) {
-			path += L"/" + subFolder;
-		}
-		if (!filename.empty()) {
-			path += L"/" + filename;
-		}
-		return BuildResourcePath(path, L"");
-	}
-
-	// 타일 리소스 정의 배열 (Editor와 Client 공통 사용, 절대경로로 확정)
-	inline const TileResourceDef* GetTileResourceDefs(size_t& outCount)
-	{
-		static std::vector<TileResourceDef> tileDefs;
-		static bool initialized = false;
-		
-		if (!initialized) {
-			// 상대 경로 정의
-			struct TileDefRaw {
-				TileType type;
-				TileID id;
-				const wchar_t* baseDir;
-				const wchar_t* imageName;
-			};
-			static const TileDefRaw rawDefs[] = {
-				{ TILE_DIRT, TILEID_DIRT_00, L"Resource/Tiles/Dirt", L"dirt_01.png" },
-				{ TILE_DIRT, TILEID_DIRT_01, L"Resource/Tiles/Dirt", L"dirt_02.png" },
-				{ TILE_DIRT, TILEID_DIRT_02, L"Resource/Tiles/Dirt", L"dirt_03.png" },
-				{ TILE_DIRT, TILEID_DIRT_03, L"Resource/Tiles/Dirt", L"dirt_04.png" },
-				{ TILE_GRASS, TILEID_GRASS_00, L"Resource/Tiles/Grass", L"grass_01.png" },
-				{ TILE_GRASS, TILEID_GRASS_01, L"Resource/Tiles/Grass", L"grass_02.png" },
-				{ TILE_GRASS, TILEID_GRASS_02, L"Resource/Tiles/Grass", L"grass_03.png" },
-				{ TILE_GRASS, TILEID_GRASS_03, L"Resource/Tiles/Grass", L"grass_04.png" },
-				{ TILE_FOREST, TILEID_FOREST_00, L"Resource/Tiles/Forest", L"forest_01.png" },
-				{ TILE_FOREST, TILEID_FOREST_01, L"Resource/Tiles/Forest", L"forest_02.png" },
-				{ TILE_FOREST, TILEID_FOREST_02, L"Resource/Tiles/Forest", L"forest_03.png" },
-				{ TILE_FOREST, TILEID_FOREST_03, L"Resource/Tiles/Forest", L"forest_04.png" },
-			};
-			
-			for (const auto& raw : rawDefs) {
-				std::wstring absBaseDir = BuildResourcePath(raw.baseDir, L"");
-				std::wstring absImageName = BuildResourcePath(raw.baseDir, raw.imageName);
-				tileDefs.emplace_back(raw.type, raw.id, absBaseDir, absImageName);
-			}
-			initialized = true;
-		}
-		
-		outCount = tileDefs.size();
-		return tileDefs.data();
-	}
-
-	// 오브젝트 리소스 정의 배열 (Editor와 Client 공통 사용, 절대경로로 확정)
-	inline const ObjectResourceDef* GetObjectResourceDefs(size_t& outCount)
-	{
-		static std::vector<ObjectResourceDef> objectDefs;
-		static bool initialized = false;
-		
-		if (!initialized) {
-			// 상대 경로 정의
-			struct ObjectDefRaw {
-				GameObjectType type;
-				GameObjectID id;
-				const wchar_t* baseDir;
-				const wchar_t* imageName;
-				float pivotX;
-				float pivotY;
-			};
-			static const ObjectDefRaw rawDefs[] = {
-				{ GOBJ_PLAYER, GOID_PLAYER_WILSON, L"Resource/Objects/Player/Wilson", L"", 0.5f, 1.0f },
-				{ GOBJ_PLAYER, GOID_PLAYER_WILLOW, L"Resource/Objects/Player/Willow", L"", 0.5f, 1.0f },
-				{ GOBJ_PLAYER, GOID_PLAYER_WOLFGANG, L"Resource/Objects/Player/Wolfgang", L"", 0.5f, 1.0f },
-				{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_SHORT, L"Resource/Objects/Tree1/Short", L"evergreen_evergreen_short_idle_short_01.png", 0.5f, 1.0f },
-				{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_NORMAL, L"Resource/Objects/Tree1/Normal", L"evergreen_evergreen_short_idle_normal_01.png", 0.5f, 1.0f },
-				{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_TALL, L"Resource/Objects/Tree1/Tall", L"evergreen_evergreen_short_idle_tall_01.png", 0.5f, 1.0f },
-				{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_ROCK, L"Resource/Objects/Rock/Rock_Normal", L"rock01-0.png", 0.5f, 1.0f },
-				{ GOBJ_NATURAL_ENVIR, GOID_GOLD_ROCK, L"Resource/Objects/Rock/Rock_Gold", L"rock02-0.png", 0.5f, 1.0f },
-				{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_GRASS, L"Resource/Objects/Grass", L"grass.png", 0.5f, 1.0f },
-				{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_SAPLING, L"Resource/Objects/Twign", L"sapling.png", 0.5f, 1.0f },
-				{ GOBJ_NATURAL_ENVIR, GOID_BERRY_TREE, L"Resource/Objects/Bush", L"BerryBush.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_GRASS, L"Resource/Objects/ingredient", L"cutgrass01-0.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_NORMAL_ROCK, L"Resource/Objects/ingredient", L"rocks01-0.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_NORMAL_TWIGS, L"Resource/Objects/ingredient", L"twigs01-0.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_NORMAL_TREE_LOG, L"Resource/Objects/ingredient", L"Tree1_log.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_GOLD_ROCK, L"Resource/Objects/ingredient", L"Gold_Item.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_ROPE, L"Resource/Objects/ingredient", L"rope01-0.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_STONE, L"Resource/Objects/ingredient", L"cutstone01-0.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_MEAT, L"Resource/Objects/ingredient", L"meat-0.png", 0.5f, 1.0f },
-				{ GOBJ_ITEM, GOID_ITEM_BERRY, L"Resource/Objects/ingredient", L"Berry.png", 0.5f, 1.0f },
-				{ GOBJ_MONSTER, GOID_MONSTER_SPIDER, L"Resource/Objects/Monster/Spider/Normal_Spider", L"Spider_spider_idle_01.png", 0.5f, 1.0f },
-				{ GOBJ_MONSTER, GOID_MONSTER_WARRIOR_SPIDER, L"Resource/Objects/Monster/Spider/Warrior_Spider", L"Warrior_spider_idle_01.png", 0.5f, 1.0f },
-				{ GOBJ_MONSTER, GOID_MONSTER_PIG, L"Resource/Objects/Monster/Pig", L"pig_Image.png", 0.5f, 1.0f },
-				{ GOBJ_MONSTER, GOID_MONSTER_HOUNDDOG, L"Resource/Objects/Monster/Hound/Normal_Hound", L"Hound_hound_Image.png", 0.5f, 1.0f },
-				{ GOBJ_MONSTER, GOID_MONSTER_QUEEN_SPIDER, L"Resource/Objects/Monster/Spider/Queen", L"Queen_spider_queen_Image.png", 0.5f, 1.0f },
-				{ GOBJ_MONSTER, GOID_MONSTER_REDHOUNDDOG, L"Resource/Objects/Monster/Hound/Red_Hound", L"RedHound_hound_Image.png", 0.5f, 1.0f },
-				{ GOBJ_MONSTER, GOID_MONSTER_ICEHOUNDDOG, L"Resource/Objects/Monster/Hound/Ice_Hound", L"IceHound_hound_Image.png", 0.5f, 1.0f },
-				{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_SMALLEGG, L"Resource/Objects/Building/Egg", L"Egg_spider_cocoon_small_Image.png", 0.5f, 1.0f },
-				{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_NORMALEGG, L"Resource/Objects/Building/Egg", L"Egg_spider_cocoon_medium_Image.png", 0.5f, 1.0f },
-				{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_TALLEGG, L"Resource/Objects/Building/Egg", L"Egg_spider_cocoon_large_Image.png", 0.5f, 1.0f },
-				{ GOBJ_BUILDING, GOID_BUILDING_PIGHOUSE, L"Resource/Objects/Building/House", L"pig_house.png", 0.5f, 1.0f },
-			};
-			
-			for (const auto& raw : rawDefs) {
-				std::wstring absBaseDir = BuildResourcePath(raw.baseDir, L"");
-				std::wstring absImageName = raw.imageName[0] ? BuildResourcePath(raw.baseDir, raw.imageName) : L"";
-				objectDefs.emplace_back(raw.type, raw.id, 0, 0, absBaseDir, absImageName, raw.pivotX, raw.pivotY);
-			}
-			initialized = true;
-		}
-		
-		outCount = objectDefs.size();
-		return objectDefs.data();
-	}
-
-	// TileID로부터 타일 경로 정보 가져오기 (Client의 GetTilePathForParse 대체)
-	inline void GetTilePathForParse(TileID id, std::wstring& outBaseDir, std::wstring& outImageName)
-	{
-		outBaseDir.clear();
-		outImageName.clear();
-		size_t count;
-		const TileResourceDef* defs = GetTileResourceDefs(count);
-		for (size_t i = 0; i < count; ++i) {
-			if (defs[i].id == id) {
-				outBaseDir = defs[i].baseDir;
-				outImageName = defs[i].imageName;
-				return;
-			}
-		}
-	}
-
 	// 맵 파일 파싱 함수 (Client와 Editor 공통 사용)
 	// ResourceManager의 GetObjectResourceInfo 콜백을 통해 오브젝트 리소스 정보를 가져옴
 	template<typename GetObjectResourceInfoFunc>
@@ -349,10 +216,19 @@ namespace ResourcePathUtils
 				for (int i = 0; i < (int)tokens.size(); i += 2) {
 					int tileX = i / 2;
 					if (tileX < outMapData.mapWidth && currentTileRow < outMapData.mapHeight) {
-						TileType tileType = EnumUtils::GetEnumValue<TileType>(tokens[i].c_str(), TILE_NONE);
-						TileID tileID = EnumUtils::GetEnumValue<TileID>(tokens[i + 1].c_str(), TILEID_NONE);
+						TileType tileType = EnumTables::GetTileType(tokens[i].c_str());
+						TileID tileID = EnumTables::GetTileID(tokens[i + 1].c_str());
+						
+						// TileID로 경로 찾기
 						std::wstring baseDir, imageName;
-						GetTilePathForParse(tileID, baseDir, imageName);
+						for (size_t j = 0; j < TileResourceCount; ++j) {
+							if (TileResourceTable[j].id == tileID) {
+								baseDir = TileResourceTable[j].baseDir;
+								imageName = TileResourceTable[j].imageName;
+								break;
+							}
+						}
+						
 						outMapData.tiles[tileX][currentTileRow].type = tileType;
 						outMapData.tiles[tileX][currentTileRow].id = tileID;
 						outMapData.tiles[tileX][currentTileRow].baseDir = baseDir;
@@ -383,8 +259,8 @@ namespace ResourcePathUtils
 					resource.erase(0, resource.find_first_not_of(L" \t"));
 					resource.erase(resource.find_last_not_of(L" \t") + 1);
 					
-					GameObjectID objID = EnumUtils::GetEnumValue<GameObjectID>(id.c_str(), GOID_NONE);
-					GameObjectType objType = EnumUtils::GetEnumValue<GameObjectType>(type.c_str(), GOBJ_NONE);
+					GameObjectID objID = EnumTables::GetGameObjectID(id.c_str());
+					GameObjectType objType = EnumTables::GetGameObjectType(type.c_str());
 					
 					if (objID != GOID_NONE && objType != GOBJ_NONE) {
 						float objX = std::stof(x);
@@ -400,8 +276,8 @@ namespace ResourcePathUtils
 					objData.pivotX = objPivotX;
 					objData.pivotY = objPivotY;
 					
-					// 리소스 정보 가져오기 (콜백 함수 사용)
-					const ResourcePathUtils::ObjectResourceDef* resourceData = getObjectResourceInfo(objID);
+					// 리소스 정보 가져오기 (콜백: type+id로 오브젝트 리소스 조회, Editor는 baseDir/imageName 복원용)
+					const ResourcePathUtils::ObjectResourceDef* resourceData = getObjectResourceInfo(objType, objID);
 					if (resourceData) {
 						objData.baseDir = resourceData->baseDir;
 						objData.imageName = resourceData->imageName;
@@ -416,8 +292,8 @@ namespace ResourcePathUtils
 						objData.colliderRadius = resourceData->colliderRadius;
 					}
 					else {
-						// 콜백이 nullptr을 반환하면 파일에서 파싱한 resource 필드를 절대경로로 변환 (Editor의 경우)
-						objData.baseDir = BuildResourcePath(resource, L"");
+						// 콜백이 nullptr을 반환하면 파일에서 파싱한 resource 필드 사용
+						objData.baseDir = resource;
 						objData.imageName = L"";
 					}
 						
@@ -450,16 +326,11 @@ namespace ResourcePathUtils
 										if (!oY.empty()) objData.colliderOffsetY = std::stoi(oY);
 										if (!wd.empty()) objData.colliderWidth = std::stoi(wd);
 										if (!ht.empty()) objData.colliderHeight = std::stoi(ht);
+										// Circle 콜라이더 정보 (Box도 이 값들을 가질 수 있으므로 타입 체크 필요)
 										if (!cX.empty() && !cY.empty() && !rad.empty()) {
-											float centerX = std::stof(cX);
-											float centerY = std::stof(cY);
-											float radius = std::stof(rad);
-											if (radius > 0.0f) {
-												objData.colliderType = COLLIDER_CIRCLE;
-												objData.colliderCenterX = centerX;
-												objData.colliderCenterY = centerY;
-												objData.colliderRadius = radius;
-											}
+											objData.colliderCenterX = std::stof(cX);
+											objData.colliderCenterY = std::stof(cY);
+											objData.colliderRadius = std::stof(rad);
 										}
 									}
 								}

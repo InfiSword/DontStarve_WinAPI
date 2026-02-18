@@ -33,7 +33,7 @@ void TitleScene::Init()
 		static_cast<float>(WINCX),
 		static_cast<float>(WINCY),
 		LAYER_UI_BACKGROUND,
-		L"../Resource/UI/motd_fallbacks_box6.png",
+		L"Resource/UI/motd_fallbacks_box6.png",
 		0.f,
 		0.0f, 0.0f,  // anchorMin
 		1.0f, 1.0f,  // anchorMax
@@ -47,7 +47,7 @@ void TitleScene::Init()
 		400.0f,
 		200.0f,
 		LAYER_UI_FOREGROUND,
-		L"../Resource/UI/logo.png",
+		L"Resource/UI/logo.png",
 		0.f,
 		0.5f, 0.0f,  // anchorMin (상단 중앙)
 		0.5f, 0.0f,  // anchorMax (상단 중앙)
@@ -56,8 +56,8 @@ void TitleScene::Init()
 	uiManager->AddUIImage(logoImage);
 
 	// 게임시작 버튼 생성 (화면 중앙 기준 아래로 100px)
-	std::shared_ptr<Sprite> startNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/frontscreen.png");
-	std::shared_ptr<Sprite> startHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/HighLight_frontscreen.png");
+	std::shared_ptr<Sprite> startNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
+	std::shared_ptr<Sprite> startHoverSprite = resourceManager->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
 	UIButton* startButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BUTTON1),
 		200.0f,
@@ -99,8 +99,8 @@ void TitleScene::Init()
 	uiManager->AddUIText(startButtonText);
 
 	// 종료 버튼 생성 (화면 중앙 기준 아래로 200px)
-	std::shared_ptr<Sprite> exitNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/frontscreen.png");
-	std::shared_ptr<Sprite> exitHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/HighLight_frontscreen.png");
+	std::shared_ptr<Sprite> exitNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
+	std::shared_ptr<Sprite> exitHoverSprite = resourceManager->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
 	UIButton* exitButton = new UIButton(
 		static_cast<GameObjectID>(GOID_ENDBUTTON1),
 		200.0f,

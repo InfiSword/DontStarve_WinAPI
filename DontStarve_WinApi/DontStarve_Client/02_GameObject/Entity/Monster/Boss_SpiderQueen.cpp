@@ -8,8 +8,8 @@
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
 
-Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
+Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
 {
 	// 보스 특성 초기화
 	m_hp = 200; // 일반 스파이더보다 높은 체력
@@ -47,37 +47,34 @@ void Boss_SpiderQueen::Init()
 		if (m_id == GOID_MONSTER_QUEEN_SPIDER) {
 			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_QUEEN_SPIDER);
 			if (!objData) return;
-			const std::wstring& base = objData->baseDir;
+			std::wstring base = objData->baseDir + L"\\";
+			
 			// IDLE
+			std::wstring idlePath = base + L"Queen_spider_queen_Image.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir,
-					pRM->BuildResourcePath(base, L"", L"Queen_spider_queen_Image.png"),
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir, idlePath,
 					120, 120, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			}
 
 			// WALK
-			std::wstring walkPath = pRM->BuildResourcePath(base, L"", L"Walk_spider_queen_walk_loop_side.png");
+			std::wstring walkPath = base + L"Walk_spider_queen_walk_loop_side.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)MONSTER_WALK, (Direction)dir,
-					walkPath,
+				m_animator->RegisterAnimation((int)MONSTER_WALK, (Direction)dir, walkPath,
 					120, 120, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 			}
 
 			// ATTACK
-			std::wstring attackPath = pRM->BuildResourcePath(base, L"", L"Queen_spider_queen_atk_side.png");
+			std::wstring attackPath = base + L"Queen_spider_queen_atk_side.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, (Direction)dir,
-					attackPath,
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, (Direction)dir, attackPath,
 					140, 140, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			}
 
 			// HIT / DEATH
-			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
-				pRM->BuildResourcePath(base, L"", L"Queen_spider_queen_hit_side.png"),
+			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN, base + L"Queen_spider_queen_hit_side.png",
 				120, 120, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 
-			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
-				pRM->BuildResourcePath(base, L"", L"Queen_spider_queen_death.png"),
+			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN, base + L"Queen_spider_queen_death.png",
 				120, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 		}
 

@@ -25,6 +25,7 @@ GraphicsManager::GraphicsManager()
 
 GraphicsManager::~GraphicsManager()
 {
+	Release();
 }
 
 void GraphicsManager::Init() {

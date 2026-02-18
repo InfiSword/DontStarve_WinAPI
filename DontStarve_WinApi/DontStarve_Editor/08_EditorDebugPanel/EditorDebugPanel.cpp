@@ -1,10 +1,12 @@
 #include "../pch.h"
 #include "EditorDebugPanel.h"
 #include "../01_EditorView/EditorView.h"
+#include "../02_EditorResourceManager/EditorResourceManager.h"
 #include "../04_EditorPalette/EditorPalette.h"
 #include "../05_EditorPivotEditor/EditorPivotEditor.h"
 #include "../06_EditorColliderEditor/EditorColliderEditor.h"
 #include "../07_EditorWalkableEditor/EditorWalkableEditor.h"
+#include "../09_EditorLayerComposer/EditorLayerComposer.h"
 #include "../00_MainEditor/DontStarve_EditorMain.h"
 #include "Struct.h"
 #include <sstream>
@@ -26,13 +28,13 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 	const POINT& rawMousePos = m_pMain->m_rawMousePos;
 	bool isPlacingMode = m_pMain->m_isPlacingMode;
 	bool isDraggingCamera = m_pMain->m_isDraggingCamera;
-	GameObjectData* selectedObjectPtr = m_pMain->m_selectedObjectPtr;
+	ResourcePathUtils::ObjectResourceDef* selectedObjectPtr = m_pMain->m_selectedObjectPtr;
 	float currentFPS = m_pMain->m_currentFPS;
 	Gdiplus::Bitmap* tileLayerBitmap = m_pMain->m_pLayerComposer->GetTileLayerBitmap();
 	bool isPlayerSpawnMode = m_pMain->m_isPlayerSpawnMode;
 	bool hasPlayerSpawn = m_pMain->m_hasPlayerSpawn;
 	Gdiplus::PointF playerSpawnPoint = m_pMain->m_playerSpawnPoint;
-	const std::vector<GameObjectData>& gameObjects = m_pMain->m_gameObjects;
+	const std::vector<ResourcePathUtils::ObjectResourceDef>& gameObjects = m_pMain->m_gameObjects;
 	bool(*walkableAreaMap)[MAP_WIDTH] = m_pMain->m_walkableAreaMap;
 
 	// 렉을 줄이기 위해 디버그 정보 업데이트 빈도 조절 (초당 4회)
@@ -45,8 +47,9 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 
 		std::wstringstream ss;
 		ss << L"Mouse: " << rawMousePos.x << L", " << rawMousePos.y << L"\n";
-		ss << L"Map Size: " << MAP_WIDTH << L"x" << MAP_HEIGHT << L" tiles (Tile: " << TILE_SIZE << L"px)\n";
-		ss << L"World Size: " << (MAP_WIDTH * TILE_SIZE) << L"x" << (MAP_HEIGHT * TILE_SIZE) << L"px\n";
+		ss << L"Map Size (Limit): " << MAP_WIDTH << L"x" << MAP_HEIGHT << L" tiles (Tile: " << TILE_SIZE << L"px)\n";
+		ss << L"Map Size (Loaded): " << m_pMain->m_mapWidth << L"x" << m_pMain->m_mapHeight << L" tiles\n";
+		ss << L"World Size: " << (m_pMain->m_mapWidth * TILE_SIZE) << L"x" << (m_pMain->m_mapHeight * TILE_SIZE) << L"px\n";
 		ss << L"Map Offset: " << m_pView->GetMapOffset().x << L", " << m_pView->GetMapOffset().y << L"\n";
 
 		Gdiplus::PointF mouseWorldPos = m_pView->ScreenToWorld(Gdiplus::PointF((float)rawMousePos.x, (float)rawMousePos.y));
@@ -69,22 +72,22 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 
 		if (isPlacingMode) {
 			ss << L"\n 선택된 타일 정보\n";
-			const TileVariant* tv = m_pPalette->GetSelectedTileVariant();
+			const ResourcePathUtils::TileResourceDef* tv = m_pPalette->GetSelectedTileVariant();
 			if (tv) {
-				ss << L"선택된 타일 - Type: " << EnumUtils::GetEnumName(tv->type)
-					<< L", ID: " << EnumUtils::GetEnumName(tv->id) << L"\n";
+				ss << L"선택된 타일 - Type: " << EnumTables::GetEnumName(tv->type)
+					<< L", ID: " << EnumTables::GetEnumName(tv->id) << L"\n";
 			}
-			const ObjectVariant* ov = m_pPalette->GetSelectedObjectVariant();
+			const ResourcePathUtils::ObjectResourceDef* ov = m_pPalette->GetSelectedObjectVariant();
 			if (ov) {
-				ss << L"선택된 오브젝트 - Type: " << EnumUtils::GetEnumName(ov->type)
-					<< L", ID: " << EnumUtils::GetEnumName(ov->id) << L"\n";
+				ss << L"선택된 오브젝트 - Type: " << EnumTables::GetEnumName(ov->type)
+					<< L", ID: " << EnumTables::GetEnumName(ov->id) << L"\n";
 			}
 		}
 
 		if (selectedObjectPtr) {
 			ss << L"\n선택된 맵 오브젝트:" << L"\n";
-			ss << L"Type: " << EnumUtils::GetEnumName(selectedObjectPtr->type)
-				<< L", ID: " << EnumUtils::GetEnumName(selectedObjectPtr->id) << L"\n";
+			ss << L"Type: " << EnumTables::GetEnumName(selectedObjectPtr->type)
+				<< L", ID: " << EnumTables::GetEnumName(selectedObjectPtr->id) << L"\n";
 			ss << L"위치 - X: " << selectedObjectPtr->x << L", Y: " << selectedObjectPtr->y << L"\n";
 			ss << L"Pivot: " << selectedObjectPtr->pivotX << L", " << selectedObjectPtr->pivotY << L"\n";
 		}
@@ -109,12 +112,17 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 		}
 
 		ss << L"Objects in Map: " << gameObjects.size() << L"\n";
+		
+		// 비트맵 캐시 사용량
+		size_t cacheSize = m_pMain->m_pResources->GetBitmapCacheSize();
+		ss << L"Bitmap Cache: " << cacheSize << L" images\n";
 
 		if (m_pWalkableEditor->IsWalkableEditMode()) {
 			int walkableCount = 0;
 			int blockedCount = 0;
-			for (int y = 0; y < MAP_HEIGHT; ++y) {
-				for (int x = 0; x < MAP_WIDTH; ++x) {
+			int mapW = m_pMain->GetMapWidth(), mapH = m_pMain->GetMapHeight();
+			for (int y = 0; y < mapH; ++y) {
+				for (int x = 0; x < mapW; ++x) {
 					if (walkableAreaMap[y][x]) walkableCount++;
 					else blockedCount++;
 				}
@@ -124,18 +132,23 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 		}
 
 		ss << L"\n--- Hotkeys ---\n";
+		ss << L"ESC: Cancel/Exit (sub-palette, collider/pivot/walkable edit, player spawn mode, deselect)\n";
+		ss << L"F1: Toggle Debug Info (wheel on panel to scroll)\n";
+		ss << L"Shift: Toggle 3x3 tile placement (tile mode only)\n";
+		ss << L"P: Player Spawn Mode (click to set spawn). In Pivot Edit: P = Pivot dialog\n";
 		ss << L"V: Pivot Edit (select object first)\n";
 		ss << L"C: Collider Edit (select object first)\n";
+		ss << L"I: Collider value dialog (in Collider Edit mode)\n";
+		ss << L"B: Collider type Box<->Circle (in Collider Edit mode)\n";
 		ss << L"A: Apply collider to same type (select object or in Collider Edit)\n";
-		ss << L"R: Delete Object (select object first)\n";
-		ss << L"G: Walkable Area Edit (drag to toggle)\n";
-		ss << L"P: Player Spawn Mode\n";
-		ss << L"F1: Toggle Debug Info (wheel on panel to scroll)\n";
-		ss << L"Right Click + Drag: Camera Movement\n";
-		ss << L"Right Click: Select Object\n";
+		ss << L"R: Delete selected object (select object first)\n";
+		ss << L"G: Walkable Area Edit (toggle, drag to paint)\n";
+		ss << L"Right Click + Drag: Camera movement\n";
+		ss << L"Right Click: Select object\n";
 		ss << L"Ctrl+N: New Map\n";
 		ss << L"Ctrl+S: Save Map\n";
 		ss << L"Ctrl+O: Load Map\n";
+		ss << L"Ctrl+M: Map size dialog\n";
 
 		debugInfoString = ss.str();
 	}

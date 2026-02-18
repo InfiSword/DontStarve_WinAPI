@@ -13,6 +13,7 @@
 #include "../01_Manager/UIManager/UIManager.h"
 #include "../01_Manager/SceneManager/SceneManager.h"
 #include "../01_Manager/ResourceManager/ResourceManager.h"
+#include "../01_Manager/GameProgressManager/GameProgressManager.h"
 
 DontStarve_MainGame::DontStarve_MainGame()
     : m_bIsInitialized(false)
@@ -113,6 +114,16 @@ void DontStarve_MainGame::Release()
     RenderManager::DestroyInstance();
     GraphicsManager::DestroyInstance();
     TimeManager::DestroyInstance();
+    
+    // 씬/게임 매니저 해제 (누수 검사 전 인스턴스 파괴)
+    GameProgressManager::DestroyInstance();
+    SceneManager::DestroyInstance();
+    ObjectManager::DestroyInstance();
+    CameraManager::DestroyInstance();
+    InventoryManager::DestroyInstance();
+    ColliderManager::DestroyInstance();
+    InputManager::DestroyInstance();
+    UIManager::DestroyInstance();
     
     m_bIsInitialized = false;
 }

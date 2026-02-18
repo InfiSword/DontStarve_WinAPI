@@ -1,13 +1,15 @@
 #include "99_Default/pch.h"
 #include  "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
+#include "../../../01_Manager/SceneManager/SceneManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "Monster.h"
 
-Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
-	: Entity(GOBJ_MONSTER, id, x, y, pivotX, pivotY, DIR_DOWN, imageName), m_hp(100), m_hitAnimTimer(0.0f), m_state(MonsterState::MONSTER_IDLE)
+Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
+	: Entity(GOBJ_MONSTER, id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName), m_hp(100), m_hitAnimTimer(0.0f), m_state(MonsterState::MONSTER_IDLE)
 {
 	maxHp = m_hp;
 }
@@ -102,8 +104,15 @@ void Monster::Damaged(int damage)
 		m_state = MONSTER_DEATH;
 		// UpdateAnimatorState();
 		
+		// 몬스터 처치 이벤트 발생
+		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
+		GameProgressManager::GetInstance()->OnMonsterKilled(GetID(), currentScene);
+		
 		// 몬스터가 죽었을 때 처리
 		// 드롭 아이템이나 경험치 획득 로직 추가 필요
 		OutputDebugStringW(L"Monster: 몬스터가 죽었습니다!\n");
+		
+		// 오브젝트 비활성화 (나중에 ObjectManager에서 제거)
+		SetActive(false);
 	}
 }

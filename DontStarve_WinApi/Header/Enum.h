@@ -1,6 +1,5 @@
 #pragma once
 
-// Ÿ�� Ÿ�� ����
 enum TileType
 {
 	TILE_NONE = 0,
@@ -31,38 +30,38 @@ enum TileID
 
 };
 
-// ���� Ÿ�� ����
+// 보스 타입 정의
 enum BossType
 {
 	BOSS_NONE = 0,
-	BOSS_HOUND,           // Hound ����
-	BOSS_SPIDER_QUEEN,    // Spider Queen ����
+	BOSS_HOUND,           // Hound 보스
+	BOSS_SPIDER_QUEEN,    // Spider Queen 보스
 	BOSS_COUNT
 };
 
-// ĳ���� Ÿ�� ����
+// 캐릭터 타입 정의
 enum CharacterType
 {
-	CHARACTER_WILSON = 0,     // �⺻ ĳ���� (�׻� �رݵ�)
-	CHARACTER_WILLOW = 1,     // Hound ���� Ŭ���� �� �ر�
-	CHARACTER_WOLFGANG = 2,   // Spider Queen ���� Ŭ���� �� �ر�
+	CHARACTER_WILSON = 0,     // 기본 캐릭터 (항상 해금됨)
+	CHARACTER_WILLOW = 1,     // Hound 보스 클리어 시 해금
+	CHARACTER_WOLFGANG = 2,   // Spider Queen 보스 클리어 시 해금
 	CHARACTER_COUNT
 };
 
-// ���� ���� �ܰ� �� UI ���� ��� �����ϴ� ���� SceneType ����
-// (Ÿ��Ʋ, ĳ���� ����, ����, �� ���� �� ��)
+// 씬 타입 정의 (타이틀, 캐릭터 선택, 게임, 각 씬 등)
+// (타이틀, 캐릭터 선택, 게임, 각 씬 등)
 enum SceneType
 {
 	SCENE_NONE = 0,
-	SCENE_TITLE,               // Ÿ��Ʋ ��
-	SCENE_CHARACTER_SELECT,    // ĳ���� ���� ��
-	SCENE_GAME_FARMING_AREA,        // 1��°: �Ĺ� ������ (���� �� ����)
-	SCENE_GAME_HOUND_FOREST,        // 2��°: �Ͽ�� �� (���� �� ����)
-	SCENE_GAME_SPIDER_QUEEN_HOUSE,  // 3��°: �Ź̿����� �� (���� �� ����)
+	SCENE_TITLE,               // 타이틀 씬
+	SCENE_CHARACTER_SELECT,    // 캐릭터 선택 씬
+	SCENE_GAME_FARMING_AREA,        // 1번째: 농장 지역 (기본으로 해금)
+	SCENE_GAME_HOUND_FOREST,        // 2번째: 하운드 숲 (기본으로 해금)
+	SCENE_GAME_SPIDER_QUEEN_HOUSE,  // 3번째: 거미여왕 집 (기본으로 해금)
 	SCENE_COUNT
 };
 
-// ���� �� �ε� ���� ����
+// 맵 로드 상태 정의
 enum class LoadingState
 {
 	NOT_STARTED,
@@ -73,29 +72,29 @@ enum class LoadingState
 	FAILED
 };
 
-// ������Ʈ Ÿ�� ����
+// 게임오브젝트 타입 정의
 enum GameObjectType {
 	GOBJ_NONE = 0,
 
 	GOBJ_PLAYER,
-	// ���, ��� �����۵�
+	// 아이템, 도구 등등
 	GOBJ_ITEM,
-	// ȯ�� ������Ʈ (����, Ǯ, ����)
+	// 자연 오브젝트 (나무, 돌, 풀)
 	GOBJ_NATURAL_ENVIR,
-	// ���� 
+	// 몬스터 
 	GOBJ_MONSTER,
-	// ����
+	// 건물
 	GOBJ_BUILDING,
-	// UI ��� (��ư, �̹��� ��)
+	// UI 요소 (버튼, 이미지 등)
 	GOBJ_UI,
 
-	GOBJ_COUNT      // ������Ʈ ����
+	GOBJ_COUNT      // 게임오브젝트 개수
 };
 
 enum GameObjectID : UINT {
 	GOID_NONE = 0,
 
-	// ȯ�� ������Ʈ
+	// 자연 오브젝트
 	GOID_NORMAL_GRASS = 1,
 	GOID_NORMAL_TREE_SHORT = 2,
 	GOID_NORMAL_TREE_NORMAL = 3,
@@ -105,7 +104,7 @@ enum GameObjectID : UINT {
 	GOID_NORMAL_SAPLING = 7,
 	GOID_BERRY_TREE = 8,
 
-	// ����
+	// 몬스터
 	GOID_MONSTER_PIG = 101,
 	GOID_MONSTER_SPIDER = 102,
 	GOID_MONSTER_WARRIOR_SPIDER = 103,
@@ -114,13 +113,13 @@ enum GameObjectID : UINT {
 	GOID_MONSTER_REDHOUNDDOG = 106,
 	GOID_MONSTER_ICEHOUNDDOG = 107,
 
-	// ���๰
+	// 건물들
 	GOID_BUILDING_PIGHOUSE = 201,
 	GOID_BUILDING_SPIDER_SMALLEGG = 202,
 	GOID_BUILDING_SPIDER_NORMALEGG = 203,
 	GOID_BUILDING_SPIDER_TALLEGG = 204,
 
-	// ��� (������)
+	// 아이템 (재료류)
 	GOID_ITEM_CUT_NORMAL_GRASS = 301,
 	GOID_ITEM_NORMAL_TREE_LOG = 302,
 	GOID_ITEM_NORMAL_TWIGS = 303,
@@ -131,16 +130,22 @@ enum GameObjectID : UINT {
 	GOID_ITEM_MEAT = 308,
 	GOID_ITEM_BERRY = 309,
 
-	// ���� (������)
-	GOID_ITEM_AXE = 401,
-	GOID_ITEM_PICKAXE = 402,
+	// 도구 (장비류)
+	GOID_TOOL_GOLDEN_SCYTHE = 401,
+	GOID_TOOL_HAM_BAT = 402,
+	GOID_TOOL_PICKAXE = 403,
+	GOID_TOOL_RED_AXE = 404,
+	GOID_TOOL_SPEAR = 405,
+	GOID_TOOL_SWAP_AXE = 406,
+	GOID_TOOL_SWAP_SPEAR = 407,
+	GOID_TOOL_TORCH = 408,
 
-	// �÷��̾� ĳ����
+	// 플레이어 캐릭터
 	GOID_PLAYER_WILSON = 1001,
 	GOID_PLAYER_WILLOW = 1002,
 	GOID_PLAYER_WOLFGANG = 1003,
 
-	// UI ����
+	// UI 
 	GOID_MAIN_BG = 3001,
 	GOID_GAME_LOGO = 3002,
 	GOID_BUTTON1 = 3003,
@@ -156,9 +161,19 @@ enum GameObjectID : UINT {
 	GOID_SELECT_BUTTON_TEXT = 3013,
 	GOID_CANCEL_SELECTION_TEXT = 3014,
 	GOID_BACK_BUTTON_TEXT = 3015,
+	GOID_CRAFT_BAR = 3016,
+	GOID_CRAFT_ICON = 3017,
+	GOID_CRAFT_TOOL_GOLDEN_SCYTHE = 3018,
+	GOID_CRAFT_TOOL_HAM_BAT = 3019,
+	GOID_CRAFT_TOOL_PICKAXE = 3020,
+	GOID_CRAFT_TOOL_RED_AXE = 3021,
+	GOID_CRAFT_TOOL_SPEAR = 3022,
+	GOID_CRAFT_TOOL_SWAP_AXE = 3023,
+	GOID_CRAFT_TOOL_SWAP_SPEAR = 3024,
+	GOID_CRAFT_TOOL_TORCH = 3025,
 };
 
-// �ȷ�Ʈ ������ ī�װ��� ���� ( ������ ���� )
+// 에디터 팔레트 카테고리 정의 ( 에디터 전용 )
 enum ItemCategory {
 	CATEGORY_NONE = -1,
 	CATEGORY_TILE,
@@ -166,7 +181,7 @@ enum ItemCategory {
 };
 
 
-// GameObject ���� ������
+// GameObject 방향 정의
 enum Direction {
 	DIR_NONE = 0,
 	DIR_UP,
@@ -177,17 +192,17 @@ enum Direction {
 };
 
 enum PlayerState {
-	IDLE,               // ��� ���� (�������� ����)
-	WALK,               // �ȱ� ���� (�̵� ��)
-	MOVING_TO_TARGET,   // Ŭ���� �������� �̵� ��
-	PICKUP,             // ������Ʈ�� ��ȣ�ۿ� 
+	IDLE,               // 대기 상태 (애니메이션 없음)
+	WALK,               // 걷기 상태 (이동 중)
+	MOVING_TO_TARGET,   // 클릭한 위치로 이동 중
+	PICKUP,             // 오브젝트를 집는 중
 	CHOP,
 	ATTACK,
 	HIT,
 	COUNT,
 };
 
-// Monster ���� ����
+// Monster 상태 정의
 enum MonsterState
 {
 	MONSTER_IDLE = 0,
@@ -201,33 +216,33 @@ enum MonsterState
 	MONSTER_STATE_COUNT
 };
 
-// Tree ���� ����  
+// Tree 상태 정의  
 enum TreeState {
-	TREE_IDLE = 0,    // �Ϲ� ���� (��鸲)
-	TREE_CHOP,        // �������� ��
-	TREE_FALL,        // �������� ��
-	TREE_FALLEN,      // ������ ������ ����
+	TREE_IDLE = 0,    // 일반 상태 (서있음)
+	TREE_CHOP,        // 벌목중인 상태
+	TREE_FALL,        // 넘어지는 중인 상태
+	TREE_FALLEN,      // 넘어진 후의 상태
 	TREE_STATE_COUNT
 };
 
-// Rock ���� ���� (�ı� �ܰ�)
+// Rock 상태 정의 (파괴 단계)
 enum RockState {
-	ROCK_INTACT = 0,   // ������ ���� (level1)
-	ROCK_CRACKED,      // ���� �� ���� (level2)  
-	ROCK_BROKEN,       // ���� �μ��� ���� (level3)
-	ROCK_DESTROYED,    // ������ �ı��� ����
+	ROCK_INTACT = 0,   // 온전한 상태 (level1)
+	ROCK_CRACKED,      // 금 간 상태 (level2)  
+	ROCK_BROKEN,       // 깨진 상태 (level3)
+	ROCK_DESTROYED,    // 완전히 파괴된 상태
 	ROCK_STATE_COUNT
 };
 
-// Grass ���� ����
+// Grass 상태 정의
 enum GrassState {
-	GRASS_IDLE = 0,    // �Ϲ� ����
-	GRASS_PICKED,      // ä���� ����
-	GRASS_REGROWING,   // �缺�� ��
+	GRASS_IDLE = 0,    // 일반 상태
+	GRASS_PICKED,      // 뽑힌 상태
+	GRASS_REGROWING,   // 재성장 중
 	GRASS_STATE_COUNT
 };
 
-// Building ���� ���� (�ð� ���)
+// Building 상태 정의 (시간 단계)
 enum BuildingState {
 	BUILDING_NOON = 0,
 	BUILDING_NIGHT,
@@ -238,14 +253,14 @@ enum BuildingState {
 
 enum RenderLayer {
 	LAYER_NONE = -1,
-	LAYER_TILE_BACKGROUND = 0,   // Ÿ�� (���� �Ʒ�)
+	LAYER_TILE_BACKGROUND = 0,   // 타일 (배경 아래)
 	LAYER_WORLD_TILE,
-	LAYER_WORLD_OBJECT,          // ���� ������Ʈ (��� ���� ������Ʈ)
-	LAYER_UI_BACKGROUND,         // UI ���
-	LAYER_UI_FOREGROUND,         // UI ������, �ؽ�Ʈ
-	LAYER_DEBUG_OVERLAY,         // ����� ���� (���� ��)
+	LAYER_WORLD_OBJECT,          // 월드 오브젝트 (맵 위 오브젝트)
+	LAYER_UI_BACKGROUND,         // UI 배경
+	LAYER_UI_FOREGROUND,         // UI 요소들, 텍스트
+	LAYER_DEBUG_OVERLAY,         // 디버그 오버레이 (최상 위)
 
-	LAYER_COUNT                  // ���̾� ����
+	LAYER_COUNT                  // 레이어 개수
 };
 
 enum class ButtonState
@@ -277,9 +292,9 @@ enum DrawCommandType {
 	DRAW_COMMAND_FILL_RECTANGLE
 };
 
-// �ݶ��̴� Ÿ�� ����
+// 콜라이더 타입 정의
 enum ColliderType {
-	COLLIDER_BOX = 0,      // �簢�� �ݶ��̴�
-	COLLIDER_CIRCLE,       // ���� �ݶ��̴�
+	COLLIDER_BOX = 0,      // 사각형 콜라이더
+	COLLIDER_CIRCLE,       // 원형 콜라이더
 	COLLIDER_COUNT
 };

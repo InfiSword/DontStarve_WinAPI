@@ -13,21 +13,35 @@ ResourceManager::~ResourceManager()
 
 void ResourceManager::Init()
 {
-	// 오브젝트 리소스 등록 (Function.h의 ResourcePathUtils에서 직접 가져와서 캐싱)
-	size_t defCount;
-	const ResourcePathUtils::ObjectResourceDef* defs = ResourcePathUtils::GetObjectResourceDefs(defCount);
-	
-	for (size_t i = 0; i < defCount; ++i) {
-		const auto& def = defs[i];
-		RegisterObjectResource(def.id, def);
+	// 오브젝트 리소스 등록 (Function.h의 정적 테이블에서 직접 가져와서 캐싱)
+	for (size_t i = 0; i < ResourcePathUtils::ObjectResourceCount; ++i) {
+		const auto& entry = ResourcePathUtils::ObjectResourceTable[i];
+		ResourcePathUtils::ObjectResourceDef def;
+		def.type = entry.type;
+		def.id = entry.id;
+		def.baseDir = entry.baseDir;
+		def.imageName = entry.imageName;
+		def.pivotX = entry.pivotX;
+		def.pivotY = entry.pivotY;
+		RegisterObjectResource(entry.id, def);
 	}
 }
 
 void ResourceManager::Release()
 {
+	// ObjectResourceDef 내부의 std::wstring 멤버들 명시적 정리
+	for (auto& pair : m_objectResources) {
+		ResourcePathUtils::ObjectResourceDef& def = pair.second;
+		def.baseDir.clear();
+		def.baseDir.shrink_to_fit();
+		def.imageName.clear();
+		def.imageName.shrink_to_fit();
+	}
 	m_objectResources.clear();
-	m_mapDataCache.clear();
-	m_spriteCache.clear();
+	
+	// weak_ptr은 참조 카운트를 증가시키지 않으므로 Sprite는 자동 해제됨
+	// 맵 자체의 메모리 해제를 위해 빈 맵으로 교체
+	m_spriteCache = std::unordered_map<std::wstring, std::weak_ptr<Sprite>>();
 }
 
 void ResourceManager::RegisterObjectResource(GameObjectID id, const ResourcePathUtils::ObjectResourceDef& data)
@@ -42,34 +56,6 @@ const ResourcePathUtils::ObjectResourceDef* ResourceManager::GetObjectResourceIn
 		return &(it->second);
 	}
 	return nullptr;
-}
-
-const MapData* ResourceManager::LoadMapData(const std::wstring& mapFileName)
-{
-	auto it = m_mapDataCache.find(mapFileName);
-	if (it != m_mapDataCache.end()) {
-		return &it->second;
-	}
-
-	MapData mapData;
-	ParseMapFileInto(mapFileName, mapData);
-	m_mapDataCache[mapFileName] = std::move(mapData);
-	return &m_mapDataCache[mapFileName];
-}
-
-void ResourceManager::ParseMapFileInto(const std::wstring& mapFileName, MapData& outMapData)
-{
-	// Function.h의 공통 파싱 함수 사용
-	auto getObjectResourceInfo = [this](GameObjectID id) -> const ResourcePathUtils::ObjectResourceDef* {
-		return this->GetObjectResourceInfo(id);
-	};
-	
-	ResourcePathUtils::ParseMapFileInto(mapFileName, outMapData, getObjectResourceInfo);
-}
-
-std::wstring ResourceManager::BuildResourcePath(const std::wstring& basePath, const std::wstring& subFolder, const std::wstring& filename) const
-{
-	return ResourcePathUtils::BuildResourcePath(basePath, subFolder, filename);
 }
 
 std::shared_ptr<Sprite> ResourceManager::LoadSprite(const std::wstring& fullPath)

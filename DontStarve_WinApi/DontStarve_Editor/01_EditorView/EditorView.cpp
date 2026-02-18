@@ -16,6 +16,41 @@ void EditorView::SetMapOffset(int x, int y)
 	m_mapOffset.y = y;
 }
 
+void EditorView::SetMapOffsetClamped(int x, int y, int clientWidth, int clientHeight, int mapWidthTiles, int mapHeightTiles)
+{
+	const float mapWorldW = (float)(mapWidthTiles * TILE_SIZE);
+	const float mapWorldH = (float)(mapHeightTiles * TILE_SIZE);
+	const float viewW = (float)clientWidth / m_zoomFactor;
+	const float viewH = (float)clientHeight / m_zoomFactor;
+
+	// 오프셋 범위: 뷰포트가 맵 [0, mapWorldW] x [0, mapWorldH] 안에 들어오도록
+	// viewWorldLeft = -offset.x/zoom >= 0 => offset.x <= 0
+	// viewWorldRight = -offset.x/zoom + viewW <= mapWorldW => offset.x >= clientWidth - mapWorldW*zoom
+	int minOffsetX = (int)(clientWidth - mapWorldW * m_zoomFactor);
+	int maxOffsetX = 0;
+	int minOffsetY = (int)(clientHeight - mapWorldH * m_zoomFactor);
+	int maxOffsetY = 0;
+
+	// 맵이 화면보다 작을 때(줌 아웃 시): 범위가 역전되므로 제한 없이 자유롭게 이동 가능
+	if (minOffsetX > maxOffsetX) {
+		// 맵이 화면보다 작은 경우: 자유롭게 이동 (클램핑 없음)
+		m_mapOffset.x = x;
+	}
+	else {
+		// 맵이 화면보다 큰 경우: 맵 경계 내로 제한
+		m_mapOffset.x = min(maxOffsetX, max(minOffsetX, x));
+	}
+
+	if (minOffsetY > maxOffsetY) {
+		// 맵이 화면보다 작은 경우: 자유롭게 이동 (클램핑 없음)
+		m_mapOffset.y = y;
+	}
+	else {
+		// 맵이 화면보다 큰 경우: 맵 경계 내로 제한
+		m_mapOffset.y = min(maxOffsetY, max(minOffsetY, y));
+	}
+}
+
 void EditorView::SetZoomFactor(float zoom)
 {
 	if (zoom < m_minZoom) m_zoomFactor = m_minZoom;

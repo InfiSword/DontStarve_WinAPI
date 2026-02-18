@@ -6,6 +6,8 @@
 #include "../../02_GameObject/UI/Inventory.h"
 #include "../../01_Manager/SceneManager/SceneManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../01_Manager/GameProgressManager/GameProgressManager.h"
+#include "../../01_Manager/InputManager/InputManager.h"
 
 InventoryManager::InventoryManager() {}
 InventoryManager::~InventoryManager() {
@@ -17,7 +19,29 @@ void InventoryManager::Init() {
 }
 
 void InventoryManager::LateInit() {}
-void InventoryManager::Update(float deltaTime) {}
+void InventoryManager::Update(float deltaTime) {
+	// 인벤토리 마우스 입력 처리
+	Player* player = ObjectManager::GetInstance()->GetPlayer();
+	if (!player) {
+		return;
+	}
+	
+	Inventory* inventory = player->GetInventory();
+	if (!inventory) {
+		return;
+	}
+	
+	InputManager* inputManager = InputManager::GetInstance();
+	if (!inputManager) {
+		return;
+	}
+	
+	// 우클릭 처리 (장비 장착)
+	if (inputManager->IsRButtonClicked()) {
+		POINT mousePos = inputManager->GetMousePos();
+		inventory->HandleRightClick(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y), player);
+	}
+}
 void InventoryManager::LateUpdate() {}
 void InventoryManager::Render() {
 	// Player의 인벤토리 렌더링
@@ -43,9 +67,15 @@ void InventoryManager::Release() {
 	for (auto& pair : m_bitmapCache) {
 		if (pair.second) {
 			delete pair.second;
+			pair.second = nullptr;
 		}
 	}
 	m_bitmapCache.clear();
+	
+	// 레시피 정리
+	for (auto& recipePair : m_craftingRecipes) {
+		recipePair.second.clear();
+	}
 	m_craftingRecipes.clear();
 }
 
@@ -73,6 +103,14 @@ bool InventoryManager::TryGainItemFromWorldObject(Player* player, GameObject* wo
 		}
 		*/
 		OutputDebugStringW((L"InventoryManager: 아이템 획득 실패 - ID: " + std::to_wstring(drop.first) + L", 개수: " + std::to_wstring(drop.second) + L"\n").c_str());
+	}
+	
+	// 아이템 획득 이벤트 발생 (실제 획득 여부와 관계없이 드롭된 아이템은 진행도에 반영)
+	if (!drops.empty()) {
+		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
+		for (const auto& drop : drops) {
+			GameProgressManager::GetInstance()->OnItemCollected(drop.first, drop.second, currentScene);
+		}
 	}
 	
 	return anyItemAdded;
@@ -221,7 +259,7 @@ Gdiplus::Bitmap* InventoryManager::GetBitmapForPath(const std::wstring& imagePat
 		return it->second; 
 	}
 
-	Gdiplus::Bitmap* newBitmap = BitmapUtils::LoadBitmapFromFile(imagePath.c_str());
+	Gdiplus::Bitmap* newBitmap = Gdiplus::Bitmap::FromFile(imagePath.c_str());
 	if (newBitmap && newBitmap->GetLastStatus() == Gdiplus::Ok) {
 		m_bitmapCache[imagePath] = newBitmap;
 		return newBitmap;
@@ -237,16 +275,38 @@ Gdiplus::Bitmap* InventoryManager::GetBitmapForPath(const std::wstring& imagePat
 void InventoryManager::LoadCraftingRecipes() {
 	m_craftingRecipes.clear();
 	
-	// 도끼 제작 레시피: 통나무 1개 + 나뭇가지 1개
-	m_craftingRecipes[GOID_ITEM_AXE] = {
-		{GOID_ITEM_NORMAL_TREE_LOG, 1},
-		{GOID_ITEM_NORMAL_TWIGS, 1}
+	// 도구들 제작 레시피 (임시로 모두 나뭇가지 1개 + 나무 통나무 1개)
+	m_craftingRecipes[GOID_TOOL_GOLDEN_SCYTHE] = {
+		{GOID_ITEM_NORMAL_TWIGS, 1},
+		{GOID_ITEM_NORMAL_TREE_LOG, 1}
 	};
-	
-	// 곡괭이 제작 레시피: 나뭇가지 2개 + 돌 2개
-	m_craftingRecipes[GOID_ITEM_PICKAXE] = {
-		{GOID_ITEM_NORMAL_TWIGS, 2},
-		{GOID_ITEM_NORMAL_ROCK, 2}
+	m_craftingRecipes[GOID_TOOL_HAM_BAT] = {
+		{GOID_ITEM_NORMAL_TWIGS, 1},
+		{GOID_ITEM_NORMAL_TREE_LOG, 1}
+	};
+	m_craftingRecipes[GOID_TOOL_PICKAXE] = {
+		{GOID_ITEM_NORMAL_TWIGS, 1},
+		{GOID_ITEM_NORMAL_TREE_LOG, 1}
+	};
+	m_craftingRecipes[GOID_TOOL_RED_AXE] = {
+		{GOID_ITEM_NORMAL_TWIGS, 1},
+		{GOID_ITEM_NORMAL_TREE_LOG, 1}
+	};
+	m_craftingRecipes[GOID_TOOL_SPEAR] = {
+		{GOID_ITEM_NORMAL_TWIGS, 1},
+		{GOID_ITEM_NORMAL_TREE_LOG, 1}
+	};
+	m_craftingRecipes[GOID_TOOL_SWAP_AXE] = {
+		{GOID_ITEM_NORMAL_TWIGS, 1},
+		{GOID_ITEM_NORMAL_TREE_LOG, 1}
+	};
+	m_craftingRecipes[GOID_TOOL_SWAP_SPEAR] = {
+		{GOID_ITEM_NORMAL_TWIGS, 1},
+		{GOID_ITEM_NORMAL_TREE_LOG, 1}
+	};
+	m_craftingRecipes[GOID_TOOL_TORCH] = {
+		{GOID_ITEM_NORMAL_TWIGS, 1},
+		{GOID_ITEM_NORMAL_TREE_LOG, 1}
 	};
 	
 	OutputDebugStringW(L"InventoryManager: 제작 레시피 로드 완료\n");

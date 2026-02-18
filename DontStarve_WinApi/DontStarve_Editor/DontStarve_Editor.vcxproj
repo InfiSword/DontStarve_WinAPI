@@ -144,12 +144,13 @@
     <ClInclude Include="00_MainEditor\DontStarve_EditorMain.h" />
     <ClInclude Include="01_EditorView\EditorView.h" />
     <ClInclude Include="02_EditorResourceManager\EditorResourceManager.h" />
-    <ClInclude Include="03_EditorMapFileIO\EditorMapFileIO.h" />
+    <ClInclude Include="03_EditorMapFileIO\EditorMap.h" />
     <ClInclude Include="04_EditorPalette\EditorPalette.h" />
     <ClInclude Include="05_EditorPivotEditor\EditorPivotEditor.h" />
     <ClInclude Include="06_EditorColliderEditor\EditorColliderEditor.h" />
     <ClInclude Include="07_EditorWalkableEditor\EditorWalkableEditor.h" />
     <ClInclude Include="08_EditorDebugPanel\EditorDebugPanel.h" />
+    <ClInclude Include="09_EditorLayerComposer\EditorLayerComposer.h" />
     <ClInclude Include="DontStarve_Editor.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
@@ -160,12 +161,13 @@
     <ClCompile Include="00_MainEditor\DontStarve_EditorMain.cpp" />
     <ClCompile Include="01_EditorView\EditorView.cpp" />
     <ClCompile Include="02_EditorResourceManager\EditorResourceManager.cpp" />
-    <ClCompile Include="03_EditorMapFileIO\EditorMapFileIO.cpp" />
+    <ClCompile Include="03_EditorMapFileIO\EditorMap.cpp" />
     <ClCompile Include="04_EditorPalette\EditorPalette.cpp" />
     <ClCompile Include="05_EditorPivotEditor\EditorPivotEditor.cpp" />
     <ClCompile Include="06_EditorColliderEditor\EditorColliderEditor.cpp" />
     <ClCompile Include="07_EditorWalkableEditor\EditorWalkableEditor.cpp" />
     <ClCompile Include="08_EditorDebugPanel\EditorDebugPanel.cpp" />
+    <ClCompile Include="09_EditorLayerComposer\EditorLayerComposer.cpp" />
     <ClCompile Include="DontStarve_Editor.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

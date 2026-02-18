@@ -20,7 +20,7 @@ public:
 	EditorPalette() = default;
 	~EditorPalette() = default;
 
-	void InitPalette(int clientWidth, int clientHeight, const EditorResourceManager* pResources);
+	void InitPalette(int clientWidth, int clientHeight, EditorResourceManager* pResources);
 
 	void DrawPalette(Gdiplus::Graphics* pGraphics) const;
 	void DrawSubPalette(Gdiplus::Graphics* pGraphics) const;
@@ -63,5 +63,5 @@ private:
 	int m_selectedPaletteIndex = -1;
 	SubPaletteData m_subPalette;
 
-	const EditorResourceManager* m_pResources = nullptr;
+	EditorResourceManager* m_pResources = nullptr;  // GetCachedBitmap 호출을 위해 non-const
 };

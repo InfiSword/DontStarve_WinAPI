@@ -11,7 +11,7 @@
 #include "../ColliderManager/ColliderManager.h"
 
 RenderManager::RenderManager() {}
-RenderManager::~RenderManager() {}
+RenderManager::~RenderManager() { Release(); }
 
 void RenderManager::Init()
 {
@@ -35,7 +35,7 @@ void RenderManager::Release()
 	Clear();
 }
 
-void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint)
+void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped)
 {
 	if (!pBitmap) {
 		return;
@@ -57,6 +57,7 @@ void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::Rect
 	command.direction = direction;
 	command.tintColor = tintColor;
 	command.hasTint = hasTint;
+	command.preFlipped = preFlipped;
 
 	m_drawCommands.emplace_back(std::move(command));
 }
@@ -274,9 +275,11 @@ void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float
 
 void RenderManager::Clear() {
 	m_drawCommands.clear();
+	m_drawCommands.shrink_to_fit();
 }
 
 // 방향에 따른 스프라이트 반전 적용 (월드 오브젝트만) — 단일 Matrix로 X축 반전
+// preFlipped인 경우는 이미 비트맵이 반전되어 있으므로 이 함수가 호출되지 않음
 void RenderManager::ApplyDirectionFlip(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight)
 {
 	if (command.layer >= LAYER_UI_BACKGROUND || command.type == DRAW_COMMAND_TEXT)
@@ -314,9 +317,9 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 	Gdiplus::Color lastTintColor(0, 0, 0, 0);
 	bool imageAttrCached = false;
 	
-	// DIR_LEFT일 때만 Transform(단일 Matrix)으로 X축 반전 후 그리기
+	// DIR_LEFT일 때만 Transform(단일 Matrix)으로 X축 반전 후 그리기 (preFlipped인 경우 제외)
 	for (const auto& cmd : m_drawCommands) {
-		bool useFlipTransform = (cmd.type == DRAW_COMMAND_IMAGE && cmd.direction == DIR_LEFT && cmd.layer < LAYER_UI_BACKGROUND);
+		bool useFlipTransform = (cmd.type == DRAW_COMMAND_IMAGE && cmd.direction == DIR_LEFT && cmd.layer < LAYER_UI_BACKGROUND && !cmd.preFlipped);
 		Gdiplus::GraphicsState gstate = 0;
 		if (useFlipTransform)
 			gstate = pGraphics->Save();

@@ -21,13 +21,15 @@
 #include "../../02_GameObject/Building/SpiderEgg.h"
 #include "../../02_GameObject/Item/Ingredient.h"
 #include "../../02_GameObject/Item/Tool/Axe/Axe.h"
+#include "../../02_GameObject/Item/Tool/Tool.h"
 
 #include "../../02_GameObject/Component/Transform/Transform.h"
+#include "../../02_GameObject/Component/Collider/BoxCollider.h"
+#include "../../02_GameObject/Component/Collider/CircleCollider.h"
 
 ObjectManager::ObjectManager()
 {
 	m_cachedPlayer = nullptr;
-	m_showBounds = false; // 바운드 표시 기본값은 false (성능 최적화)
 }
 
 ObjectManager::~ObjectManager()
@@ -74,11 +76,6 @@ void ObjectManager::Render()
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (cameraManager) {
 		cameraManager->RenderVisibleGameObjects();
-	}
-	
-	// 바운드 표시가 활성화되어 있으면 모든 게임오브젝트의 바운드를 그림
-	if (m_showBounds) {
-		RenderBounds();
 	}
 }
 
@@ -154,7 +151,9 @@ void ObjectManager::ClearAllObjects()
 	m_cachedPlayer = nullptr;
 	ForEachObject([](GameObject* obj) { obj->Release(); Utils::SafeDelete(obj); });
 	m_gameObjects.clear();
+	m_gameObjects.shrink_to_fit(); // 벡터 capacity도 해제
 	m_pendingDeletions.clear();
+	m_pendingDeletions.shrink_to_fit();
 }
 
 void ObjectManager::InitializeObjects()
@@ -220,19 +219,19 @@ void ObjectManager::InitializeFactories()
 
 	// 몬스터 - 맵 파일의 피벗값 사용
 	m_gameObjectFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Pig(id, x, y, data->pivotX, data->pivotY, data->imageName);
+		return new Pig(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
 	};
 	registerIds({ GOID_MONSTER_SPIDER, GOID_MONSTER_WARRIOR_SPIDER }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Spider(id, x, y, data->pivotX, data->pivotY, data->imageName);
+		return new Spider(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
 	});
 	m_gameObjectFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, data->imageName);
+		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
 	};
 	m_gameObjectFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Hound(id, x, y, data->pivotX, data->pivotY, data->imageName);
+		return new Hound(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
 	};
 	registerIds({ GOID_MONSTER_REDHOUNDDOG, GOID_MONSTER_ICEHOUNDDOG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Boss_Hound(id, x, y, data->pivotX, data->pivotY, data->imageName);
+		return new Boss_Hound(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
 	});
 
 	// 건물 - 맵 파일의 피벗값 사용
@@ -257,10 +256,45 @@ void ObjectManager::InitializeFactories()
 	m_gameObjectFactories[GOID_ITEM_ROPE] = itemFactory(L"Rope", L"Useful for crafting.");
 	m_gameObjectFactories[GOID_ITEM_MEAT] = itemFactory(L"Meat", L"Fresh meat.");
 	m_gameObjectFactories[GOID_ITEM_BERRY] = itemFactory(L"Berry", L"Sweet and nutritious.");
-	m_gameObjectFactories[GOID_ITEM_AXE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		std::wstring path = ResourcePathUtils::BuildResourcePath(data->baseDir, data->imageName);
-		return new Axe(id, L"Axe", L"Cuts down trees.", path, 100.0f, 1.0f);
+	
+	// 도구 팩토리 함수 (Tool 클래스 생성)
+	// 각 도구는 Tool 클래스를 직접 사용하거나, 필요시 특정 도구 클래스(Axe 등)를 사용할 수 있습니다.
+	auto toolFactory = [](const wchar_t* name, const wchar_t* desc, float durability = 100.0f, float effectiveness = 1.0f) {
+		return [name, desc, durability, effectiveness](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+			std::wstring path = data->baseDir;
+			if (!path.empty() && path.back() != L'\\' && path.back() != L'/') {
+				path += L"\\";
+			}
+			path += data->imageName;
+			// Tool 클래스를 직접 사용 (인벤토리/장착용)
+			// 나중에 각 도구별 특수 클래스(Axe, Pickaxe 등)로 확장 가능
+			return new Tool(id, name, desc, path, durability, effectiveness);
+		};
 	};
+	
+	// 특수 도구는 개별 클래스 사용 (예: Axe)
+	auto axeFactory = [](const wchar_t* name, const wchar_t* desc, float durability = 100.0f, float effectiveness = 1.0f) {
+		return [name, desc, durability, effectiveness](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+			std::wstring path = data->baseDir;
+			if (!path.empty() && path.back() != L'\\' && path.back() != L'/') {
+				path += L"\\";
+			}
+			path += data->imageName;
+			return new Axe(id, name, desc, path, durability, effectiveness);
+		};
+	};
+	
+	// 빨간 도끼 (기존 GOID_ITEM_AXE 대체) - Axe 클래스 사용
+	m_gameObjectFactories[GOID_TOOL_RED_AXE] = axeFactory(L"Red Axe", L"Cuts down trees.", 100.0f, 1.0f);
+	m_gameObjectFactories[GOID_TOOL_SWAP_AXE] = axeFactory(L"Swap Axe", L"An axe with special properties.", 100.0f, 1.0f);
+	
+	// 다른 도구들 - Tool 클래스 사용 (나중에 각 도구별 클래스로 확장 가능)
+	m_gameObjectFactories[GOID_TOOL_GOLDEN_SCYTHE] = toolFactory(L"Golden Scythe", L"A golden scythe for harvesting.", 150.0f, 1.5f);
+	m_gameObjectFactories[GOID_TOOL_HAM_BAT] = toolFactory(L"Ham Bat", L"A weapon made from ham.", 80.0f, 1.2f);
+	m_gameObjectFactories[GOID_TOOL_PICKAXE] = toolFactory(L"Pickaxe", L"Mines rocks and ores.", 100.0f, 1.0f);
+	m_gameObjectFactories[GOID_TOOL_SPEAR] = toolFactory(L"Spear", L"A simple spear for combat.", 90.0f, 1.1f);
+	m_gameObjectFactories[GOID_TOOL_SWAP_SPEAR] = toolFactory(L"Swap Spear", L"A lightning-infused spear.", 120.0f, 1.3f);
+	m_gameObjectFactories[GOID_TOOL_TORCH] = toolFactory(L"Torch", L"Provides light in darkness.", 60.0f, 0.8f);
 }
 
 // ========================================
@@ -283,6 +317,27 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 			
 			if (addToManager) {
 				AddGameObject(newObj);
+
+				// 맵 데이터의 콜라이더 정보를 컴포넌트로 첨부 (월드 배치 오브젝트만)
+				if (data->hasCollider) {
+					if (data->colliderType == COLLIDER_BOX) {
+						BoxCollider* col = newObj->AddComponent<BoxCollider>();
+						col->SetBoundingBox(
+							data->colliderOffsetX,
+							data->colliderOffsetY,
+							data->colliderWidth,
+							data->colliderHeight
+						);
+					}
+					else if (data->colliderType == COLLIDER_CIRCLE) {
+						newObj->AddComponent<CircleCollider>(
+							data->colliderCenterX,
+							data->colliderCenterY,
+							data->colliderRadius
+						);
+					}
+				}
+
 				OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 완료 - ID: " + std::to_wstring(id) + L" at (" + std::to_wstring(x) + L", " + std::to_wstring(y) + L")\n").c_str());
 			}
 			else {
@@ -299,32 +354,4 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 		OutputDebugStringW((L"ObjectManager: 알 수 없는 GameObjectID - ID: " + std::to_wstring(id) + L"\n").c_str());
 		return nullptr;
 	}
-}
-
-
-void ObjectManager::RenderBounds()
-{
-	RenderManager* renderManager = RenderManager::GetInstance();
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	if (!renderManager || !cameraManager) return;
-
-	ForEachEnabledObject([renderManager, cameraManager](GameObject* obj) {
-		Gdiplus::RectF objBounds = cameraManager->GetSpriteBoundingBox(obj);
-		Gdiplus::PointF screenLeft = cameraManager->WorldToScreen(objBounds.X, objBounds.Y);
-		Gdiplus::PointF screenRight = cameraManager->WorldToScreen(
-			objBounds.X + objBounds.Width, objBounds.Y + objBounds.Height);
-		Gdiplus::RectF boundsRect(screenLeft.X, screenLeft.Y,
-			screenRight.X - screenLeft.X, screenRight.Y - screenLeft.Y);
-
-		Gdiplus::Color boundsColor;
-		switch (obj->GetType()) {
-			case GOBJ_ITEM:         boundsColor = Gdiplus::Color(255, 0, 255, 0); break;
-			case GOBJ_NATURAL_ENVIR: boundsColor = Gdiplus::Color(255, 0, 150, 255); break;
-			case GOBJ_MONSTER:      boundsColor = Gdiplus::Color(255, 255, 0, 0); break;
-			default:                boundsColor = Gdiplus::Color(255, 255, 255, 255); break;
-		}
-		renderManager->AddDrawCommand(boundsRect, boundsColor, 3.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
-		Gdiplus::Color bgColor = Gdiplus::Color(50, boundsColor.GetR(), boundsColor.GetG(), boundsColor.GetB());
-		renderManager->AddFillRectangleCommand(boundsRect, bgColor, LAYER_DEBUG_OVERLAY, 9998.0f);
-	});
 }

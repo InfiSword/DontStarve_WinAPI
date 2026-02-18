@@ -8,8 +8,8 @@
 #include "../../Component/Transform/Transform.h"
 #include "Boss_Hound.h"
 
-Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
+Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
 {
 	// 보스 특성 초기화
 	m_hp = 150; // 일반 하운드보다 높은 체력
@@ -54,62 +54,52 @@ void Boss_Hound::Init()
 		if (m_id == GOID_MONSTER_REDHOUNDDOG) {
 			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_REDHOUNDDOG);
 			if (objData) {
-				const std::wstring& base = objData->baseDir;
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
-					pRM->BuildResourcePath(base, L"Red_Hound", L"RedHound_redhound_idle_down.png"),
+				std::wstring base = objData->baseDir + L"\\Red_Hound\\";
+				
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN, base + L"RedHound_redhound_idle_down.png",
 					120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
-					pRM->BuildResourcePath(base, L"Red_Hound", L"RedHound_redhound_idle_up.png"),
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP, base + L"RedHound_redhound_idle_up.png",
 					120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
-					pRM->BuildResourcePath(base, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
+				std::wstring idleSidePath = base + L"RedHound_redhound_idle_side.png";
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT, idleSidePath,
 					120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
-					pRM->BuildResourcePath(base, L"Red_Hound", L"RedHound_redhound_idle_side.png"),
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT, idleSidePath,
 					120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
-					pRM->BuildResourcePath(base, L"Red_Hound", L"RedHound_redhound_atk_down.png"),
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN, base + L"RedHound_redhound_atk_down.png",
 					140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
-					pRM->BuildResourcePath(base, L"Red_Hound", L"RedHound_redhound_atk_up.png"),
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP, base + L"RedHound_redhound_atk_up.png",
 					140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
-					pRM->BuildResourcePath(base, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
+				std::wstring atkSidePath = base + L"RedHound_redhound_atk_side.png";
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT, atkSidePath,
 					140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
-					pRM->BuildResourcePath(base, L"Red_Hound", L"RedHound_redhound_atk_side.png"),
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT, atkSidePath,
 					140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			}
 		}
 		else if (m_id == GOID_MONSTER_ICEHOUNDDOG) {
 			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_ICEHOUNDDOG);
 			if (objData) {
-				const std::wstring& base = objData->baseDir;
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
-					pRM->BuildResourcePath(base, L"Ice_Hound", L"IceHound_icehound_idle_down.png"),
+				std::wstring base = objData->baseDir + L"\\Ice_Hound\\";
+				
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN, base + L"IceHound_icehound_idle_down.png",
 					120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
-					pRM->BuildResourcePath(base, L"Ice_Hound", L"IceHound_icehound_idle_up.png"),
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP, base + L"IceHound_icehound_idle_up.png",
 					120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
-					pRM->BuildResourcePath(base, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
+				std::wstring idleSidePath = base + L"IceHound_icehound_idle_side.png";
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT, idleSidePath,
 					120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
-					pRM->BuildResourcePath(base, L"Ice_Hound", L"IceHound_icehound_idle_side.png"),
+				m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT, idleSidePath,
 					120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
-					pRM->BuildResourcePath(base, L"Ice_Hound", L"IceHound_icehound_atk_down.png"),
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN, base + L"IceHound_icehound_atk_down.png",
 					140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
-					pRM->BuildResourcePath(base, L"Ice_Hound", L"IceHound_icehound_atk_up.png"),
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP, base + L"IceHound_icehound_atk_up.png",
 					140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
-					pRM->BuildResourcePath(base, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
+				std::wstring atkSidePath = base + L"IceHound_icehound_atk_side.png";
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT, atkSidePath,
 					140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
-					pRM->BuildResourcePath(base, L"Ice_Hound", L"IceHound_icehound_atk_side.png"),
+				m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT, atkSidePath,
 					140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 			}
 		}

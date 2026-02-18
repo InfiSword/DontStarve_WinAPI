@@ -1,8 +1,9 @@
 #include "../pch.h"
 #include "EditorColliderEditor.h"
+#include "../Resource.h"
 #include "../01_EditorView/EditorView.h"
 #include "../02_EditorResourceManager/EditorResourceManager.h"
-#include "../03_EditorMapFileIO/EditorMapFileIO.h"
+#include "../03_EditorMapFileIO/EditorMap.h"
 #include "../00_MainEditor/DontStarve_EditorMain.h"
 #include "Struct.h"
 #include <algorithm>
@@ -16,12 +17,12 @@ void EditorColliderEditor::SetDependencies(EditorView* pView, const EditorResour
 	m_pMain = pMain;
 }
 
-const ObjectVariant* EditorColliderEditor::GetObjectVariant(GameObjectType type, GameObjectID id) const {
+const ResourcePathUtils::ObjectResourceDef* EditorColliderEditor::GetObjectVariant(GameObjectType type, GameObjectID id) const {
 	if (!m_pResources) return nullptr;
 	return m_pResources->GetObjectVariant(type, id);
 }
 
-void EditorColliderEditor::StartColliderEdit(GameObjectData* obj) {
+void EditorColliderEditor::StartColliderEdit(ResourcePathUtils::ObjectResourceDef* obj) {
 	if (!obj || !m_pResources) return;
 
 	m_isColliderEditMode = true;
@@ -31,16 +32,29 @@ void EditorColliderEditor::StartColliderEdit(GameObjectData* obj) {
 		m_editingColliderObject->hasCollider = true;
 		m_editingColliderObject->colliderType = COLLIDER_BOX;
 
-		const ObjectVariant* ov = GetObjectVariant(obj->type, obj->id);
-		if (!ov) {
+		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(obj->type, obj->id);
+		if (!ov || ov->imageName.empty()) {
 			OutputDebugStringW(L"Error: ObjectVariant not found for collider edit.\n");
 			m_isColliderEditMode = false;
 			m_editingColliderObject = nullptr;
 			return;
 		}
-
-		int imageWidth = (int)ov->sourceRect.Width;
-		int imageHeight = (int)ov->sourceRect.Height;
+		std::wstring fullPath = ov->baseDir;
+		if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+			fullPath += L"\\";
+		}
+		fullPath += ov->imageName;
+		std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
+		if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
+			if (pBitmap) pBitmap.reset();
+		}
+		if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
+			m_isColliderEditMode = false;
+			m_editingColliderObject = nullptr;
+			return;
+		}
+		int imageWidth = (int)pBitmap->GetWidth();
+		int imageHeight = (int)pBitmap->GetHeight();
 
 		m_editingColliderObject->colliderOffsetX = -(int)(ov->pivotX * imageWidth);
 		m_editingColliderObject->colliderOffsetY = -(int)(ov->pivotY * imageHeight);
@@ -220,18 +234,18 @@ void EditorColliderEditor::UpdateColliderDrag(POINT mousePos) {
 	}
 }
 
-void EditorColliderEditor::ApplyColliderToSameType(GameObjectData* source) {
+void EditorColliderEditor::ApplyColliderToSameType(ResourcePathUtils::ObjectResourceDef* source) {
 	if (!m_pMain) return;
-	GameObjectData* src = source ? source : m_editingColliderObject;
+	ResourcePathUtils::ObjectResourceDef* src = source ? source : m_editingColliderObject;
 	if (!src) return;
 	if (!source && (!m_isColliderEditMode || !m_editingColliderObject)) return;
 
 	// Main의 m_gameObjects와 m_colliderTemplates에 friend로 접근
-	std::vector<GameObjectData>& gameObjects = m_pMain->m_gameObjects;
+	std::vector<ResourcePathUtils::ObjectResourceDef>& gameObjects = m_pMain->m_gameObjects;
 	std::map<std::pair<int, int>, DontStarve_EditorMain::ColliderTemplate>& colliderTemplates = m_pMain->m_colliderTemplates;
 
 	int appliedCount = 0;
-	for (GameObjectData& obj : gameObjects) {
+	for (ResourcePathUtils::ObjectResourceDef& obj : gameObjects) {
 		if (&obj == src) continue;
 		if (obj.type != src->type || obj.id != src->id) continue;
 		obj.hasCollider = src->hasCollider;
@@ -257,7 +271,7 @@ void EditorColliderEditor::ApplyColliderToSameType(GameObjectData* source) {
 	t.colliderCenterY = src->colliderCenterY;
 	t.colliderRadius = src->colliderRadius;
 	colliderTemplates[std::make_pair((int)src->type, (int)src->id)] = t;
-	EditorMapFileIO::SaveColliderTemplates(m_pMain);
+	EditorMap::SaveColliderTemplates(m_pMain);
 
 	std::wstringstream ss;
 	ss << L"ApplyColliderToSameType: applied to " << appliedCount << L" object(s)\n";
@@ -267,9 +281,9 @@ void EditorColliderEditor::ApplyColliderToSameType(GameObjectData* source) {
 void EditorColliderEditor::DrawColliders(Gdiplus::Graphics* pGraphics) const {
 	if (!pGraphics || !m_isColliderEditMode || !m_editingColliderObject || !m_pView || !m_pResources) return;
 
-	GameObjectData& obj = *m_editingColliderObject;
-	const ObjectVariant* ov = GetObjectVariant(obj.type, obj.id);
-	if (!ov || !ov->pAtlasBitmap) return;
+	ResourcePathUtils::ObjectResourceDef& obj = *m_editingColliderObject;
+	const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(obj.type, obj.id);
+	if (!ov) return;
 
 	Gdiplus::Pen colliderPen(Gdiplus::Color(255, 0, 255, 0), 2.0f);
 	Gdiplus::SolidBrush handleBrush(Gdiplus::Color(255, 0, 255, 255));
@@ -360,26 +374,166 @@ void EditorColliderEditor::ToggleColliderType() {
 
 	if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
 		m_editingColliderObject->colliderType = COLLIDER_CIRCLE;
-		const ObjectVariant* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
-		if (ov) {
-			int imageWidth = (int)ov->sourceRect.Width;
-			int imageHeight = (int)ov->sourceRect.Height;
-			m_editingColliderObject->colliderCenterX = imageWidth * (0.5f - ov->pivotX);
-			m_editingColliderObject->colliderCenterY = imageHeight * (0.5f - ov->pivotY);
-			float smallerSize = (imageWidth < imageHeight) ? (float)imageWidth : (float)imageHeight;
-			m_editingColliderObject->colliderRadius = smallerSize * 0.5f;
+		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
+		if (ov && !ov->imageName.empty()) {
+			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
+			std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
+			if (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) {
+				int imageWidth = (int)pBitmap->GetWidth();
+				int imageHeight = (int)pBitmap->GetHeight();
+				m_editingColliderObject->colliderCenterX = imageWidth * (0.5f - ov->pivotX);
+				m_editingColliderObject->colliderCenterY = imageHeight * (0.5f - ov->pivotY);
+				float smallerSize = (imageWidth < imageHeight) ? (float)imageWidth : (float)imageHeight;
+				m_editingColliderObject->colliderRadius = smallerSize * 0.5f;
+			}
 		}
 	}
 	else {
 		m_editingColliderObject->colliderType = COLLIDER_BOX;
-		const ObjectVariant* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
-		if (ov) {
-			int imageWidth = (int)ov->sourceRect.Width;
-			int imageHeight = (int)ov->sourceRect.Height;
-			m_editingColliderObject->colliderOffsetX = -(int)(ov->pivotX * imageWidth);
-			m_editingColliderObject->colliderOffsetY = -(int)(ov->pivotY * imageHeight);
-			m_editingColliderObject->colliderWidth = imageWidth;
-			m_editingColliderObject->colliderHeight = imageHeight;
+		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
+		if (ov && !ov->imageName.empty()) {
+			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
+			std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
+			if (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) {
+				int imageWidth = (int)pBitmap->GetWidth();
+				int imageHeight = (int)pBitmap->GetHeight();
+				m_editingColliderObject->colliderOffsetX = -(int)(ov->pivotX * imageWidth);
+				m_editingColliderObject->colliderOffsetY = -(int)(ov->pivotY * imageHeight);
+				m_editingColliderObject->colliderWidth = imageWidth;
+				m_editingColliderObject->colliderHeight = imageHeight;
+			}
 		}
 	}
+}
+
+// ----- 콜라이더 입력 다이얼로그 (Box: offset/width/height, Circle: center/radius) -----
+static LRESULT CALLBACK ColliderDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	EditorColliderEditor* pEditor = (EditorColliderEditor*)GetWindowLongPtrW(hWnd, GWLP_USERDATA);
+	ResourcePathUtils::ObjectResourceDef* obj = pEditor ? pEditor->GetEditingColliderObject() : nullptr;
+	switch (msg) {
+	case WM_CREATE:
+	{
+		CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
+		pEditor = (EditorColliderEditor*)cs->lpCreateParams;
+		obj = pEditor ? pEditor->GetEditingColliderObject() : nullptr;
+		SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)pEditor);
+		HINSTANCE hInst = (HINSTANCE)GetWindowLongPtrW(hWnd, GWLP_HINSTANCE);
+		int yOk = 92;
+		if (obj && obj->colliderType == COLLIDER_BOX) {
+			CreateWindowW(L"Static", L"Offset X:", WS_CHILD | WS_VISIBLE, 10, 12, 52, 18, hWnd, nullptr, hInst, nullptr);
+			CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 68, 10, 60, 18, hWnd, (HMENU)(UINT_PTR)IDC_COLL_OFFSET_X, hInst, nullptr);
+			CreateWindowW(L"Static", L"Offset Y:", WS_CHILD | WS_VISIBLE, 10, 38, 52, 18, hWnd, nullptr, hInst, nullptr);
+			CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 68, 36, 60, 18, hWnd, (HMENU)(UINT_PTR)IDC_COLL_OFFSET_Y, hInst, nullptr);
+			CreateWindowW(L"Static", L"Width:", WS_CHILD | WS_VISIBLE, 10, 64, 52, 18, hWnd, nullptr, hInst, nullptr);
+			CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 68, 62, 60, 18, hWnd, (HMENU)(UINT_PTR)IDC_COLL_WIDTH, hInst, nullptr);
+			CreateWindowW(L"Static", L"Height:", WS_CHILD | WS_VISIBLE, 10, 90, 52, 18, hWnd, nullptr, hInst, nullptr);
+			CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 68, 88, 60, 18, hWnd, (HMENU)(UINT_PTR)IDC_COLL_HEIGHT, hInst, nullptr);
+			SetDlgItemInt(hWnd, IDC_COLL_OFFSET_X, obj->colliderOffsetX, TRUE);
+			SetDlgItemInt(hWnd, IDC_COLL_OFFSET_Y, obj->colliderOffsetY, TRUE);
+			SetDlgItemInt(hWnd, IDC_COLL_WIDTH, obj->colliderWidth, TRUE);
+			SetDlgItemInt(hWnd, IDC_COLL_HEIGHT, obj->colliderHeight, TRUE);
+			yOk = 118;
+		} else if (obj) {
+			CreateWindowW(L"Static", L"Center X:", WS_CHILD | WS_VISIBLE, 10, 12, 52, 18, hWnd, nullptr, hInst, nullptr);
+			CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE, 68, 10, 60, 18, hWnd, (HMENU)(UINT_PTR)IDC_COLL_CENTER_X, hInst, nullptr);
+			CreateWindowW(L"Static", L"Center Y:", WS_CHILD | WS_VISIBLE, 10, 38, 52, 18, hWnd, nullptr, hInst, nullptr);
+			CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE, 68, 36, 60, 18, hWnd, (HMENU)(UINT_PTR)IDC_COLL_CENTER_Y, hInst, nullptr);
+			CreateWindowW(L"Static", L"Radius:", WS_CHILD | WS_VISIBLE, 10, 64, 52, 18, hWnd, nullptr, hInst, nullptr);
+			CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE, 68, 62, 60, 18, hWnd, (HMENU)(UINT_PTR)IDC_COLL_RADIUS, hInst, nullptr);
+			WCHAR buf[32];
+			swprintf_s(buf, L"%.2f", obj->colliderCenterX);
+			SetDlgItemTextW(hWnd, IDC_COLL_CENTER_X, buf);
+			swprintf_s(buf, L"%.2f", obj->colliderCenterY);
+			SetDlgItemTextW(hWnd, IDC_COLL_CENTER_Y, buf);
+			swprintf_s(buf, L"%.2f", obj->colliderRadius);
+			SetDlgItemTextW(hWnd, IDC_COLL_RADIUS, buf);
+			yOk = 92;
+		}
+		CreateWindowW(L"Button", L"OK", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 50, yOk, 50, 22, hWnd, (HMENU)IDOK, hInst, nullptr);
+		CreateWindowW(L"Button", L"Cancel", WS_CHILD | WS_VISIBLE, 110, yOk, 50, 22, hWnd, (HMENU)IDCANCEL, hInst, nullptr);
+		return 0;
+	}
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDOK) {
+			pEditor = (EditorColliderEditor*)GetWindowLongPtrW(hWnd, GWLP_USERDATA);
+			obj = pEditor ? pEditor->GetEditingColliderObject() : nullptr;
+			if (obj && pEditor) {
+				if (obj->colliderType == COLLIDER_BOX) {
+					int ox = GetDlgItemInt(hWnd, IDC_COLL_OFFSET_X, nullptr, TRUE);
+					int oy = GetDlgItemInt(hWnd, IDC_COLL_OFFSET_Y, nullptr, TRUE);
+					int w = GetDlgItemInt(hWnd, IDC_COLL_WIDTH, nullptr, TRUE);
+					int h = GetDlgItemInt(hWnd, IDC_COLL_HEIGHT, nullptr, TRUE);
+					int minSz = pEditor->GetMinColliderSize();
+					if (w < minSz) w = minSz;
+					if (h < minSz) h = minSz;
+					obj->colliderOffsetX = ox;
+					obj->colliderOffsetY = oy;
+					obj->colliderWidth = w;
+					obj->colliderHeight = h;
+				} else {
+					WCHAR buf[32];
+					float minR = pEditor->GetMinColliderRadius();
+					float cx = 0.0f, cy = 0.0f, r = minR;
+					if (GetDlgItemTextW(hWnd, IDC_COLL_CENTER_X, buf, 32) > 0) cx = (float)wcstod(buf, nullptr);
+					if (GetDlgItemTextW(hWnd, IDC_COLL_CENTER_Y, buf, 32) > 0) cy = (float)wcstod(buf, nullptr);
+					if (GetDlgItemTextW(hWnd, IDC_COLL_RADIUS, buf, 32) > 0) r = (float)wcstod(buf, nullptr);
+					if (r < minR) r = minR;
+					obj->colliderCenterX = cx;
+					obj->colliderCenterY = cy;
+					obj->colliderRadius = r;
+				}
+			}
+			DestroyWindow(hWnd);
+			return 0;
+		}
+		if (LOWORD(wParam) == IDCANCEL) {
+			DestroyWindow(hWnd);
+			return 0;
+		}
+		break;
+	case WM_CLOSE:
+		DestroyWindow(hWnd);
+		return 0;
+	}
+	return DefWindowProcW(hWnd, msg, wParam, lParam);
+}
+
+void EditorColliderEditor::ShowColliderDialog(HWND parent) {
+	if (!m_isColliderEditMode || !m_editingColliderObject || !m_editingColliderObject->hasCollider) return;
+	HINSTANCE hInst = (HINSTANCE)GetWindowLongPtrW(parent, GWLP_HINSTANCE);
+	WNDCLASSEXW wc = {};
+	wc.cbSize = sizeof(wc);
+	if (!GetClassInfoExW(hInst, L"ColliderDlgClass", &wc)) {
+		wc.style = CS_HREDRAW | CS_VREDRAW;
+		wc.lpfnWndProc = ColliderDlgProc;
+		wc.cbClsExtra = 0;
+		wc.cbWndExtra = 0;
+		wc.hInstance = hInst;
+		wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+		wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+		wc.lpszClassName = L"ColliderDlgClass";
+		RegisterClassExW(&wc);
+	}
+	HWND hDlg = CreateWindowExW(WS_EX_DLGMODALFRAME | WS_EX_TOPMOST, L"ColliderDlgClass", L"콜라이더 입력",
+		WS_POPUP | WS_CAPTION | WS_SYSMENU, 0, 0, 200, 150, parent, nullptr, hInst, this);
+	if (!hDlg) return;
+	SetWindowLongPtrW(hDlg, GWLP_USERDATA, (LONG_PTR)this);
+	RECT rc, rcMain;
+	GetWindowRect(hDlg, &rc);
+	GetWindowRect(parent, &rcMain);
+	SetWindowPos(hDlg, nullptr,
+		rcMain.left + (rcMain.right - rcMain.left - (rc.right - rc.left)) / 2,
+		rcMain.top + (rcMain.bottom - rcMain.top - (rc.bottom - rc.top)) / 2,
+		0, 0, SWP_NOSIZE | SWP_NOZORDER);
+	ShowWindow(hDlg, SW_SHOW);
+	EnableWindow(parent, FALSE);
+	MSG dlgMsg;
+	while (IsWindow(hDlg) && GetMessage(&dlgMsg, nullptr, 0, 0)) {
+		if (!IsDialogMessage(hDlg, &dlgMsg)) {
+			TranslateMessage(&dlgMsg);
+			DispatchMessage(&dlgMsg);
+		}
+	}
+	EnableWindow(parent, TRUE);
+	SetForegroundWindow(parent);
 }

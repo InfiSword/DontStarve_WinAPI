@@ -14,7 +14,8 @@ ColliderManager::~ColliderManager()
 
 void ColliderManager::Init()
 {
-
+	// 씬 재진입 시 콜라이더 목록을 비워 깨끗한 상태로 시작 (Release 호출 없이 Init만 호출되는 경우 대비)
+	m_colliders.clear();
 }
 
 void ColliderManager::LateInit()
@@ -44,17 +45,21 @@ void ColliderManager::Release()
 {
     // Collider 해제는 Component 해제시에 처리되므로 여기서는 리스트만 정리
     m_colliders.clear();
+    m_colliders.shrink_to_fit();
 }
 
 void ColliderManager::AddCollider(Collider* pCollider)
 {
-    if (pCollider) {
+    if (!pCollider) return;
+    // 중복 등록 방지 (AddComponent가 Init을 즉시 호출하고 InitializeObjects가 Init을 다시 호출하는 구조 대비)
+    if (std::find(m_colliders.begin(), m_colliders.end(), pCollider) == m_colliders.end()) {
         m_colliders.push_back(pCollider);
     }
 }
 
 void ColliderManager::RemoveCollider(Collider* pCollider)
 {
+    if (!pCollider) return;
     // 리스트에서 콜라이더 포인터 제거 (실제 Component 해제시에 처리)
     m_colliders.erase(std::remove(m_colliders.begin(), m_colliders.end(), pCollider), m_colliders.end());
 }

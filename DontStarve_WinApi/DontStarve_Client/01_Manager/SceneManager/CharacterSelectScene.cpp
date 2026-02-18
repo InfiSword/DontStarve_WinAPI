@@ -5,6 +5,7 @@
 #include "../InputManager/InputManager.h"
 #include "../RenderManager/RenderManager.h"
 #include "../ResourceManager/ResourceManager.h"
+#include "../GameProgressManager/GameProgressManager.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
 #include "../../02_GameObject/UI/UIText.h"
@@ -45,7 +46,7 @@ void CharacterSelectScene::Init()
 		static_cast<float>(WINCX),
 		static_cast<float>(WINCY),
 		LAYER_UI_BACKGROUND,
-		L"../Resource/UI/BG.png",
+		L"Resource/UI/BG.png",
 		0.f,
 		0.0f, 0.0f,  
 		1.0f, 1.0f,  
@@ -55,8 +56,8 @@ void CharacterSelectScene::Init()
 	OutputDebugStringW(L"CharacterSelectScene: 배경 이미지 생성 완료\n");
 
 	// 뒤로가기 버튼 생성 (좌측 중앙)
-	std::shared_ptr<Sprite> backNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/Button.png");
-	std::shared_ptr<Sprite> backHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/Button.png");
+	std::shared_ptr<Sprite> backNormalSprite = resourceManager->LoadSprite(L"Resource/UI/Button.png");
+	std::shared_ptr<Sprite> backHoverSprite = resourceManager->LoadSprite(L"Resource/UI/Button.png");
 	UIButton* backButton = new UIButton(
 		static_cast<GameObjectID>(GOID_BACK_BUTTON),
 		80.0f,
@@ -78,7 +79,7 @@ void CharacterSelectScene::Init()
 		350.0f,
 		500.0f,
 		LAYER_UI_FOREGROUND,
-		L"../Resource/UI/wilson.png",
+		L"Resource/UI/wilson.png",
 		1.0f,
 		1.0f, 0.5f,  
 		1.0f, 0.5f,  
@@ -93,7 +94,7 @@ void CharacterSelectScene::Init()
 		550.0f,
 		200.0f,
 		LAYER_UI_FOREGROUND,
-		L"../Resource/UI/UI4.png",
+		L"Resource/UI/UI4.png",
 		1.0f,
 		1.0f, 0.5f,  
 		1.0f, 0.5f,  
@@ -123,8 +124,8 @@ void CharacterSelectScene::Init()
 	uiManager->AddUIText(descriptionText);
 
 	// 선택 버튼 (캐릭터 정보창 아래, 왼쪽) - 초기에는 숨김
-	std::shared_ptr<Sprite> selectNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/Select_Bar.png");
-	std::shared_ptr<Sprite> selectHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/Select_Bar.png");
+	std::shared_ptr<Sprite> selectNormalSprite = resourceManager->LoadSprite(L"Resource/UI/Select_Bar.png");
+	std::shared_ptr<Sprite> selectHoverSprite = resourceManager->LoadSprite(L"Resource/UI/Select_Bar.png");
 	UIButton* selectButton = new UIButton(
 		static_cast<GameObjectID>(GOID_SELECT_BUTTON),
 		120.0f,
@@ -162,8 +163,8 @@ void CharacterSelectScene::Init()
 	uiManager->AddUIText(selectButtonText);
 
 	// 취소 버튼 (캐릭터 정보창 아래, 오른쪽) - 초기에는 숨김
-	std::shared_ptr<Sprite> cancelNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/Select_Bar.png");
-	std::shared_ptr<Sprite> cancelHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/Select_Bar.png");
+	std::shared_ptr<Sprite> cancelNormalSprite = resourceManager->LoadSprite(L"Resource/UI/Select_Bar.png");
+	std::shared_ptr<Sprite> cancelHoverSprite = resourceManager->LoadSprite(L"Resource/UI/Select_Bar.png");
 	UIButton* cancelButton = new UIButton(
 		static_cast<GameObjectID>(GOID_CANCEL_SELECTION),
 		120.0f,
@@ -231,8 +232,8 @@ void CharacterSelectScene::InitializeCharacters()
 	// Wilson 캐릭터 추가 (기본 해금)
 	m_characterList.emplace_back(
 		L"Wilson",
-		L"../Resource/UI/wilson.png",
-		L"../Resource/UI/Willson_Character.png",
+		L"Resource/UI/wilson.png",
+		L"Resource/UI/Willson_Character.png",
 		L"기본 캐릭터입니다.\n모든 상황에서 안정적으로 플레이할 수 있는\n 균형잡힌 캐릭터입니다.",
 		startX,
 		characterY,
@@ -242,33 +243,65 @@ void CharacterSelectScene::InitializeCharacters()
 	
 	// Willow 캐릭터 추가 (불타는 나무 클릭 시 해금)
 	ResourceManager* pRM = ResourceManager::GetInstance();
-	const GameObjectData* willowData = pRM->GetObjectResourceInfo(GOID_PLAYER_WILLOW);
-	std::wstring willowPortraitPath = willowData ? pRM->BuildResourcePath(willowData->objectAssetBaseDirectory, L"", L"willow_portrait.png") : L"../Resource/Objects/Player/Willow/willow_portrait.png";
-	std::wstring willowCharacterPath = willowData ? pRM->BuildResourcePath(willowData->objectAssetBaseDirectory, L"", L"willow_character.png") : L"../Resource/Objects/Player/Willow/willow_character.png";
+	const ResourcePathUtils::ObjectResourceDef* willowData = pRM->GetObjectResourceInfo(GOID_PLAYER_WILLOW);
+	std::wstring willowPortraitPath;
+	std::wstring willowCharacterPath;
+	if (willowData) {
+		willowPortraitPath = willowData->baseDir;
+		if (!willowPortraitPath.empty() && willowPortraitPath.back() != L'\\' && willowPortraitPath.back() != L'/') {
+			willowPortraitPath += L"\\";
+		}
+		willowPortraitPath += L"willow_portrait.png";
+		
+		willowCharacterPath = willowData->baseDir;
+		if (!willowCharacterPath.empty() && willowCharacterPath.back() != L'\\' && willowCharacterPath.back() != L'/') {
+			willowCharacterPath += L"\\";
+		}
+		willowCharacterPath += L"willow_character.png";
+	} else {
+		willowPortraitPath = L"Resource\\Objects\\Player\\Willow\\willow_portrait.png";
+		willowCharacterPath = L"Resource\\Objects\\Player\\Willow\\willow_character.png";
+	}
 	m_characterList.emplace_back(
 		L"Willow",
 		willowPortraitPath,
 		willowCharacterPath,
-		L"불의 마법사입니다.\n불을 두려워하지 않고 활용할 수 있습니다.\n\n해금 조건: 불타는 나무 클릭",
+		L"불의 마법사입니다.\n불을 두려워하지 않고 활용할 수 있습니다.\n\n해금 조건: 거미 던전 클리어",
 		startX + spacing,
 		characterY,
 		GOID_PLAYER_WILLOW,
-		m_gameProgress.IsCharacterUnlocked(GOID_PLAYER_WILLOW)
+		GameProgressManager::GetInstance()->IsCharacterUnlocked(GOID_PLAYER_WILLOW)
 	);
 	
 	// Wolfgang 캐릭터 추가 (돌멩이 던지기 클릭 시 해금)
-	const GameObjectData* wolfgangData = pRM->GetObjectResourceInfo(GOID_PLAYER_WOLFGANG);
-	std::wstring wolfgangPortraitPath = wolfgangData ? pRM->BuildResourcePath(wolfgangData->objectAssetBaseDirectory, L"", L"wolfgang_portrait.png") : L"../Resource/Objects/Player/Wolfgang/wolfgang_portrait.png";
-	std::wstring wolfgangCharacterPath = wolfgangData ? pRM->BuildResourcePath(wolfgangData->objectAssetBaseDirectory, L"", L"wolfgang_character.png") : L"../Resource/Objects/Player/Wolfgang/wolfgang_character.png";
+	const ResourcePathUtils::ObjectResourceDef* wolfgangData = pRM->GetObjectResourceInfo(GOID_PLAYER_WOLFGANG);
+	std::wstring wolfgangPortraitPath;
+	std::wstring wolfgangCharacterPath;
+	if (wolfgangData) {
+		wolfgangPortraitPath = wolfgangData->baseDir;
+		if (!wolfgangPortraitPath.empty() && wolfgangPortraitPath.back() != L'\\' && wolfgangPortraitPath.back() != L'/') {
+			wolfgangPortraitPath += L"\\";
+		}
+		wolfgangPortraitPath += L"wolfgang_portrait.png";
+		
+		wolfgangCharacterPath = wolfgangData->baseDir;
+		if (!wolfgangCharacterPath.empty() && wolfgangCharacterPath.back() != L'\\' && wolfgangCharacterPath.back() != L'/') {
+			wolfgangCharacterPath += L"\\";
+		}
+		wolfgangCharacterPath += L"wolfgang_character.png";
+	} else {
+		wolfgangPortraitPath = L"Resource\\Objects\\Player\\Wolfgang\\wolfgang_portrait.png";
+		wolfgangCharacterPath = L"Resource\\Objects\\Player\\Wolfgang\\wolfgang_character.png";
+	}
 	m_characterList.emplace_back(
 		L"Wolfgang",
 		wolfgangPortraitPath,
 		wolfgangCharacterPath,
-		L"강한 캐릭터입니다.\n체력이 높을수록 더 강해지는 캐릭터입니다.\n\n해금 조건: 돌멩이 던지기 클릭",
+		L"강한 캐릭터입니다.\n체력이 높을수록 더 강해지는 캐릭터입니다.\n\n해금 조건: 늑대 던전 클리어",
 		startX + spacing * 2,
 		characterY,
 		GOID_PLAYER_WOLFGANG,
-		m_gameProgress.IsCharacterUnlocked(GOID_PLAYER_WOLFGANG)
+		GameProgressManager::GetInstance()->IsCharacterUnlocked(GOID_PLAYER_WOLFGANG)
 	);
 }
 
@@ -300,8 +333,8 @@ void CharacterSelectScene::CreateCharacterButtons()
 		ResourceManager* resourceManager =  ResourceManager::GetInstance();
 
 		// HUD 배경을 버튼으로 생성 (hover 시 밝게 표시)
-		std::shared_ptr<Sprite> hudNormalSprite = resourceManager->LoadSprite(L"../Resource/UI/quagmire_hud.png");
-		std::shared_ptr<Sprite> hudHoverSprite = resourceManager->LoadSprite(L"../Resource/UI/quagmire_hud.png");
+		std::shared_ptr<Sprite> hudNormalSprite = resourceManager->LoadSprite(L"Resource/UI/quagmire_hud.png");
+		std::shared_ptr<Sprite> hudHoverSprite = resourceManager->LoadSprite(L"Resource/UI/quagmire_hud.png");
 		UIButton* hudButton = new UIButton(
 			static_cast<GameObjectID>(3004 + i * 10),
 			buttonWidth,
@@ -329,7 +362,7 @@ void CharacterSelectScene::CreateCharacterButtons()
 		std::wstring displayImagePath;
 		if (!charInfo.isUnlocked) {
 			// 잠금된 캐릭터는 잠금 이미지 표시
-			displayImagePath = L"../Resource/UI/locked_Character.png";
+			displayImagePath = L"Resource/UI/locked_Character.png";
 		} else {
 			// 해금된 캐릭터는 캐릭터 이미지 표시
 			displayImagePath = charInfo.characterImagePath;
@@ -408,7 +441,7 @@ void CharacterSelectScene::UpdateCharacterSelection()
 			std::wstring portraitPath;
 			if (!selectedChar.isUnlocked) 
 			{
-				portraitPath = L"../Resource/UI/locked.png";
+				portraitPath = L"Resource/UI/locked.png";
 			} else {
 				portraitPath = selectedChar.portraitPath;
 			}
@@ -532,7 +565,7 @@ void CharacterSelectScene::OnSelectButtonClicked()
 	m_currentState = CharacterSelectionState::CLICK_GAME;
 	
 	// 선택된 캐릭터 정보를 SceneManager에 전달하여 게임 씬으로 전환 요청
-	SceneManager::GetInstance()->LoadGameScene(L"../MapData/00_map.dsm", selectedCharacterID);
+	SceneManager::GetInstance()->LoadGameScene(L"MapData/00_map.dsm", selectedCharacterID);
 }
 
 void CharacterSelectScene::OnCancelButtonClicked()
@@ -649,9 +682,11 @@ void CharacterSelectScene::UpdateSelectButtonState()
 
 void CharacterSelectScene::UpdateCharacterUnlockStatus()
 {
-	// 현재 진행 상황에 따라 캐릭터 해금 상태 업데이트
+	// GameProgressManager를 통해 캐릭터 해금 상태 업데이트
+	GameProgressManager* progressManager = GameProgressManager::GetInstance();
+	
 	for (auto& charInfo : m_characterList) {
-		charInfo.isUnlocked = m_gameProgress.IsCharacterUnlocked(charInfo.characterID);
+		charInfo.isUnlocked = progressManager->IsCharacterUnlocked(charInfo.characterID);
 	}
 	
 	// UI 요소들 재생성

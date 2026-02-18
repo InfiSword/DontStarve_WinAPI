@@ -7,6 +7,15 @@
 #include "../../02_GameObject/Item/Item.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 
+// ItemSlot::Clear() 구현 (Item의 완전한 정의가 필요하므로 cpp에 구현)
+void ItemSlot::Clear() {
+	if (item) {
+		delete item;  // Item 메모리 해제
+		item = nullptr;
+	}
+	count = 0;
+}
+
 Inventory::Inventory() : m_slots(INVENTORY_SLOT_COUNT) {
 	m_inventoryBgBitmap = nullptr;
 	m_slotBgBitmap = nullptr;
@@ -17,6 +26,15 @@ Inventory::Inventory() : m_slots(INVENTORY_SLOT_COUNT) {
 }
 
 Inventory::~Inventory() {
+	// 슬롯의 모든 Item 삭제 (메모리 누수 방지)
+	for (auto& slot : m_slots) {
+		if (slot.item) {
+			slot.item->Release();  // 명시적 Release 호출 (문자열 정리 보장)
+			delete slot.item;
+			slot.item = nullptr;
+		}
+	}
+	
 	delete m_inventoryBgBitmap;
 	m_inventoryBgBitmap = nullptr;
 
@@ -69,23 +87,31 @@ bool Inventory::AddItem(Item* itemDef, UINT count) {
 		UINT actualAdd = min(count, canAdd); // min() 함수는 <algorithm>에 있음
 		m_slots[existingSlotIndex].count += actualAdd;
 		count -= actualAdd;
-		if (count == 0)
-			return true; // 모든 아이템을 추가 완료
-	}
-
-	// 새로운 아이템을 빈 슬롯에 계속 추가합니다.
-	while (count > 0) {
-		int emptySlotIndex = FindFirstEmptySlot();
-		if (emptySlotIndex == -1) {
-			return false; // 인벤토리 공간 부족
+		if (count == 0) {
+			// 기존 슬롯에 모두 스택됨 - 새로 생성된 itemDef는 슬롯에 저장되지 않으므로 해제
+			delete itemDef;
+			return true;
 		}
-		UINT actualAdd = min(count, ITEM_STACK_MAX); // 한 슬롯에 넣을 수 있는 최대 개수
-		m_slots[emptySlotIndex].item = itemDef;     // 아이템 포인터 저장
-		m_slots[emptySlotIndex].count = actualAdd;   // 아이템 개수 저장
-		count -= actualAdd;                         // 남은 추가할 개수 업데이트
 	}
 
-	return true; // 모든 아이템을 성공적으로 추가
+	// 새로운 아이템을 빈 슬롯에 추가
+	// 주의: 현재 구현은 count <= ITEM_STACK_MAX를 가정 (같은 포인터를 여러 슬롯에 저장하지 않음)
+	// count > ITEM_STACK_MAX인 경우 첫 번째 슬롯만 사용하고 나머지는 무시
+	int emptySlotIndex = FindFirstEmptySlot();
+	if (emptySlotIndex == -1) {
+		return false; // 인벤토리 공간 부족
+	}
+	
+	UINT actualAdd = min(count, ITEM_STACK_MAX); // 한 슬롯에 넣을 수 있는 최대 개수
+	m_slots[emptySlotIndex].item = itemDef;     // 아이템 포인터 저장
+	m_slots[emptySlotIndex].count = actualAdd;   // 아이템 개수 저장
+	
+	// count > ITEM_STACK_MAX인 경우 나머지는 무시 (현재는 발생하지 않음)
+	if (count > ITEM_STACK_MAX) {
+		OutputDebugStringW((L"Inventory::AddItem 경고: count > ITEM_STACK_MAX, 일부 아이템 무시됨\n"));
+	}
+
+	return true; // 아이템 추가 성공
 }
 
 // 아이템 제거: 특정 슬롯에서 특정 개수만큼 제거
@@ -314,16 +340,21 @@ bool Inventory::CheckHasEnoughItems(const std::map<UINT, UINT>& requiredItems) c
 
 void Inventory::LoadUIBitmaps() 
 {
-	// ResourceManager를 사용하여 리소스 로드
-	auto* pRM = ResourceManager::GetInstance();
-	
 	if (!m_inventoryBgBitmap) {
-		std::wstring invenPath = pRM->BuildResourcePath(L"Resource/UI", L"", L"Inven.png");
-		m_inventoryBgBitmap = BitmapUtils::LoadBitmapFromFile(invenPath.c_str());
+		std::wstring invenPath = L"Resource\\UI\\Inven.png";
+		m_inventoryBgBitmap = Gdiplus::Bitmap::FromFile(invenPath.c_str());
+		if (!m_inventoryBgBitmap || m_inventoryBgBitmap->GetLastStatus() != Gdiplus::Ok) {
+			if (m_inventoryBgBitmap) delete m_inventoryBgBitmap;
+			m_inventoryBgBitmap = nullptr;
+		}
 	}
 	if (!m_slotBgBitmap) {
-		std::wstring slotPath = pRM->BuildResourcePath(L"Resource/UI", L"", L"slot.png");
-		m_slotBgBitmap = BitmapUtils::LoadBitmapFromFile(slotPath.c_str());
+		std::wstring slotPath = L"Resource\\UI\\slot.png";
+		m_slotBgBitmap = Gdiplus::Bitmap::FromFile(slotPath.c_str());
+		if (!m_slotBgBitmap || m_slotBgBitmap->GetLastStatus() != Gdiplus::Ok) {
+			if (m_slotBgBitmap) delete m_slotBgBitmap;
+			m_slotBgBitmap = nullptr;
+		}
 	}
 
 	if (!m_font) {
@@ -358,7 +389,27 @@ bool Inventory::HandleMouseClick(float mouseScreenX, float mouseScreenY, Player*
 				return true; // 빈 슬롯 클릭 처리 완료
 			}
 			
-			// 아이템이 있는 슬롯 클릭 시 장착 토글
+			// 좌클릭: 아이템 사용 (기본 동작)
+			// 우클릭은 HandleRightClick에서 처리
+			
+			return true; 
+		}
+	}
+	return false; 
+}
+
+bool Inventory::HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player) {
+	if (!player) return false;
+	
+	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
+		if (m_slotRects[i].Contains(mouseScreenX, mouseScreenY)) {
+			const ItemSlot& slot = GetSlot(i);
+			
+			if (slot.IsEmpty()) {
+				return false; // 빈 슬롯 우클릭은 처리하지 않음
+			}
+			
+			// 우클릭: 장비 가능한 아이템이면 장착/해제 토글
 			player->ToggleEquipItem(i);
 			
 			return true; 

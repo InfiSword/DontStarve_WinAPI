@@ -1,4 +1,4 @@
-﻿//{{NO_DEPENDENCIES}}
+//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // 다음에서 사용 DontStarve_Editor.rc
 
@@ -12,6 +12,17 @@
 #define IDM_NEW					110
 #define IDM_SAVE				111
 #define IDM_LOAD				112
+#define IDC_MAP_WIDTH			1000
+#define IDC_MAP_HEIGHT			1001
+#define IDC_PIVOT_X				1002
+#define IDC_PIVOT_Y				1003
+#define IDC_COLL_OFFSET_X		1004
+#define IDC_COLL_OFFSET_Y		1005
+#define IDC_COLL_WIDTH			1006
+#define IDC_COLL_HEIGHT			1007
+#define IDC_COLL_CENTER_X		1008
+#define IDC_COLL_CENTER_Y		1009
+#define IDC_COLL_RADIUS			1010
 #define IDI_DONTSTARVEEDITOR			107
 #define IDI_SMALL				108
 #define IDC_DONTSTARVEEDITOR			109

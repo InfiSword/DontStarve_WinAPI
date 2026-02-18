@@ -310,6 +310,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             DestroyWindow(hWnd);
         }
+        // Ctrl 조합 단축키 처리
+        else if (GetKeyState(VK_CONTROL) & 0x8000)
+        {
+            // Ctrl+N: 새 맵
+            if (wParam == 'N' || wParam == 'n')
+            {
+                SendMessage(hWnd, WM_COMMAND, IDM_NEW, 0);
+                return 0;
+            }
+            // Ctrl+O: 맵 불러오기
+            else if (wParam == 'O' || wParam == 'o')
+            {
+                SendMessage(hWnd, WM_COMMAND, IDM_LOAD, 0);
+                return 0;
+            }
+            // Ctrl+S: 맵 저장
+            else if (wParam == 'S' || wParam == 's')
+            {
+                SendMessage(hWnd, WM_COMMAND, IDM_SAVE, 0);
+                return 0;
+            }
+            // Ctrl+M: 맵 크기 설정 창
+            else if (wParam == 'M' || wParam == 'm')
+            {
+                if (mainEditor) {
+                    mainEditor->ShowMapSizeDialog(hWnd);
+                    InvalidateRect(hWnd, NULL, FALSE);
+                }
+                return 0;
+            }
+        }
         // F1~F12 등 특수 키는 EditMain으로 전달
         else if (wParam >= VK_F1 && wParam <= VK_F12)
         {

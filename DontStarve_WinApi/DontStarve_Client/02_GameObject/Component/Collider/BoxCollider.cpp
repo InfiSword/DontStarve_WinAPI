@@ -56,7 +56,30 @@ bool BoxCollider::IntersectsCollider(const Collider* other) const
 
 RECT BoxCollider::GetWorldBoundingBox() const
 {
-	return m_boundingBox;
+	GameObject* owner = GetOwner();
+	Transform* transform = owner ? owner->GetComponent<Transform>() : nullptr;
+	float ox = transform ? transform->GetX() : 0.0f;
+	float oy = transform ? transform->GetY() : 0.0f;
+	return {
+		(int)(m_boundingBox.left   + ox),
+		(int)(m_boundingBox.top    + oy),
+		(int)(m_boundingBox.right  + ox),
+		(int)(m_boundingBox.bottom + oy)
+	};
+}
+
+bool BoxCollider::ContainsPoint(float worldX, float worldY) const
+{
+	const RECT& box = GetWorldBoundingBox();
+	return worldX >= (float)box.left && worldX < (float)box.right
+		&& worldY >= (float)box.top && worldY < (float)box.bottom;
+}
+
+void BoxCollider::GetCenterWorld(float& outX, float& outY) const
+{
+	const RECT& box = GetWorldBoundingBox();
+	outX = ((float)box.left + (float)box.right) * 0.5f;
+	outY = ((float)box.top + (float)box.bottom) * 0.5f;
 }
 
 void BoxCollider::SetBoundingBox(int offsetX, int offsetY, int width, int height)

@@ -4,7 +4,7 @@
 #include "Sapling.h"
 
 Sapling::Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, imageName, true, true), m_state(GrassState::GRASS_IDLE)
+	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true), m_state(GrassState::GRASS_IDLE)
 {
 	m_dropItemID = GOID_ITEM_NORMAL_TWIGS;
 	m_dropItemCount = 1;

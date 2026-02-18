@@ -137,8 +137,8 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
     Gdiplus::RectF sourceRect(currentFrame.sourceRect.X, currentFrame.sourceRect.Y, 
                              currentFrame.sourceRect.Width, currentFrame.sourceRect.Height); 
 
-    // preFlipped 클립은 이미 비트맵이 반전되어 있으므로 Transform 불필요 (DIR_DOWN으로 그리기)
-    Direction drawDir = (m_currentClip->IsPreFlipped() ? DIR_DOWN : currentDir);
+    // preFlipped 클립은 이미 비트맵이 반전되어 있으므로 RenderManager에서 추가 flip 불필요
+    // 방향 정보는 유지하고 preFlipped 플래그를 전달하여 이중 반전 방지
     RenderManager::GetInstance()->AddDrawCommand(
         currentSheet->GetBitmap(),
         destRect,
@@ -147,7 +147,10 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
         characterFootCenterScreenPos,
         layer,
         sortKey,
-        drawDir
+        currentDir,
+        Gdiplus::Color(255, 255, 255, 255),
+        false,
+        m_currentClip->IsPreFlipped()
     );
 }
 

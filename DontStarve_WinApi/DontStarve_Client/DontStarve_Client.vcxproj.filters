@@ -28,6 +28,7 @@
     <ClCompile Include="02_GameObject\UI\Inventory.cpp" />
     <ClCompile Include="02_GameObject\Building\Building.cpp" />
     <ClCompile Include="02_GameObject\Entity\Entity.cpp" />
+    <ClCompile Include="01_Manager\GameProgressManager\GameProgressManager.cpp" />
     <ClCompile Include="01_Manager\InventoryManager\InventoryManager.cpp" />
     <ClCompile Include="01_Manager\ResourceManager\ResourceManager.cpp" />
     <ClCompile Include="01_Manager\SceneManager\SceneManager.cpp" />
@@ -55,6 +56,10 @@
     <ClCompile Include="02_GameObject\Object.cpp" />
     <ClCompile Include="02_GameObject\Component\Button\Button.cpp" />
     <ClCompile Include="02_GameObject\Component\Text\Text.cpp" />
+    <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
+    <ClCompile Include="02_GameObject\UI\UIButton.cpp" />
+    <ClCompile Include="02_GameObject\UI\UIText.cpp" />
+    <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -89,6 +94,7 @@
     <ClInclude Include="01_Manager\StageManager\StageManager.h" />
     <ClInclude Include="02_GameObject\Building\Building.h" />
     <ClInclude Include="02_GameObject\Entity\Entity.h" />
+    <ClInclude Include="01_Manager\GameProgressManager\GameProgressManager.h" />
     <ClInclude Include="01_Manager\InventoryManager\InventoryManager.h" />
     <ClInclude Include="01_Manager\ResourceManager\ResourceManager.h" />
     <ClInclude Include="01_Manager\SceneManager\SceneManager.h" />
@@ -117,6 +123,10 @@
     <ClInclude Include="02_GameObject\Object.h" />
     <ClInclude Include="02_GameObject\Component\Button\Button.h" />
     <ClInclude Include="02_GameObject\Component\Text\Text.h" />
+    <ClInclude Include="02_GameObject\UI\UIImage.h" />
+    <ClInclude Include="02_GameObject\UI\UIButton.h" />
+    <ClInclude Include="02_GameObject\UI\UIText.h" />
+    <ClInclude Include="02_GameObject\UI\CraftingUI.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

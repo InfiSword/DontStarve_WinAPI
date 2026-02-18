@@ -8,8 +8,8 @@
 #include "../../Component/Transform/Transform.h"
 #include "Pig.h"
 
-Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, imageName)
+Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
 {
 	m_hp = 100;
 	maxHp = m_hp;
@@ -40,41 +40,36 @@ void Pig::Init()
 		ResourceManager* pRM = ResourceManager::GetInstance();
 		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_PIG);
 		if (m_id == GOID_MONSTER_PIG && objData) {
-			const std::wstring& base = objData->baseDir;
+			std::wstring base = objData->baseDir + L"\\";
+			
 			// IDLE
-			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN,
-				pRM->BuildResourcePath(base, L"Action", L"pig_pigman_idle_loop_down.png"),
+			std::wstring baseAction = base + L"Action\\";
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN, baseAction + L"pig_pigman_idle_loop_down.png",
 				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP,
-				pRM->BuildResourcePath(base, L"Action", L"pig_pigman_idle_loop_up.png"),
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP, baseAction + L"pig_pigman_idle_loop_up.png",
 				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT,
-				pRM->BuildResourcePath(base, L"Action", L"pig_pigman_idle_loop_side.png"),
+			std::wstring idleSidePath = baseAction + L"pig_pigman_idle_loop_side.png";
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT, idleSidePath,
 				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT,
-				pRM->BuildResourcePath(base, L"Action", L"pig_pigman_idle_loop_side.png"),
+			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT, idleSidePath,
 				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
 
 			// ATTACK
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN,
-				pRM->BuildResourcePath(base, L"Attack", L"down_pigman_atk_down.png"),
+			std::wstring baseAttack = base + L"Attack\\";
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN, baseAttack + L"down_pigman_atk_down.png",
 				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP,
-				pRM->BuildResourcePath(base, L"Attack", L"up_pigman_atk_up.png"),
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP, baseAttack + L"up_pigman_atk_up.png",
 				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT,
-				pRM->BuildResourcePath(base, L"Attack", L"side_pigman_atk_side.png"),
+			std::wstring atkSidePath = baseAttack + L"side_pigman_atk_side.png";
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT, atkSidePath,
 				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT,
-				pRM->BuildResourcePath(base, L"Attack", L"side_pigman_atk_side.png"),
+			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT, atkSidePath,
 				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 
 			// HIT / DEATH
-			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN,
-				pRM->BuildResourcePath(base, L"Hit", L"Hit_pigman_hit.png"),
+			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN, base + L"Hit\\Hit_pigman_hit.png",
 				120, 150, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN,
-				pRM->BuildResourcePath(base, L"Death", L"Death_pigman_death.png"),
+			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN, base + L"Death\\Death_pigman_death.png",
 				150, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
 		}
 

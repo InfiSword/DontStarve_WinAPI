@@ -2,11 +2,11 @@
 #include "EditorPalette.h"
 #include "../02_EditorResourceManager/EditorResourceManager.h"
 
-void EditorPalette::InitPalette(int clientWidth, int clientHeight, const EditorResourceManager* pResources) {
+void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourceManager* pResources) {
 	m_pResources = pResources;
 	if (!m_pResources) return;
 
-	int paletteWidth = 140;
+	int paletteWidth = 80;
 	int paletteHeight = clientHeight;
 
 	m_paletteRect = {
@@ -32,9 +32,15 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, const EditorR
 			Gdiplus::Bitmap* iconBitmap = nullptr;
 			Gdiplus::RectF iconSrcRect(0, 0, 0, 0);
 			if (!sampleVariant.imageName.empty()) {
-				std::wstring fullPath = ResourcePathUtils::BuildResourcePath(sampleVariant.baseDir, sampleVariant.imageName);
-				iconBitmap = BitmapUtils::LoadBitmapFromFile(fullPath.c_str());
-				if (iconBitmap && iconBitmap->GetLastStatus() == Gdiplus::Ok) {
+				// 캐시된 비트맵 로드
+				std::wstring fullPath = sampleVariant.baseDir;
+				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+					fullPath += L"\\";
+				}
+				fullPath += sampleVariant.imageName;
+				std::shared_ptr<Gdiplus::Bitmap> sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
+				if (sharedBitmap) {
+					iconBitmap = sharedBitmap.get();
 					iconSrcRect = Gdiplus::RectF(0, 0, (float)iconBitmap->GetWidth(), (float)iconBitmap->GetHeight());
 				}
 			}
@@ -46,7 +52,7 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, const EditorR
 
 	for (int i = 0; i < GOBJ_COUNT; ++i) {
 		GameObjectType type = (GameObjectType)i;
-		if (type == GOBJ_NONE || type == GOBJ_COUNT) continue;
+		if (type == GOBJ_NONE || type == GOBJ_COUNT || type == GOBJ_PLAYER) continue;
 
 		auto type_map_it = m_pResources->GetObjectVariants().find(type);
 		if (type_map_it != m_pResources->GetObjectVariants().end() && !type_map_it->second.empty()) {
@@ -54,9 +60,15 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, const EditorR
 			Gdiplus::Bitmap* iconBitmap = nullptr;
 			Gdiplus::RectF iconSrcRect(0, 0, 0, 0);
 			if (!sampleVariant.imageName.empty()) {
-				std::wstring fullPath = ResourcePathUtils::BuildResourcePath(sampleVariant.baseDir, sampleVariant.imageName);
-				iconBitmap = BitmapUtils::LoadBitmapFromFile(fullPath.c_str());
-				if (iconBitmap && iconBitmap->GetLastStatus() == Gdiplus::Ok) {
+				// 캐시된 비트맵 로드
+				std::wstring fullPath = sampleVariant.baseDir;
+				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+					fullPath += L"\\";
+				}
+				fullPath += sampleVariant.imageName;
+				std::shared_ptr<Gdiplus::Bitmap> sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
+				if (sharedBitmap) {
+					iconBitmap = sharedBitmap.get();
 					iconSrcRect = Gdiplus::RectF(0, 0, (float)iconBitmap->GetWidth(), (float)iconBitmap->GetHeight());
 				}
 			}
@@ -132,22 +144,33 @@ void EditorPalette::DrawSubPalette(Gdiplus::Graphics* pGraphics) const {
 		if (m_subPalette.category == CATEGORY_TILE) {
 			const ResourcePathUtils::TileResourceDef* tv = m_subPalette.currentTileVariantDefs[i].second;
 			if (tv && !tv->imageName.empty()) {
-				std::wstring fullPath = ResourcePathUtils::BuildResourcePath(tv->baseDir, tv->imageName);
-				itemBitmap = BitmapUtils::LoadBitmapFromFile(fullPath.c_str());
+				std::wstring fullPath = tv->baseDir;
+				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+					fullPath += L"\\";
+				}
+				fullPath += tv->imageName;
+				itemBitmap = Gdiplus::Bitmap::FromFile(fullPath.c_str());
 				if (itemBitmap && itemBitmap->GetLastStatus() == Gdiplus::Ok) {
 					itemSourceRect = Gdiplus::RectF(0, 0, (float)itemBitmap->GetWidth(), (float)itemBitmap->GetHeight());
-					itemName = EnumUtils::GetEnumName(tv->id);
+					itemName = EnumTables::GetEnumName(tv->id);
+				} else {
+					if (itemBitmap) delete itemBitmap;
+					itemBitmap = nullptr;
 				}
 			}
 		}
 		else if (m_subPalette.category == CATEGORY_OBJECT) {
 			const ResourcePathUtils::ObjectResourceDef* ov = m_subPalette.currentObjectVariantDefs[i].second;
 			if (ov && !ov->imageName.empty()) {
-				std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
-				itemBitmap = BitmapUtils::LoadBitmapFromFile(fullPath.c_str());
+				std::wstring fullPath = ov->baseDir;
+				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+					fullPath += L"\\";
+				}
+				fullPath += ov->imageName;
+				itemBitmap = Gdiplus::Bitmap::FromFile(fullPath.c_str());
 				if (itemBitmap && itemBitmap->GetLastStatus() == Gdiplus::Ok) {
 					itemSourceRect = Gdiplus::RectF(0, 0, (float)itemBitmap->GetWidth(), (float)itemBitmap->GetHeight());
-					itemName = EnumUtils::GetEnumName(ov->id);
+					itemName = EnumTables::GetEnumName(ov->id);
 				}
 			}
 		}
@@ -210,9 +233,8 @@ EditorPalette::SubPaletteClickResult EditorPalette::HandleSubPaletteClick(POINT 
 		return SubPaletteClickResult::NotHandled; // in rect but not on item
 	}
 
+	// 팔레트 밖(맵) 클릭 시 서브팔레트만 닫고, 선택은 유지 → 같은 클릭으로 배치 가능
 	m_subPalette.isOpen = false;
-	m_subPalette.selectedTileVariantIndex = -1;
-	m_subPalette.selectedObjectVariantIndex = -1;
 	return SubPaletteClickResult::ClosedOutside;
 }
 

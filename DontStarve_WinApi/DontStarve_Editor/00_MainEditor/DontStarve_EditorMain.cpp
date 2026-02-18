@@ -1,8 +1,9 @@
-#include "../pch.h" 
+#include "../pch.h"
 #include "DontStarve_EditorMain.h"
+#include "../Resource.h"
 #include "../01_EditorView/EditorView.h"
 #include "../02_EditorResourceManager/EditorResourceManager.h"
-#include "../03_EditorMapFileIO/EditorMapFileIO.h"
+#include "../03_EditorMapFileIO/EditorMap.h"
 #include "../04_EditorPalette/EditorPalette.h"
 #include "../05_EditorPivotEditor/EditorPivotEditor.h"
 #include "../06_EditorColliderEditor/EditorColliderEditor.h"
@@ -28,7 +29,8 @@ DontStarve_EditorMain::DontStarve_EditorMain()
 	m_objectsDirty(true),
 	m_selectedObjectPtr(nullptr),
 	m_paletteLayerBitmap(nullptr), m_paletteLayerDirty(true),
-	m_hasPlayerSpawn(false), m_playerSpawnPoint(0.0f, 0.0f), m_isPlayerSpawnMode(false)
+	m_hasPlayerSpawn(false), m_playerSpawnPoint(0.0f, 0.0f), m_isPlayerSpawnMode(false),
+	m_mapWidth(MAP_WIDTH), m_mapHeight(MAP_HEIGHT)
 {
 	// m_tileMap 초기화 (ResourcePathUtils::TileResourceDef의 기본 생성자 호출)
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -75,21 +77,38 @@ void DontStarve_EditorMain::Initialize() {
 	m_pLayerComposer->ResizeLayerBitmaps(INIT_LAYER_SIZE, INIT_LAYER_SIZE);
 	InitPalette();
 
+	// 팔레트 레이어 비트맵 생성 (InitPalette 이후에 Rect 확정됨, 크기가 유효할 때만)
+	const RECT& pr = m_pPalette->GetPaletteRect();
+	int paletteW = pr.right - pr.left;
+	int paletteH = pr.bottom - pr.top;
+	if (paletteW > 0 && paletteH > 0) {
+		m_paletteLayerBitmap = new Gdiplus::Bitmap(paletteW, paletteH, PixelFormat32bppARGB);
+	}
+
+	// 디버그 패널 의존성 설정 (DrawDebugInfo에서 사용)
+	m_pDebugPanel->SetDependencies(m_pView.get(), m_pPalette.get(), m_pPivotEditor.get(), m_pColliderEditor.get(), m_pWalkableEditor.get(), this);
+
 	// 플레이어 스폰 포인트를 맵 중앙으로 초기화
-	float centerX = (MAP_WIDTH / 2.0f) * TILE_SIZE;  // 25 * 128 = 3200px
-	float centerY = (MAP_HEIGHT / 2.0f) * TILE_SIZE; // 25 * 128 = 3200px
+	float centerX = (m_mapWidth / 2.0f) * TILE_SIZE;
+	float centerY = (m_mapHeight / 2.0f) * TILE_SIZE;
 	m_playerSpawnPoint = Gdiplus::PointF(centerX, centerY);
 	m_hasPlayerSpawn = true;
 
 	std::wstringstream debugSS;
 	debugSS << L"Initial Player Spawn set to map center: (" << (int)centerX << L", " << (int)centerY
-		<< L")px = Tile(" << (MAP_WIDTH / 2) << L", " << (MAP_HEIGHT / 2) << L")\n";
+		<< L")px = Tile(" << (m_mapWidth / 2) << L", " << (m_mapHeight / 2) << L")\n";
 	OutputDebugStringW(debugSS.str().c_str());
 
 	m_pLayerComposer->ComposeGridLayer();
 	m_pLayerComposer->ComposeTileLayer();
 	m_pLayerComposer->ComposeObjectLayer();
 	m_pPalette->ComposePaletteLayer(m_paletteLayerBitmap, &m_paletteLayerDirty);
+}
+
+void DontStarve_EditorMain::InitPalette() {
+	RECT clientRect;
+	GetClientRect(g_hWnd, &clientRect);
+	m_pPalette->InitPalette(clientRect.right, clientRect.bottom, m_pResources.get());
 }
 
 void DontStarve_EditorMain::Update()
@@ -239,17 +258,31 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 
 		// 카메라 드래그 모드 (우클릭 드래그) - 단순화된 로직
 		if (m_isDraggingCamera) {
-			// 시작점 기준으로 직접 계산 (단순하고 직관적)
+			RECT clientRect;
+			GetClientRect(hWnd, &clientRect);
 			int deltaX = m_rawMousePos.x - m_cameraDragStart.x;
 			int deltaY = m_rawMousePos.y - m_cameraDragStart.y;
 
-			// 맵 오프셋 업데이트 (드래그 방향과 반대로 이동)
-			m_pView->SetMapOffset(m_initialMapOffset.x + deltaX, m_initialMapOffset.y + deltaY);
+			// 맵 오프셋 업데이트 (드래그 방향과 반대로 이동, 맵 범위 내로 클램프)
+			POINT oldOffset = m_pView->GetMapOffset();
+			m_pView->SetMapOffsetClamped(
+				m_initialMapOffset.x + deltaX, m_initialMapOffset.y + deltaY,
+				clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
+			POINT newOffset = m_pView->GetMapOffset();
+			
+			// 디버그: 오프셋 변화 출력
+			std::wstringstream debugSS;
+			debugSS << L"[DRAG MOVE] Delta(" << deltaX << L"," << deltaY 
+					<< L") Old(" << oldOffset.x << L"," << oldOffset.y 
+					<< L") New(" << newOffset.x << L"," << newOffset.y 
+					<< L") MapSize(" << m_mapWidth << L"x" << m_mapHeight << L")\n";
+			OutputDebugStringW(debugSS.str().c_str());
 		
-			// 뷰포트 렌더링에서는 맵 오프셋 변경 시 전체 재그리기 필요
+			// 뷰포트가 변경되었으므로 레이어 다시 그리기 필요
 			m_pLayerComposer->SetGridLayerDirty(true);
 			m_pLayerComposer->SetTileLayerDirty(true);
 			m_pLayerComposer->SetObjectLayerDirty(true);
+			
 			InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
 		}
@@ -275,29 +308,27 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		int selIdx = m_pPalette->GetSelectedPaletteIndex();
 		if (selIdx != -1 && m_isPlacingMode) {
 			const PaletteItem* pItem = m_pPalette->GetPaletteItem((size_t)selIdx);
-			if (!pItem) { /* skip */ }
-			else {
-			const PaletteItem& selectedItem = *pItem;
+			if (pItem) {
+				Gdiplus::PointF oldPreviewPos = m_snappedPreviewPos;
+				Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)m_rawMousePos.x, (float)m_rawMousePos.y));
 
-			Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)m_rawMousePos.x, (float)m_rawMousePos.y));
+				if (pItem->category == CATEGORY_TILE) {
+			// 타일: 그리드에 스냅된 월드 좌표 (좌상단)
+			int snappedMapX = (int)floor(mouseWorldPos.X / TILE_SIZE);
+			int snappedMapY = (int)floor(mouseWorldPos.Y / TILE_SIZE);
+			snappedMapX = max(0, min(m_mapWidth - 1, snappedMapX));
+			snappedMapY = max(0, min(m_mapHeight - 1, snappedMapY));
+			m_snappedPreviewPos = Gdiplus::PointF((float)(snappedMapX * TILE_SIZE), (float)(snappedMapY * TILE_SIZE));
+				}
+				else if (pItem->category == CATEGORY_OBJECT) {
+					// 오브젝트: 마우스 위치 그대로 (발 밑 중심)
+					m_snappedPreviewPos = mouseWorldPos;
+				}
 
-			if (selectedItem.category == CATEGORY_TILE) {
-				// 타일: 그리드에 스냅된 월드 좌표 (좌상단)
-				int snappedMapX = (int)floor(mouseWorldPos.X / TILE_SIZE);
-				int snappedMapY = (int)floor(mouseWorldPos.Y / TILE_SIZE);
-
-				// 맵 경계 체크
-				snappedMapX = max(0, min(MAP_WIDTH - 1, snappedMapX));
-				snappedMapY = max(0, min(MAP_HEIGHT - 1, snappedMapY));
-
-				m_snappedPreviewPos.X = (float)(snappedMapX * TILE_SIZE);
-				m_snappedPreviewPos.Y = (float)(snappedMapY * TILE_SIZE);
-			}
-			else if (selectedItem.category == CATEGORY_OBJECT) {
-				// 오브젝트: 마우스 위치 그대로 (발 밑 중심)
-				m_snappedPreviewPos.X = mouseWorldPos.X;
-				m_snappedPreviewPos.Y = mouseWorldPos.Y;
-			}
+				// 프리뷰 위치가 변경되었을 때만 화면 갱신
+				if (oldPreviewPos.X != m_snappedPreviewPos.X || oldPreviewPos.Y != m_snappedPreviewPos.Y) {
+					InvalidateRect(hWnd, NULL, FALSE);
+				}
 			}
 		}
 	}
@@ -310,30 +341,46 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		int mouseY = HIWORD(lParam);
 		POINT clickPoint = { mouseX, mouseY };
 
+		// 디버그 패널 위 클릭 시 맵/팔레트 처리하지 않음 (드래그·배치·선택 무시)
+		if (IsPointInDebugPanel(clickPoint)) {
+			return 0;
+		}
+
+		// 배치 모드일 때 맵 영역 클릭은 최우선 처리 (다른 편집 모드가 클릭을 가로채지 않도록)
+		const RECT& paletteRectFirst = m_pPalette->GetPaletteRect();
+		bool clickOnPaletteFirst = PtInRect(&paletteRectFirst, clickPoint) != FALSE;
+		
+		if (m_isPlacingMode && !clickOnPaletteFirst) {
+			HandlePlacingModeClick(clickPoint, hWnd);
+			return 0;
+		}
+
 		if (m_pWalkableEditor->IsWalkableEditMode()) {
 			m_pWalkableEditor->OnLeftButtonDown(clickPoint, hWnd);
 			InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
 		}
 
-		// 2. Player Spawn Mode
+		// 2. Player Spawn Mode (우클릭이 눌려 있으면 스폰 설정하지 않음 - 우클릭 드래그와 겹침 방지)
 		if (m_isPlayerSpawnMode) {
+			if (GetKeyState(VK_RBUTTON) & 0x8000) {
+				return 0;  // 우클릭 드래그 중에는 좌클릭으로 스폰 갱신하지 않음
+			}
 			Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)clickPoint.x, (float)clickPoint.y));
 
-			// Define.h 값들을 사용한 맵 경계 체크
-			const float TOTAL_MAP_WIDTH = (float)(MAP_WIDTH * TILE_SIZE);   // 50 * 128 = 6400px
-			const float TOTAL_MAP_HEIGHT = (float)(MAP_HEIGHT * TILE_SIZE); // 50 * 128 = 6400px
+			// 현재 맵 크기 기준 경계 체크
+			const float maxX = (float)(m_mapWidth * TILE_SIZE);
+			const float maxY = (float)(m_mapHeight * TILE_SIZE);
+			const bool isInBounds = (mouseWorldPos.X >= 0 && mouseWorldPos.X <= maxX &&
+									 mouseWorldPos.Y >= 0 && mouseWorldPos.Y <= maxY);
 
-			if (mouseWorldPos.X >= 0 && mouseWorldPos.X <= TOTAL_MAP_WIDTH &&
-				mouseWorldPos.Y >= 0 && mouseWorldPos.Y <= TOTAL_MAP_HEIGHT) {
-
+			if (isInBounds) {
 				m_playerSpawnPoint = mouseWorldPos;
 				m_hasPlayerSpawn = true;
 
-				// 타일 좌표로도 표시
+				// 디버그 로그
 				int tileX = (int)(mouseWorldPos.X / TILE_SIZE);
 				int tileY = (int)(mouseWorldPos.Y / TILE_SIZE);
-
 				std::wstringstream debugSS;
 				debugSS << L"Player Spawn Set: (" << (int)m_playerSpawnPoint.X << L", " << (int)m_playerSpawnPoint.Y
 					<< L")px = Tile(" << tileX << L", " << tileY << L")\n";
@@ -344,7 +391,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			else {
 				std::wstringstream debugSS;
 				debugSS << L"Player spawn point must be within map boundaries! "
-					<< L"Valid range: (0,0) to (" << (int)TOTAL_MAP_WIDTH << L"," << (int)TOTAL_MAP_HEIGHT << L")\n";
+					<< L"Valid range: (0,0) to (" << (int)maxX << L"," << (int)maxY << L")\n";
 				OutputDebugStringW(debugSS.str().c_str());
 			}
 			return 0;
@@ -371,30 +418,46 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		if (subResult != EditorPalette::SubPaletteClickResult::NotHandled) {
 			if (subResult == EditorPalette::SubPaletteClickResult::ClosedWithSelection) {
 				m_isPlacingMode = true;
+				m_paletteLayerDirty = true;
+				InvalidateRect(hWnd, NULL, FALSE);
+				return 0;
 			}
-			else {
-				m_isPlacingMode = false;
-				m_pColliderEditor->EndColliderEdit();
-				m_selectedObjectPtr = nullptr;
+			else {  // ClosedOutside
+				// 팔레트 밖(맵) 클릭 → 선택 유지된 채 서브팔레트만 닫힘
+				bool hasSelection = (m_pPalette->GetSelectedPaletteIndex() >= 0 &&
+					(m_pPalette->GetSelectedTileVariant() != nullptr || m_pPalette->GetSelectedObjectVariant() != nullptr));
+				
+				m_isPlacingMode = hasSelection;
+				m_paletteLayerDirty = true;
+				InvalidateRect(hWnd, NULL, FALSE);
+				
+				if (!hasSelection) {
+					m_pColliderEditor->EndColliderEdit();
+					m_selectedObjectPtr = nullptr;
+					return 0;
+				}
+				// hasSelection이면 return하지 않고 아래로 진행하여 이번 클릭으로 배치 수행
 			}
-			m_paletteLayerDirty = true;
-			InvalidateRect(hWnd, NULL, FALSE);
-			return 0;
 		}
 
-		// 4. Main Palette Click Handling
-		if (m_pPalette->HandleMainPaletteClick(clickPoint, clientRect.bottom)) {
-			m_isPlacingMode = false;
-			m_paletteLayerDirty = true;
-			InvalidateRect(hWnd, NULL, FALSE);
-			return 0;
+		// 4. Main Palette Click Handling (클릭이 팔레트 영역일 때만 처리)
+		const RECT& paletteRect = m_pPalette->GetPaletteRect();
+		bool clickOnPaletteArea = PtInRect(&paletteRect, clickPoint) != FALSE;
+		if (clickOnPaletteArea) {
+			if (m_pPalette->HandleMainPaletteClick(clickPoint, clientRect.bottom)) {
+				m_isPlacingMode = false;
+				m_paletteLayerDirty = true;
+				InvalidateRect(hWnd, NULL, FALSE);
+				return 0;
+			}
 		}
 
 		// 5. Map Click Handling (Placing Mode or Object Selection)
-		if (m_isPlacingMode) {
+		// 배치 모드이고 맵 영역(팔레트 밖) 클릭일 때만 배치 수행 → 팔레트 영역 판정과 무관하게 배치가 확실히 동작
+		if (m_isPlacingMode && !clickOnPaletteArea) {
 			HandlePlacingModeClick(clickPoint, hWnd);
 		}
-		else {
+		else if (!m_isPlacingMode) {
 			HandleObjectSelectionClick(clickPoint, hWnd);
 		}
 	}
@@ -406,8 +469,15 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		int mouseY = HIWORD(lParam);
 		POINT clickPoint = { mouseX, mouseY };
 
+		// 디버그 패널 위 클릭 시 카메라 드래그/오브젝트 선택 시작하지 않음
+		if (IsPointInDebugPanel(clickPoint)) {
+			OutputDebugStringW(L"[DRAG BLOCKED] Debug panel area\n");
+			return 0;
+		}
+
 		// 1. 하위 팔레트가 열려 있으면 닫기
 		if (m_pPalette->IsSubPaletteOpen()) {
+			OutputDebugStringW(L"[DRAG BLOCKED] Closing sub-palette\n");
 			m_pPalette->CloseSubPalette();
 			m_isPlacingMode = false;
 			m_paletteLayerDirty = true;
@@ -417,6 +487,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 
 		// 2. 배치 모드 중이면 배치 모드 해제
 		if (m_isPlacingMode) {
+			OutputDebugStringW(L"[DRAG BLOCKED] Exiting placing mode\n");
 			m_isPlacingMode = false;
 			m_pPalette->ResetSelection();
 			m_paletteLayerDirty = true;
@@ -434,8 +505,13 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			
 			// 디버그 정보 출력
 			std::wstringstream debugSS;
-			debugSS << L"Camera drag started at (" << clickPoint.x << L", " << clickPoint.y << L")\n";
+			debugSS << L"[DRAG START] Pos(" << clickPoint.x << L"," << clickPoint.y 
+					<< L") InitOffset(" << m_initialMapOffset.x << L"," << m_initialMapOffset.y 
+					<< L") Zoom(" << (int)(m_pView->GetZoomFactor() * 100) << L"%)\n";
 			OutputDebugStringW(debugSS.str().c_str());
+		}
+		else {
+			OutputDebugStringW(L"[DRAG BLOCKED] Palette area\n");
 		}
 	}
 	break;
@@ -494,12 +570,16 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		POINT mouseClientPos = mouseScreenPos;
 		ScreenToClient(hWnd, &mouseClientPos);
 
-		// 디버그 info 뷰포트 위에 마우스가 있으면 스크롤 (줌 대신)
+		// 디버그 패널 뷰포트 위에 마우스가 있을 때만 패널 스크롤 (그 외에는 줌)
 		if (m_pDebugPanel->IsVisible()) {
 			int mx = mouseClientPos.x;
 			int my = mouseClientPos.y;
-			m_pDebugPanel->HandleMouseWheel(zDelta, mx, my);
-			if (m_pDebugPanel->GetViewportRect().Width > 0 && m_pDebugPanel->GetViewportRect().Height > 0) {
+			Gdiplus::RectF vr = m_pDebugPanel->GetViewportRect();
+			if (vr.Width > 0 && vr.Height > 0 &&
+				(float)mx >= vr.X && (float)mx < vr.X + vr.Width &&
+				(float)my >= vr.Y && (float)my < vr.Y + vr.Height) {
+				OutputDebugStringW(L"[ZOOM BLOCKED] Debug panel scroll\n");
+				m_pDebugPanel->HandleMouseWheel(zDelta, mx, my);
 				InvalidateRect(hWnd, NULL, FALSE);
 				return 0;
 			}
@@ -518,14 +598,25 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 
 		float newZoomFactor = m_pView->GetZoomFactor();
 
+		// 디버그: 줌 변화 출력
+		std::wstringstream zoomDebugSS;
+		zoomDebugSS << L"[ZOOM] " << (zDelta > 0 ? L"IN" : L"OUT") 
+					<< L" Old:" << (int)(oldZoomFactor * 100) << L"% -> New:" << (int)(newZoomFactor * 100) << L"%\n";
+		OutputDebugStringW(zoomDebugSS.str().c_str());
+
 		// 줌 팩터가 실제로 변경되었을 때만 처리
 		if (newZoomFactor != oldZoomFactor) {
 			// 변경된 줌 팩터로 마우스 위치에 해당하는 새로운 화면 좌표를 계산
 			Gdiplus::PointF mouseScreenPos_after_zoom = WorldToScreen(mouseWorldPos_before_zoom);
 
-			// 새로운 맵 오프셋 계산 (마우스가 클릭한 월드 지점이 화면상에서 같은 위치에 유지되도록)
+			// 새로운 맵 오프셋 계산 (마우스가 클릭한 월드 지점이 화면상에서 같은 위치에 유지되도록, 맵 범위 내로 클램프)
+			RECT clientRect;
+			GetClientRect(hWnd, &clientRect);
 			POINT mo = m_pView->GetMapOffset();
-			m_pView->SetMapOffset(mo.x + (LONG)(mouseScreenPos.x - mouseScreenPos_after_zoom.X), mo.y + (LONG)(mouseScreenPos.y - mouseScreenPos_after_zoom.Y));
+			m_pView->SetMapOffsetClamped(
+				mo.x + (LONG)(mouseScreenPos.x - mouseScreenPos_after_zoom.X),
+				mo.y + (LONG)(mouseScreenPos.y - mouseScreenPos_after_zoom.Y),
+				clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
 
 			// 줌 변경 시 모든 레이어 재그리기 (화면에서 크기가 변하므로)
 			m_pLayerComposer->SetGridLayerDirty(true);
@@ -544,53 +635,60 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 	{
 		if (wParam == VK_ESCAPE) {
 			// 우선순위: 서브팔레트 > 콜라이더 편집 > 피벗 편집 > 플레이어 스폰 > 워커블 편집 > 오브젝트 선택 해제
+			bool needsRedraw = false;
+
 			if (m_pPalette->IsSubPaletteOpen()) {
 				m_pPalette->CloseSubPalette();
 				m_isPlacingMode = false;
 				m_paletteLayerDirty = true;
-				InvalidateRect(hWnd, NULL, FALSE);
-				return 0;
+				needsRedraw = true;
 			}
-			if (m_pColliderEditor->IsColliderEditMode()) {
+			else if (m_pColliderEditor->IsColliderEditMode()) {
 				m_pColliderEditor->EndColliderEdit();
 				m_pLayerComposer->SetObjectLayerDirty(true);
-				InvalidateRect(hWnd, NULL, FALSE);
-				return 0;
+				needsRedraw = true;
 			}
-			if (m_pPivotEditor->IsPivotEditMode()) {
+			else if (m_pPivotEditor->IsPivotEditMode()) {
 				m_pPivotEditor->EndPivotEdit();
 				m_pLayerComposer->SetObjectLayerDirty(true);
-				InvalidateRect(hWnd, NULL, FALSE);
-				return 0;
+				needsRedraw = true;
 			}
-			if (m_isPlayerSpawnMode) {
+			else if (m_isPlayerSpawnMode) {
 				m_isPlayerSpawnMode = false;
-				InvalidateRect(hWnd, NULL, FALSE);
-				return 0;
+				needsRedraw = true;
 			}
-			if (m_pWalkableEditor->IsWalkableEditMode()) {
+			else if (m_pWalkableEditor->IsWalkableEditMode()) {
 				m_pWalkableEditor->EndWalkableEdit();
-				InvalidateRect(hWnd, NULL, FALSE);
-				return 0;
+				needsRedraw = true;
 			}
-			DeselectObject(hWnd);
+			else {
+				DeselectObject(hWnd);
+			}
+
+			if (needsRedraw) {
+				InvalidateRect(hWnd, NULL, FALSE);
+			}
 			return 0;
 		}
 
 		// Shift key for 3x3 mode toggle (only for tiles in placing mode)
-		int sp = m_pPalette->GetSelectedPaletteIndex();
-		const PaletteItem* pi = (sp >= 0) ? m_pPalette->GetPaletteItem((size_t)sp) : nullptr;
-		if (wParam == VK_SHIFT && sp != -1 && m_isPlacingMode && pi && pi->category == CATEGORY_TILE) {
-			m_is3x3Mode = !m_is3x3Mode;
-			InvalidateRect(hWnd, NULL, FALSE);
-			return 0;
+		if (wParam == VK_SHIFT && m_isPlacingMode) {
+			int sp = m_pPalette->GetSelectedPaletteIndex();
+			const PaletteItem* pi = (sp >= 0) ? m_pPalette->GetPaletteItem((size_t)sp) : nullptr;
+			if (pi && pi->category == CATEGORY_TILE) {
+				m_is3x3Mode = !m_is3x3Mode;
+				InvalidateRect(hWnd, NULL, FALSE);
+				return 0;
+			}
 		}
 
-		// P key for Player Spawn mode toggle
-		if (wParam == 'P') {
-			m_isPlayerSpawnMode = !m_isPlayerSpawnMode;
+		// P key for Player Spawn mode toggle (피벗 편집 중일 때는 아래에서 P = 피벗 다이얼로그로 처리)
+		if (wParam == 'P' && !m_pPivotEditor->IsPivotEditMode()) {
 			if (m_isPlayerSpawnMode) {
-				ExitAllEditModes();
+				m_isPlayerSpawnMode = false;
+			} else {
+				ExitAllEditModes();  // 다른 편집 모드 해제 (이 안에서 m_isPlayerSpawnMode=false 됨)
+				m_isPlayerSpawnMode = true;
 			}
 			InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
@@ -606,7 +704,7 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		// V key for Pivot Edit mode toggle
 		if (wParam == 'V') {
 			if (!m_selectedObjectPtr) {
-				MessageBox(hWnd, L"오브젝트를 먼저 선택해주세요.", L"피벗 편집", MB_OK | MB_ICONINFORMATION);
+				MessageBoxW(hWnd, L"오브젝트를 먼저 선택해주세요.", L"피벗 편집", MB_OK | MB_ICONINFORMATION);
 				return 0;
 			}
 			if (!m_pPivotEditor->IsPivotEditMode()) {
@@ -621,10 +719,18 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			return 0;
 		}
 
+		// P key: 피벗 값 입력 다이얼로그 (피벗 편집 모드일 때만)
+		if (wParam == 'P' && m_pPivotEditor->IsPivotEditMode()) {
+			m_pPivotEditor->ShowPivotDialog(hWnd);
+			m_pLayerComposer->SetObjectLayerDirty(true);
+			InvalidateRect(hWnd, NULL, FALSE);
+			return 0;
+		}
+
 		// C key for Collider Edit mode toggle
 		if (wParam == 'C') {
 			if (!m_selectedObjectPtr) {
-				MessageBox(hWnd, L"오브젝트를 먼저 선택해주세요.", L"콜라이더 편집", MB_OK | MB_ICONINFORMATION);
+				MessageBoxW(hWnd, L"오브젝트를 먼저 선택해주세요.", L"콜라이더 편집", MB_OK | MB_ICONINFORMATION);
 				return 0;
 			}
 			if (!m_pColliderEditor->IsColliderEditMode()) {
@@ -635,6 +741,14 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 			else {
 				m_pColliderEditor->EndColliderEdit();
 			}
+			InvalidateRect(hWnd, NULL, FALSE);
+			return 0;
+		}
+
+		// I key: 콜라이더 값 입력 다이얼로그 (콜라이더 편집 모드일 때만)
+		if ((wParam == 'I' || wParam == 'i') && m_pColliderEditor->IsColliderEditMode()) {
+			m_pColliderEditor->ShowColliderDialog(hWnd);
+			m_pLayerComposer->SetObjectLayerDirty(true);
 			InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
 		}
@@ -665,10 +779,10 @@ LRESULT DontStarve_EditorMain::HandleMessage(HWND hWnd, UINT message, WPARAM wPa
 		// R key for Delete selected object
 		if (wParam == 'R') {
 			if (!m_selectedObjectPtr) {
-				MessageBox(hWnd, L"삭제할 오브젝트를 먼저 선택해주세요.", L"오브젝트 삭제", MB_OK | MB_ICONINFORMATION);
+				MessageBoxW(hWnd, L"삭제할 오브젝트를 먼저 선택해주세요.", L"오브젝트 삭제", MB_OK | MB_ICONINFORMATION);
 				return 0;
 			}
-			if (MessageBox(hWnd, L"선택된 오브젝트를 삭제하시겠습니까?", L"오브젝트 삭제", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+			if (MessageBoxW(hWnd, L"선택된 오브젝트를 삭제하시겠습니까?", L"오브젝트 삭제", MB_YESNO | MB_ICONQUESTION) == IDYES) {
 				if (m_pPivotEditor->GetEditingObject() == m_selectedObjectPtr) {
 					m_pPivotEditor->EndPivotEdit();
 				}
@@ -746,8 +860,8 @@ void DontStarve_EditorMain::NewMap() {
 	m_isDraggingCamera = false;
 	m_pPalette->ResetSelection();
 	ReleaseCapture();
-	float centerX = (MAP_WIDTH / 2.0f) * TILE_SIZE;
-	float centerY = (MAP_HEIGHT / 2.0f) * TILE_SIZE;
+	float centerX = (m_mapWidth / 2.0f) * TILE_SIZE;
+	float centerY = (m_mapHeight / 2.0f) * TILE_SIZE;
 	m_playerSpawnPoint = Gdiplus::PointF(centerX, centerY);
 	m_hasPlayerSpawn = true;
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -756,7 +870,9 @@ void DontStarve_EditorMain::NewMap() {
 		}
 	}
 	m_pView->SetZoomFactor(1.0f);
-	m_pView->SetMapOffset(0, 0);
+	RECT clientRect;
+	GetClientRect(g_hWnd, &clientRect);
+	m_pView->SetMapOffsetClamped(0, 0, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
 	m_pLayerComposer->SetTileLayerDirty(true);
 	m_pLayerComposer->SetObjectLayerDirty(true);
 	m_objectsDirty = true;
@@ -764,31 +880,67 @@ void DontStarve_EditorMain::NewMap() {
 	m_pLayerComposer->SetGridLayerDirty(true);
 }
 
-// Map save/load functions (delegate to EditorMapFileIO)
+void DontStarve_EditorMain::SetMapSize(int width, int height) {
+	int w = max(1, min(MAP_WIDTH, width));
+	int h = max(1, min(MAP_HEIGHT, height));
+	if (w == m_mapWidth && h == m_mapHeight) return;
+	m_mapWidth = w;
+	m_mapHeight = h;
+	// 맵 크기 변경 시 NewMap과 동일하게 초기화
+	m_gameObjects.clear();
+	m_selectedObjectPtr = nullptr;
+	m_isPlacingMode = false;
+	m_pPivotEditor->EndPivotEdit();
+	m_pColliderEditor->EndColliderEdit();
+	m_pWalkableEditor->EndWalkableEdit();
+	m_isPlayerSpawnMode = false;
+	m_pPalette->ResetSelection();
+	float centerX = (m_mapWidth / 2.0f) * TILE_SIZE;
+	float centerY = (m_mapHeight / 2.0f) * TILE_SIZE;
+	m_playerSpawnPoint = Gdiplus::PointF(centerX, centerY);
+	m_hasPlayerSpawn = true;
+	for (int y = 0; y < MAP_HEIGHT; ++y) {
+		for (int x = 0; x < MAP_WIDTH; ++x) {
+			m_tileMap[y][x] = ResourcePathUtils::TileResourceDef();
+			m_walkableAreaMap[y][x] = true;
+		}
+	}
+	m_pView->SetZoomFactor(1.0f);
+	RECT clientRect;
+	GetClientRect(g_hWnd, &clientRect);
+	m_pView->SetMapOffsetClamped(0, 0, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
+	m_pLayerComposer->SetTileLayerDirty(true);
+	m_pLayerComposer->SetObjectLayerDirty(true);
+	m_objectsDirty = true;
+	m_paletteLayerDirty = true;
+	m_pLayerComposer->SetGridLayerDirty(true);
+}
+
+// Map save/load functions (delegate to EditorMap)
 bool DontStarve_EditorMain::SaveMap(const WCHAR* filename) {
-	return EditorMapFileIO::SaveMap(this, filename);
+	return EditorMap::SaveMap(this, filename);
 }
 
 bool DontStarve_EditorMain::LoadMap(const WCHAR* filename) {
-	return EditorMapFileIO::LoadMap(this, filename);
+	return EditorMap::LoadMap(this, filename);
 }
 
 bool DontStarve_EditorMain::ShowSaveFileDialog(WCHAR* fileName, DWORD fileNameSize) {
-	return EditorMapFileIO::ShowSaveFileDialog(this, fileName, fileNameSize);
+	return EditorMap::ShowSaveFileDialog(this, fileName, fileNameSize);
 }
 
 bool DontStarve_EditorMain::ShowOpenFileDialog(WCHAR* fileName, DWORD fileNameSize) {
-	return EditorMapFileIO::ShowOpenFileDialog(this, fileName, fileNameSize);
+	return EditorMap::ShowOpenFileDialog(this, fileName, fileNameSize);
 }
 
 // DrawGrid, DrawTileMap, DrawObjects, ComposeTileLayer, ComposeObjectLayer moved to EditorLayerComposer
 
 // DrawPreview (배치 프리뷰 그리기 - 투명하고 그리드 크기에 맞춤)
 void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
-	if (!pGraphics || m_pPalette->GetSelectedPaletteIndex() == -1 || !m_isPlacingMode) return;
+	if (!pGraphics || !m_isPlacingMode) return;
 
 	int selIdx = m_pPalette->GetSelectedPaletteIndex();
-	const PaletteItem* pSelectedItem = m_pPalette->GetPaletteItem((size_t)selIdx);
+	const PaletteItem* pSelectedItem = (selIdx >= 0) ? m_pPalette->GetPaletteItem((size_t)selIdx) : nullptr;
 	if (!pSelectedItem) return;
 	const PaletteItem& selectedItem = *pSelectedItem;
 	Gdiplus::Bitmap* previewBitmap = nullptr;
@@ -797,9 +949,14 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 	if (selectedItem.category == CATEGORY_TILE) {
 		const ResourcePathUtils::TileResourceDef* tv = m_pPalette->GetSelectedTileVariant();
 		if (tv && !tv->imageName.empty()) {
-			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(tv->baseDir, tv->imageName);
-			previewBitmap = BitmapUtils::LoadBitmapFromFile(fullPath.c_str());
-			if (previewBitmap && previewBitmap->GetLastStatus() == Gdiplus::Ok) {
+			std::wstring fullPath = tv->baseDir;
+			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+				fullPath += L"\\";
+			}
+			fullPath += tv->imageName;
+			std::shared_ptr<Gdiplus::Bitmap> sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
+			if (sharedBitmap) {
+				previewBitmap = sharedBitmap.get();
 				previewSourceRect = Gdiplus::RectF(0, 0, (float)previewBitmap->GetWidth(), (float)previewBitmap->GetHeight());
 			}
 		}
@@ -807,128 +964,126 @@ void DontStarve_EditorMain::DrawPreview(Gdiplus::Graphics* pGraphics) {
 	else if (selectedItem.category == CATEGORY_OBJECT) {
 		const ResourcePathUtils::ObjectResourceDef* ov = m_pPalette->GetSelectedObjectVariant();
 		if (ov && !ov->imageName.empty()) {
-			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
-			previewBitmap = BitmapUtils::LoadBitmapFromFile(fullPath.c_str());
-			if (previewBitmap && previewBitmap->GetLastStatus() == Gdiplus::Ok) {
+			std::wstring fullPath = ov->baseDir;
+			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+				fullPath += L"\\";
+			}
+			fullPath += ov->imageName;
+			std::shared_ptr<Gdiplus::Bitmap> sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
+			if (sharedBitmap) {
+				previewBitmap = sharedBitmap.get();
 				previewSourceRect = Gdiplus::RectF(0, 0, (float)previewBitmap->GetWidth(), (float)previewBitmap->GetHeight());
 			}
 		}
 	}
 
-	if (previewBitmap && previewBitmap->GetLastStatus() == Gdiplus::Ok) {
-		// 투명도 설정을 위한 ColorMatrix
-		Gdiplus::ColorMatrix colorMatrix = {
-			1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // Red
-			0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  // Green  
-			0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // Blue
-			0.0f, 0.0f, 0.0f, 0.6f, 0.0f,  // Alpha (60% 투명도)
-			0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Scale
-		};
+	if (!previewBitmap) return;
 
-		Gdiplus::ImageAttributes imageAttr;
-		imageAttr.SetColorMatrix(&colorMatrix);
+	// 투명도 설정을 위한 ColorMatrix
+	Gdiplus::ColorMatrix colorMatrix = {
+		1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // Red
+		0.0f, 1.0f, 0.0f, 0.0f, 0.0f,  // Green  
+		0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // Blue
+		0.0f, 0.0f, 0.0f, 0.6f, 0.0f,  // Alpha (60% 투명도)
+		0.0f, 0.0f, 0.0f, 0.0f, 1.0f   // Scale
+	};
 
-		Gdiplus::PointF screenPreviewPos = WorldToScreen(m_snappedPreviewPos);
-		float finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight;
+	Gdiplus::ImageAttributes imageAttr;
+	imageAttr.SetColorMatrix(&colorMatrix);
 
-		if (selectedItem.category == CATEGORY_TILE) {
-			// 타일: 월드 좌표계에서 TILE_SIZE 크기, 화면 변환 적용
-			finalRenderWidth = (float)TILE_SIZE * m_pView->GetZoomFactor();
-			finalRenderHeight = (float)TILE_SIZE * m_pView->GetZoomFactor();
-			finalRenderX = screenPreviewPos.X;
-			finalRenderY = screenPreviewPos.Y;
+	Gdiplus::PointF screenPreviewPos = WorldToScreen(m_snappedPreviewPos);
+	float finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight;
 
-			// 타일 프리뷰 배경 (그리드 영역 표시)
-			Gdiplus::Pen previewGridPen(Gdiplus::Color(150, 255, 255, 0), 2.0f);
-			Gdiplus::RectF previewGridRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
-			pGraphics->DrawRectangle(&previewGridPen, previewGridRect);
+	if (selectedItem.category == CATEGORY_TILE) {
+		// 타일: 월드 좌표계에서 TILE_SIZE 크기, 화면 변환 적용
+		finalRenderWidth = (float)TILE_SIZE * m_pView->GetZoomFactor();
+		finalRenderHeight = (float)TILE_SIZE * m_pView->GetZoomFactor();
+		finalRenderX = screenPreviewPos.X;
+		finalRenderY = screenPreviewPos.Y;
 
-			// 3x3 모드일 때 추가 그리드 표시
-			if (m_is3x3Mode) {
-				Gdiplus::Pen gridPen3x3(Gdiplus::Color(100, 255, 255, 0), 1.5f);
-				float tileSize = (float)TILE_SIZE * m_pView->GetZoomFactor();
+		// 타일 프리뷰 배경 (그리드 영역 표시)
+		Gdiplus::Pen previewGridPen(Gdiplus::Color(150, 255, 255, 0), 2.0f);
+		Gdiplus::RectF previewGridRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
+		pGraphics->DrawRectangle(&previewGridPen, previewGridRect);
 
-				for (int dy = -1; dy <= 1; ++dy) {
-					for (int dx = -1; dx <= 1; ++dx) {
-						// 3x3 그리드의 월드 좌표 계산
-						float worldGridX = m_snappedPreviewPos.X + (dx * TILE_SIZE);
-						float worldGridY = m_snappedPreviewPos.Y + (dy * TILE_SIZE);
-						Gdiplus::PointF screenGridPos = WorldToScreen(Gdiplus::PointF(worldGridX, worldGridY));
+		// 3x3 모드일 때 추가 그리드 표시
+		if (m_is3x3Mode) {
+			Gdiplus::Pen gridPen3x3(Gdiplus::Color(100, 255, 255, 0), 1.5f);
+			float tileSize = (float)TILE_SIZE * m_pView->GetZoomFactor();
 
-						Gdiplus::RectF gridRect(screenGridPos.X, screenGridPos.Y, tileSize, tileSize);
-						pGraphics->DrawRectangle(&gridPen3x3, gridRect);
-					}
+			for (int dy = -1; dy <= 1; ++dy) {
+				for (int dx = -1; dx <= 1; ++dx) {
+					// 3x3 그리드의 월드 좌표 계산
+					float worldGridX = m_snappedPreviewPos.X + (dx * TILE_SIZE);
+					float worldGridY = m_snappedPreviewPos.Y + (dy * TILE_SIZE);
+					Gdiplus::PointF screenGridPos = WorldToScreen(Gdiplus::PointF(worldGridX, worldGridY));
+
+					Gdiplus::RectF gridRect(screenGridPos.X, screenGridPos.Y, tileSize, tileSize);
+					pGraphics->DrawRectangle(&gridPen3x3, gridRect);
 				}
 			}
 		}
-		else if (selectedItem.category == CATEGORY_OBJECT) {
-			// 오브젝트: 원본 크기 유지
-			const ResourcePathUtils::ObjectResourceDef* ov_preview = m_pPalette->GetSelectedObjectVariant();
-			if (ov_preview && previewBitmap) {
-				finalRenderWidth = previewSourceRect.Width * m_pView->GetZoomFactor();
-				finalRenderHeight = previewSourceRect.Height * m_pView->GetZoomFactor();
-				finalRenderX = screenPreviewPos.X - (ov_preview->pivotX * finalRenderWidth);
-				finalRenderY = screenPreviewPos.Y - (ov_preview->pivotY * finalRenderHeight);
-
-				// 오브젝트 프리뷰 배경 (바운딩 박스 표시)
-				Gdiplus::Pen previewBBoxPen(Gdiplus::Color(150, 0, 255, 255), 1.5f);
-				Gdiplus::RectF previewBBoxRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
-				pGraphics->DrawRectangle(&previewBBoxPen, previewBBoxRect);
-
-				// 피벗 포인트 표시
-				float pivotScreenX = screenPreviewPos.X;
-				float pivotScreenY = screenPreviewPos.Y;
-				Gdiplus::SolidBrush pivotBrush(Gdiplus::Color(200, 255, 0, 0));
-				Gdiplus::RectF pivotRect(pivotScreenX - 3.0f, pivotScreenY - 3.0f, 6.0f, 6.0f);
-				pGraphics->FillEllipse(&pivotBrush, pivotRect);
-			}
-			else {
-				return; // ObjectVariant가 없으면 그리지 않음
-			}
-		}
-
-		// 투명 프리뷰 이미지 그리기
-		if (previewBitmap && previewBitmap->GetLastStatus() == Gdiplus::Ok) {
-			Gdiplus::RectF destRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
-			pGraphics->DrawImage(previewBitmap, destRect,
-				0, 0, previewSourceRect.Width, previewSourceRect.Height,
-				Gdiplus::UnitPixel, &imageAttr);
-		}
-
-		// 프리뷰 정보 텍스트 (마우스 근처에 표시)
-		Gdiplus::Font infoFont(L"Arial", 14);
-		Gdiplus::SolidBrush infoBrush(Gdiplus::Color(255, 255, 255, 255));
-		Gdiplus::SolidBrush infoBackBrush(Gdiplus::Color(150, 0, 0, 0));
-
-		std::wstringstream infoSS;
-		if (selectedItem.category == CATEGORY_TILE) {
-			float screenTileSize = (float)TILE_SIZE * m_pView->GetZoomFactor();
-			infoSS << L"Tile Preview: " << (int)screenTileSize << L"px (World: " << TILE_SIZE << L"px)";
-			if (m_is3x3Mode) infoSS << L" [3x3 Mode]";
-		}
-		else {
-			float screenWidth = previewSourceRect.Width * m_pView->GetZoomFactor();
-			float screenHeight = previewSourceRect.Height * m_pView->GetZoomFactor();
-			infoSS << L"Object Preview: " << (int)screenWidth << L"x" << (int)screenHeight
-				<< L"px (World: " << (int)previewSourceRect.Width << L"x" << (int)previewSourceRect.Height << L"px)";
-		}
-
-		std::wstring infoText = infoSS.str();
-		Gdiplus::RectF infoRect(finalRenderX, finalRenderY - 30, 260, 50);
-
-		// 화면 경계 체크 (텍스트가 화면 밖으로 나가지 않도록)
-		RECT clientRect;
-		GetClientRect(g_hWnd, &clientRect);
-		if (infoRect.Y < 0) {
-			infoRect.Y = finalRenderY + finalRenderHeight + 5; // 아래로 이동
-		}
-		if (infoRect.X + infoRect.Width > clientRect.right) {
-			infoRect.X = clientRect.right - infoRect.Width - 10; // 왼쪽으로 이동
-		}
-
-		pGraphics->FillRectangle(&infoBackBrush, infoRect);
-		pGraphics->DrawString(infoText.c_str(), -1, &infoFont, infoRect, nullptr, &infoBrush);
 	}
+	else if (selectedItem.category == CATEGORY_OBJECT) {
+		// 오브젝트: 원본 크기 유지
+		const ResourcePathUtils::ObjectResourceDef* ov_preview = m_pPalette->GetSelectedObjectVariant();
+		if (!ov_preview) return;
+
+		finalRenderWidth = previewSourceRect.Width * m_pView->GetZoomFactor();
+		finalRenderHeight = previewSourceRect.Height * m_pView->GetZoomFactor();
+		finalRenderX = screenPreviewPos.X - (ov_preview->pivotX * finalRenderWidth);
+		finalRenderY = screenPreviewPos.Y - (ov_preview->pivotY * finalRenderHeight);
+
+		// 오브젝트 프리뷰 배경 (바운딩 박스 표시)
+		Gdiplus::Pen previewBBoxPen(Gdiplus::Color(150, 0, 255, 255), 1.5f);
+		Gdiplus::RectF previewBBoxRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
+		pGraphics->DrawRectangle(&previewBBoxPen, previewBBoxRect);
+
+		// 피벗 포인트 표시
+		Gdiplus::SolidBrush pivotBrush(Gdiplus::Color(200, 255, 0, 0));
+		Gdiplus::RectF pivotRect(screenPreviewPos.X - 3.0f, screenPreviewPos.Y - 3.0f, 6.0f, 6.0f);
+		pGraphics->FillEllipse(&pivotBrush, pivotRect);
+	}
+
+	// 투명 프리뷰 이미지 그리기
+	Gdiplus::RectF destRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
+	pGraphics->DrawImage(previewBitmap, destRect,
+		0, 0, previewSourceRect.Width, previewSourceRect.Height,
+		Gdiplus::UnitPixel, &imageAttr);
+
+	// 프리뷰 정보 텍스트 (마우스 근처에 표시)
+	Gdiplus::Font infoFont(L"Arial", 14);
+	Gdiplus::SolidBrush infoBrush(Gdiplus::Color(255, 255, 255, 255));
+	Gdiplus::SolidBrush infoBackBrush(Gdiplus::Color(150, 0, 0, 0));
+
+	std::wstringstream infoSS;
+	if (selectedItem.category == CATEGORY_TILE) {
+		float screenTileSize = (float)TILE_SIZE * m_pView->GetZoomFactor();
+		infoSS << L"Tile Preview: " << (int)screenTileSize << L"px (World: " << TILE_SIZE << L"px)";
+		if (m_is3x3Mode) infoSS << L" [3x3 Mode]";
+	}
+	else {
+		float screenWidth = previewSourceRect.Width * m_pView->GetZoomFactor();
+		float screenHeight = previewSourceRect.Height * m_pView->GetZoomFactor();
+		infoSS << L"Object Preview: " << (int)screenWidth << L"x" << (int)screenHeight
+			<< L"px (World: " << (int)previewSourceRect.Width << L"x" << (int)previewSourceRect.Height << L"px)";
+	}
+
+	std::wstring infoText = infoSS.str();
+	Gdiplus::RectF infoRect(finalRenderX, finalRenderY - 30, 260, 50);
+
+	// 화면 경계 체크 (텍스트가 화면 밖으로 나가지 않도록)
+	RECT clientRect;
+	GetClientRect(g_hWnd, &clientRect);
+	if (infoRect.Y < 0) {
+		infoRect.Y = finalRenderY + finalRenderHeight + 5;
+	}
+	if (infoRect.X + infoRect.Width > clientRect.right) {
+		infoRect.X = clientRect.right - infoRect.Width - 10;
+	}
+
+	pGraphics->FillRectangle(&infoBackBrush, infoRect);
+	pGraphics->DrawString(infoText.c_str(), -1, &infoFont, infoRect, nullptr, &infoBrush);
 }
 
 // 디버그 정보 그리기
@@ -1004,28 +1159,33 @@ void DontStarve_EditorMain::DrawPlayerSpawn(Gdiplus::Graphics* pGraphics) {
 		pGraphics->DrawString(modeText.c_str(), -1, &font, textRect, nullptr, &textBrush);
 	}
 
-	// 플레이어 스폰 포인트가 설정되어 있으면 그리기
+	// 플레이어 스폰 포인트 그리기 (항상 표시)
 	if (m_hasPlayerSpawn) {
 		Gdiplus::PointF screenPos = WorldToScreen(m_playerSpawnPoint);
 		float iconRadius = 16.0f;
 
-		Gdiplus::SolidBrush spawnBrush(Gdiplus::Color(200, 0, 255, 0));
-		Gdiplus::Pen spawnPen(Gdiplus::Color(255, 255, 255, 255), 3.0f);
+		// P 모드가 아닐 때는 반투명하게 표시하여 편집 불가능함을 시각적으로 표현
+		int fillAlpha = m_isPlayerSpawnMode ? 200 : 100;
+		int textAlpha = m_isPlayerSpawnMode ? 255 : 150;
+		float penWidth = m_isPlayerSpawnMode ? 3.0f : 1.5f;
+
+		Gdiplus::SolidBrush spawnBrush(Gdiplus::Color(fillAlpha, 0, 255, 0));
+		Gdiplus::Pen spawnPen(Gdiplus::Color(textAlpha, 255, 255, 255), penWidth);
 
 		pGraphics->FillEllipse(&spawnBrush, screenPos.X - iconRadius, screenPos.Y - iconRadius, iconRadius * 2.0f, iconRadius * 2.0f);
 		pGraphics->DrawEllipse(&spawnPen, screenPos.X - iconRadius, screenPos.Y - iconRadius, iconRadius * 2.0f, iconRadius * 2.0f);
 
 		// 플레이어 심볼 (P 문자)
-		if (m_isPlayerSpawnMode) {
-			Gdiplus::Font playerFont(L"Arial", 12, Gdiplus::FontStyleBold);
-			Gdiplus::SolidBrush playerTextBrush(Gdiplus::Color(255, 255, 255, 255));
-			Gdiplus::RectF playerTextRect(screenPos.X - 8, screenPos.Y - 8, 16, 16);
-			Gdiplus::StringFormat centerFormat;
-			centerFormat.SetAlignment(Gdiplus::StringAlignmentCenter);
-			centerFormat.SetLineAlignment(Gdiplus::StringAlignmentCenter);
-			pGraphics->DrawString(L"P", 1, &playerFont, playerTextRect, &centerFormat, &playerTextBrush);
+		Gdiplus::Font playerFont(L"Arial", 12, Gdiplus::FontStyleBold);
+		Gdiplus::SolidBrush playerTextBrush(Gdiplus::Color(textAlpha, 255, 255, 255));
+		Gdiplus::RectF playerTextRect(screenPos.X - 8, screenPos.Y - 8, 16, 16);
+		Gdiplus::StringFormat centerFormat;
+		centerFormat.SetAlignment(Gdiplus::StringAlignmentCenter);
+		centerFormat.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+		pGraphics->DrawString(L"P", 1, &playerFont, playerTextRect, &centerFormat, &playerTextBrush);
 
-			// 좌표 정보 표시
+		// 좌표 정보 표시 (P 모드일 때만)
+		if (m_isPlayerSpawnMode) {
 			Gdiplus::Font coordFont(L"Arial", 10);
 			Gdiplus::SolidBrush coordBrush(Gdiplus::Color(255, 255, 255, 255));
 			std::wstringstream coordSS;
@@ -1056,48 +1216,54 @@ Gdiplus::PointF DontStarve_EditorMain::ScreenToWorld(Gdiplus::PointF screenPos) 
 }
 
 // HandleMessage 헬퍼 함수들
+
+bool DontStarve_EditorMain::IsPointInDebugPanel(POINT clickPoint) const {
+	if (!m_pDebugPanel->IsVisible()) return false;
+	
+	Gdiplus::RectF r = m_pDebugPanel->GetViewportRect();
+	return (r.Width > 0 && r.Height > 0 &&
+		(float)clickPoint.x >= r.X && (float)clickPoint.x < r.X + r.Width &&
+		(float)clickPoint.y >= r.Y && (float)clickPoint.y < r.Y + r.Height);
+}
+
 void DontStarve_EditorMain::HandlePlacingModeClick(POINT clickPoint, HWND hWnd) {
 	int selIdx = m_pPalette->GetSelectedPaletteIndex();
 	const PaletteItem* pSelectedItem = (selIdx >= 0) ? m_pPalette->GetPaletteItem((size_t)selIdx) : nullptr;
 	if (!pSelectedItem) return;
 
 	const PaletteItem& selectedItem = *pSelectedItem;
+	// 클릭 위치를 월드 좌표로 사용(팔레트 선택 직후 맵 클릭 시 m_snappedPreviewPos가 갱신되지 않으므로)
+	Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)clickPoint.x, (float)clickPoint.y));
 
-		if (selectedItem.category == CATEGORY_TILE) {
+	if (selectedItem.category == CATEGORY_TILE) {
 		const ResourcePathUtils::TileResourceDef* tv = m_pPalette->GetSelectedTileVariant();
-		if (!tv) {
-			OutputDebugStringW(L"Error: TileResourceDef is NULL for selected palette tile.\n");
-			return;
-		}
+		if (!tv) return;
 
-		int mapX = (int)floor(m_snappedPreviewPos.X / TILE_SIZE);
-		int mapY = (int)floor(m_snappedPreviewPos.Y / TILE_SIZE);
+		int mapX = (int)floor(mouseWorldPos.X / TILE_SIZE);
+		int mapY = (int)floor(mouseWorldPos.Y / TILE_SIZE);
+		mapX = max(0, min(m_mapWidth - 1, mapX));
+		mapY = max(0, min(m_mapHeight - 1, mapY));
 
 		if (m_is3x3Mode) {
 			for (int dy = -1; dy <= 1; ++dy) {
 				for (int dx = -1; dx <= 1; ++dx) {
 					int targetX = mapX + dx;
 					int targetY = mapY + dy;
-					if (targetX >= 0 && targetX < MAP_WIDTH && targetY >= 0 && targetY < MAP_HEIGHT) {
+					if (targetX >= 0 && targetX < m_mapWidth && targetY >= 0 && targetY < m_mapHeight) {
 						m_tileMap[targetY][targetX] = ResourcePathUtils::TileResourceDef(tv->type, tv->id, tv->baseDir, tv->imageName);
 					}
 				}
 			}
 		}
 		else {
-			if (mapX >= 0 && mapX < MAP_WIDTH && mapY >= 0 && mapY < MAP_HEIGHT) {
-				m_tileMap[mapY][mapX] = ResourcePathUtils::TileResourceDef(tv->type, tv->id, tv->baseDir, tv->imageName);
-			}
+			m_tileMap[mapY][mapX] = ResourcePathUtils::TileResourceDef(tv->type, tv->id, tv->baseDir, tv->imageName);
 		}
 		m_pLayerComposer->SetTileLayerDirty(true);
 		InvalidateRect(hWnd, NULL, FALSE);
-	}
-	else if (selectedItem.category == CATEGORY_OBJECT) {
+		UpdateWindow(hWnd); // 즉시 갱신
+	} else if (selectedItem.category == CATEGORY_OBJECT) {
 		const ResourcePathUtils::ObjectResourceDef* ov = m_pPalette->GetSelectedObjectVariant();
-		if (!ov) {
-			OutputDebugStringW(L"Error: ObjectResourceDef is NULL for selected palette object.\n");
-			return;
-		}
+		if (!ov) return;
 
 		GameObjectID selectedObjectID = m_pPalette->GetSelectedGameObjectID();
 
@@ -1141,12 +1307,12 @@ void DontStarve_EditorMain::HandlePlacingModeClick(POINT clickPoint, HWND hWnd) 
 				colliderRadius = sameTypeTemplate->colliderRadius;
 			}
 			else {
-				// 이미지 크기 기반 기본값 (절대경로에서 로드)
+				// 이미지 크기 기반 기본값 (캐시된 비트맵에서 로드)
 				int imageWidth = 32, imageHeight = 32; // 기본값
 				if (!ov->imageName.empty()) {
 					std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
-					std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
-					if (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) {
+					std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
+					if (pBitmap) {
 						imageWidth = pBitmap->GetWidth();
 						imageHeight = pBitmap->GetHeight();
 					}
@@ -1163,13 +1329,14 @@ void DontStarve_EditorMain::HandlePlacingModeClick(POINT clickPoint, HWND hWnd) 
 		}
 
 		ResourcePathUtils::ObjectResourceDef newObject((GameObjectType)selectedItem.typeId, selectedObjectID,
-			m_snappedPreviewPos.X, m_snappedPreviewPos.Y,
+			mouseWorldPos.X, mouseWorldPos.Y,
 			ov->baseDir, ov->imageName, ov->pivotX, ov->pivotY,
 			hasCollider, colliderType,
 			colliderOffsetX, colliderOffsetY, colliderWidth, colliderHeight,
 			colliderCenterX, colliderCenterY, colliderRadius);
 		AddObject(newObject);
 		InvalidateRect(hWnd, NULL, FALSE);
+		UpdateWindow(hWnd); // 즉시 갱신
 	}
 }
 
@@ -1181,9 +1348,16 @@ void DontStarve_EditorMain::HandleObjectSelectionClick(POINT clickPoint, HWND hW
 		const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(obj.type, obj.id);
 		if (!ov || ov->imageName.empty()) continue;
 
-		// 이미지 크기 로드
-		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
-		std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
+		// 이미지 파일에서 로드 (아틀라스 미사용)
+		std::wstring fullPath = ov->baseDir;
+		if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+			fullPath += L"\\";
+		}
+		fullPath += ov->imageName;
+		std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
+		if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
+			if (pBitmap) pBitmap.reset();
+		}
 		if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) continue;
 
 		float objWidthWorld = (float)pBitmap->GetWidth();
@@ -1194,14 +1368,14 @@ void DontStarve_EditorMain::HandleObjectSelectionClick(POINT clickPoint, HWND hW
 		Gdiplus::RectF objWorldRect(objRenderLeftWorld, objRenderTopWorld, objWidthWorld, objHeightWorld);
 
 		if (objWorldRect.Contains(mouseWorldClickPos.X, mouseWorldClickPos.Y)) {
-			// Pixel perfect click check
+			// Pixel perfect click check (이미지 파일에서 픽셀 로드)
 			int pixelX = (int)(mouseWorldClickPos.X - objRenderLeftWorld);
 			int pixelY = (int)(mouseWorldClickPos.Y - objRenderTopWorld);
 
 			Gdiplus::Color color;
-			if (ov->pAtlasBitmap && pixelX >= 0 && pixelY >= 0 &&
-				pixelX < (int)ov->pAtlasBitmap->GetWidth() && pixelY < (int)ov->pAtlasBitmap->GetHeight()) {
-				ov->pAtlasBitmap->GetPixel(pixelX, pixelY, &color);
+			if (pBitmap && pixelX >= 0 && pixelY >= 0 &&
+				pixelX < (int)pBitmap->GetWidth() && pixelY < (int)pBitmap->GetHeight()) {
+				pBitmap->GetPixel(pixelX, pixelY, &color);
 				if (color.GetAlpha() > 0) {
 					m_selectedObjectPtr = &obj;
 					m_pLayerComposer->SetObjectLayerDirty(true);
@@ -1235,4 +1409,8 @@ void DontStarve_EditorMain::ExitAllEditModes() {
 		m_pPalette->CloseSubPalette();
 		m_paletteLayerDirty = true;
 	}
+}
+
+void DontStarve_EditorMain::ShowMapSizeDialog(HWND parent) {
+	EditorMap::ShowMapSizeDialog(this, parent);
 }

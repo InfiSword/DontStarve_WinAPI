@@ -3,6 +3,7 @@
 
 class GameObject;
 class Player;
+class CraftingUI;
 
 class GameScene : public BaseScene
 {
@@ -19,36 +20,26 @@ public:
 
 	virtual SceneType GetSceneType() const override { return SCENE_GAME_FARMING_AREA; }
 	
-	// 맵 데이터 초기화
-	void Init(const MapData& mapData);
+	// 맵 데이터 초기화 (SceneManager가 소유한 MapData 포인터만 받음)
+	void Init(const MapData* mapData);
 
 	// 플레이어 생성 함수 (public으로 노출)
 	void SpawnPlayer();
 	
-	// 씬 클리어 관련 함수
-	void ClearScene(SceneType sceneType);
-	bool IsSceneCleared(SceneType sceneType) const;
-	bool CheckSceneClearCondition(SceneType sceneType) const; 
-	const GameProgress& GetGameProgress() const { return m_gameProgress; }
-	
 	// 선택된 캐릭터 ID 설정
 	void SetSelectedCharacterID(GameObjectID characterID) { m_selectedCharacterID = characterID; }
 	GameObjectID GetSelectedCharacterID() const { return m_selectedCharacterID; }
-	
-	// 게임 진행 정보 저장/로드
-	void SaveGameProgress();
-	void LoadGameProgress();
 
 private:
 	void CreateGameObjectsFromMapData();
 	
 private:
-	// 맵 데이터
-	MapData m_mapData;
-	
-	// 게임 진행 정보
-	GameProgress m_gameProgress;
+	// 맵 데이터 (SceneManager가 소유, GameScene은 포인터로만 참조)
+	const MapData* m_mapData;
 	
 	// 선택된 캐릭터 ID
 	GameObjectID m_selectedCharacterID;
+
+	// 크래프팅 UI
+	CraftingUI* m_craftingUI;
 };

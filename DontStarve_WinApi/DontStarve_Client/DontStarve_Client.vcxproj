@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="01_Manager\AnimationManager\AnimationManager.h" />
+    <ClInclude Include="01_Manager\GameProgressManager\GameProgressManager.h" />
     <ClInclude Include="01_Manager\InventoryManager\InventoryManager.h" />
     <ClInclude Include="01_Manager\ResourceManager\ResourceManager.h" />
     <ClInclude Include="01_Manager\SceneManager\BaseScene.h" />
@@ -168,6 +169,7 @@
     <ClInclude Include="02_GameObject\Item\Tool\Axe\Axe.h" />
     <ClInclude Include="02_GameObject\Item\Tool\Tool.h" />
     <ClInclude Include="02_GameObject\Object.h" />
+    <ClInclude Include="02_GameObject\UI\CraftingUI.h" />
     <ClInclude Include="02_GameObject\UI\UIElement.h" />
     <ClInclude Include="02_GameObject\UI\UIImage.h" />
     <ClInclude Include="02_GameObject\UI\UIButton.h" />
@@ -206,6 +208,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="01_Manager\UIManager\UIManager.cpp" />
+    <ClCompile Include="01_Manager\GameProgressManager\GameProgressManager.cpp" />
     <ClCompile Include="01_Manager\InventoryManager\InventoryManager.cpp" />
     <ClCompile Include="01_Manager\ResourceManager\ResourceManager.cpp" />
     <ClCompile Include="01_Manager\SceneManager\CharacterSelectScene.cpp" />
@@ -231,6 +234,7 @@
     <ClCompile Include="02_GameObject\Item\Tool\Axe\Axe.cpp" />
     <ClCompile Include="02_GameObject\Item\Tool\Tool.cpp" />
     <ClCompile Include="02_GameObject\Object.cpp" />
+    <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
     <ClCompile Include="02_GameObject\UI\UIElement.cpp" />
     <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
     <ClCompile Include="02_GameObject\UI\UIButton.cpp" />
