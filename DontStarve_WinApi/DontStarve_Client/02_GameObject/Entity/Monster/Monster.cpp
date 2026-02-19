@@ -88,9 +88,9 @@ void Monster::Release()
 //    return spriteSheet->GetBitmap();
 //}
 
-void Monster::OnInteraction(GameObject* obj)
+bool Monster::OnInteraction(GameObject* obj)
 {
-	// 기본 상호작용
+	return Entity::OnInteraction(obj);
 }
 
 

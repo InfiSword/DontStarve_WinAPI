@@ -24,6 +24,7 @@ public:
     virtual void Release() override;
 
     Gdiplus::Bitmap* GetBitmap() const;
+	ComponentElement::Image* GetImageComponent() { return m_image; }
 	const ComponentElement::Image* GetImageComponent() const { return m_image; }
 	void SetSprite(const std::shared_ptr<Sprite>& sprite);
 	void LoadSprite(const std::wstring& imagePath);

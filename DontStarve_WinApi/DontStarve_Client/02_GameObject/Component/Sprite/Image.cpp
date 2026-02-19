@@ -2,6 +2,7 @@
 #include "Image.h"
 #include "Sprite.h"
 #include "../../GameObject.h"
+#include "../Transform/RectTransform.h"
 
 namespace ComponentElement {
 
@@ -46,6 +47,28 @@ void Image::LoadSprite(const std::wstring& fullPath)
 		OutputDebugStringW(L"Image: LoadSprite 실패 - 비트맵 파일 로드 실패\n");
 		m_sprite.reset();
 	}
+}
+
+void Image::SetDisplaySize(float width, float height) const
+{
+	if (!m_sprite) return;
+	RectTransform* rectTransform = GetOwner() ? GetOwner()->GetComponent<RectTransform>() : nullptr;
+	if (!rectTransform) return;
+	Gdiplus::RectF srcRect = m_sprite->sourceRect;
+	if (srcRect.Width > 0 && srcRect.Height > 0) {
+		rectTransform->SetScale(width / srcRect.Width, height / srcRect.Height);
+	}
+}
+
+void Image::SetDisplaySizeProportional(float maxSize) const
+{
+	if (!m_sprite || maxSize <= 0.0f) return;
+	RectTransform* rectTransform = GetOwner() ? GetOwner()->GetComponent<RectTransform>() : nullptr;
+	if (!rectTransform) return;
+	Gdiplus::RectF srcRect = m_sprite->sourceRect;
+	if (srcRect.Width <= 0 || srcRect.Height <= 0) return;
+	float scale = maxSize / (srcRect.Width >= srcRect.Height ? srcRect.Width : srcRect.Height);
+	rectTransform->SetScale(scale, scale);
 }
 
 }

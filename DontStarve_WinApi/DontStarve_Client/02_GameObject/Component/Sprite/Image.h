@@ -48,5 +48,10 @@ namespace ComponentElement
 		void ApplyStyle(const ImageStyle& style) { m_layer = style.layer; m_sortKey = style.sortKey; }
 
 		void LoadSprite(const std::wstring& fullPath);
+
+		/// 소유 오브젝트의 RectTransform에 목표 표시 크기로 스케일 적용 (스프라이트 sourceRect 기준)
+		void SetDisplaySize(float width, float height) const;
+		/// 원본 비율 유지하며 긴 변이 maxSize가 되도록 스케일 적용
+		void SetDisplaySizeProportional(float maxSize) const;
 	};
 }

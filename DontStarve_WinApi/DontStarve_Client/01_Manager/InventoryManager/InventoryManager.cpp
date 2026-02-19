@@ -19,28 +19,8 @@ void InventoryManager::Init() {
 }
 
 void InventoryManager::LateInit() {}
-void InventoryManager::Update(float deltaTime) {
-	// 인벤토리 마우스 입력 처리
-	Player* player = ObjectManager::GetInstance()->GetPlayer();
-	if (!player) {
-		return;
-	}
-	
-	Inventory* inventory = player->GetInventory();
-	if (!inventory) {
-		return;
-	}
-	
-	InputManager* inputManager = InputManager::GetInstance();
-	if (!inputManager) {
-		return;
-	}
-	
-	// 우클릭 처리 (장비 장착)
-	if (inputManager->IsRButtonClicked()) {
-		POINT mousePos = inputManager->GetMousePos();
-		inventory->HandleRightClick(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y), player);
-	}
+void InventoryManager::Update(float deltaTime) 
+{	
 }
 void InventoryManager::LateUpdate() {}
 void InventoryManager::Render() {
@@ -179,21 +159,20 @@ bool InventoryManager::TryCraftItem(Player* player, GameObjectID targetItemID) {
 		return false;
 	}
 	
-	// 재료 소모
+	// 재료 소모 후 제작 아이템 생성 및 인벤토리 추가
 	if (inventory->ConsumeItems(recipe)) {
-		// TODO: ObjectManager에 GetItemDefinition 함수 추가 필요
-		// 임시로 최소 처리
-		/*
-		std::shared_ptr<Item> craftedItem = ObjectManager::GetInstance()->GetItemDefinition(targetItemID);
-		if (craftedItem && inventory->AddItem(craftedItem, 1)) {
-			OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
-			return true;
+		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(targetItemID, 0.0f, 0.0f, nullptr, false);
+		Item* item = dynamic_cast<Item*>(itemObj);
+		if (item) {
+			if (inventory->AddItem(item, 1)) {
+				OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
+				return true;
+			}
+			delete item;
 		}
-		*/
-		OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 실패 - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
-		return true;
+		OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 실패 (인벤토리 추가 실패) - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
+		return false;
 	}
-	
 	return false;
 }
 
@@ -297,8 +276,8 @@ void InventoryManager::LoadCraftingRecipes() {
 		{GOID_ITEM_NORMAL_TREE_LOG, 1}
 	};
 	m_craftingRecipes[GOID_TOOL_SWAP_AXE] = {
-		{GOID_ITEM_NORMAL_TWIGS, 1},
-		{GOID_ITEM_NORMAL_TREE_LOG, 1}
+		{GOID_ITEM_NORMAL_ROCK, 1},
+		{GOID_ITEM_NORMAL_TWIGS, 2}
 	};
 	m_craftingRecipes[GOID_TOOL_SWAP_SPEAR] = {
 		{GOID_ITEM_NORMAL_TWIGS, 1},

@@ -9,12 +9,14 @@
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../Entity/Player/Player.h"
 #include "../Component/Transform/RectTransform.h"
+#include "../Component/Sprite/Image.h"
 
 CraftingUI::CraftingUI()
 	: UIElement(GOBJ_UI, GOID_CRAFT_BAR, L"", L"", true, false),
 	m_craftBar(nullptr),
 	m_craftIcon(nullptr),
 	m_craftButton(nullptr),
+	m_craftButtonText(nullptr),
 	m_isToolListVisible(false),
 	m_selectedToolID(GOID_NONE),
 	// UI 레이아웃 상수 초기화
@@ -30,10 +32,14 @@ CraftingUI::CraftingUI()
 	m_craftButtonWidth(120.0f),
 	m_craftButtonHeight(40.0f),
 	m_craftButtonOffsetFromTop(140.0f),
-	m_ingredientImageSize(32.0f),
-	m_ingredientTextHeight(20.0f),
-	m_ingredientSpacing(50.0f),
-	m_ingredientStartY(0.0f) // 생성자에서 계산
+	m_ingredientImageSize(74.0f),
+	m_ingredientTextHeight(28.0f),
+	m_ingredientSpacing(58.0f),
+	m_ingredientStartY(0.0f),
+	m_ingredientToolGap(24.0f),
+	m_toolPanelBottomY(0.0f),
+	m_ingredientPanelCenterX(0.0f),
+	m_craftButtonY(0.0f)
 {
 	// 제작 가능한 도구 목록 초기화
 	m_availableTools = {
@@ -47,10 +53,16 @@ CraftingUI::CraftingUI()
 		GOID_TOOL_TORCH
 	};
 
-	// 계산된 값들 초기화
+	// 계산된 값들 초기화 (도구 패널 하단 → 재료 행 → 제작 버튼 순, Y 증가 = 화면 아래)
 	m_toolPanelOffsetX = m_craftBarWidth;
 	m_toolButtonStartY = -(m_craftBarHeight * 0.5f);
-	m_ingredientStartY = m_craftBarHeight * 0.5f - 200.0f;
+	int toolRows = (static_cast<int>(m_availableTools.size()) + m_columnsPerRow - 1) / m_columnsPerRow;
+	// 도구 마지막 행의 하단 Y (재료는 이 아래에 배치, 살짝 더 아래로 추가 오프셋 20)
+	m_toolPanelBottomY = m_toolButtonStartY + (toolRows - 1) * (m_toolButtonSize + m_toolButtonSpacing) + m_toolButtonSize * 0.5f;
+	const float extraOffsetDown = 20.0f;
+	m_ingredientStartY = m_toolPanelBottomY + m_ingredientToolGap + m_ingredientImageSize * 0.5f + extraOffsetDown;
+	m_ingredientPanelCenterX = m_toolPanelOffsetX + (m_columnsPerRow * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing) * 0.5f;
+	m_craftButtonY = m_ingredientStartY + m_ingredientImageSize * 0.5f + 28.0f + m_craftButtonHeight * 0.5f;
 }
 
 CraftingUI::~CraftingUI()
@@ -91,6 +103,11 @@ void CraftingUI::Release()
 			uiManager->RemoveUIButton(m_craftButton);
 			delete m_craftButton;
 			m_craftButton = nullptr;
+		}
+		if (m_craftButtonText) {
+			uiManager->RemoveUIText(m_craftButtonText);
+			delete m_craftButtonText;
+			m_craftButtonText = nullptr;
 		}
 		
 		for (auto* button : m_toolButtons) {
@@ -253,6 +270,9 @@ void CraftingUI::CreateToolButtons()
 			SelectTool(toolID);
 		});
 
+		if (const ComponentElement::Image* img = toolButton->GetImageComponent())
+			img->SetDisplaySizeProportional(m_toolButtonSize);
+
 		m_toolButtons.push_back(toolButton);
 		uiManager->AddUIButton(toolButton);
 	}
@@ -264,30 +284,24 @@ void CraftingUI::CreateCraftButton()
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 	if (!uiManager || !resourceManager) return;
 
-	// 크래프팅 버튼 생성 (재료 표시 아래에 배치)
+	// 크래프팅 버튼 생성 (재료 행 아래, 도구 패널 가로 중앙에 배치)
 	std::shared_ptr<Sprite> buttonNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
 	std::shared_ptr<Sprite> buttonHoverSprite = resourceManager->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
 
-	// 크래프팅 버튼을 CraftBar 내부 상단(아이콘 아래쪽)에 세로 레이아웃처럼 배치
 	m_craftButton = new UIButton(
-		static_cast<GameObjectID>(GOID_CRAFT_BAR + 300), // 임시 ID
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 300),
 		m_craftButtonWidth,
 		m_craftButtonHeight,
 		buttonNormalSprite,
 		buttonHoverSprite,
-		0.0f, 0.5f, // anchorMin (왼쪽 중앙 - CraftBar와 동일)
-		0.0f, 0.5f, // anchorMax (왼쪽 중앙)
-		m_craftBarWidth * 0.5f, -(m_craftBarHeight * 0.5f - m_craftButtonOffsetFromTop - m_craftButtonHeight * 0.5f) // CraftBar 내부 상단에서 아래로 offset
+		0.0f, 0.5f,
+		0.0f, 0.5f,
+		m_ingredientPanelCenterX, m_craftButtonY
 	);
 
-	// UIButton 생성자에서 이미 pivot (0.5, 0.5)로 설정됨
-
-	// 초기에는 숨김
 	m_craftButton->SetActive(false);
 
-	// 클릭 콜백 설정
 	m_craftButton->SetOnClickCallback([this]() {
-		// 플레이어 가져오기 (ObjectManager를 통해)
 		ObjectManager* objectManager = ObjectManager::GetInstance();
 		Player* player = objectManager ? objectManager->GetPlayer() : nullptr;
 		if (player) {
@@ -297,12 +311,12 @@ void CraftingUI::CreateCraftButton()
 
 	uiManager->AddUIButton(m_craftButton);
 
-	// 크래프팅 버튼 텍스트 (버튼과 동일한 위치)
-	UIText* craftButtonText = new UIText(
-		static_cast<GameObjectID>(GOID_CRAFT_BAR + 301), // 임시 ID
+	// "제작하기" 버튼 텍스트
+	m_craftButtonText = new UIText(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 301),
 		m_craftButtonWidth,
 		m_craftButtonHeight,
-		L"제작",
+		L"제작하기",
 		Gdiplus::Color::Black,
 		LAYER_UI_FOREGROUND,
 		0.3f,
@@ -310,16 +324,13 @@ void CraftingUI::CreateCraftButton()
 		14.0f,
 		Gdiplus::StringAlignmentCenter,
 		Gdiplus::StringAlignmentCenter,
-		0.0f, 0.5f, // anchorMin
-		0.0f, 0.5f, // anchorMax
-		m_craftBarWidth * 0.5f, -(m_craftBarHeight * 0.5f - m_craftButtonOffsetFromTop - m_craftButtonHeight * 0.5f) // 버튼과 동일한 위치
+		0.0f, 0.5f,
+		0.0f, 0.5f,
+		m_ingredientPanelCenterX, m_craftButtonY
 	);
 
-	// UIText 생성자에서 이미 pivot (0.5, 0.5)로 설정됨
-
-	craftButtonText->SetActive(false);
-	m_ingredientTexts.push_back(craftButtonText); // 임시로 텍스트 리스트에 추가
-	uiManager->AddUIText(craftButtonText);
+	m_craftButtonText->SetActive(false);
+	uiManager->AddUIText(m_craftButtonText);
 }
 
 void CraftingUI::CreateIngredientDisplay()
@@ -327,51 +338,47 @@ void CraftingUI::CreateIngredientDisplay()
 	UIManager* uiManager = UIManager::GetInstance();
 	if (!uiManager) return;
 
-	// 재료 이미지와 텍스트 생성 (최대 2개 재료)
-	// CraftBar 내부에 상대적으로 배치
-	for (int i = 0; i < 2; ++i) {
-		float yPos = m_ingredientStartY - i * m_ingredientSpacing;
-		
-		// 재료 이미지
+	// 재료 이미지와 텍스트 생성 (최대 2개, Tools 영역 아래 가로 배치)
+	const int maxIngredients = 2;
+	for (int i = 0; i < maxIngredients; ++i) {
+		float xPos = m_ingredientPanelCenterX + (i - 0.5f) * (m_ingredientImageSize + m_ingredientSpacing);
+		float yPos = m_ingredientStartY;
+
 		UIImage* ingredientImage = new UIImage(
-			static_cast<GameObjectID>(GOID_CRAFT_BAR + 100 + i), // 임시 ID
+			static_cast<GameObjectID>(GOID_CRAFT_BAR + 100 + i),
 			m_ingredientImageSize,
 			m_ingredientImageSize,
 			LAYER_UI_FOREGROUND,
-			L"",        // 초기에는 빈 경로
+			L"",
 			0.1f,
-			0.0f, 0.5f, // anchorMin (왼쪽 중앙 - CraftBar와 동일)
-			0.0f, 0.5f, // anchorMax (왼쪽 중앙)
-			m_craftBarWidth * 0.5f, yPos // CraftBar 내부 중앙
+			0.0f, 0.5f,
+			0.0f, 0.5f,
+			xPos, yPos
 		);
 
-		// UIImage 생성자에서 이미 pivot (0.5, 0.5)로 설정됨
-
-		ingredientImage->SetActive(false); // 초기에는 숨김
+		ingredientImage->SetActive(false);
 		m_ingredientImages.push_back(ingredientImage);
 		uiManager->AddUIImage(ingredientImage);
 
-		// 재료 설명 텍스트 (이미지 아래에 배치)
+		float textY = yPos + m_ingredientImageSize * 0.5f  + m_ingredientTextHeight * 0.5f -10;
 		UIText* ingredientText = new UIText(
-			static_cast<GameObjectID>(GOID_CRAFT_BAR + 200 + i), // 임시 ID
-			m_craftBarWidth - 20.0f,     // 너비 (CraftBar 너비에 맞춤)
+			static_cast<GameObjectID>(GOID_CRAFT_BAR + 200 + i),
+			180.0f,
 			m_ingredientTextHeight,
-			L"",        // 초기 텍스트
-			Gdiplus::Color::White,
+			L"",
+			Gdiplus::Color(0, 0, 0),
 			LAYER_UI_FOREGROUND,
-			0.2f,
+			0.25f,
 			L"맑은 고딕",
-			12.0f,
+			15.0f,
 			Gdiplus::StringAlignmentCenter,
 			Gdiplus::StringAlignmentCenter,
-			0.0f, 0.5f, // anchorMin
-			0.0f, 0.5f, // anchorMax
-			m_craftBarWidth * 0.5f, yPos + m_ingredientImageSize * 0.5f + m_ingredientTextHeight * 0.5f + 5.0f // 이미지 아래
+			0.0f, 0.5f,
+			0.0f, 0.5f,
+			xPos, textY
 		);
 
-		// UIText 생성자에서 이미 pivot (0.5, 0.5)로 설정됨
-
-		ingredientText->SetActive(false); // 초기에는 숨김
+		ingredientText->SetActive(false);
 		m_ingredientTexts.push_back(ingredientText);
 		uiManager->AddUIText(ingredientText);
 	}
@@ -387,33 +394,43 @@ void CraftingUI::ToggleToolList()
 			button->SetActive(m_isToolListVisible);
 		}
 	}
+	// 닫을 때 선택 해제 및 재료·제작하기 비활성화
+	if (!m_isToolListVisible) {
+		m_selectedToolID = GOID_NONE;
+		UpdateIngredientDisplay();
+	}
 }
 
 void CraftingUI::SelectTool(GameObjectID toolID)
 {
+	// 같은 도구를 다시 클릭하면 선택 해제(재료·제작하기 비활성화)
+	if (toolID == m_selectedToolID) {
+		m_selectedToolID = GOID_NONE;
+		UpdateIngredientDisplay();
+		return;
+	}
 	m_selectedToolID = toolID;
 	UpdateIngredientDisplay();
 	
-	// 크래프팅 버튼 표시
 	if (m_craftButton) {
 		m_craftButton->SetActive(true);
 	}
-	// 크래프팅 버튼 텍스트도 표시 (재료 텍스트 다음에 추가된 버튼 텍스트)
-	if (m_ingredientTexts.size() > 2 && m_ingredientTexts[2]) {
-		m_ingredientTexts[2]->SetActive(true);
+	if (m_craftButtonText) {
+		m_craftButtonText->SetActive(true);
 	}
 }
 
 void CraftingUI::UpdateIngredientDisplay()
 {
 	if (m_selectedToolID == GOID_NONE) {
-		// 재료 표시 숨김
 		for (auto* image : m_ingredientImages) {
 			if (image) image->SetActive(false);
 		}
 		for (auto* text : m_ingredientTexts) {
 			if (text) text->SetActive(false);
 		}
+		if (m_craftButton) m_craftButton->SetActive(false);
+		if (m_craftButtonText) m_craftButtonText->SetActive(false);
 		return;
 	}
 
@@ -433,25 +450,25 @@ void CraftingUI::UpdateIngredientDisplay()
 		GameObjectID ingredientID = static_cast<GameObjectID>(ingredient.first);
 		UINT count = ingredient.second;
 
-		// 재료 이미지 업데이트
+		// 재료 이미지 업데이트 (로드 후 목표 크기로 스케일 적용)
 		if (ingredientIndex < static_cast<int>(m_ingredientImages.size())) {
 			UIImage* image = m_ingredientImages[ingredientIndex];
 			if (image) {
 				std::wstring imagePath = GetIngredientImagePath(ingredientID);
 				if (!imagePath.empty()) {
 					image->LoadSprite(imagePath);
+					if (const ComponentElement::Image* img = image->GetImageComponent())
+						img->SetDisplaySizeProportional(m_ingredientImageSize);
 					image->SetActive(true);
 				}
 			}
 		}
 
-		// 재료 텍스트 업데이트
+		// 재료 텍스트 업데이트 (수량 x 이름)
 		if (ingredientIndex < static_cast<int>(m_ingredientTexts.size())) {
 			UIText* text = m_ingredientTexts[ingredientIndex];
 			if (text) {
-				std::wstring textStr = std::to_wstring(count) + L"x ";
-				// 재료 이름 추가 (임시로 ID 사용)
-				textStr += L"재료 " + std::to_wstring(ingredientID);
+				std::wstring textStr = std::to_wstring(count) + L" x " + GetIngredientDisplayName(ingredientID);
 				text->SetText(textStr);
 				text->SetActive(true);
 			}
@@ -522,4 +539,19 @@ std::wstring CraftingUI::GetIngredientImagePath(GameObjectID ingredientID)
 		}
 	}
 	return L"";
+}
+
+std::wstring CraftingUI::GetIngredientDisplayName(GameObjectID ingredientID)
+{
+	switch (ingredientID) {
+		case GOID_ITEM_NORMAL_TWIGS:       return L"나뭇가지";
+		case GOID_ITEM_NORMAL_TREE_LOG:     return L"통나무";
+		case GOID_ITEM_NORMAL_ROCK:        return L"돌";
+		case GOID_ITEM_GOLD_ROCK:          return L"금";
+		case GOID_ITEM_CUT_NORMAL_GRASS:   return L"풀";
+		case GOID_ITEM_BERRY:             return L"열매";
+		case GOID_ITEM_MEAT:               return L"고기";
+		case GOID_ITEM_ROPE:               return L"밧줄";
+		default:                           return L"재료 " + std::to_wstring(ingredientID);
+	}
 }

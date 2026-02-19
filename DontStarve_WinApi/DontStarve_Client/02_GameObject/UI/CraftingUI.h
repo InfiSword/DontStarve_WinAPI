@@ -17,8 +17,9 @@ private:
 	UIButton* m_craftIcon;                            // 크래프팅 아이콘 버튼 (도구 목록 토글)
 	std::vector<UIButton*> m_toolButtons;             // 도구 버튼들
 	UIButton* m_craftButton;                          // 크래프팅 실행 버튼
+	UIText* m_craftButtonText;                        // "제작하기" 버튼 텍스트
 	std::vector<UIImage*> m_ingredientImages;         // 재료 이미지들
-	std::vector<UIText*> m_ingredientTexts;            // 재료 설명 텍스트들
+	std::vector<UIText*> m_ingredientTexts;           // 재료 설명 텍스트들 (최대 2개)
 	
 	// 상태 관리
 	bool m_isToolListVisible;                        // 도구 목록 표시 여부
@@ -45,6 +46,10 @@ private:
 	float m_ingredientTextHeight;
 	float m_ingredientSpacing;
 	float m_ingredientStartY;
+	float m_ingredientToolGap;                        // 도구 패널과 재료 행 간격
+	float m_toolPanelBottomY;                         // 도구 버튼 영역 하단 Y
+	float m_ingredientPanelCenterX;                   // 재료/도구 패널 가로 중앙 X
+	float m_craftButtonY;                             // 제작 버튼 중심 Y
 
 public:
 	CraftingUI();
@@ -85,4 +90,6 @@ private:
 
 	// 재료 이미지 경로 가져오기
 	std::wstring GetIngredientImagePath(GameObjectID ingredientID);
+	// 재료 표시 이름 가져오기 (수량과 함께 텍스트에 사용)
+	std::wstring GetIngredientDisplayName(GameObjectID ingredientID);
 };

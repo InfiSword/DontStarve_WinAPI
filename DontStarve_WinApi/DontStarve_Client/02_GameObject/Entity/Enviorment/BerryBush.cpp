@@ -39,9 +39,9 @@ void BerryBush::Release()
 	Entity::Release();
 }
 
-void BerryBush::OnInteraction(GameObject* obj)
+bool BerryBush::OnInteraction(GameObject* obj)
 {
-	// 기본 상호작용 사용
+	return Entity::OnInteraction(obj);
 }
 
 

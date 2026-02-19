@@ -35,7 +35,7 @@ public:
 	virtual void Release();
 
 	// 상호작용 관련
-	virtual void OnInteraction(GameObject* obj);
+	virtual bool OnInteraction(GameObject* obj);
 	virtual bool CanInteract() const { return m_isInteractive; }
 
     template <typename T, typename... Args>

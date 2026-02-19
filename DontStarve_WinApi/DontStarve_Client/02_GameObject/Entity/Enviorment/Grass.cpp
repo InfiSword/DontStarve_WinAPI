@@ -42,9 +42,10 @@ void Grass::Release()
 	Entity::Release();
 }
 
-void Grass::OnInteraction(GameObject* obj)
+bool Grass::OnInteraction(GameObject* obj)
 {
-	// 기본 상호작용 처리
+	// 필요하면 나중에 Grass 전용 로직 추가
+	return Entity::OnInteraction(obj);
 }
 
 void Grass::SetDropItem(GameObjectID itemID, int count)

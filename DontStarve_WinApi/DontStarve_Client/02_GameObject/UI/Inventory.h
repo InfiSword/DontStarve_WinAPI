@@ -38,16 +38,21 @@ public:
 	void LoadUIBitmaps();
 	void ReleaseUIBitmaps();
 
-	bool HandleMouseClick(float mouseScreenX, float mouseScreenY, Player* player);
+	/** 화면 좌표가 인벤토리 전체 영역(배경 크기) 안인지 여부. 우클릭 이동 무시용 */
+	bool ContainsScreenPoint(float screenX, float screenY) const;
+	/** 우클릭 처리: 영역 안이면 true(이동 무시), 슬롯 위면 장비 토글 */
 	bool HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player);
 
 private:
 	int FindFirstEmptySlot() const;
 	int FindExistingStack(UINT itemId) const;
+	void HandleSlotClick(int slotIndex, Player* player);
+
 
 	// UI 이미지 캐시
 	Gdiplus::Bitmap* m_inventoryBgBitmap;
 	Gdiplus::Bitmap* m_slotBgBitmap;
+	Gdiplus::RectF m_inventoryBgRect;  // 배경 전체 영역 (클릭 시 이동 무시용)
 	Gdiplus::Font* m_font;
 	Gdiplus::SolidBrush* m_solidBrush;
 	Gdiplus::SolidBrush* m_shadowBrush;

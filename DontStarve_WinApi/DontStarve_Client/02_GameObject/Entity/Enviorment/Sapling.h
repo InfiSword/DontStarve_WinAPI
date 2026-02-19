@@ -15,7 +15,7 @@ public:
     virtual void LateUpdate() override;
     virtual void Release() override;
 
-    virtual void OnInteraction(GameObject* obj) override;
+    virtual bool OnInteraction(GameObject* obj) override;
     virtual void Damaged(int damage) override;
 
     virtual GameObjectID GetDropItemID() const { return m_dropItemID; }

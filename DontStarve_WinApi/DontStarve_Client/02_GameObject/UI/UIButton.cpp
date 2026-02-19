@@ -82,17 +82,15 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 		m_image->SetSprite(m_normalSprite);
 	}
 	
-	// 스프라이트가 있으면 스프라이트 크기에 맞춰 scale 조정
+	// 스프라이트가 있으면 목표 크기(width, height)에 맞춰 스케일·크기 설정 (생성 시에는 그대로 채움)
 	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
 	if (bitmap) {
 		float bitmapWidth = static_cast<float>(bitmap->GetWidth());
 		float bitmapHeight = static_cast<float>(bitmap->GetHeight());
 		if (bitmapWidth > 0 && bitmapHeight > 0) {
-			// 목표 크기(width, height)에 맞추기 위한 스케일 계산
 			float scaleX = width / bitmapWidth;
 			float scaleY = height / bitmapHeight;
 			rectTransform->SetScale(scaleX, scaleY);
-			// 스프라이트 원본 크기로 width/height 업데이트
 			rectTransform->SetSize(bitmapWidth, bitmapHeight);
 		}
 	}

@@ -14,7 +14,7 @@ public:
 	virtual void Update(float deltaTime) override; 
 	virtual void LateUpdate() override;
 	virtual void Release() override;
-	virtual void OnInteraction(GameObject* obj) override;
+	virtual bool OnInteraction(GameObject* obj) override;
 
 private:
 };

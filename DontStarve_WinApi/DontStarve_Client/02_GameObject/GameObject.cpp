@@ -74,11 +74,13 @@ void GameObject::Release()
 		}
 	}
 	m_components.clear();
-	m_components.shrink_to_fit(); // 벡터 capacity도 해제
+	m_components.shrink_to_fit(); 
 }
 
-void GameObject::OnInteraction(GameObject* obj)
+bool GameObject::OnInteraction(GameObject* obj)
 {
-	if (!obj || !IsEnabled() || !CanInteract()) return;
-	// 파생 클래스에서 오버라이드하여 구체적인 상호작용 로직 구현
+	if (!obj || !IsEnabled() || !CanInteract()) 
+		return false;
+	
+	return true;
 }

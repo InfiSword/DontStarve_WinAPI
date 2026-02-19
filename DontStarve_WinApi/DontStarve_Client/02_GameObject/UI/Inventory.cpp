@@ -5,6 +5,7 @@
 #include "../../01_Manager/RenderManager/RenderManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../02_GameObject/Item/Item.h"
+#include "../../02_GameObject/Item/Tool/Tool.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 
 // ItemSlot::Clear() 구현 (Item의 완전한 정의가 필요하므로 cpp에 구현)
@@ -16,7 +17,7 @@ void ItemSlot::Clear() {
 	count = 0;
 }
 
-Inventory::Inventory() : m_slots(INVENTORY_SLOT_COUNT) {
+Inventory::Inventory() : m_slots(INVENTORY_SLOT_COUNT), m_inventoryBgRect(0, 0, 0, 0) {
 	m_inventoryBgBitmap = nullptr;
 	m_slotBgBitmap = nullptr;
 	m_font = nullptr;
@@ -201,6 +202,7 @@ void Inventory::Render(int equippedSlotIndex) {
 		float bgY = WINCY - bgHeight - 5.f; // 화면 하단에서 10픽셀 위
 
 		Gdiplus::RectF inventoryBgDestRect(bgX, bgY, bgWidth, bgHeight);
+		m_inventoryBgRect = inventoryBgDestRect;
 
 		pRM->AddDrawCommand(
 			inventoryBgBitmap,
@@ -299,10 +301,10 @@ void Inventory::Render(int equippedSlotIndex) {
 		// 하이라이트를 AddDrawCommand로 그리기
 		Gdiplus::RectF highlightRect = m_slotRects[equippedSlotIndex];
 		
-		// 하이라이트 사각형 그리기 (노란색 테두리)
+		// 하이라이트 사각형 그리기 (빨간색 테두리)
 		pRM->AddDrawCommand(
 			highlightRect,
-			Gdiplus::Color(255, 255, 255, 0), // 노란색
+			Gdiplus::Color(255, 255, 0, 0), // 빨간색 (ARGB)
 			3.0f, // 테두리 두께
 			LAYER_UI_FOREGROUND,
 			0.f + 3.2f  // UI 텍스트보다 위에
@@ -378,42 +380,29 @@ void Inventory::ReleaseUIBitmaps() {
 	if (m_slotBgBitmap) { delete m_slotBgBitmap; m_slotBgBitmap = nullptr; }
 }
 
-bool Inventory::HandleMouseClick(float mouseScreenX, float mouseScreenY, Player* player) {
-	if (!player) return false;
-	
-	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-		if (m_slotRects[i].Contains(mouseScreenX, mouseScreenY)) {
-			const ItemSlot& slot = GetSlot(i);
-			
-			if (slot.IsEmpty()) {
-				return true; // 빈 슬롯 클릭 처리 완료
-			}
-			
-			// 좌클릭: 아이템 사용 (기본 동작)
-			// 우클릭은 HandleRightClick에서 처리
-			
-			return true; 
-		}
-	}
-	return false; 
+bool Inventory::ContainsScreenPoint(float screenX, float screenY) const {
+	if (m_inventoryBgRect.Width <= 0 || m_inventoryBgRect.Height <= 0)
+		return false;
+	return m_inventoryBgRect.Contains(screenX, screenY);
+}
+
+void Inventory::HandleSlotClick(int slotIndex, Player* player) {
+	const ItemSlot& slot = GetSlot(slotIndex);
+	if (slot.IsEmpty()) return;
+	Tool* toolItem = dynamic_cast<Tool*>(slot.item);
+	if (toolItem)
+		player->ToggleEquipItem(slotIndex);
 }
 
 bool Inventory::HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player) {
 	if (!player) return false;
-	
+	if (m_inventoryBgRect.Width <= 0 || m_inventoryBgRect.Height <= 0 || !m_inventoryBgRect.Contains(mouseScreenX, mouseScreenY))
+		return false;
 	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
 		if (m_slotRects[i].Contains(mouseScreenX, mouseScreenY)) {
-			const ItemSlot& slot = GetSlot(i);
-			
-			if (slot.IsEmpty()) {
-				return false; // 빈 슬롯 우클릭은 처리하지 않음
-			}
-			
-			// 우클릭: 장비 가능한 아이템이면 장착/해제 토글
-			player->ToggleEquipItem(i);
-			
-			return true; 
+			HandleSlotClick(i, player);
+			break;
 		}
 	}
-	return false; 
+	return true;
 }

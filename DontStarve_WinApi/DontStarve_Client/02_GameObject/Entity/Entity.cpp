@@ -11,6 +11,9 @@
 Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
 	const std::wstring& baseDir, const std::wstring& imageName, bool isActive, bool isInteractive)
 	:GameObject(type, id, L"", imageName, isActive, isInteractive),
+	m_dropItemID(GOID_NONE),
+	m_dropItemCount(0),
+	m_isDead(false),
 	m_animator(nullptr)
 {
 	// Transform 컴포넌트 추가
@@ -69,6 +72,12 @@ void Entity::SetDropItem(GameObjectID itemID, int count)
 	m_dropItemID = itemID;
 	m_dropItemCount = count;
 }
+
+bool Entity::OnInteraction(GameObject* obj)
+{
+	return GameObject::OnInteraction(obj);
+}
+
 
 void Entity::Update(float deltaTime)
 {

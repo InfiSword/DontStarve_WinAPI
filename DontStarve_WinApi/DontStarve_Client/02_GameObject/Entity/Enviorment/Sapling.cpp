@@ -42,11 +42,12 @@ void Sapling::Release()
 	Entity::Release();
 }
 
-void Sapling::OnInteraction(GameObject* obj)
+bool Sapling::OnInteraction(GameObject* obj)
 {
-	if (IsEnabled()) {
-		obj->OnInteraction(this);
-	}
+	if (!IsEnabled() || !obj)
+		return false;
+
+	return obj->OnInteraction(this);
 }
 
 void Sapling::Damaged(int damage)

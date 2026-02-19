@@ -18,12 +18,13 @@ public:
                           UINT framesPerRow, UINT totalFrames,
                           float pivotX = 0.5f, float pivotY = 1.0f,
                           bool loop = true,
-                          const std::map<int, std::wstring>& events = {},
-                          bool flipHorizontal = false,
-                          float frameDuration = 0.03f);
+                          float frameDuration = 0.03f,
+                          bool flipHorizontal = false);  // false(기본값): LEFT 방향일 때만 자동 반전, true: 강제 반전
+    
+    // 등록된 애니메이션 클립 가져오기 (이벤트 등록용)
+    AnimationClip* GetAnimationClip(int state, Direction dir);
 
     void SetState(int state, Direction direction);
-    void SetEventCallback(std::function<void(int, const std::wstring&)> callback) { m_globalEventCallback = callback; }
 
     virtual void Init() override;
     virtual void Update(float deltaTime) override;
@@ -51,8 +52,6 @@ private:
     float m_elapsed;
     bool m_isPlaying;
     int m_lastTriggeredFrame;
-
-    std::function<void(int, const std::wstring&)> m_globalEventCallback;
 
     int GetAnimationKey(int state, int direction) const { return state * 1000 + direction; }
     void SelectAndPlayAnimation();

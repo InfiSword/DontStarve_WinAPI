@@ -10,7 +10,7 @@ public:
     virtual ~Boss_SpiderQueen();
 
     virtual void Init() override;
-    virtual void OnInteraction(GameObject* obj) override;
+    virtual bool OnInteraction(GameObject* obj) override;
 
     virtual void Damaged(int damage) override;
 

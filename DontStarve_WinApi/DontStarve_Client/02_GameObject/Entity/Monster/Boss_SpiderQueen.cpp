@@ -53,38 +53,39 @@ void Boss_SpiderQueen::Init()
 			std::wstring idlePath = base + L"Queen_spider_queen_Image.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir, idlePath,
-					120, 120, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+					120, 120, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			}
 
 			// WALK
 			std::wstring walkPath = base + L"Walk_spider_queen_walk_loop_side.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_WALK, (Direction)dir, walkPath,
-					120, 120, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+					120, 120, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			}
 
 			// ATTACK
 			std::wstring attackPath = base + L"Queen_spider_queen_atk_side.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)MONSTER_ATTACK, (Direction)dir, attackPath,
-					140, 140, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+					140, 140, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			}
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN, base + L"Queen_spider_queen_hit_side.png",
-				120, 120, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				120, 120, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 
 			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN, base + L"Queen_spider_queen_death.png",
-				120, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				120, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 		}
 
 		m_animator->SetState((int)m_state, this->transform->GetDirection());
 	}
 }
 
-void Boss_SpiderQueen::OnInteraction(GameObject* obj)
+bool Boss_SpiderQueen::OnInteraction(GameObject* obj)
 {
     // 보스 상호작용 처리 (추후 구현 예정)
+    return Monster::OnInteraction(obj);
 }
 
 void Boss_SpiderQueen::Damaged(int damage)

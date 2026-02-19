@@ -45,32 +45,32 @@ void Pig::Init()
 			// IDLE
 			std::wstring baseAction = base + L"Action\\";
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN, baseAction + L"pig_pigman_idle_loop_down.png",
-				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP, baseAction + L"pig_pigman_idle_loop_up.png",
-				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			std::wstring idleSidePath = baseAction + L"pig_pigman_idle_loop_side.png";
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT, idleSidePath,
-				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT, idleSidePath,
-				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+				120, 150, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 
 			// ATTACK
 			std::wstring baseAttack = base + L"Attack\\";
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN, baseAttack + L"down_pigman_atk_down.png",
-				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP, baseAttack + L"up_pigman_atk_up.png",
-				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			std::wstring atkSidePath = baseAttack + L"side_pigman_atk_side.png";
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT, atkSidePath,
-				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT, atkSidePath,
-				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				150, 180, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN, base + L"Hit\\Hit_pigman_hit.png",
-				120, 150, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				120, 150, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN, base + L"Death\\Death_pigman_death.png",
-				150, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				150, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 		}
 
 		m_animator->SetState((int)m_state, this->transform->GetDirection());
@@ -91,9 +91,9 @@ void Pig::Init()
 	}
 }
 
-void Pig::OnInteraction(GameObject* obj)
+bool Pig::OnInteraction(GameObject* obj)
 {
-	// 기본 상호작용 사용
+	return Monster::OnInteraction(obj);
 }
 
 void Pig::Damaged(int damage)

@@ -48,9 +48,10 @@ void Ingredient::Release()
 }
 
 
-void Ingredient::OnInteraction(GameObject* obj)
+bool Ingredient::OnInteraction(GameObject* obj)
 {
-    if (IsEnabled()) {
-        obj->OnInteraction(this);
-    }
+    if (!IsEnabled() || !obj)
+        return false;
+
+    return obj->OnInteraction(this);
 }

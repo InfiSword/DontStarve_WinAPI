@@ -18,36 +18,41 @@ void Animator::Init() {
 }
 
 // 애니메이션 등록 (frameDuration: 모든 프레임에 적용되는 지속 시간, 기본 0.03초)
+// flipHorizontal: false(기본값)이면 LEFT 방향일 때만 자동 반전, true면 강제 반전
+// LEFT 방향일 때 미리 반전된 이미지를 저장하면 렌더링 시 Transform 불필요 (최적화)
 void Animator::RegisterAnimation(int state, Direction dir, 
                                 const std::wstring& imagePath,
                                 UINT frameWidth, UINT frameHeight,
                                 UINT framesPerRow, UINT totalFrames,
                                 float pivotX, float pivotY,
                                 bool loop,
-                                const std::map<int, std::wstring>& events,
-                                bool flipHorizontal,
-                                float frameDuration) 
+                                float frameDuration,
+                                bool flipHorizontal) 
 {
     int key = GetAnimationKey(state, static_cast<int>(dir));
     
-    auto sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, flipHorizontal);
+    // flipHorizontal이 false(기본값)이면 LEFT 방향일 때만 자동으로 반전
+    // 명시적으로 true를 전달하면 어떤 방향이든 강제로 반전
+    bool shouldFlip = flipHorizontal ? true : (dir == DIR_LEFT);
+    
+    auto sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, shouldFlip);
     if (!sheet) return;
 
-    auto clip = std::make_unique<AnimationClip>(L"", std::move(sheet), pivotX, pivotY, loop, flipHorizontal, frameDuration);
+    auto clip = std::make_unique<AnimationClip>(L"", std::move(sheet), pivotX, pivotY, loop, shouldFlip, frameDuration);
     
     if (!clip) return;
     
-    // 이벤트 프레임 등록
-    for (const auto& eventPair : events) {
-        clip->AddEventFrame(eventPair.first, eventPair.second);
-    }
-    
-    // 전역 이벤트 콜백 설정
-    if (m_globalEventCallback) {
-        clip->SetEventCallback(m_globalEventCallback);
-    }
-    
     m_animations[key] = std::move(clip);
+}
+
+AnimationClip* Animator::GetAnimationClip(int state, Direction dir)
+{
+    int key = GetAnimationKey(state, static_cast<int>(dir));
+    auto it = m_animations.find(key);
+    if (it != m_animations.end()) {
+        return it->second.get();
+    }
+    return nullptr;
 }
 
 // SetState 구현
@@ -84,9 +89,6 @@ void Animator::Update(float deltaTime)
 {
     if (m_isPlaying && m_currentClip)
 	{
-        // 이전 프레임 인덱스 저장 (이벤트 트리거용)
-        int prevFrameIndex = GetCurrentFrameIndex();
-        
         // 경과 시간 누적
         m_elapsed += deltaTime;
         
@@ -99,14 +101,19 @@ void Animator::Update(float deltaTime)
         // 현재 프레임 인덱스 계산
         int currentFrameIndex = GetCurrentFrameIndex();
         
-        // 프레임이 변경되었고 이벤트가 있는 경우 트리거
+        // 프레임 변경 추적 및 이벤트 처리
         if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame)
 		{
-            auto it = m_currentClip->GetEventFrames().find(currentFrameIndex);
-            if (it != m_currentClip->GetEventFrames().end()) {
-                if (m_currentClip->GetEventCallback()) {
-                    m_currentClip->GetEventCallback()(currentFrameIndex, it->second);
-                    m_lastTriggeredFrame = currentFrameIndex;
+            m_lastTriggeredFrame = currentFrameIndex;
+            
+            // 현재 프레임에 등록된 이벤트 확인 및 콜백 호출
+            const std::map<int, std::wstring>& eventFrames = m_currentClip->GetEventFrames();
+            auto eventIt = eventFrames.find(currentFrameIndex);
+            if (eventIt != eventFrames.end()) {
+                // 이벤트 콜백이 설정되어 있으면 호출
+                const AnimationEventCallback& callback = m_currentClip->GetEventCallback();
+                if (callback) {
+                    callback(currentFrameIndex, eventIt->second);
                 }
             }
         }       
@@ -137,8 +144,8 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
     Gdiplus::RectF sourceRect(currentFrame.sourceRect.X, currentFrame.sourceRect.Y, 
                              currentFrame.sourceRect.Width, currentFrame.sourceRect.Height); 
 
-    // preFlipped 클립은 이미 비트맵이 반전되어 있으므로 RenderManager에서 추가 flip 불필요
-    // 방향 정보는 유지하고 preFlipped 플래그를 전달하여 이중 반전 방지
+    // LEFT 방향은 미리 반전된 비트맵을 사용하므로 RenderManager에서 추가 Transform 불필요
+    // preFlipped 플래그를 전달하여 이중 반전 방지
     RenderManager::GetInstance()->AddDrawCommand(
         currentSheet->GetBitmap(),
         destRect,
@@ -150,7 +157,7 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
         currentDir,
         Gdiplus::Color(255, 255, 255, 255),
         false,
-        m_currentClip->IsPreFlipped()
+        m_currentClip->IsPreFlipped()  // LEFT 방향일 때 true (미리 반전된 비트맵)
     );
 }
 

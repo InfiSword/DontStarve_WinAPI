@@ -43,24 +43,24 @@ void Hound::Init()
 			std::wstring base = objData->baseDir + L"\\Normal_Hound\\";
 			
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_DOWN, base + L"Hound_hound_idle_down.png",
-				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_UP, base + L"Hound_hound_idle_up.png",
-				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			std::wstring idleSidePath = base + L"Hound_hound_idle_side.png";
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_LEFT, idleSidePath,
-				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_IDLE, DIR_RIGHT, idleSidePath,
-				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, {}, false, 0.03f);
+				120, 100, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN, base + L"Hound_hound_atk_down.png",
-				140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP, base + L"Hound_hound_atk_up.png",
-				140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			std::wstring atkSidePath = base + L"Hound_hound_atk_side.png";
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT, atkSidePath,
-				140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT, atkSidePath,
-				140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, {}, false, 0.03f);
+				140, 120, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 		}
 
 		m_animator->SetState((int)m_state, this->transform->GetDirection());
@@ -81,7 +81,7 @@ void Hound::Init()
 	}
 }
 
-void Hound::OnInteraction(GameObject* obj)
+bool Hound::OnInteraction(GameObject* obj)
 {
-	// 기본 상호작용 사용
+	return Monster::OnInteraction(obj);
 }

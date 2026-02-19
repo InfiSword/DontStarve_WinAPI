@@ -35,6 +35,7 @@ public:
 
 	Gdiplus::Bitmap* GetBitmap() const;
 	ButtonState GetButtonState() const;
+	const ComponentElement::Image* GetImageComponent() const { return m_image; }
 
 	// 버튼 이벤트
 	void SetOnClickCallback(std::function<void()> callback);
