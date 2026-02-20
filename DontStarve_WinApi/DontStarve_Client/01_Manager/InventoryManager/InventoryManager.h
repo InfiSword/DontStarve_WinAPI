@@ -41,21 +41,18 @@ public:
 	void SaveInventoryToFile(Player* player, const std::wstring& filePath);
 	void LoadInventoryFromFile(Player* player, const std::wstring& filePath);
 
+	// 아이템 제작 레시피 조회 (CraftingUI에서 사용)
+	bool HasCraftingRecipe(GameObjectID itemID) const;
+	const std::map<UINT, UINT>* GetCraftingRecipe(GameObjectID itemID) const;
+
 private:
-	// 이미지 경로를 받아서 Gdiplus::Bitmap*를 반환하는 함수 (캐시 사용)
-	Gdiplus::Bitmap* GetBitmapForPath(const std::wstring& imagePath);
-	
 	// 아이템 제작 레시피 관리
 	void LoadCraftingRecipes();
-	bool HasCraftingRecipe(GameObjectID itemID) const;
-	std::map<UINT, UINT> GetCraftingRecipe(GameObjectID itemID) const;
 	
 	// 월드 오브젝트로부터 드롭 가능한 아이템 목록
 	std::vector<std::pair<GameObjectID, UINT>> CalculateDropsFromObject(GameObject* worldObject);
 
 private:
-	std::map<std::wstring, Gdiplus::Bitmap*> m_bitmapCache;
-	
 	// 아이템 제작 레시피 데이터 (아이템ID -> 필요 재료)
 	std::map<GameObjectID, std::map<UINT, UINT>> m_craftingRecipes;
 }; 

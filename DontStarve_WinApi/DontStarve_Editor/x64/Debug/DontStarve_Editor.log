@@ -1,2 +1,17 @@
-﻿  DontStarve_Editor.cpp
+﻿  pch.cpp
+  DontStarve_EditorMain.cpp
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Editor\00_MainEditor\DontStarve_EditorMain.cpp(1129,12): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Editor\00_MainEditor\DontStarve_EditorMain.cpp(1130,12): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  EditorView.cpp
+  EditorResourceManager.cpp
+  EditorMap.cpp
+  EditorPalette.cpp
+  EditorPivotEditor.cpp
+  EditorColliderEditor.cpp
+  EditorWalkableEditor.cpp
+  EditorDebugPanel.cpp
+  EditorLayerComposer.cpp
+  DontStarve_Editor.cpp
+  코드를 생성하고 있습니다...
+E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Editor\00_MainEditor\DontStarve_EditorMain.cpp(841,1): warning C4715: 'DontStarve_EditorMain::HandleMessage': 모든 제어 경로에서 값을 반환하지는 않습니다.
   DontStarve_Editor.vcxproj -> E:\Project\DontStarve_WinAPI\DontStarve_WinApi\x64\Debug\DontStarve_Editor.exe

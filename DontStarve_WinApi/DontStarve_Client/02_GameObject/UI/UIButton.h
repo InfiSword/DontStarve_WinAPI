@@ -12,11 +12,8 @@ class UIButton : public UIElement
 private:
 	ComponentElement::Image* m_image;
 	Button* m_buttonComp;
-	std::shared_ptr<Sprite> m_normalSprite;  // normal 상태 스프라이트 저장
-	std::shared_ptr<Sprite> m_hoverSprite;   // hover 상태 스프라이트 저장
-
-	// 이전 상태 추적 (불필요한 스타일 재적용 방지)
-	ButtonState m_previousState;
+	std::shared_ptr<Sprite> m_normalSprite;
+	std::shared_ptr<Sprite> m_hoverSprite;
 
 public:
 	UIButton(GameObjectID id, float width, float height,

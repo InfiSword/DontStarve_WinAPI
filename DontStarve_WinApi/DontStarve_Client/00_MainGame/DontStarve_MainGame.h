@@ -1,5 +1,7 @@
 #pragma once
 
+class InputManager;
+
 class DontStarve_MainGame
 {
 private:
@@ -21,5 +23,7 @@ public:
     void Render();
     
     // 해제
-    void Release(); 
+    void Release();
+
+    InputManager* GetInputManager() const;
 }; 

@@ -24,9 +24,6 @@ public:
 	void RemoveGameObject(GameObject* pObj);
 	void ClearAllObjects();
 
-	// 게임오브젝트 초기화
-	void InitializeObjects();
-
 	// 플레이어 캐시된 포인터 반환 함수
 	Player* GetPlayer() const;
 

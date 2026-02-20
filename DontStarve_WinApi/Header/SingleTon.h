@@ -13,7 +13,6 @@ public:
 		{
 			m_pInstance = new T;
 		}
-
 		return m_pInstance;
 	}
 	static BOOL DestroyInstance()
@@ -23,7 +22,6 @@ public:
 			delete m_pInstance;
 			m_pInstance = nullptr;
 		}
-
 		return TRUE;
 	}
 

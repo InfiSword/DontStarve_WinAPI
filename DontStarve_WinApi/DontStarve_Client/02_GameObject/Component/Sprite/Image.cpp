@@ -3,6 +3,7 @@
 #include "Sprite.h"
 #include "../../GameObject.h"
 #include "../Transform/RectTransform.h"
+#include "../../../01_Manager/ResourceManager/ResourceManager.h"
 
 namespace ComponentElement {
 
@@ -29,24 +30,12 @@ void Image::Release()
 void Image::LoadSprite(const std::wstring& fullPath)
 {
 	if (fullPath.empty()) {
-		OutputDebugStringW(L"Image: LoadSprite 실패 - 경로가 비어있음\n");
 		m_sprite = nullptr;
 		return;
 	}
 
-	OutputDebugStringW((L"Image: LoadSprite - 전체 경로: " + fullPath + L"\n").c_str());
-
-	// 비트맵 로드
-	auto bmp = std::make_shared<Gdiplus::Bitmap>(fullPath.c_str());
-	if (bmp && bmp->GetLastStatus() == Gdiplus::Ok) {
-		Gdiplus::RectF src(0, 0, static_cast<float>(bmp->GetWidth()), static_cast<float>(bmp->GetHeight()));
-		m_sprite = std::make_shared<Sprite>(bmp, src, 0.5f, 0.5f, fullPath);
-		OutputDebugStringW(L"Image: LoadSprite 성공\n");
-	}
-	else {
-		OutputDebugStringW(L"Image: LoadSprite 실패 - 비트맵 파일 로드 실패\n");
-		m_sprite.reset();
-	}
+	// ResourceManager 캐시를 통해 Sprite 공유 (중복 비트맵 생성 방지)
+	m_sprite = ResourceManager::GetInstance()->LoadSprite(fullPath);
 }
 
 void Image::SetDisplaySize(float width, float height) const

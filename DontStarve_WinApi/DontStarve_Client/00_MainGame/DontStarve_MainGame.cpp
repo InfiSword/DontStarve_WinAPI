@@ -38,6 +38,9 @@ void DontStarve_MainGame::Init()
     RenderManager::GetInstance()->Init();
     ResourceManager::GetInstance()->Init(); // 리소스 매니저 초기화 (오브젝트 리소스 등록 포함)
 
+    // InputManager 명시적 생성 및 초기화 (WndProc에서 GetInputManager()로 접근)
+    InputManager::GetInstance()->Init();
+
     // SceneManager 초기화 (첫 번째 씬 로드)
     SceneManager::GetInstance()->Init();
      
@@ -106,24 +109,35 @@ void DontStarve_MainGame::Release()
     if (!m_bIsInitialized)
         return;
 
-    // SceneManager 해제 (SceneManager 해제 시 모든 씬 해제)
-    SceneManager::GetInstance()->Release();
-    
-    // 기본 시스템 매니저 해제
-    ResourceManager::DestroyInstance();
-    RenderManager::DestroyInstance();
-    GraphicsManager::DestroyInstance();
-    TimeManager::DestroyInstance();
-    
-    // 씬/게임 매니저 해제 (누수 검사 전 인스턴스 파괴)
+    // 1단계: 게임 로직 매니저 해제 (씬 안의 오브젝트 정리 포함)
+    //        GameProgressManager는 씬 해제 전에 저장/파괴
     GameProgressManager::DestroyInstance();
+
+    // 2단계: 씬 전체 파괴 (ObjectManager, CameraManager 등 씬 종속 매니저 포함)
     SceneManager::DestroyInstance();
-    ObjectManager::DestroyInstance();
-    CameraManager::DestroyInstance();
+
+    // 3단계: 씬과 무관한 독립 매니저 파괴
     InventoryManager::DestroyInstance();
     ColliderManager::DestroyInstance();
+    ObjectManager::DestroyInstance();
+    CameraManager::DestroyInstance();
     InputManager::DestroyInstance();
     UIManager::DestroyInstance();
-    
+
+    // 4단계: 렌더/그래픽 매니저 파괴 (모든 Bitmap/Sprite 참조 해제 후)
+    RenderManager::DestroyInstance();
+    GraphicsManager::DestroyInstance();
+
+    // 5단계: 리소스 매니저 파괴 (모든 오브젝트가 해제된 후 마지막)
+    ResourceManager::DestroyInstance();
+
+    // 6단계: 시간 매니저 파괴
+    TimeManager::DestroyInstance();
+
     m_bIsInitialized = false;
+}
+
+InputManager* DontStarve_MainGame::GetInputManager() const
+{
+    return InputManager::GetInstance();
 }

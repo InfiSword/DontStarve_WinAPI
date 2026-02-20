@@ -22,9 +22,11 @@ public:
 
 protected:
     std::wstring tree_Grade;
-    TreeState m_state;
     int m_hp;
     int maxHp;
-    float m_hitAnimTimer;
-    float m_baseX, m_baseY;  // 셰이킹 시 복원용 기준 위치
-}; 
+    float m_baseX, m_baseY;
+    float m_shakeDuration;
+    float m_shakeAmount;
+    float m_shakeSpeed;
+    bool m_isShaking;
+};

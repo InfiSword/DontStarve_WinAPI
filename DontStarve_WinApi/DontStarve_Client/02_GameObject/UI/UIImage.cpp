@@ -9,7 +9,6 @@ UIImage::UIImage(GameObjectID id, float width, float height, RenderLayer layer, 
                  float anchoredPosX, float anchoredPosY)
 	: UIElement(GOBJ_UI, id, L"", L"", true, false)
 {
-	// UIElement에서 이미 RectTransform이 생성되었으므로 GetRectTransform() 사용
 	m_rectTransform = GetRectTransform();
 	m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
 	m_rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
@@ -20,19 +19,22 @@ UIImage::UIImage(GameObjectID id, float width, float height, RenderLayer layer, 
 	m_image->SetLayer(layer);
 	m_image->SetSortKey(sortKey);
 	m_image->LoadSprite(imagePath);
-	
-	
-	if (m_image && m_image->GetSprite()) {
-		Gdiplus::Bitmap* bitmap = m_image->GetSprite();
-		float bitmapWidth = static_cast<float>(bitmap->GetWidth());
-		float bitmapHeight = static_cast<float>(bitmap->GetHeight());
-		if (bitmapWidth > 0 && bitmapHeight > 0) {
-			float scaleX = width / bitmapWidth;
-			float scaleY = height / bitmapHeight;
-			m_rectTransform->SetScale(scaleX, scaleY);
-		}
+
+	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
+	if (bitmap) 
+	{
+		float bw = static_cast<float>(bitmap->GetWidth());
+		float bh = static_cast<float>(bitmap->GetHeight());
+		m_rectTransform->SetSize(bw, bh);
+		m_rectTransform->SetScale(width / bw, height / bh);
+	}
+	else
+	{
+		m_rectTransform->SetSize(width, height);
+		m_rectTransform->SetScale(1.0f, 1.0f);
 	}
 }
+
 
 UIImage::~UIImage()
 {

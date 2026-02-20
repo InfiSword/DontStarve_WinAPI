@@ -22,6 +22,9 @@
 #include "../../02_GameObject/Item/Ingredient.h"
 #include "../../02_GameObject/Item/Tool/Axe/Axe.h"
 #include "../../02_GameObject/Item/Tool/Tool.h"
+#include "../../02_GameObject/Item/Tool/Weapon/Weapon.h"
+#include "../../02_GameObject/Item/Tool/Pickaxe/Pickaxe.h"
+#include "../../02_GameObject/Item/Tool/Torch/Torch.h"
 
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Collider/BoxCollider.h"
@@ -156,11 +159,6 @@ void ObjectManager::ClearAllObjects()
 	m_pendingDeletions.shrink_to_fit();
 }
 
-void ObjectManager::InitializeObjects()
-{
-	ForEachObject([](GameObject* obj) { obj->Init(); });
-}
-
 // 플레이어 캐시된 포인터 반환 함수
 Player* ObjectManager::GetPlayer() const
 {
@@ -257,44 +255,45 @@ void ObjectManager::InitializeFactories()
 	m_gameObjectFactories[GOID_ITEM_MEAT] = itemFactory(L"Meat", L"Fresh meat.");
 	m_gameObjectFactories[GOID_ITEM_BERRY] = itemFactory(L"Berry", L"Sweet and nutritious.");
 	
-	// 도구 팩토리 함수 (Tool 클래스 생성)
-	// 각 도구는 Tool 클래스를 직접 사용하거나, 필요시 특정 도구 클래스(Axe 등)를 사용할 수 있습니다.
-	auto toolFactory = [](const wchar_t* name, const wchar_t* desc, float durability = 100.0f, float effectiveness = 1.0f) {
-		return [name, desc, durability, effectiveness](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-			std::wstring path = data->baseDir;
-			if (!path.empty() && path.back() != L'\\' && path.back() != L'/') {
-				path += L"\\";
-			}
-			path += data->imageName;
-			// Tool 클래스를 직접 사용 (인벤토리/장착용)
-			// 나중에 각 도구별 특수 클래스(Axe, Pickaxe 등)로 확장 가능
-			return new Tool(id, name, desc, path, durability, effectiveness);
-		};
+	// 도구 테이블 - 모든 도구 ID로 name/desc만 조회 (내구도·효율는 Tool/Axe 생성자 기본값 또는 Axe는 GetAxeStats 사용)
+	struct ToolDef { std::wstring name; std::wstring desc; };
+	auto GetToolDef = [](GameObjectID id) -> ToolDef {
+		switch (id) {
+			case GOID_TOOL_GOLDEN_SCYTHE: return { L"Golden Scythe", L"A golden scythe for harvesting." };
+			case GOID_TOOL_HAM_BAT:       return { L"Ham Bat", L"A weapon made from ham." };
+			case GOID_TOOL_PICKAXE:       return { L"Pickaxe", L"Mines rocks and ores." };
+			case GOID_TOOL_SPEAR:         return { L"Spear", L"A simple spear for combat." };
+			case GOID_TOOL_SWAP_SPEAR:    return { L"Swap Spear", L"A lightning-infused spear." };
+			case GOID_TOOL_TORCH:         return { L"Torch", L"Provides light in darkness." };
+			case GOID_TOOL_RED_AXE:       return { L"Red Axe", L"Cuts down trees." };
+			case GOID_TOOL_SWAP_AXE:      return { L"Swap Axe", L"An axe with special properties." };
+			default:                      return { L"Tool", L"" };
+		}
 	};
-	
-	// 특수 도구는 개별 클래스 사용 (예: Axe)
-	auto axeFactory = [](const wchar_t* name, const wchar_t* desc, float durability = 100.0f, float effectiveness = 1.0f) {
-		return [name, desc, durability, effectiveness](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-			std::wstring path = data->baseDir;
-			if (!path.empty() && path.back() != L'\\' && path.back() != L'/') {
-				path += L"\\";
-			}
-			path += data->imageName;
-			return new Axe(id, name, desc, path, durability, effectiveness);
-		};
+
+	// Tool 팩토리: GetToolDef로 name/desc 조회 후, ID에 따라 Weapon / Pickaxe / Torch / Axe / Tool 생성
+	auto toolFactory = [GetToolDef](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+		ToolDef def = GetToolDef(id);
+		if (id == GOID_TOOL_RED_AXE || id == GOID_TOOL_SWAP_AXE)
+			return new Axe(id, def.name, def.desc, data->baseDir, data->imageName);
+		if (id == GOID_TOOL_GOLDEN_SCYTHE || id == GOID_TOOL_HAM_BAT || id == GOID_TOOL_SPEAR || id == GOID_TOOL_SWAP_SPEAR)
+			return new Weapon(id, def.name, def.desc, data->baseDir, data->imageName);
+		if (id == GOID_TOOL_PICKAXE)
+			return new Pickaxe(id, def.name, def.desc, data->baseDir, data->imageName);
+		if (id == GOID_TOOL_TORCH)
+			return new Torch(id, def.name, def.desc, data->baseDir, data->imageName);
+		return new Tool(id, def.name, def.desc, data->baseDir, data->imageName, 0.0f);
 	};
-	
-	// 빨간 도끼 (기존 GOID_ITEM_AXE 대체) - Axe 클래스 사용
-	m_gameObjectFactories[GOID_TOOL_RED_AXE] = axeFactory(L"Red Axe", L"Cuts down trees.", 100.0f, 1.0f);
-	m_gameObjectFactories[GOID_TOOL_SWAP_AXE] = axeFactory(L"Swap Axe", L"An axe with special properties.", 100.0f, 1.0f);
-	
-	// 다른 도구들 - Tool 클래스 사용 (나중에 각 도구별 클래스로 확장 가능)
-	m_gameObjectFactories[GOID_TOOL_GOLDEN_SCYTHE] = toolFactory(L"Golden Scythe", L"A golden scythe for harvesting.", 150.0f, 1.5f);
-	m_gameObjectFactories[GOID_TOOL_HAM_BAT] = toolFactory(L"Ham Bat", L"A weapon made from ham.", 80.0f, 1.2f);
-	m_gameObjectFactories[GOID_TOOL_PICKAXE] = toolFactory(L"Pickaxe", L"Mines rocks and ores.", 100.0f, 1.0f);
-	m_gameObjectFactories[GOID_TOOL_SPEAR] = toolFactory(L"Spear", L"A simple spear for combat.", 90.0f, 1.1f);
-	m_gameObjectFactories[GOID_TOOL_SWAP_SPEAR] = toolFactory(L"Swap Spear", L"A lightning-infused spear.", 120.0f, 1.3f);
-	m_gameObjectFactories[GOID_TOOL_TORCH] = toolFactory(L"Torch", L"Provides light in darkness.", 60.0f, 0.8f);
+
+	// 다른 도구들 설정 (Tool 팩토리 등록): GOID_TOOL_GOLDEN_SCYTHE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE, GOID_TOOL_SPEAR, GOID_TOOL_SWAP_SPEAR, GOID_TOOL_TORCH, GOID_TOOL_RED_AXE, GOID_TOOL_SWAP_AXE
+	m_gameObjectFactories[GOID_TOOL_GOLDEN_SCYTHE] = toolFactory;
+	m_gameObjectFactories[GOID_TOOL_HAM_BAT] = toolFactory;
+	m_gameObjectFactories[GOID_TOOL_PICKAXE] = toolFactory;
+	m_gameObjectFactories[GOID_TOOL_SPEAR] = toolFactory;
+	m_gameObjectFactories[GOID_TOOL_SWAP_SPEAR] = toolFactory;
+	m_gameObjectFactories[GOID_TOOL_TORCH] = toolFactory;
+	m_gameObjectFactories[GOID_TOOL_RED_AXE] = toolFactory;
+	m_gameObjectFactories[GOID_TOOL_SWAP_AXE] = toolFactory;
 }
 
 // ========================================
@@ -312,11 +311,11 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 	if (it != m_gameObjectFactories.end()) {
 		GameObject* newObj = it->second(id, x, y, data);
 		
-		// 생성된 게임오브젝트를 오브젝트매니저에 추가 (GameObject 생명주기 관리)
+		// 생성된 게임오브젝트를 오브ject매니저에 추가 (GameObject 생명주기 관리)
 		if (newObj) {
-			
 			if (addToManager) {
 				AddGameObject(newObj);
+				newObj->Init();
 
 				// 맵 데이터의 콜라이더 정보를 컴포넌트로 첨부 (월드 배치 오브젝트만)
 				if (data->hasCollider) {
@@ -337,11 +336,6 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 						);
 					}
 				}
-
-				OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 완료 - ID: " + std::to_wstring(id) + L" at (" + std::to_wstring(x) + L", " + std::to_wstring(y) + L")\n").c_str());
-			}
-			else {
-				OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 완료 (인벤토리용) - ID: " + std::to_wstring(id) + L"\n").c_str());
 			}
 		}
 		else {

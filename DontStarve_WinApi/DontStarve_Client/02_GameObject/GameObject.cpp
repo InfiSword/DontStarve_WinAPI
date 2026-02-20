@@ -2,6 +2,7 @@
 #include "GameObject.h"
 #include "Component/Transform/Transform.h"
 #include "Component/Sprite/SpriteRenderer.h"
+#include "../01_Manager/TimeManager/TimeManager.h"
 
 GameObject::GameObject(GameObjectType type, GameObjectID id,
 	const std::wstring& resourcePath, const std::wstring& imageName,
@@ -53,6 +54,10 @@ void GameObject::LateUpdate() {
 			component->LateUpdate();
 		}
 	}
+
+	// 코루틴은 모든 Update(애니메이션 이벤트 등) 후 같은 프레임에 실행하여 렌더에 반영
+	float deltaTime = TimeManager::GetInstance() ? TimeManager::GetInstance()->GetDeltaTime() : 0.0f;
+	UpdateCoroutines(deltaTime);
 }
 
 void GameObject::Release() 
@@ -62,6 +67,8 @@ void GameObject::Release()
 		return;
 	}
 	m_bReleased = true;
+
+	StopAllCoroutines();
 
 	// 문자열 멤버 강제 해제 (swap으로 CRT 누수 탐지에 반영)
 	std::wstring().swap(m_name);
@@ -83,4 +90,30 @@ bool GameObject::OnInteraction(GameObject* obj)
 		return false;
 	
 	return true;
+}
+
+void GameObject::StartCoroutine(CoroutineHandle coroutine)
+{
+	if (coroutine)
+		m_coroutines.push_back(std::move(coroutine));
+}
+
+void GameObject::StopAllCoroutines()
+{
+	m_coroutines.clear();
+}
+
+void GameObject::UpdateCoroutines(float deltaTime)
+{
+	if (m_coroutines.empty()) return;
+
+	// 완료된 코루틴(false 반환)을 제거하면서 순회
+	auto it = m_coroutines.begin();
+	while (it != m_coroutines.end()) {
+		bool stillRunning = (*it)(deltaTime);
+		if (!stillRunning)
+			it = m_coroutines.erase(it);
+		else
+			++it;
+	}
 }

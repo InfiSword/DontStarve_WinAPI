@@ -33,6 +33,7 @@ void RenderManager::LateUpdate()
 void RenderManager::Release()
 {
 	Clear();
+	m_drawCommands.shrink_to_fit(); // 완전 해제는 Release()에서만 수행
 }
 
 void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped)
@@ -275,7 +276,8 @@ void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float
 
 void RenderManager::Clear() {
 	m_drawCommands.clear();
-	m_drawCommands.shrink_to_fit();
+	// shrink_to_fit 제거: 매 프레임 메모리 해제/재할당 반복을 방지
+	// capacity는 최대치에서 안정화되어 재할당 없이 재사용됨
 }
 
 // 방향에 따른 스프라이트 반전 적용 (월드 오브젝트만) — 단일 Matrix로 X축 반전

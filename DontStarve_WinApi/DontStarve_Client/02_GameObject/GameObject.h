@@ -7,6 +7,9 @@
 class Transform;
 class SpriteRenderer;
 
+// 코루틴 핸들: deltaTime을 받아 실행 중이면 true, 완료되면 false를 반환하는 함수
+using CoroutineHandle = std::function<bool(float)>;
+
 class GameObject : public Object
 {
 protected:
@@ -19,6 +22,9 @@ protected:
 									
     // 컴포넌트 관리					
     std::vector<Component*> m_components;
+
+private:
+	std::vector<CoroutineHandle> m_coroutines;
 
 public:
     
@@ -33,6 +39,10 @@ public:
 	virtual void Update(float deltaTime); 
 	virtual void LateUpdate();
 	virtual void Release();
+
+	// 코루틴 시스템
+	void StartCoroutine(CoroutineHandle coroutine);
+	void StopAllCoroutines();
 
 	// 상호작용 관련
 	virtual bool OnInteraction(GameObject* obj);
@@ -66,4 +76,7 @@ public:
 	inline GameObjectID GetID() const { return m_id; }
 	inline GameObjectType GetType() const { return m_type; }
 	inline const std::wstring& GetName() const { return m_name; }
+
+private:
+	void UpdateCoroutines(float deltaTime);
 };

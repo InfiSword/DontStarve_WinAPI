@@ -25,9 +25,6 @@ private:
 	bool m_isToolListVisible;                        // 도구 목록 표시 여부
 	GameObjectID m_selectedToolID;                    // 선택된 도구 ID
 	std::vector<GameObjectID> m_availableTools;       // 제작 가능한 도구 목록
-	
-	// 크래프팅 레시피 맵 (도구ID -> 재료 맵)
-	std::map<GameObjectID, std::map<UINT, UINT>> m_craftingRecipes;
 
 	// UI 레이아웃 상수들
 	float m_craftBarWidth;
@@ -76,9 +73,6 @@ public:
 
 	// 크래프팅 시도
 	bool TryCraftSelectedTool(Player* player);
-
-	// 크래프팅 레시피 로드
-	void LoadCraftingRecipes();
 
 private:
 	// UI 요소 생성 헬퍼 함수들

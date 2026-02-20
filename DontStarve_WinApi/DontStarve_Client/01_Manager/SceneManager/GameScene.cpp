@@ -75,8 +75,6 @@ void GameScene::Init(const MapData* mapData)
 
 	// 플레이어 생성
 	SpawnPlayer();
-
-	ObjectManager::GetInstance()->InitializeObjects();
 }
 
 void GameScene::Update(float deltaTime)

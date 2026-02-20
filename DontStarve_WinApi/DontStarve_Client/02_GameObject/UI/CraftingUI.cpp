@@ -1,5 +1,6 @@
 #include "99_Default/pch.h"
 #include "CraftingUI.h"
+#include "CraftingRecipe.h"
 #include "UIImage.h"
 #include "UIButton.h"
 #include "UIText.h"
@@ -41,17 +42,11 @@ CraftingUI::CraftingUI()
 	m_ingredientPanelCenterX(0.0f),
 	m_craftButtonY(0.0f)
 {
-	// 제작 가능한 도구 목록 초기화
-	m_availableTools = {
-		GOID_TOOL_GOLDEN_SCYTHE,
-		GOID_TOOL_HAM_BAT,
-		GOID_TOOL_PICKAXE,
-		GOID_TOOL_RED_AXE,
-		GOID_TOOL_SPEAR,
-		GOID_TOOL_SWAP_AXE,
-		GOID_TOOL_SWAP_SPEAR,
-		GOID_TOOL_TORCH
-	};
+	// 제작 가능한 도구 목록 초기화 (CraftingRecipeTable에서 자동 생성)
+	m_availableTools.clear();
+	for (size_t i = 0; i < CraftingRecipeCount; ++i) {
+		m_availableTools.push_back(CraftingRecipeTable[i].toolID);
+	}
 
 	// 계산된 값들 초기화 (도구 패널 하단 → 재료 행 → 제작 버튼 순, Y 증가 = 화면 아래)
 	m_toolPanelOffsetX = m_craftBarWidth;
@@ -72,7 +67,6 @@ CraftingUI::~CraftingUI()
 
 void CraftingUI::Init()
 {
-	LoadCraftingRecipes();
 	InitializeCraftingUI();
 }
 
@@ -212,60 +206,65 @@ void CraftingUI::CreateToolButtons()
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 	if (!uiManager || !resourceManager) return;
 
-	// 각 도구에 대한 버튼 생성
-	GameObjectID toolButtonIDs[] = {
-		GOID_CRAFT_TOOL_GOLDEN_SCYTHE,
-		GOID_CRAFT_TOOL_HAM_BAT,
-		GOID_CRAFT_TOOL_PICKAXE,
-		GOID_CRAFT_TOOL_RED_AXE,
-		GOID_CRAFT_TOOL_SPEAR,
-		GOID_CRAFT_TOOL_SWAP_AXE,
-		GOID_CRAFT_TOOL_SWAP_SPEAR,
-		GOID_CRAFT_TOOL_TORCH
+	// 도구 버튼 ID·이미지 경로 매핑 테이블 (static map 제거 → 배열로 대체)
+	struct ToolButtonInfo {
+		GameObjectID toolID;
+		GameObjectID buttonID;
+		const wchar_t* imagePath;
 	};
-
-	std::wstring toolImagePaths[] = {
-		L"Resource/Objects/Tools/Golden_Scythe_02.png",
-		L"Resource/Objects/Tools/hamBat_01.png",
-		L"Resource/Objects/Tools/pickaxe-0.png",
-		L"Resource/Objects/Tools/Red_Axe_02.png",
-		L"Resource/Objects/Tools/spear_03.png",
-		L"Resource/Objects/Tools/swap_axe-0.png",
-		L"Resource/Objects/Tools/swap_spear_wathgrithr_lightning-5.png",
-		L"Resource/Objects/Tools/torch.png"
+	static constexpr ToolButtonInfo toolInfoTable[] = {
+		{ GOID_TOOL_GOLDEN_SCYTHE, GOID_CRAFT_TOOL_GOLDEN_SCYTHE, L"Resource/Objects/Tools/Golden_Scythe_02.png" },
+		{ GOID_TOOL_HAM_BAT,       GOID_CRAFT_TOOL_HAM_BAT,       L"Resource/Objects/Tools/hamBat_01.png" },
+		{ GOID_TOOL_PICKAXE,       GOID_CRAFT_TOOL_PICKAXE,       L"Resource/Objects/Tools/pickaxe-0.png" },
+		{ GOID_TOOL_RED_AXE,       GOID_CRAFT_TOOL_RED_AXE,       L"Resource/Objects/Tools/Red_Axe_02.png" },
+		{ GOID_TOOL_SPEAR,         GOID_CRAFT_TOOL_SPEAR,         L"Resource/Objects/Tools/spear_03.png" },
+		{ GOID_TOOL_SWAP_AXE,      GOID_CRAFT_TOOL_SWAP_AXE,      L"Resource/Objects/Tools/swap_axe-0.png" },
+		{ GOID_TOOL_SWAP_SPEAR,    GOID_CRAFT_TOOL_SWAP_SPEAR,    L"Resource/Objects/Tools/swap_spear_wathgrithr_lightning-5.png" },
+		{ GOID_TOOL_TORCH,         GOID_CRAFT_TOOL_TORCH,         L"Resource/Objects/Tools/torch.png" },
 	};
+	static constexpr size_t toolInfoCount = sizeof(toolInfoTable) / sizeof(ToolButtonInfo);
 
-	// Tool 버튼들을 CraftBar 오른쪽에 3열로 배치 (겹치지 않도록)
-	const float startX = m_toolPanelOffsetX + m_toolButtonSize * 0.5f; // 첫 번째 열의 중앙 X
+	const float startX = m_toolPanelOffsetX + m_toolButtonSize * 0.5f;
 
-	for (size_t i = 0; i < m_availableTools.size() && i < 8; ++i) {
-		std::shared_ptr<Sprite> toolNormalSprite = resourceManager->LoadSprite(toolImagePaths[i]);
-		std::shared_ptr<Sprite> toolHoverSprite = resourceManager->LoadSprite(toolImagePaths[i]);
+	for (size_t i = 0; i < m_availableTools.size(); ++i) {
+		GameObjectID toolID = m_availableTools[i];
 
-		// 3열 그리드 계산 (CraftBar 오른쪽에 위치)
+		// 배열에서 일치하는 항목 찾기
+		const ToolButtonInfo* info = nullptr;
+		for (size_t j = 0; j < toolInfoCount; ++j) {
+			if (toolInfoTable[j].toolID == toolID) {
+				info = &toolInfoTable[j];
+				break;
+			}
+		}
+		if (!info) continue;
+
+		std::shared_ptr<Sprite> toolNormalSprite = resourceManager->LoadSprite(info->imagePath);
+		std::shared_ptr<Sprite> toolHoverSprite  = resourceManager->LoadSprite(info->imagePath);
+
 		int row = static_cast<int>(i / m_columnsPerRow);
 		int col = static_cast<int>(i % m_columnsPerRow);
-		
+
 		float xPos = startX + col * (m_toolButtonSize + m_toolButtonSpacing);
 		float yPos = m_toolButtonStartY + row * (m_toolButtonSize + m_toolButtonSpacing);
 
 		UIButton* toolButton = new UIButton(
-			toolButtonIDs[i],
+			info->buttonID,
 			m_toolButtonSize,
 			m_toolButtonSize,
 			toolNormalSprite,
 			toolHoverSprite,
-			0.0f, 0.5f,  // anchorMin (왼쪽 중앙 - CraftBar와 동일)
-			0.0f, 0.5f,  // anchorMax (왼쪽 중앙)
+			0.0f, 0.5f,
+			0.0f, 0.5f,
 			xPos, yPos
 		);
+
 		// UIButton 생성자에서 이미 pivot (0.5, 0.5)로 설정됨
 
 		// 초기에는 숨김
 		toolButton->SetActive(false);
 
 		// 클릭 콜백 설정
-		GameObjectID toolID = m_availableTools[i];
 		toolButton->SetOnClickCallback([this, toolID]() {
 			SelectTool(toolID);
 		});
@@ -434,17 +433,18 @@ void CraftingUI::UpdateIngredientDisplay()
 		return;
 	}
 
-	// 선택된 도구의 레시피 가져오기
-	auto recipeIt = m_craftingRecipes.find(m_selectedToolID);
-	if (recipeIt == m_craftingRecipes.end()) {
+	// InventoryManager에서 레시피 가져오기
+	InventoryManager* inventoryManager = InventoryManager::GetInstance();
+	if (!inventoryManager) return;
+	
+	const std::map<UINT, UINT>* recipe = inventoryManager->GetCraftingRecipe(m_selectedToolID);
+	if (!recipe || recipe->empty()) {
 		return;
 	}
-
-	const auto& recipe = recipeIt->second;
 	int ingredientIndex = 0;
 
 	// 재료 정보 표시
-	for (const auto& ingredient : recipe) {
+	for (const auto& ingredient : *recipe) {
 		if (ingredientIndex >= 2) break; // 최대 2개만 표시
 
 		GameObjectID ingredientID = static_cast<GameObjectID>(ingredient.first);
@@ -506,36 +506,13 @@ bool CraftingUI::TryCraftSelectedTool(Player* player)
 	return inventoryManager->TryCraftItem(player, m_selectedToolID);
 }
 
-void CraftingUI::LoadCraftingRecipes()
-{
-	m_craftingRecipes.clear();
-
-	// Struct.h의 CraftingRecipeTable에서 레시피 로드
-	for (size_t i = 0; i < ResourcePathUtils::CraftingRecipeCount; ++i) {
-		const auto& recipe = ResourcePathUtils::CraftingRecipeTable[i];
-		
-		std::map<UINT, UINT> ingredientMap;
-		ingredientMap[recipe.ingredient1ID] = recipe.ingredient1Count;
-		if (recipe.ingredient2ID != GOID_NONE) {
-			ingredientMap[recipe.ingredient2ID] = recipe.ingredient2Count;
-		}
-
-		m_craftingRecipes[recipe.toolID] = ingredientMap;
-	}
-}
-
 std::wstring CraftingUI::GetIngredientImagePath(GameObjectID ingredientID)
 {
 	// ObjectResourceTable에서 재료 이미지 경로 찾기
 	for (size_t i = 0; i < ResourcePathUtils::ObjectResourceCount; ++i) {
 		const auto& entry = ResourcePathUtils::ObjectResourceTable[i];
 		if (entry.id == ingredientID) {
-			std::wstring fullPath = entry.baseDir;
-			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-				fullPath += L"\\";
-			}
-			fullPath += entry.imageName;
-			return fullPath;
+			return ResourcePathUtils::BuildResourcePath(entry.baseDir, entry.imageName);
 		}
 	}
 	return L"";

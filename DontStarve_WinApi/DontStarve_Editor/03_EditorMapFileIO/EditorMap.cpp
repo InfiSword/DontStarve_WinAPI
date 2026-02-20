@@ -278,8 +278,12 @@ bool EditorMap::LoadMap(DontStarve_EditorMain* pMain, const WCHAR* filename) {
 			continue;
 		}
 		
-		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
-		std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
+		std::wstring fullPath = ov->baseDir;
+		if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+			fullPath += L"\\";
+		}
+		fullPath += ov->imageName;
+		std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
 		int iw = (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) ? (int)pBitmap->GetWidth() : 32;
 		int ih = (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) ? (int)pBitmap->GetHeight() : 32;
 		obj.colliderType = COLLIDER_BOX;

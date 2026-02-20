@@ -111,16 +111,14 @@ void Player::Init()
 		}
 	}
 
-	m_inventory = new Inventory();
+	if (!m_inventory) {
+		m_inventory = new Inventory();
+	}
 
 	UpdateAnimatorState();
 
 	if (m_inventory)
-	{
-		std::vector<Gdiplus::RectF> slotRects(INVENTORY_SLOT_COUNT);
-		m_inventory->Init(slotRects);
-	}
-
+		m_inventory->Init();
 }
 
 void Player::ToggleEquipItem(int slotIndex)
@@ -163,49 +161,6 @@ void Player::UpdateAnimatorState() {
 	m_animator->SetState(static_cast<int>(m_state), this->transform->GetDirection());
 }
 
-bool Player::CanInteractWith(GameObject* obj) const
-{
-	if (!obj || !obj->IsEnabled()) return false;
-
-	GameObjectID objID = obj->GetID();
-	GameObjectType objType = obj->GetType();
-
-	switch (objType)
-	{
-	case GOBJ_NATURAL_ENVIR:
-		if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
-			if (!m_equippedItem) return false;
-			GameObjectID equippedID = m_equippedItem->GetID();
-			return (equippedID == GOID_TOOL_RED_AXE || equippedID == GOID_TOOL_SWAP_AXE);
-		}
-		// 다른 자연 환경 오브젝트는 상호작용 가능
-		return true;
-	case GOBJ_ITEM:
-		// 아이템은 항상 상호작용 가능
-		return true;
-	default:
-		return false;
-	}
-}
-
-void Player::SetDirectionToward(float dx, float dy)
-{
-	Direction dir;
-	if (std::abs(dx) > std::abs(dy))
-		dir = (dx > 0) ? DIR_RIGHT : DIR_LEFT;
-	else
-		dir = (dy > 0) ? DIR_DOWN : DIR_UP;
-	transform->SetDirection(dir);
-}
-
-bool Player::IsArrivedAtTarget(float distance, float moveSpeedThisFrame) const
-{
-	const float arrivalEpsilon = 1.0f;
-	if (distance < arrivalEpsilon) return true;
-	if (distance <= m_stopThreshold) return true;
-	if (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame) return true;
-	return false;
-}
 
 void Player::SetTargetPosition(float worldX, float worldY) {
 
@@ -248,7 +203,11 @@ void Player::Update(float deltaTime)
 		float dy = m_targetWorldPos.Y - transform->GetY();
 		float distance = std::sqrt(dx * dx + dy * dy);
 
-		if (IsArrivedAtTarget(distance, moveSpeedThisFrame)) {
+		// 도착 여부 판정 (인라인화: IsArrivedAtTarget)
+		const float arrivalEpsilon = 1.0f;
+		bool isArrived = (distance < arrivalEpsilon) || (distance <= m_stopThreshold) || (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame);
+		
+		if (isArrived) {
 			transform->SetX(m_targetWorldPos.X);
 			transform->SetY(m_targetWorldPos.Y);
 			isMoveToGoal = false;
@@ -257,7 +216,13 @@ void Player::Update(float deltaTime)
 			if (m_pendingInteractionTarget && m_pendingInteractionTarget->IsEnabled()) {
 				m_activeInteractionTarget = m_pendingInteractionTarget;
 				m_pendingInteractionTarget = nullptr;
-				SetDirectionToward(dx, dy);
+				// 방향 설정 (인라인화: SetDirectionToward)
+				Direction dir;
+				if (std::abs(dx) > std::abs(dy))
+					dir = (dx > 0) ? DIR_RIGHT : DIR_LEFT;
+				else
+					dir = (dy > 0) ? DIR_DOWN : DIR_UP;
+				transform->SetDirection(dir);
 				// OnInteraction의 반환값을 확인하여 실패 시 IDLE 상태로 전환
 				if (!OnInteraction(m_activeInteractionTarget)) {
 					m_state = PlayerState::IDLE;
@@ -294,20 +259,57 @@ void Player::TryStartInteraction(float worldX, float worldY)
 
 	GameObject* target = cameraManager->FindInteractableObjectAtPosition(worldX, worldY);
 
-	if (!target || !CanInteractWith(target) || !target->CanInteract()) {
+	// CHOP/PICKUP 진행 중인 경우
+	if (m_state == PlayerState::CHOP || m_state == PlayerState::PICKUP) {
+		if (target != nullptr && target == m_activeInteractionTarget) {
+			// 현재 상호작용 중인 대상과 동일 → 애니메이션 유지 (재시작 안 함)
+			return;
+		}
+		// 다른 대상 또는 빈 공간 클릭 → 현재 상호작용 중단
+		m_activeInteractionTarget = nullptr;
+		m_pendingInteractionTarget = nullptr;
+		m_state = PlayerState::IDLE;
+		transform->SetPivot(0.5f, transform->GetPivotY());
+		UpdateAnimatorState();
+	}
+
+	// 이동 중 대기 중인 상호작용 초기화
+	m_pendingInteractionTarget = nullptr;
+
+	// 상호작용 가능 여부 확인
+	bool canInteract = false;
+	if (target && target->IsEnabled()) {
+		GameObjectID objID = target->GetID();
+		GameObjectType objType = target->GetType();
+		switch (objType) {
+		case GOBJ_NATURAL_ENVIR:
+			if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
+				if (m_equippedItem) {
+					GameObjectID equippedID = m_equippedItem->GetID();
+					canInteract = (equippedID == GOID_TOOL_RED_AXE || equippedID == GOID_TOOL_SWAP_AXE);
+				}
+			}
+			else {
+				canInteract = true;
+			}
+			break;
+		case GOBJ_ITEM:
+			canInteract = true;
+			break;
+		default:
+			canInteract = false;
+			break;
+		}
+	}
+
+	if (!target || !canInteract || !target->CanInteract()) {
 		return;
 	}
 
-	float tx, ty;
 	Transform* targetTransform = target->GetComponent<Transform>();
 	if (!targetTransform) return;
 
-	// Transform 위치(피벗 기준)로 이동 (콜라이더 중심이 아닌 피벗 위치 사용)
-	tx = targetTransform->GetX();
-	ty = targetTransform->GetY();
-
-	// 목표 위치 설정 및 이동 시작 (Update에서 도착 시 OnInteraction 호출)
-	SetTargetPosition(tx, ty);
+	SetTargetPosition(targetTransform->GetX(), targetTransform->GetY());
 	m_pendingInteractionTarget = target;
 }
 
@@ -383,11 +385,14 @@ void Player::OnChopHit()
 	if (m_state != PlayerState::CHOP || !m_activeInteractionTarget) return;
 
 	GameObjectID objID = m_activeInteractionTarget->GetID();
-	if (objID != GOID_NORMAL_TREE_SHORT && objID != GOID_NORMAL_TREE_NORMAL && objID != GOID_NORMAL_TREE_TALL) return;
-	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
-	if (entity) {
-		const int CHOP_DAMAGE = 25;
-		entity->Damaged(CHOP_DAMAGE);
+	if (objID != GOID_NORMAL_TREE_SHORT && objID != GOID_NORMAL_TREE_NORMAL && objID != GOID_NORMAL_TREE_TALL) 
+		return;	
+	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);	
+	if (entity)
+	{
+		Tool* axe = dynamic_cast<Tool*>(m_equippedItem);
+		int damage = axe ? axe->GetDamage() : 10; // 도구가 없어도 기본 데미지 10 적용
+		entity->Damaged(damage);
 		if (entity->IsDead()) m_activeInteractionTarget = nullptr;
 	}
 }
@@ -395,12 +400,13 @@ void Player::OnChopHit()
 void Player::OnChopEnd()
 {
 	if (m_state != PlayerState::CHOP) return;
-	// Idle 애니메이션 피벗(0.5f)으로 복구 및 Down 방향으로 설정
+
 	transform->SetPivot(0.5f, transform->GetPivotY());
 	transform->SetDirection(DIR_DOWN);
 	m_state = PlayerState::IDLE;
 	m_activeInteractionTarget = nullptr;
 	m_pendingInteractionTarget = nullptr;
+
 	UpdateAnimatorState();
 }
 
@@ -486,21 +492,14 @@ void Player::HandleMovement()
 	if (!cameraManager)
 		return;
 
-	bool canStartNewInteraction =
-		m_pendingInteractionTarget == nullptr &&
-		m_activeInteractionTarget == nullptr &&
-		m_state != PlayerState::PICKUP &&
-		m_state != PlayerState::CHOP;
-
-	// 좌클릭: 인벤토리 위면 무시, 아니면 해당 월드 좌표로 상호작용 시도(줍기·벌채 등)
-	if (inputManager->IsLButtonClicked() && canStartNewInteraction) {
+	if (inputManager->IsLButtonClicked()) {
 		POINT mousePos = inputManager->GetMousePos();
 		if (m_inventory->ContainsScreenPoint(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)))
 			return;
+
 		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld((float)mousePos.x, (float)mousePos.y);
 		TryStartInteraction(worldPos.X, worldPos.Y);
 	}
-	// 우클릭: 인벤토리 위면 이동 안 함(슬롯 위면 장비 토글), 아니면 해당 좌표로 이동
 	else if (inputManager->IsRButtonClicked()) {
 		m_pendingInteractionTarget = nullptr;
 		POINT mousePos = inputManager->GetMousePos();

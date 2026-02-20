@@ -6,7 +6,7 @@
 
 AnimationClip::AnimationClip(
     const std::wstring& name,
-    std::unique_ptr<SpriteSheet> spriteSheet,
+    std::shared_ptr<SpriteSheet> spriteSheet,
     float pivotX,
     float pivotY,
     bool loop,

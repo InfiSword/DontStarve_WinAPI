@@ -68,7 +68,7 @@ std::shared_ptr<Gdiplus::Bitmap> EditorResourceManager::GetCachedBitmap(const st
 	}
 
 	// 캐시 미스 → 로드 후 캐싱
-	Gdiplus::Bitmap* pBitmap = BitmapUtils::LoadBitmapFromFile(fullPath.c_str());
+	Gdiplus::Bitmap* pBitmap = Gdiplus::Bitmap::FromFile(fullPath.c_str());
 	if (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) {
 		auto sharedBitmap = std::shared_ptr<Gdiplus::Bitmap>(pBitmap);
 		m_bitmapCache[fullPath] = sharedBitmap;

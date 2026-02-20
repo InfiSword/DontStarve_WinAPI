@@ -65,20 +65,6 @@ void Hound::Init()
 
 		m_animator->SetState((int)m_state, this->transform->GetDirection());
 	}
-	
-	// Animator 초기화 확인
-	Animator* animator = GetComponent<Animator>();
-	if (animator) {
-		// Animator 초기화 확인
-		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
-		if (spriteSheet) {
-			OutputDebugStringW((L"Hound: Animator 초기화 성공 - ID: " + std::to_wstring(m_id) + L", SpriteSheet 로드됨\n").c_str());
-		} else {
-			OutputDebugStringW((L"Hound: Animator 초기화 실패 - ID: " + std::to_wstring(m_id) + L", SpriteSheet 없음\n").c_str());
-		}
-	} else {
-		OutputDebugStringW((L"Hound: Animator 생성 실패 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
-	}
 }
 
 bool Hound::OnInteraction(GameObject* obj)

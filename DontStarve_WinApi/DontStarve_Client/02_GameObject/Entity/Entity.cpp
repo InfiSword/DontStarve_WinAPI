@@ -28,18 +28,11 @@ Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float piv
 	if (!imageName.empty())
 	{
 		ResourceManager* pRM = ResourceManager::GetInstance();
-		std::wstring fullPath;
-		if (baseDir.empty()) {
-			fullPath = imageName;
-		} else {
-			fullPath = baseDir;
-			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-				fullPath += L"\\";
+		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(baseDir, imageName);
+		if (!fullPath.empty()) {
+			if (auto sprite = pRM->LoadSprite(fullPath)) {
+				spriteRenderer->SetSprite(sprite);
 			}
-			fullPath += imageName;
-		}
-		if (auto sprite = pRM->LoadSprite(fullPath)) {
-			spriteRenderer->SetSprite(sprite);
 		}
 	}
 }
@@ -91,7 +84,7 @@ void Entity::Release()
 	m_animator = nullptr;
 	transform = nullptr;
 	spriteRenderer = nullptr;
-	
+
 	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
 	GameObject::Release();
 }

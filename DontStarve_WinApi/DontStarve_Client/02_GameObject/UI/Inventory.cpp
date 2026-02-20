@@ -1,5 +1,8 @@
 #include "99_Default/pch.h"
 #include "Inventory.h"
+#include "UIButton.h"
+#include "UIImage.h"
+#include "UIText.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
@@ -7,402 +10,322 @@
 #include "../../02_GameObject/Item/Item.h"
 #include "../../02_GameObject/Item/Tool/Tool.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
+#include "../../02_GameObject/Component/Transform/RectTransform.h"
 
-// ItemSlot::Clear() 구현 (Item의 완전한 정의가 필요하므로 cpp에 구현)
 void ItemSlot::Clear() {
-	if (item) {
-		delete item;  // Item 메모리 해제
-		item = nullptr;
-	}
+	if (item) { delete item; item = nullptr; }
 	count = 0;
 }
 
-Inventory::Inventory() : m_slots(INVENTORY_SLOT_COUNT), m_inventoryBgRect(0, 0, 0, 0) {
-	m_inventoryBgBitmap = nullptr;
-	m_slotBgBitmap = nullptr;
-	m_font = nullptr;
-	m_solidBrush = nullptr;
-	m_shadowBrush = nullptr;
-	m_stringFormat = nullptr;
+Inventory::Inventory()
+	: m_slots(INVENTORY_SLOT_COUNT)
+	, SLOT_WIDTH(64.0f)
+	, SLOT_HEIGHT(64.0f)
+	, SLOT_PADDING(10.0f)
+	, SLOT_STRIDE(64.0f + 10.0f)
+	, m_bgImage(nullptr)
+{
 }
 
 Inventory::~Inventory() {
-	// 슬롯의 모든 Item 삭제 (메모리 누수 방지)
 	for (auto& slot : m_slots) {
-		if (slot.item) {
-			slot.item->Release();  // 명시적 Release 호출 (문자열 정리 보장)
-			delete slot.item;
-			slot.item = nullptr;
-		}
+		if (slot.item) { delete slot.item; slot.item = nullptr; }
 	}
-	
-	delete m_inventoryBgBitmap;
-	m_inventoryBgBitmap = nullptr;
 
-	delete m_slotBgBitmap;
-	m_slotBgBitmap = nullptr;
-
-	if (m_font) { delete m_font; m_font = nullptr; }
-	if (m_solidBrush) { delete m_solidBrush; m_solidBrush = nullptr; }
-	if (m_shadowBrush) { delete m_shadowBrush; m_shadowBrush = nullptr; }
-	if (m_stringFormat) { delete m_stringFormat; m_stringFormat = nullptr; }
+	if (m_bgImage) { m_bgImage->Release(); delete m_bgImage; m_bgImage = nullptr; }
+	for (UIButton* btn : m_slotButtons) { if (btn) { btn->Release(); delete btn; } }
+	for (UIImage* img : m_slotItemImages) { if (img) { img->Release(); delete img; } }
+	for (UIText* txt : m_slotCountTexts) { if (txt) { txt->Release(); delete txt; } }
+	m_slotButtons.clear();
+	m_slotItemImages.clear();
+	m_slotCountTexts.clear();
 }
 
-// 인벤토리 초기화: 슬롯 UI의 화면 위치를 설정합니다.
-void Inventory::Init(std::vector<Gdiplus::RectF>& slotRects)
-{	
-	float slotWidth = 64.0f;
-	float slotHeight = 64.0f;
-	float slotPadding = 10.0f;
+void Inventory::Init()
+{
+	// ── 인벤토리 배경 UIImage ────────────────────────────────────────────
+	{
+		auto bgSprite = ResourceManager::GetInstance()->LoadSprite(L"Resource\\UI\\Inven.png");
+		float bgW = static_cast<float>(bgSprite->bitmap->GetWidth());
+		float bgH = static_cast<float>(bgSprite->bitmap->GetHeight());
 
-	float totalSlotsWidth = (slotWidth + slotPadding) * INVENTORY_SLOT_COUNT - slotPadding;
+		float bgCx = WINCX * 0.5f;
+		float bgCy = WINCY - bgH * 0.5f - 5.0f;
 
-	float startX = (WINCX / 2.0f) - (totalSlotsWidth / 2.0f);
-	float startY = WINCY - slotHeight - 30.0f;
+		m_bgImage = new UIImage(
+			GOID_NONE, bgW, bgH,
+			LAYER_UI_BACKGROUND, L"Resource\\UI\\Inven.png", 0.0f,
+			0.0f, 0.0f, 0.0f, 0.0f, bgCx, bgCy
+		);
+		m_bgImage->Init();
+	}
+
+	// ── 슬롯 UIButton / UIImage / UIText 생성 ───────────────────────────
+	float totalSlotsWidth = SLOT_STRIDE * INVENTORY_SLOT_COUNT - SLOT_PADDING;
+	float startX = WINCX * 0.5f - totalSlotsWidth * 0.5f;
+	float startY = WINCY - SLOT_HEIGHT - 30.0f;
+
+	std::shared_ptr<Sprite> slotBgSprite =
+		ResourceManager::GetInstance()->LoadSprite(L"Resource\\UI\\slot.png");
+
+	m_slotButtons.resize(INVENTORY_SLOT_COUNT, nullptr);
+	m_slotItemImages.resize(INVENTORY_SLOT_COUNT, nullptr);
+	m_slotCountTexts.resize(INVENTORY_SLOT_COUNT, nullptr);
 
 	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-		slotRects[i] = Gdiplus::RectF(
-			startX + i * (slotWidth + slotPadding), 
-			startY,                                
-			slotWidth,                             
-			slotHeight                              
+		float cx = startX + i * SLOT_STRIDE + SLOT_WIDTH * 0.5f;
+		float cy = startY + SLOT_HEIGHT * 0.5f;
+
+		UIButton* btn = new UIButton(
+			GOID_NONE, SLOT_WIDTH, SLOT_HEIGHT,
+			slotBgSprite, slotBgSprite,
+			0.0f, 0.0f, 0.0f, 0.0f, cx, cy
 		);
+		btn->SetHoverColor(Gdiplus::Color(255, 255, 255, 255));
+		btn->SetClickedColor(Gdiplus::Color(255, 255, 255, 255));
+		btn->Init();
+		m_slotButtons[i] = btn;
+
+		UIImage* img = new UIImage(
+			GOID_NONE, SLOT_WIDTH, SLOT_HEIGHT,
+			LAYER_UI_FOREGROUND, L"",
+			2.0f + (float)i * 0.001f,
+			0.0f, 0.0f, 0.0f, 0.0f, cx, cy
+		);
+		img->Init();
+		img->SetActive(false);
+		m_slotItemImages[i] = img;
+
+		float textX = cx - SLOT_WIDTH * 0.5f;
+		float textY = cy - SLOT_HEIGHT * 0.5f;
+		UIText* txt = new UIText(
+			GOID_NONE, SLOT_WIDTH, SLOT_HEIGHT,
+			L"", Gdiplus::Color(255, 255, 255, 255),
+			LAYER_UI_FOREGROUND,
+			3.0f + (float)i * 0.001f,
+			L"Arial", 18.0f,
+			Gdiplus::StringAlignmentFar, Gdiplus::StringAlignmentFar,
+			0.0f, 0.0f, 0.0f, 0.0f, textX, textY
+		);
+		txt->Init();
+		txt->SetActive(false);
+		m_slotCountTexts[i] = txt;
 	}
-	
-	// 복사하여 m_slotRects 할당
-	m_slotRects.clear();
-	m_slotRects = slotRects;
-	
-	LoadUIBitmaps();
 }
 
-// 아이템 추가 함수
-bool Inventory::AddItem(Item* itemDef, UINT count) {
-	if (!itemDef) return false; // 유효하지 않은 아이템이면 실패
+// ── 슬롯 이미지 상태 동기화 ─────────────────────────────────────────────
+void Inventory::UpdateSlotButton(int slotIndex)
+{
+	if (slotIndex < 0 || slotIndex >= INVENTORY_SLOT_COUNT) return;
 
-	// 이미 인벤토리에 같은 아이템이 쌓여 있고, 스택이 가능하면 해당 슬롯에 추가합니다.
+	UIImage* img = m_slotItemImages[slotIndex];
+	UIText* txt = m_slotCountTexts[slotIndex];
+
+	const ItemSlot& slot = m_slots[slotIndex];
+	if (slot.IsEmpty()) {
+		if (img) img->SetActive(false);
+		if (txt) txt->SetActive(false);
+		return;
+	}
+
+	// ── 아이템 이미지 갱신 ──────────────────────────────────────
+	SpriteRenderer* sr = slot.item->GetComponent<SpriteRenderer>();
+	std::shared_ptr<Sprite> spriteHandle = sr ? sr->GetSpriteHandle() : nullptr;
+	if (spriteHandle) {
+		float bw = spriteHandle->sourceRect.Width;
+		float bh = spriteHandle->sourceRect.Height;
+		if (bw > 0.0f && bh > 0.0f) {
+			float scale = (std::min)(SLOT_WIDTH / bw, SLOT_HEIGHT / bh);
+			RectTransform* rt = img->GetRectTransform();
+			rt->SetScale(scale, scale);
+		}
+		img->SetSprite(spriteHandle);
+		img->SetActive(true);
+	}
+	else {
+		img->SetActive(false);
+	}
+
+
+	// ── 개수 텍스트 갱신 ────────────────────────────────────────
+	if (slot.count >= 1) {
+		wchar_t countStr[16];
+		swprintf_s(countStr, 16, L"%u", slot.count);
+		txt->SetText(countStr);
+		txt->SetActive(true);
+	}
+	else {
+		txt->SetActive(false);
+	}
+
+}
+
+// ── 아이템 추가 ─────────────────────────────────────────────────────────
+bool Inventory::AddItem(Item* itemDef, UINT count) {
+	if (!itemDef) return false;
+
 	int existingSlotIndex = FindExistingStack(itemDef->GetID());
 	if (existingSlotIndex != -1 && m_slots[existingSlotIndex].count < ITEM_STACK_MAX) {
-		// 추가할 수 있는 최대 개수를 계산하여 추가하고, 남은 개수를 업데이트합니다.
 		UINT canAdd = ITEM_STACK_MAX - m_slots[existingSlotIndex].count;
-		UINT actualAdd = min(count, canAdd); // min() 함수는 <algorithm>에 있음
+		UINT actualAdd = min(count, canAdd);
 		m_slots[existingSlotIndex].count += actualAdd;
 		count -= actualAdd;
-		if (count == 0) {
-			// 기존 슬롯에 모두 스택됨 - 새로 생성된 itemDef는 슬롯에 저장되지 않으므로 해제
-			delete itemDef;
-			return true;
-		}
+		UpdateSlotButton(existingSlotIndex);
+		if (count == 0) { delete itemDef; return true; }
 	}
 
-	// 새로운 아이템을 빈 슬롯에 추가
-	// 주의: 현재 구현은 count <= ITEM_STACK_MAX를 가정 (같은 포인터를 여러 슬롯에 저장하지 않음)
-	// count > ITEM_STACK_MAX인 경우 첫 번째 슬롯만 사용하고 나머지는 무시
 	int emptySlotIndex = FindFirstEmptySlot();
-	if (emptySlotIndex == -1) {
-		return false; // 인벤토리 공간 부족
-	}
-	
-	UINT actualAdd = min(count, ITEM_STACK_MAX); // 한 슬롯에 넣을 수 있는 최대 개수
-	m_slots[emptySlotIndex].item = itemDef;     // 아이템 포인터 저장
-	m_slots[emptySlotIndex].count = actualAdd;   // 아이템 개수 저장
-	
-	// count > ITEM_STACK_MAX인 경우 나머지는 무시 (현재는 발생하지 않음)
-	if (count > ITEM_STACK_MAX) {
-		OutputDebugStringW((L"Inventory::AddItem 경고: count > ITEM_STACK_MAX, 일부 아이템 무시됨\n"));
-	}
+	if (emptySlotIndex == -1) return false;
 
-	return true; // 아이템 추가 성공
-}
+	m_slots[emptySlotIndex].item = itemDef;
+	m_slots[emptySlotIndex].count = min(count, ITEM_STACK_MAX);
 
-// 아이템 제거: 특정 슬롯에서 특정 개수만큼 제거
-bool Inventory::RemoveItem(UINT slotIndex, UINT count) {
-	// 슬롯 인덱스 유효성과 아이템 존재 여부, 아이템 개수 확인
-	if (slotIndex >= INVENTORY_SLOT_COUNT || m_slots[slotIndex].IsEmpty() || m_slots[slotIndex].count < count) {
-		return false;
-	}
-
-	m_slots[slotIndex].count -= count; // 아이템 개수 감소
-	if (m_slots[slotIndex].count == 0) {
-		m_slots[slotIndex].Clear(); // 아이템 0개가 되면 클리어
-	}
+	UpdateSlotButton(emptySlotIndex);
 	return true;
 }
 
-// 아이템 소모 --> 제작 시스템에서 필요한 아이템 소모
-bool Inventory::ConsumeItems(const std::map<UINT, UINT>& requiredItems) {
-	// 소모 필요한 모든 아이템이 인벤토리에 있는지 확인
-	if (!CheckHasEnoughItems(requiredItems)) {
+// ── 아이템 제거 ─────────────────────────────────────────────────────────
+bool Inventory::RemoveItem(UINT slotIndex, UINT count) {
+	if (slotIndex >= INVENTORY_SLOT_COUNT || m_slots[slotIndex].IsEmpty() || m_slots[slotIndex].count < count)
 		return false;
-	}
 
-	// 충분하면 아이템 소모 
+	m_slots[slotIndex].count -= count;
+	if (m_slots[slotIndex].count == 0) m_slots[slotIndex].Clear();
+
+	UpdateSlotButton((int)slotIndex);
+	return true;
+}
+
+// ── 아이템 소모 ─────────────────────────────────────────────────────────
+bool Inventory::ConsumeItems(const std::map<UINT, UINT>& requiredItems) {
+	if (!CheckHasEnoughItems(requiredItems)) return false;
+
 	std::map<UINT, UINT> tempRequired = requiredItems;
-
 	for (int i = INVENTORY_SLOT_COUNT - 1; i >= 0; --i) {
 		ItemSlot& slot = m_slots[i];
-		if (slot.IsEmpty() || tempRequired.count(slot.item->GetID()) == 0) continue; // 슬롯이 비어있거나 소모할 아이템이 아니면 스킵
+		if (slot.IsEmpty() || tempRequired.count(slot.item->GetID()) == 0) continue;
 
-		UINT itemIdToConsume = slot.item->GetID();
-		UINT& neededCount = tempRequired.at(itemIdToConsume); // 필요한 개수를 가져와서 실제 필요한 개수 업데이트
-
-		if (neededCount > 0) { // 아직 더 아이템이 필요하다면
-			UINT consumeAmount = min(slot.count, neededCount); // 현재 슬롯에서 소모할 수 있는 최대 개수
-			slot.count -= consumeAmount;
-			neededCount -= consumeAmount; // 필요한 아이템 개수 감소
-
-			if (slot.count == 0) { // 아이템이 0개가 되면 클리어
-				slot.Clear();
-			}
+		UINT& neededCount = tempRequired.at(slot.item->GetID());
+		if (neededCount > 0) {
+			UINT consume = min(slot.count, neededCount);
+			slot.count -= consume;
+			neededCount -= consume;
+			if (slot.count == 0) slot.Clear();
+			UpdateSlotButton(i);
 		}
 	}
 	return true;
 }
 
-// 특정 Item ID의 전체 아이템 개수를 합산하여 반환
 UINT Inventory::GetItemCount(UINT itemId) const {
-	UINT totalCount = 0;
-	for (const auto& slot : m_slots) {
-		if (!slot.IsEmpty() && slot.item->GetID() == itemId) {
-			totalCount += slot.count;
-		}
-	}
-	return totalCount;
+	UINT total = 0;
+	for (const auto& slot : m_slots)
+		if (!slot.IsEmpty() && slot.item->GetID() == itemId)
+			total += slot.count;
+	return total;
 }
 
-// 특정 슬롯의 아이템을 const 참조로 반환
 const ItemSlot& Inventory::GetSlot(int index) const {
 	static ItemSlot emptySlot;
-	if (index < 0 || index >= INVENTORY_SLOT_COUNT) {
-		return emptySlot;
-	}
+	if (index < 0 || index >= INVENTORY_SLOT_COUNT) return emptySlot;
 	return m_slots[index];
 }
 
-// 인벤토리 UI에서 각 슬롯에 있는 아이템들을 그리는 함수 - RenderManager를 통해 렌더링 명령 추가
-void Inventory::Render(int equippedSlotIndex) {
+// ── GetBgRect (배경 이미지 RectTransform 기준 — 이미지 크기 그대로) ──
+Gdiplus::RectF Inventory::GetBgRect() const {
+	if (!m_bgImage) return Gdiplus::RectF(0, 0, 0, 0);
+	RectTransform* rt = m_bgImage->GetRectTransform();
+	if (!rt) return Gdiplus::RectF(0, 0, 0, 0);
+	float bw = (rt->GetWidth() - 80.f) * rt->GetScaleX();
+	float bh = (rt->GetHeight() - 30.f) * rt->GetScaleY();
+	return Gdiplus::RectF(rt->GetX() - bw * 0.5f, rt->GetY() - bh * 0.5f, bw, bh);
+}
+
+// ── 렌더링 (순서: BG → 슬롯 버튼 → 슬롯 아이템/텍스트 → 장착 하이라이트, 슬롯은 BG 안에 배치) ──
+void Inventory::Render(int equippedSlotIndex)
+{
 	RenderManager* pRM = RenderManager::GetInstance();
+	if (!pRM) return;
 
-	if (!pRM) {
-		OutputDebugStringW(L"Inventory: RenderManager가 없습니다.\n");
-		return;
-	}
-
-	if (m_slotRects.empty()) {
-		OutputDebugStringW(L"Inventory: 슬롯 위치가 초기화되지 않았습니다.\n");
-		return;
-	}
-
-	if (m_inventoryBgBitmap) {
-		Gdiplus::Bitmap* inventoryBgBitmap = m_inventoryBgBitmap;
-		float bgWidth = (float)inventoryBgBitmap->GetWidth();
-		float bgHeight = (float)inventoryBgBitmap->GetHeight();
-
-		float bgX = WINCX / 2.0f - bgWidth / 2.0f;
-		float bgY = WINCY - bgHeight - 5.f; // 화면 하단에서 10픽셀 위
-
-		Gdiplus::RectF inventoryBgDestRect(bgX, bgY, bgWidth, bgHeight);
-		m_inventoryBgRect = inventoryBgDestRect;
-
-		pRM->AddDrawCommand(
-			inventoryBgBitmap,
-			inventoryBgDestRect,
-			Gdiplus::RectF(0, 0, (float)inventoryBgBitmap->GetWidth(), (float)inventoryBgBitmap->GetHeight()),
-			Gdiplus::UnitPixel,
-			Gdiplus::PointF(inventoryBgDestRect.X, inventoryBgDestRect.Y),
-			LAYER_UI_BACKGROUND,
-			0.f,
-			DIR_DOWN
-		);
-	} else {
-		OutputDebugStringW(L"Inventory: 인벤토리 배경 비트맵이 없습니다.\n");
-	}
+	if (m_bgImage) m_bgImage->Render();
 
 	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-		const ItemSlot& slot = m_slots[i];
+		if (m_slotButtons[i])
+			m_slotButtons[i]->Render();
 
-		// 각 슬롯 UI 그리기 -
-		//  Inventory::s_slotBgBitmap 사용
-		if (m_slotBgBitmap) {
-			Gdiplus::Bitmap* slotBgBitmap = m_slotBgBitmap;
-			pRM->AddDrawCommand(
-				slotBgBitmap,
-				m_slotRects[i],
-				Gdiplus::RectF(0, 0, (float)slotBgBitmap->GetWidth(), (float)slotBgBitmap->GetHeight()),
-				Gdiplus::UnitPixel,
-				Gdiplus::PointF(m_slotRects[i].X, m_slotRects[i].Y),
-				LAYER_UI_FOREGROUND,
-				0.f + 1.0f + (float)i * 0.001f,
-				DIR_DOWN
-			);
-		}
+		if (m_slotItemImages[i] && m_slotItemImages[i]->IsEnabled())
+			m_slotItemImages[i]->Render();
 
-		// 슬롯에 아이템이 있으면 아이템 이미지를 그림
-		if (!slot.IsEmpty()) {
-			SpriteRenderer* spriteRenderer = slot.item->GetComponent<SpriteRenderer>();
-			if (spriteRenderer) {
-				Gdiplus::Bitmap* itemBitmap = spriteRenderer->GetSprite();
-				if (itemBitmap) {
-					Gdiplus::RectF destRect = m_slotRects[i];
-
-					float itemImageWidth = (float)itemBitmap->GetWidth();
-					float itemImageHeight = (float)itemBitmap->GetHeight();
-
-					float scaleFactor = min(destRect.Width / itemImageWidth, destRect.Height / itemImageHeight);
-					float renderWidth = itemImageWidth * scaleFactor;
-					float renderHeight = itemImageHeight * scaleFactor;
-
-					Gdiplus::RectF itemRenderRect(
-						destRect.X + (destRect.Width - renderWidth) / 2.0f,
-						destRect.Y + (destRect.Height - renderHeight) / 2.0f,
-						renderWidth,
-						renderHeight
-					);
-
-					pRM->AddDrawCommand(
-						itemBitmap,
-						itemRenderRect,
-						Gdiplus::RectF(0, 0, itemImageWidth, itemImageHeight),
-						Gdiplus::UnitPixel,
-						Gdiplus::PointF(itemRenderRect.X, itemRenderRect.Y),
-						LAYER_UI_FOREGROUND,
-						0.f + 2.0f + (float)i * 0.001f,
-						DIR_DOWN
-					);
-
-					// 아이템 개수 텍스트 그리기
-					if (slot.count >= 1) {
-
-						wchar_t countStr[16];
-						swprintf_s(countStr, 16, L"%u", slot.count);
-
-						Gdiplus::RectF textRect(
-							itemRenderRect.X,
-							itemRenderRect.Y,
-							itemRenderRect.Width,
-							itemRenderRect.Height
-						);
-
-						pRM->AddTextCommand(countStr, m_font, m_shadowBrush, m_stringFormat,
-							Gdiplus::RectF(textRect.X + 1, textRect.Y + 1, textRect.Width, textRect.Height),
-							LAYER_UI_FOREGROUND, 0.f + 3.0f + (float)i * 0.001f);
-
-						pRM->AddTextCommand(countStr, m_font, m_solidBrush, m_stringFormat,
-							textRect,
-							LAYER_UI_FOREGROUND, 0.f + 3.1f + (float)i * 0.001f);
-					}
-				}
-			}
-		}
+		if (m_slotCountTexts[i] && m_slotCountTexts[i]->IsEnabled())
+			m_slotCountTexts[i]->Render();
 	}
-	if (equippedSlotIndex != -1 &&
-		equippedSlotIndex >= 0 && equippedSlotIndex < INVENTORY_SLOT_COUNT) {
 
-		// 하이라이트를 AddDrawCommand로 그리기
-		Gdiplus::RectF highlightRect = m_slotRects[equippedSlotIndex];
-		
-		// 하이라이트 사각형 그리기 (빨간색 테두리)
-		pRM->AddDrawCommand(
-			highlightRect,
-			Gdiplus::Color(255, 255, 0, 0), // 빨간색 (ARGB)
-			3.0f, // 테두리 두께
-			LAYER_UI_FOREGROUND,
-			0.f + 3.2f  // UI 텍스트보다 위에
-		);
+	// 장착 슬롯 하이라이트
+	if (equippedSlotIndex >= 0 && equippedSlotIndex < INVENTORY_SLOT_COUNT
+		&& m_slotButtons[equippedSlotIndex]) {
+		RectTransform* rt = m_slotButtons[equippedSlotIndex]->GetRectTransform();
+		if (rt) {
+			float bw = rt->GetWidth() * rt->GetScaleX();
+			float bh = rt->GetHeight() * rt->GetScaleY();
+			Gdiplus::RectF highlightRect(rt->GetX() - bw * 0.5f, rt->GetY() - bh * 0.5f, bw, bh);
+			pRM->AddDrawCommand(highlightRect, Gdiplus::Color(255, 255, 0, 0), 3.0f, LAYER_UI_FOREGROUND, 3.2f);
+		}
 	}
 }
 
 int Inventory::FindFirstEmptySlot() const {
-	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-		if (m_slots[i].IsEmpty()) {
-			return i;
-		}
-	}
-	return -1; // 빈 슬롯 없음
+	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i)
+		if (m_slots[i].IsEmpty()) return i;
+	return -1;
 }
 
 int Inventory::FindExistingStack(UINT itemId) const {
-	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-		// 아이템이 존재하면서 같은 아이템이고, 아이템이 최대치가 아니면 반환
-		if (!m_slots[i].IsEmpty() && m_slots[i].item->GetID() == itemId && m_slots[i].count < ITEM_STACK_MAX) {
+	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i)
+		if (!m_slots[i].IsEmpty() && m_slots[i].item->GetID() == itemId && m_slots[i].count < ITEM_STACK_MAX)
 			return i;
-		}
-	}
-	return -1; // 같은 아이템을 찾을 수 없음
+	return -1;
 }
 
 bool Inventory::CheckHasEnoughItems(const std::map<UINT, UINT>& requiredItems) const {
-	for (const auto& req : requiredItems) {
-		if (GetItemCount(req.first) < req.second) {
-			return false; // 필요한 아이템이 부족함
-		}
-	}
-	return true; // 모든 필요한 아이템이 충분함
-}
-
-void Inventory::LoadUIBitmaps() 
-{
-	if (!m_inventoryBgBitmap) {
-		std::wstring invenPath = L"Resource\\UI\\Inven.png";
-		m_inventoryBgBitmap = Gdiplus::Bitmap::FromFile(invenPath.c_str());
-		if (!m_inventoryBgBitmap || m_inventoryBgBitmap->GetLastStatus() != Gdiplus::Ok) {
-			if (m_inventoryBgBitmap) delete m_inventoryBgBitmap;
-			m_inventoryBgBitmap = nullptr;
-		}
-	}
-	if (!m_slotBgBitmap) {
-		std::wstring slotPath = L"Resource\\UI\\slot.png";
-		m_slotBgBitmap = Gdiplus::Bitmap::FromFile(slotPath.c_str());
-		if (!m_slotBgBitmap || m_slotBgBitmap->GetLastStatus() != Gdiplus::Ok) {
-			if (m_slotBgBitmap) delete m_slotBgBitmap;
-			m_slotBgBitmap = nullptr;
-		}
-	}
-
-	if (!m_font) {
-		Gdiplus::FontFamily fontFamily(L"Arial"); // 폰트 패밀리
-		m_font = new Gdiplus::Font(&fontFamily, 18, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
-		if (m_font->GetLastStatus() != Gdiplus::Ok) {
-			delete m_font;
-			m_font = nullptr;
-		}
-	}
-	if (!m_solidBrush) m_solidBrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 255, 255, 255)); // 흰색 브러시
-	if (!m_shadowBrush) m_shadowBrush = new Gdiplus::SolidBrush(Gdiplus::Color(255, 0, 0, 0));       // 그림자 브러시 (검은색)
-	if (!m_stringFormat) {
-		m_stringFormat = new Gdiplus::StringFormat();
-		m_stringFormat->SetAlignment(Gdiplus::StringAlignmentFar);
-		m_stringFormat->SetLineAlignment(Gdiplus::StringAlignmentFar);
-	}
-}
-void Inventory::ReleaseUIBitmaps() {
-	if (m_inventoryBgBitmap) { delete m_inventoryBgBitmap; m_inventoryBgBitmap = nullptr; }
-	if (m_slotBgBitmap) { delete m_slotBgBitmap; m_slotBgBitmap = nullptr; }
+	for (const auto& req : requiredItems)
+		if (GetItemCount(req.first) < req.second) return false;
+	return true;
 }
 
 bool Inventory::ContainsScreenPoint(float screenX, float screenY) const {
-	if (m_inventoryBgRect.Width <= 0 || m_inventoryBgRect.Height <= 0)
-		return false;
-	return m_inventoryBgRect.Contains(screenX, screenY);
+	Gdiplus::RectF bgRect = GetBgRect();
+	return (bgRect.Width > 0 && bgRect.Height > 0 && bgRect.Contains(screenX, screenY));
 }
 
 void Inventory::HandleSlotClick(int slotIndex, Player* player) {
 	const ItemSlot& slot = GetSlot(slotIndex);
 	if (slot.IsEmpty()) return;
-	Tool* toolItem = dynamic_cast<Tool*>(slot.item);
-	if (toolItem)
+	if (dynamic_cast<Tool*>(slot.item))
 		player->ToggleEquipItem(slotIndex);
 }
 
 bool Inventory::HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player) {
 	if (!player) return false;
-	if (m_inventoryBgRect.Width <= 0 || m_inventoryBgRect.Height <= 0 || !m_inventoryBgRect.Contains(mouseScreenX, mouseScreenY))
-		return false;
-	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-		if (m_slotRects[i].Contains(mouseScreenX, mouseScreenY)) {
-			HandleSlotClick(i, player);
-			break;
+
+	float totalSlotsWidth = SLOT_STRIDE * INVENTORY_SLOT_COUNT - SLOT_PADDING;
+	float startX = WINCX * 0.5f - totalSlotsWidth * 0.5f;
+	float startY = WINCY - SLOT_HEIGHT - 30.0f;
+
+	// 1) 슬롯 클릭 검사 → 슬롯 위면 처리 후 true
+	bool inSlotRow = (mouseScreenY >= startY && mouseScreenY < startY + SLOT_HEIGHT);
+	if (inSlotRow) {
+		float localX = mouseScreenX - startX;
+		int col = static_cast<int>(localX / SLOT_STRIDE);
+		float slotLocalX = localX - col * SLOT_STRIDE;
+		if (col >= 0 && col < INVENTORY_SLOT_COUNT && slotLocalX >= 0.0f && slotLocalX < SLOT_WIDTH) {
+			HandleSlotClick(col, player);
+			return true;
 		}
 	}
-	return true;
+
+	// 2) 슬롯이 아니면 인벤토리 영역(배경 Rect) 검사 → 안이면 이동만 막고 true
+	if (ContainsScreenPoint(mouseScreenX, mouseScreenY))
+		return true;
+
+	return false;
 }

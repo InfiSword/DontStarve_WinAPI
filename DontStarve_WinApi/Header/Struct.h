@@ -270,28 +270,6 @@ namespace ResourcePathUtils
 		{}
 	};
 
-	// 크래프팅 레시피 엔트리 구조체
-	struct CraftingRecipeEntry {
-		GameObjectID toolID;           // 제작할 도구 ID
-		GameObjectID ingredient1ID;     // 재료1 ID
-		UINT ingredient1Count;          // 재료1 개수
-		GameObjectID ingredient2ID;     // 재료2 ID
-		UINT ingredient2Count;          // 재료2 개수
-	};
-
-	// 크래프팅 레시피 정적 테이블 (임시로 모든 도구: 나뭇가지 1개 + 나무 통나무 1개)
-	static constexpr CraftingRecipeEntry CraftingRecipeTable[] = {
-		{ GOID_TOOL_GOLDEN_SCYTHE, GOID_ITEM_NORMAL_TWIGS, 1, GOID_ITEM_NORMAL_TREE_LOG, 1 },
-		{ GOID_TOOL_HAM_BAT, GOID_ITEM_NORMAL_TWIGS, 1, GOID_ITEM_NORMAL_TREE_LOG, 1 },
-		{ GOID_TOOL_PICKAXE, GOID_ITEM_NORMAL_TWIGS, 1, GOID_ITEM_NORMAL_TREE_LOG, 1 },
-		{ GOID_TOOL_RED_AXE, GOID_ITEM_NORMAL_TWIGS, 1, GOID_ITEM_NORMAL_TREE_LOG, 1 },
-		{ GOID_TOOL_SPEAR, GOID_ITEM_NORMAL_TWIGS, 1, GOID_ITEM_NORMAL_TREE_LOG, 1 },
-		{ GOID_TOOL_SWAP_AXE, GOID_ITEM_NORMAL_ROCK, 1, GOID_ITEM_NORMAL_TWIGS, 2 },
-		{ GOID_TOOL_SWAP_SPEAR, GOID_ITEM_NORMAL_TWIGS, 1, GOID_ITEM_NORMAL_TREE_LOG, 1 },
-		{ GOID_TOOL_TORCH, GOID_ITEM_NORMAL_TWIGS, 1, GOID_ITEM_NORMAL_TREE_LOG, 1 }
-	};
-
-	static constexpr size_t CraftingRecipeCount = sizeof(CraftingRecipeTable) / sizeof(CraftingRecipeEntry);
 }
 
 struct PaletteItem {

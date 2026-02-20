@@ -29,19 +29,9 @@ void ResourceManager::Init()
 
 void ResourceManager::Release()
 {
-	// ObjectResourceDef 내부의 std::wstring 멤버들 명시적 정리
-	for (auto& pair : m_objectResources) {
-		ResourcePathUtils::ObjectResourceDef& def = pair.second;
-		def.baseDir.clear();
-		def.baseDir.shrink_to_fit();
-		def.imageName.clear();
-		def.imageName.shrink_to_fit();
-	}
 	m_objectResources.clear();
-	
-	// weak_ptr은 참조 카운트를 증가시키지 않으므로 Sprite는 자동 해제됨
-	// 맵 자체의 메모리 해제를 위해 빈 맵으로 교체
-	m_spriteCache = std::unordered_map<std::wstring, std::weak_ptr<Sprite>>();
+	m_spriteCache.clear();
+	m_spriteSheetCache.clear();
 }
 
 void ResourceManager::RegisterObjectResource(GameObjectID id, const ResourcePathUtils::ObjectResourceDef& data)
@@ -67,6 +57,8 @@ std::shared_ptr<Sprite> ResourceManager::LoadSprite(const std::wstring& fullPath
 		if (std::shared_ptr<Sprite> cached = found->second.lock()) {
 			return cached;
 		}
+		// 만료된 weak_ptr 엔트리 제거
+		m_spriteCache.erase(found);
 	}
 
 	std::shared_ptr<Gdiplus::Bitmap> bmp = std::make_shared<Gdiplus::Bitmap>(fullPath.c_str());
@@ -77,4 +69,34 @@ std::shared_ptr<Sprite> ResourceManager::LoadSprite(const std::wstring& fullPath
 	std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(bmp, src, 0.5f, 0.5f, fullPath);
 	m_spriteCache[fullPath] = sprite;
 	return sprite;
+}
+
+std::shared_ptr<SpriteSheet> ResourceManager::LoadSpriteSheet(
+    const std::wstring& imagePath,
+    UINT frameWidth, UINT frameHeight,
+    UINT framesPerRow, UINT totalFrames,
+    bool flipHorizontal)
+{
+    std::wstring key = imagePath
+        + L"_" + std::to_wstring(frameWidth)
+        + L"x" + std::to_wstring(frameHeight)
+        + L"_" + std::to_wstring(framesPerRow)
+        + L"x" + std::to_wstring(totalFrames)
+        + (flipHorizontal ? L"_flip" : L"");
+
+    auto it = m_spriteSheetCache.find(key);
+    if (it != m_spriteSheetCache.end()) {
+        if (auto cached = it->second.lock()) {
+            return cached;
+        }
+        // 만료된 weak_ptr 엔트리 제거
+        m_spriteSheetCache.erase(it);
+    }
+
+    auto sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, flipHorizontal);
+    if (!sheet) return nullptr;
+
+    std::shared_ptr<SpriteSheet> shared = std::move(sheet);
+    m_spriteSheetCache[key] = shared;
+    return shared;
 }

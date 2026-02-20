@@ -376,8 +376,12 @@ void EditorColliderEditor::ToggleColliderType() {
 		m_editingColliderObject->colliderType = COLLIDER_CIRCLE;
 		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
 		if (ov && !ov->imageName.empty()) {
-			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
-			std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
+			std::wstring fullPath = ov->baseDir;
+			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+				fullPath += L"\\";
+			}
+			fullPath += ov->imageName;
+			std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
 			if (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) {
 				int imageWidth = (int)pBitmap->GetWidth();
 				int imageHeight = (int)pBitmap->GetHeight();
@@ -392,8 +396,12 @@ void EditorColliderEditor::ToggleColliderType() {
 		m_editingColliderObject->colliderType = COLLIDER_BOX;
 		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
 		if (ov && !ov->imageName.empty()) {
-			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
-			std::unique_ptr<Gdiplus::Bitmap> pBitmap(BitmapUtils::LoadBitmapFromFile(fullPath.c_str()));
+			std::wstring fullPath = ov->baseDir;
+			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+				fullPath += L"\\";
+			}
+			fullPath += ov->imageName;
+			std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
 			if (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) {
 				int imageWidth = (int)pBitmap->GetWidth();
 				int imageHeight = (int)pBitmap->GetHeight();

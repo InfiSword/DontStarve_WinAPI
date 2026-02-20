@@ -1,9 +1,14 @@
 #include "99_Default/pch.h"
 #include "SpriteSheet.h"
 
-SpriteSheet::SpriteSheet(std::unique_ptr<Gdiplus::Bitmap> sheet, UINT fw, UINT fh, UINT fpr, UINT tf, bool flipHorizontal)
-    : m_pSheetBitmap(std::move(sheet)),
-    m_frameWidth(fw), m_frameHeight(fh), m_framesPerRow(fpr), m_totalFrames(tf), m_flipHorizontal(flipHorizontal) {}
+SpriteSheet::SpriteSheet(Gdiplus::Bitmap* sheet, UINT fw, UINT fh, UINT fpr, UINT tf, bool flipHorizontal)
+    : m_pSheetBitmap(sheet),
+    m_frameWidth(fw), m_frameHeight(fh), m_framesPerRow(fpr), m_totalFrames(tf), m_flipHorizontal(flipHorizontal) {
+    // nullptr 체크는 호출자가 해야 하지만, 안전을 위해
+    if (!m_pSheetBitmap) {
+        OutputDebugStringW(L"SpriteSheet: nullptr 비트맵 전달됨\n");
+    }
+}
 
 std::unique_ptr<SpriteSheet> SpriteSheet::CreateFromFile(
     const std::wstring& imagePath,
@@ -11,8 +16,9 @@ std::unique_ptr<SpriteSheet> SpriteSheet::CreateFromFile(
     UINT framesPerRow, UINT totalFrames,
     bool flipHorizontal) {
     
-    auto bitmap = std::make_unique<Gdiplus::Bitmap>(imagePath.c_str());
+    Gdiplus::Bitmap* bitmap = new Gdiplus::Bitmap(imagePath.c_str());
     if (!bitmap || bitmap->GetLastStatus() != Gdiplus::Ok) {
+        if (bitmap) delete bitmap;
         OutputDebugStringW((L"SpriteSheet: 파일 로드 실패 - " + imagePath + L"\n").c_str());
         return nullptr;
     }
@@ -20,23 +26,38 @@ std::unique_ptr<SpriteSheet> SpriteSheet::CreateFromFile(
     if (flipHorizontal) {
         UINT w = bitmap->GetWidth();
         UINT h = bitmap->GetHeight();
-        auto flipped = std::make_unique<Gdiplus::Bitmap>(static_cast<INT>(w), static_cast<INT>(h));
+        Gdiplus::Bitmap* flipped = new Gdiplus::Bitmap(static_cast<INT>(w), static_cast<INT>(h));
         if (flipped && flipped->GetLastStatus() == Gdiplus::Ok) {
-            Gdiplus::Graphics g(flipped.get());
+            Gdiplus::Graphics g(flipped);
             Gdiplus::RectF destRect(0.0f, 0.0f, static_cast<float>(w), static_cast<float>(h));
-            g.DrawImage(bitmap.get(), destRect, static_cast<float>(w), 0.0f, -static_cast<float>(w), static_cast<float>(h), Gdiplus::UnitPixel);
-            bitmap = std::move(flipped);
+            g.DrawImage(bitmap, destRect, static_cast<float>(w), 0.0f, -static_cast<float>(w), static_cast<float>(h), Gdiplus::UnitPixel);
+            delete bitmap;
+            bitmap = flipped;
+        } else {
+            if (flipped) {
+                delete flipped;
+            }
+            // flip 실패 시 원본 bitmap은 그대로 사용
         }
     }
     
-    return std::make_unique<SpriteSheet>(std::move(bitmap), frameWidth, frameHeight, framesPerRow, totalFrames, flipHorizontal);
+    return std::make_unique<SpriteSheet>(bitmap, frameWidth, frameHeight, framesPerRow, totalFrames, flipHorizontal);
 }
 
-SpriteSheet::~SpriteSheet() {} 
+SpriteSheet::~SpriteSheet() {
+    if (m_pSheetBitmap) {
+        delete m_pSheetBitmap;
+        m_pSheetBitmap = nullptr;
+    }
+}
+
+Gdiplus::Bitmap* SpriteSheet::GetBitmap() const {
+    return m_pSheetBitmap;
+}
 
 std::vector<AnimationFrame> SpriteSheet::ExtractFrames(float frameDuration, float pivotX, float pivotY) const {
     std::vector<AnimationFrame> frames;
-    if (!m_pSheetBitmap.get()) {
+    if (!m_pSheetBitmap) {
         return frames;
     }
 

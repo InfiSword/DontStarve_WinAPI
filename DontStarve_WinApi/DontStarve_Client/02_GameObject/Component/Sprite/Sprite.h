@@ -16,6 +16,7 @@ public:
 		float px,
 		float py,
 		const std::wstring& k,
-		const Gdiplus::Color& tint = Gdiplus::Color(255, 255, 255, 255))
-		: bitmap(std::move(bmp)), sourceRect(srcRect), pivotX(px), pivotY(py), key(k), tintColor(tint) {}
+		const Gdiplus::Color& tint = Gdiplus::Color(255, 255, 255, 255));
+	
+	~Sprite();
 };

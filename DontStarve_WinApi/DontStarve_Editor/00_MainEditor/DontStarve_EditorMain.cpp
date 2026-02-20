@@ -1310,7 +1310,11 @@ void DontStarve_EditorMain::HandlePlacingModeClick(POINT clickPoint, HWND hWnd) 
 				// 이미지 크기 기반 기본값 (캐시된 비트맵에서 로드)
 				int imageWidth = 32, imageHeight = 32; // 기본값
 				if (!ov->imageName.empty()) {
-					std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
+					std::wstring fullPath = ov->baseDir;
+					if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+						fullPath += L"\\";
+					}
+					fullPath += ov->imageName;
 					std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 					if (pBitmap) {
 						imageWidth = pBitmap->GetWidth();

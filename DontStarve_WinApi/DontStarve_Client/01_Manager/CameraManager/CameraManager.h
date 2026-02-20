@@ -39,11 +39,9 @@ public:
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 	bool IsFollowMode() const { return m_followMode; }
 	
-	// 카메라 위치 설정 함수
-	void SetCameraPosition(float x, float y);
-
 	// 뷰포트 내 보이는 오브젝트 업데이트
 	void UpdateVisibleObjects();
+
 	// 제거된 오브젝트를 visible 목록에서 즉시 제거 (삭제 전 호출하여 댕글링 포인터 방지)
 	void RemoveFromVisibleObjects(GameObject* obj);
 
@@ -70,7 +68,6 @@ private:
 	
 	// 뷰포트 관리
 	std::vector<GameObject*> m_visibleObjects;
-	std::unordered_set<GameObject*> m_visibleObjectSet;
 	Gdiplus::RectF m_lastViewportRect;
 	bool m_viewportChanged;
 	void CheckViewportChanged();

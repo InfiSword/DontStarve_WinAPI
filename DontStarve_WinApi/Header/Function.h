@@ -363,4 +363,22 @@ namespace ResourcePathUtils
 		file.close();
 		return true;
 	}
+
+	// baseDir와 imageName을 결합하여 전체 경로 생성 (경로 결합 로직 중복 제거)
+	inline std::wstring BuildResourcePath(const std::wstring& baseDir, const std::wstring& imageName) {
+		if (baseDir.empty()) {
+			OutputDebugStringW(L"BuildResourcePath: baseDir가 비어있습니다. 경로를 생성할 수 없습니다.\n");
+			return L"";  // 오류: baseDir가 비어있으면 빈 문자열 반환
+		}
+		if (imageName.empty()) {
+			OutputDebugStringW(L"BuildResourcePath: imageName이 비어있습니다. 경로를 생성할 수 없습니다.\n");
+			return L"";  // 오류: imageName이 비어있으면 빈 문자열 반환
+		}
+		std::wstring fullPath = baseDir;
+		if (fullPath.back() != L'\\' && fullPath.back() != L'/') {
+			fullPath += L'\\';  // Windows 경로 구분자는 하나면 충분
+		}
+		fullPath += imageName;
+		return fullPath;
+	}
 }

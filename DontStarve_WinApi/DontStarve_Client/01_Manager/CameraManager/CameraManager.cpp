@@ -28,7 +28,6 @@ void CameraManager::Init()
     m_cameraPos = { 0,0 };
     m_viewportChanged = true;
     m_visibleObjects.clear();
-    m_visibleObjectSet.clear();
     m_tileCache.clear();
     m_tileRangeInitialized = false;
 }
@@ -43,7 +42,6 @@ void CameraManager::Update(float deltaTime)
     // 뷰포트 변경 확인
     CheckViewportChanged();
     
-    // 카메라 뷰포트 내에 있는 게임오브젝트를 찾아서 저장
     // 뷰포트가 변경되었을 때만 업데이트 (성능 최적화)
     if (m_viewportChanged) {
         UpdateVisibleObjects();
@@ -54,7 +52,6 @@ void CameraManager::Release()
 {
 	m_visibleObjects.clear();
 	m_visibleObjects.shrink_to_fit();
-	m_visibleObjectSet.clear();
 	
 	// 타일 캐시 해제
 	ClearTileCache();
@@ -127,16 +124,9 @@ void CameraManager::FollowTarget()
 	}
 }
 
-void CameraManager::SetCameraPosition(float x, float y)
-{
-    m_cameraPos.X = x;
-    m_cameraPos.Y = y;
-}
-
 void CameraManager::UpdateVisibleObjects()
 {
 	m_visibleObjects.clear();
-	m_visibleObjectSet.clear();
 	
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!objectManager) return;
@@ -147,84 +137,53 @@ void CameraManager::UpdateVisibleObjects()
 	Gdiplus::RectF viewportRect = GetViewportWorldRect();
 	const float MARGIN = 200.0f;
 	float startX = viewportRect.X - MARGIN;
-	float endX = viewportRect.X + viewportRect.Width + MARGIN;
+	float endX   = viewportRect.X + viewportRect.Width + MARGIN;
 	float startY = viewportRect.Y - MARGIN;
-	float endY = viewportRect.Y + viewportRect.Height + MARGIN;
+	float endY   = viewportRect.Y + viewportRect.Height + MARGIN;
 	
-	std::unordered_set<size_t> addedIngredients; // Ingredient 중복 방지 (성능 최적화: 문자열 대신 해시 사용)
-	
-	// 성능 최적화: 미리 reserve로 메모리 재할당 방지
-	m_visibleObjects.reserve(allObjects.size() / 4); // 예상 크기의 1/4 정도로 예약
+	m_visibleObjects.reserve(allObjects.size() / 4);
+
 	for (GameObject* obj : allObjects) {
 		if (!obj || !obj->IsEnabled()) continue;
 		
 		Transform* transform = obj->GetComponent<Transform>();
 		if (!transform) continue;
 		
-		// 간단한 위치 체크로 먼저 필터링 (성능 최적화)
 		float objX = transform->GetX();
 		float objY = transform->GetY();
-		if (objX < startX || objX > endX || objY < startY || objY > endY) {
-			continue; // 뷰포트 밖이면 스킵
-		}
+		if (objX < startX || objX > endX || objY < startY || objY > endY) continue;
 		
-		// 렌더링 가능한 오브젝트인지 확인
 		SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>();
-		bool hasSprite = (spriteRenderer && spriteRenderer->GetSprite());
+		bool hasSprite   = (spriteRenderer && spriteRenderer->GetSprite());
 		bool hasAnimator = (obj->GetComponent<Animator>() != nullptr);
 		if (!hasSprite && !hasAnimator) continue;
 		
-		// Ingredient 중복 체크 (성능 최적화: 문자열 대신 해시 사용)
-		if (obj->GetType() == GOBJ_ITEM) {
-			// 해시 기반 키 생성 (문자열 변환보다 빠름)
-			size_t key = std::hash<GameObjectID>()(obj->GetID()) ^ 
-				(std::hash<float>()(objX) << 1) ^ 
-				(std::hash<float>()(objY) << 2);
-			if (addedIngredients.find(key) != addedIngredients.end()) continue;
-			addedIngredients.insert(key);
-		}
-		
-		// 정확한 바운딩 박스 체크 (필요한 경우에만)
 		Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
 		bool boundsIntersect = (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
 		                        objBounds.Y < endY && objBounds.Y + objBounds.Height > startY);
+		if (!boundsIntersect) continue;
 		
-		if (!boundsIntersect) {
-			continue; // 월드 좌표 기준으로 뷰포트 밖이면 스킵
-		}
-		
-		// 화면 영역과의 실제 교차 체크 (월드 좌표 -> 화면 좌표 변환)
-		// 바운딩 박스의 4개 모서리를 모두 화면 좌표로 변환하여 정확한 교차 체크
-		Gdiplus::PointF screenTopLeft = WorldToScreen(objBounds.X, objBounds.Y);
-		Gdiplus::PointF screenTopRight = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y);
-		Gdiplus::PointF screenBottomLeft = WorldToScreen(objBounds.X, objBounds.Y + objBounds.Height);
+		Gdiplus::PointF screenTopLeft     = WorldToScreen(objBounds.X,                  objBounds.Y);
+		Gdiplus::PointF screenTopRight    = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y);
+		Gdiplus::PointF screenBottomLeft  = WorldToScreen(objBounds.X,                  objBounds.Y + objBounds.Height);
 		Gdiplus::PointF screenBottomRight = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y + objBounds.Height);
 		
-		// 4개 모서리로 화면 AABB 계산 후 화면 영역과 교차 여부 확인
-		float screenLeft = (std::min)((std::min)(screenTopLeft.X, screenTopRight.X), (std::min)(screenBottomLeft.X, screenBottomRight.X));
-		float screenRight = (std::max)((std::max)(screenTopLeft.X, screenTopRight.X), (std::max)(screenBottomLeft.X, screenBottomRight.X));
-		float screenTop = (std::min)((std::min)(screenTopLeft.Y, screenTopRight.Y), (std::min)(screenBottomLeft.Y, screenBottomRight.Y));
-		float screenBottom = (std::max)((std::max)(screenTopLeft.Y, screenTopRight.Y), (std::max)(screenBottomLeft.Y, screenBottomRight.Y));
-		bool screenIntersects = !(screenRight < 0 || screenLeft > WINCX || screenBottom < 0 || screenTop > WINCY);
+		float screenLeft   = (std::min)((std::min)(screenTopLeft.X,  screenTopRight.X),  (std::min)(screenBottomLeft.X,  screenBottomRight.X));
+		float screenRight  = (std::max)((std::max)(screenTopLeft.X,  screenTopRight.X),  (std::max)(screenBottomLeft.X,  screenBottomRight.X));
+		float screenTop    = (std::min)((std::min)(screenTopLeft.Y,  screenTopRight.Y),  (std::min)(screenBottomLeft.Y,  screenBottomRight.Y));
+		float screenBottom = (std::max)((std::max)(screenTopLeft.Y,  screenTopRight.Y),  (std::max)(screenBottomLeft.Y,  screenBottomRight.Y));
 		
-		// 화면 영역과 교차하는 경우에만 visibleObjects에 추가
-		if (screenIntersects) {
-			m_visibleObjects.push_back(obj);
-			m_visibleObjectSet.insert(obj);
-		}
+		if (screenRight < 0 || screenLeft > WINCX || screenBottom < 0 || screenTop > WINCY) continue;
+		
+		m_visibleObjects.push_back(obj);
 	}
 	
-	// 성능 최적화: 업데이트 완료 후 플래그 리셋 (다음 프레임에서 불필요한 호출 방지)
 	m_viewportChanged = false;
 }
 
 void CameraManager::RemoveFromVisibleObjects(GameObject* obj)
 {
 	if (!obj) return;
-	auto setIt = m_visibleObjectSet.find(obj);
-	if (setIt != m_visibleObjectSet.end()) {
-		m_visibleObjectSet.erase(setIt);
-	}
 	auto it = std::find(m_visibleObjects.begin(), m_visibleObjects.end(), obj);
 	if (it != m_visibleObjects.end()) {
 		m_visibleObjects.erase(it);
@@ -235,9 +194,8 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float 
 {
 	for (int i = (int)m_visibleObjects.size() - 1; i >= 0; --i) {
 		GameObject* obj = m_visibleObjects[i];
-		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) continue;  // m_isInteractive가 false면 건너뜀 (플레이어 등)
+		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) continue;
 
-		// 상호작용 범위: 콜라이더가 있고 활성화된 경우에만 콜라이더 영역으로 판정 (스프라이트 바운딩 미사용)
 		Collider* collider = obj->GetComponent<Collider>();
 		if (!collider || !collider->IsEnabled())
 			continue;
@@ -303,7 +261,7 @@ Gdiplus::RectF CameraManager::GetSpriteBoundingBox(GameObject* obj) const
 void CameraManager::CheckViewportChanged()
 {
 	Gdiplus::RectF currentViewport = GetViewportWorldRect();
-	const float EPSILON = 0.1f; // 부동소수점 비교를 위한 작은 오차 범위
+	const float EPSILON = 0.1f;
 	
 	if (std::abs(currentViewport.X - m_lastViewportRect.X) > EPSILON || 
 		std::abs(currentViewport.Y - m_lastViewportRect.Y) > EPSILON ||
@@ -311,9 +269,6 @@ void CameraManager::CheckViewportChanged()
 		std::abs(currentViewport.Height - m_lastViewportRect.Height) > EPSILON) {
 		m_viewportChanged = true;
 		m_lastViewportRect = currentViewport;
-	} else {
-		// 뷰포트가 변경되지 않았으면 플래그 리셋
-		m_viewportChanged = false;
 	}
 }
 
@@ -473,14 +428,11 @@ void CameraManager::ClearTileCache()
 
 void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& tileData, TileCacheData& cacheData)
 {
-	if (tileData.baseDir.empty() || tileData.imageName.empty()) {
-		return;
+	// BuildResourcePath 내부에서 baseDir와 imageName 검증을 수행하므로 중복 검증 제거
+	std::wstring fullPath = ResourcePathUtils::BuildResourcePath(tileData.baseDir, tileData.imageName);
+	if (fullPath.empty()) {
+		return; 
 	}
-	std::wstring fullPath = tileData.baseDir;
-	if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-		fullPath += L"\\";
-	}
-	fullPath += tileData.imageName;
 
 	cacheData.bitmap = new Gdiplus::Bitmap(fullPath.c_str());
 	if (!(cacheData.bitmap && cacheData.bitmap->GetLastStatus() == Gdiplus::Ok)) {

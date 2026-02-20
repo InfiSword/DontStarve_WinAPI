@@ -3,6 +3,7 @@
 #include "AnimationClip.h"
 #include "SpriteSheet.h"
 #include "../01_Manager/RenderManager/RenderManager.h"
+#include "../01_Manager/ResourceManager/ResourceManager.h"
 
 Animator::Animator(GameObject* owner)
     : Component(owner), m_currentClip(nullptr), m_currentState(-1), m_currentDirection(-1), 
@@ -30,18 +31,22 @@ void Animator::RegisterAnimation(int state, Direction dir,
                                 bool flipHorizontal) 
 {
     int key = GetAnimationKey(state, static_cast<int>(dir));
-    
-    // flipHorizontal이 false(기본값)이면 LEFT 방향일 때만 자동으로 반전
-    // 명시적으로 true를 전달하면 어떤 방향이든 강제로 반전
+
     bool shouldFlip = flipHorizontal ? true : (dir == DIR_LEFT);
-    
-    auto sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, shouldFlip);
+
+    // ResourceManager 캐시를 통해 SpriteSheet 공유 - 동일 이미지/설정은 비트맵 재사용
+    std::shared_ptr<SpriteSheet> sheet = ResourceManager::GetInstance()->LoadSpriteSheet(
+        imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, shouldFlip);
     if (!sheet) return;
 
-    auto clip = std::make_unique<AnimationClip>(L"", std::move(sheet), pivotX, pivotY, loop, shouldFlip, frameDuration);
-    
+    // 이미 해당 key로 등록된 클립이 있으면 교체하지 않음 (중복 등록 방지 → 댕글링 원인 제거)
+    if (m_animations.find(key) != m_animations.end()) {
+        return;
+    }
+
+    auto clip = std::make_unique<AnimationClip>(L"", sheet, pivotX, pivotY, loop, shouldFlip, frameDuration);
     if (!clip) return;
-    
+
     m_animations[key] = std::move(clip);
 }
 
@@ -129,8 +134,8 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
 
     const AnimationFrame& currentFrame = GetCurrentFrame();
     const SpriteSheet* currentSheet = m_currentClip->GetSpriteSheet();
-
-    if (!currentSheet || !currentSheet->GetBitmap()) {
+    Gdiplus::Bitmap* pBitmap = currentSheet ? currentSheet->GetBitmap() : nullptr;
+    if (!pBitmap) {
         return;
     }
 
@@ -147,7 +152,7 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
     // LEFT 방향은 미리 반전된 비트맵을 사용하므로 RenderManager에서 추가 Transform 불필요
     // preFlipped 플래그를 전달하여 이중 반전 방지
     RenderManager::GetInstance()->AddDrawCommand(
-        currentSheet->GetBitmap(),
+        pBitmap,
         destRect,
         sourceRect,
         Gdiplus::UnitPixel,
@@ -171,9 +176,6 @@ const AnimationFrame& Animator::GetCurrentFrame() const {
 
 const SpriteSheet* Animator::GetSpriteSheet() const {
     if (!m_currentClip) {
-		OutputDebugStringW((L"Animator: GetSpriteSheet - m_currentClip이 null입니다. State: " + 
-						   std::to_wstring(m_currentState) + L", Direction: " + 
-						   std::to_wstring(m_currentDirection) + L"\n").c_str());
 		return nullptr;
 	}
     return m_currentClip->GetSpriteSheet();

@@ -20,7 +20,6 @@ public:
 	void SetTargetPosition(float worldX, float worldY);
 	void HandleRightClick(float worldX, float worldY);
 	void HandleMovement();
-	void TryStartInteraction(float worldX, float worldY);
 	void FinalizePickup();
 	virtual bool OnInteraction(GameObject* obj) override;
 
@@ -36,13 +35,8 @@ public:
 	virtual void Damaged(int damage) override;
 
 private:
+	void TryStartInteraction(float worldX, float worldY);
 	void UpdateAnimatorState();
-	void SetDirectionToward(float dx, float dy);
-	// 목표까지의 거리로 도착 여부 판정 (이동/상호작용 공통)
-	bool IsArrivedAtTarget(float distance, float moveSpeedThisFrame = 0.f) const;
-
-	// 상호작용 가능 여부만 확인 (상태 변경 없이)
-	bool CanInteractWith(GameObject* obj) const;
 	
 	// 애니메이션 이벤트 핸들러 함수들
 	void OnPickupEnd();

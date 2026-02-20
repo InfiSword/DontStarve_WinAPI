@@ -8,51 +8,44 @@
 Item::Item(GameObjectType type, GameObjectID id, const std::wstring& name, const std::wstring& desc,
 	const std::wstring& resourcePath, const std::wstring& imagePath,
 	float x, float y, float pivotX, float pivotY, Direction dir, bool isActive, bool isInteractive)
-    : GameObject(type, id, resourcePath, imagePath, isActive, isInteractive),
-      transform(nullptr), spriteRenderer(nullptr)
+	: GameObject(type, id, resourcePath, imagePath, isActive, isInteractive),
+	transform(nullptr), spriteRenderer(nullptr)
 {
-    m_name = name;
-    m_description = desc;
-    
-    // Transform 컴포넌트 추가
-    Transform* trans = AddComponent<Transform>();
-    trans->SetPosition(x, y);
-    trans->SetPivot(pivotX, pivotY);
-    trans->SetDirection(dir);
-    
-    // SpriteRenderer 컴포넌트 추가
-    SpriteRenderer* sprite = AddComponent<SpriteRenderer>();
-    sprite->SetLayer(LAYER_WORLD_OBJECT);
-    if (!imagePath.empty()) {
+	m_name = name;
+	m_description = desc;
+
+	// Transform 컴포넌트 추가
+	Transform* trans = AddComponent<Transform>();
+	trans->SetPosition(x, y);
+	trans->SetPivot(pivotX, pivotY);
+	trans->SetDirection(dir);
+
+	// SpriteRenderer 컴포넌트 추가
+	SpriteRenderer* sprite = AddComponent<SpriteRenderer>();
+	sprite->SetLayer(LAYER_WORLD_OBJECT);
+	if (!imagePath.empty()) {
 		ResourceManager* pRM = ResourceManager::GetInstance();
-		std::wstring fullPath;
-		if (resourcePath.empty()) {
-			fullPath = imagePath;
-		} else {
-			fullPath = resourcePath;
-			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-				fullPath += L"\\";
+		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(resourcePath, imagePath);
+		if (!fullPath.empty()) {
+			if (auto handle = pRM->LoadSprite(fullPath)) {
+				sprite->SetSprite(handle);
 			}
-			fullPath += imagePath;
 		}
-		if (auto handle = pRM->LoadSprite(fullPath)) {
-			sprite->SetSprite(handle);
-		}
-    }
+	}
 }
 
-Item::~Item() 
+Item::~Item()
 {
 	Release();
 }
 
 void Item::Init()
 {
-    GameObject::Init();
-    
-    // Transform 컴포넌트 캐싱
-    transform = GetComponent<Transform>();
-    spriteRenderer = GetComponent<SpriteRenderer>();
+	GameObject::Init();
+
+	// Transform 컴포넌트 캐싱
+	transform = GetComponent<Transform>();
+	spriteRenderer = GetComponent<SpriteRenderer>();
 }
 
 void Item::Update(float deltaTime)
@@ -65,11 +58,11 @@ void Item::Release()
 {
 	// Item 문자열 멤버 강제 해제 (swap으로 CRT 누수 탐지에 반영)
 	std::wstring().swap(m_description);
-	
+
 	// Item 전용 정리 작업
 	transform = nullptr;
 	spriteRenderer = nullptr;
-	
+
 	// 부모 클래스의 Release() 호출 (m_name 정리 포함)
 	GameObject::Release();
 }

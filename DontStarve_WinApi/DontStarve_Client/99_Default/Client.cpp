@@ -40,8 +40,9 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 
-HWND g_hWnd; //전역으로 쓸 window핸들
+HWND g_hWnd;           // 전역으로 쓸 window핸들
 ULONG_PTR g_gdiplusToken; // 전역 GDI+ 토큰
+static InputManager* g_inputManager = nullptr; // WndProc에서 사용할 InputManager 포인터
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -50,10 +51,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     //메모리 누수 검사 플래그
 #ifdef _DEBUG
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
-    // N번째 할당 시점에 중단 (누수 추적 시 주석 해제)
-    // _CrtSetBreakAlloc(254);
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
     UNREFERENCED_PARAMETER(hPrevInstance);
@@ -86,6 +84,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     mainGame->Init();
     mainGame->LateInit();
 
+    // MainGame에서 생성된 InputManager를 WndProc에 전달
+    g_inputManager = mainGame->GetInputManager();
+
     while (msg.message != WM_QUIT)
     {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -106,10 +107,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
    if (mainGame) {
        mainGame->Release();
-   Utils::SafeDelete(mainGame);
+       Utils::SafeDelete(mainGame);
    }
 
-    // GDI+ 종료
+   // Release 이후 WndProc이 해제된 InputManager에 접근하지 않도록 초기화
+   g_inputManager = nullptr;
+
+    // GDI+ 종료 (CRT 누수 덤프 이전에 호출하여 GDI+ 내부 블록 오탐 방지)
     GdiplusShutdown(g_gdiplusToken);
 
 #ifdef _DEBUG
@@ -190,12 +194,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_PAINT    - 주 창을 그립니다.
 //  WM_DESTROY  - 종료 메시지를 게시하고 반환합니다.
 //
-//
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    // InputManager에 마우스/키보드 메시지 즉시 전달 (클릭 반응 속도 개선, hover 처리 포함)
-    InputManager* inputManager = InputManager::GetInstance();
-    if (inputManager) {
+    // MainGame::Init()에서 설정된 g_inputManager를 사용 (싱글톤 직접 접근 제거)
+    if (g_inputManager) {
         switch (message)
         {
         case WM_MOUSEMOVE:
@@ -203,15 +206,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONUP:
         case WM_RBUTTONDOWN:
         case WM_RBUTTONUP:
-            inputManager->ProcessMouseMessage(message, wParam, lParam);
+            g_inputManager->ProcessMouseMessage(message, wParam, lParam);
             break;
         case WM_KEYDOWN:
         case WM_KEYUP:
-            inputManager->ProcessKeyMessage(message, wParam);
+            g_inputManager->ProcessKeyMessage(message, wParam);
             break;
         }
     }
-    
+
     switch (message)
     {
     case WM_KEYDOWN:

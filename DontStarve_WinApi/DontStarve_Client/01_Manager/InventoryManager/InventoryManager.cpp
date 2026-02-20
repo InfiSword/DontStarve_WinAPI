@@ -4,6 +4,7 @@
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Item/Item.h"
 #include "../../02_GameObject/UI/Inventory.h"
+#include "../../02_GameObject/UI/CraftingRecipe.h"
 #include "../../01_Manager/SceneManager/SceneManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../01_Manager/GameProgressManager/GameProgressManager.h"
@@ -43,19 +44,7 @@ void InventoryManager::Render() {
 }
 
 void InventoryManager::Release() {
-	// 비트맵 캐시 해제
-	for (auto& pair : m_bitmapCache) {
-		if (pair.second) {
-			delete pair.second;
-			pair.second = nullptr;
-		}
-	}
-	m_bitmapCache.clear();
-	
-	// 레시피 정리
-	for (auto& recipePair : m_craftingRecipes) {
-		recipePair.second.clear();
-	}
+	// 레시피 맵은 자동으로 정리됨
 	m_craftingRecipes.clear();
 }
 
@@ -146,21 +135,20 @@ bool InventoryManager::TryCraftItem(Player* player, GameObjectID targetItemID) {
 	if (!inventory) return false;
 	
 	// 제작 레시피 확인
-	if (!HasCraftingRecipe(targetItemID)) {
+	const std::map<UINT, UINT>* recipe = GetCraftingRecipe(targetItemID);
+	if (!recipe) {
 		OutputDebugStringW(L"InventoryManager: 제작 레시피가 존재하지 않습니다.\n");
 		return false;
 	}
 	
-	std::map<UINT, UINT> recipe = GetCraftingRecipe(targetItemID);
-	
 	// 필요한 재료가 있는지 확인
-	if (!inventory->CheckHasEnoughItems(recipe)) {
+	if (!inventory->CheckHasEnoughItems(*recipe)) {
 		OutputDebugStringW(L"InventoryManager: 인벤토리에 필요한 재료가 부족합니다.\n");
 		return false;
 	}
 	
 	// 재료 소모 후 제작 아이템 생성 및 인벤토리 추가
-	if (inventory->ConsumeItems(recipe)) {
+	if (inventory->ConsumeItems(*recipe)) {
 		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(targetItemID, 0.0f, 0.0f, nullptr, false);
 		Item* item = dynamic_cast<Item*>(itemObj);
 		if (item) {
@@ -231,63 +219,9 @@ void InventoryManager::LoadInventoryFromFile(Player* player, const std::wstring&
 	OutputDebugStringW((L"InventoryManager: 인벤토리 로드 - " + filePath + L"\n").c_str());
 }
 
-// 이미지 경로를 받아서 Gdiplus::Bitmap*를 반환하는 함수
-Gdiplus::Bitmap* InventoryManager::GetBitmapForPath(const std::wstring& imagePath) {
-	auto it = m_bitmapCache.find(imagePath);
-	if (it != m_bitmapCache.end()) {
-		return it->second; 
-	}
-
-	Gdiplus::Bitmap* newBitmap = Gdiplus::Bitmap::FromFile(imagePath.c_str());
-	if (newBitmap && newBitmap->GetLastStatus() == Gdiplus::Ok) {
-		m_bitmapCache[imagePath] = newBitmap;
-		return newBitmap;
-	}
-	else {
-		if (newBitmap) delete newBitmap; 
-		m_bitmapCache[imagePath] = nullptr; 
-		return nullptr;
-	}
-}
-
 // 아이템 제작 레시피 로드
 void InventoryManager::LoadCraftingRecipes() {
-	m_craftingRecipes.clear();
-	
-	// 도구들 제작 레시피 (임시로 모두 나뭇가지 1개 + 나무 통나무 1개)
-	m_craftingRecipes[GOID_TOOL_GOLDEN_SCYTHE] = {
-		{GOID_ITEM_NORMAL_TWIGS, 1},
-		{GOID_ITEM_NORMAL_TREE_LOG, 1}
-	};
-	m_craftingRecipes[GOID_TOOL_HAM_BAT] = {
-		{GOID_ITEM_NORMAL_TWIGS, 1},
-		{GOID_ITEM_NORMAL_TREE_LOG, 1}
-	};
-	m_craftingRecipes[GOID_TOOL_PICKAXE] = {
-		{GOID_ITEM_NORMAL_TWIGS, 1},
-		{GOID_ITEM_NORMAL_TREE_LOG, 1}
-	};
-	m_craftingRecipes[GOID_TOOL_RED_AXE] = {
-		{GOID_ITEM_NORMAL_TWIGS, 1},
-		{GOID_ITEM_NORMAL_TREE_LOG, 1}
-	};
-	m_craftingRecipes[GOID_TOOL_SPEAR] = {
-		{GOID_ITEM_NORMAL_TWIGS, 1},
-		{GOID_ITEM_NORMAL_TREE_LOG, 1}
-	};
-	m_craftingRecipes[GOID_TOOL_SWAP_AXE] = {
-		{GOID_ITEM_NORMAL_ROCK, 1},
-		{GOID_ITEM_NORMAL_TWIGS, 2}
-	};
-	m_craftingRecipes[GOID_TOOL_SWAP_SPEAR] = {
-		{GOID_ITEM_NORMAL_TWIGS, 1},
-		{GOID_ITEM_NORMAL_TREE_LOG, 1}
-	};
-	m_craftingRecipes[GOID_TOOL_TORCH] = {
-		{GOID_ITEM_NORMAL_TWIGS, 1},
-		{GOID_ITEM_NORMAL_TREE_LOG, 1}
-	};
-	
+	LoadCraftingRecipesFromTable(m_craftingRecipes);
 	OutputDebugStringW(L"InventoryManager: 제작 레시피 로드 완료\n");
 }
 
@@ -295,12 +229,12 @@ bool InventoryManager::HasCraftingRecipe(GameObjectID itemID) const {
 	return m_craftingRecipes.find(itemID) != m_craftingRecipes.end();
 }
 
-std::map<UINT, UINT> InventoryManager::GetCraftingRecipe(GameObjectID itemID) const {
+const std::map<UINT, UINT>* InventoryManager::GetCraftingRecipe(GameObjectID itemID) const {
 	auto it = m_craftingRecipes.find(itemID);
 	if (it != m_craftingRecipes.end()) {
-		return it->second;
+		return &(it->second);
 	}
-	return {};
+	return nullptr;
 }
 
 // 월드 오브젝트로부터 드롭 가능한 아이템 목록

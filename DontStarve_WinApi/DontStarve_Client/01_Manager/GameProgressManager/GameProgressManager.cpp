@@ -195,15 +195,21 @@ void GameProgressManager::ResetCurrentSceneProgress()
 
 void GameProgressManager::SaveToFile(const std::wstring& filePath)
 {
+	// 저장 디렉터리가 없으면 생성
+	size_t lastSlash = filePath.find_last_of(L"\\/");
+	if (lastSlash != std::wstring::npos) {
+		std::wstring dir = filePath.substr(0, lastSlash);
+		if (!dir.empty()) {
+			CreateDirectoryW(dir.c_str(), nullptr);
+		}
+	}
+
 	std::wofstream file(filePath);
 	if (!file.is_open())
 	{
 		OutputDebugStringW(L"GameProgressManager: 파일 저장 실패\n");
 		return;
 	}
-	
-	// UTF-8 BOM 추가 (한글 지원)
-	file.imbue(std::locale(""));
 	
 	file << L"[GAME_PROGRESS_V1]\n";
 	file << L"# Scene Clear Info\n";
@@ -256,9 +262,6 @@ void GameProgressManager::LoadFromFile(const std::wstring& filePath)
 		OutputDebugStringW(L"GameProgressManager: 파일 로드 실패 (새로 생성됨)\n");
 		return;
 	}
-	
-	// UTF-8 인코딩 설정
-	file.imbue(std::locale(""));
 	
 	std::wstring line;
 	while (std::getline(file, line))

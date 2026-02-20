@@ -16,7 +16,7 @@ public:
     // frameDuration: 모든 프레임에 적용되는 지속 시간(초), 기본 0.03
     AnimationClip(
         const std::wstring& name,
-        std::unique_ptr<SpriteSheet> spriteSheet,
+        std::shared_ptr<SpriteSheet> spriteSheet,
         float pivotX = 0.5f,
         float pivotY = 1.0f,
         bool loop = true,
@@ -42,7 +42,7 @@ public:
     bool IsPreFlipped() const { return m_preFlipped; }
 
 private:    
-    std::unique_ptr<SpriteSheet> m_pSpriteSheet;
+    std::shared_ptr<SpriteSheet> m_pSpriteSheet;
     std::vector<AnimationFrame> m_frames;
     bool m_isLooping;
     float m_totalDuration;
