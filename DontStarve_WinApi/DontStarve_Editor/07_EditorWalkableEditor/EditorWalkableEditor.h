@@ -1,21 +1,26 @@
 #pragma once
 
 class EditorView;
-class DontStarve_EditorMain;
+class MapEditor;
+
+enum class WalkablePaintMode { PaintBlocked, PaintWalkable };
 
 class EditorWalkableEditor
 {
-	friend class DontStarve_EditorMain;
+	friend class MapEditor;
 
 public:
 	EditorWalkableEditor() = default;
 	~EditorWalkableEditor() = default;
 
-	void SetDependencies(EditorView* pView, DontStarve_EditorMain* pMain);
+	void SetDependencies(EditorView* pView, MapEditor* pMain);
 
 	void StartWalkableEdit();
 	void EndWalkableEdit();
 	void ToggleWalkableEditMode();
+
+	void SetAllMapBlocked();
+	bool HandleToolbarClick(POINT pt, int clientW, int clientH);
 
 	void OnLeftButtonDown(POINT clickPoint, HWND hWnd);
 	void OnLeftButtonUp();
@@ -28,8 +33,9 @@ public:
 
 private:
 	EditorView* m_pView = nullptr;
-	DontStarve_EditorMain* m_pMain = nullptr;
+	MapEditor* m_pMain = nullptr;
 
+	WalkablePaintMode m_paintMode = WalkablePaintMode::PaintBlocked;
 	bool m_isWalkableEditMode = false;
 	bool m_isDraggingWalkable = false;
 	POINT m_walkableDragStart = { 0, 0 };

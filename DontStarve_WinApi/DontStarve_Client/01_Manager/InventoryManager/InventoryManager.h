@@ -52,6 +52,9 @@ private:
 	// 월드 오브젝트로부터 드롭 가능한 아이템 목록
 	std::vector<std::pair<GameObjectID, UINT>> CalculateDropsFromObject(GameObject* worldObject);
 
+	// 음식 아이템 ID별 HP 회복량 (0이면 음식 아님)
+	int GetFoodHealAmount(GameObjectID itemID) const;
+
 private:
 	// 아이템 제작 레시피 데이터 (아이템ID -> 필요 재료)
 	std::map<GameObjectID, std::map<UINT, UINT>> m_craftingRecipes;

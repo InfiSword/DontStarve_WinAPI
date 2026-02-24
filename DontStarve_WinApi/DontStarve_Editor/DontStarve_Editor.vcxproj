@@ -141,10 +141,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="00_MainEditor\DontStarve_EditorMain.h" />
+    <ClInclude Include="00_MainEditor\EditorLauncher.h" />
+    <ClInclude Include="00_MainEditor\IEditorScreen.h" />
+    <ClInclude Include="00_MainEditor\MapEditor.h" />
+    <ClInclude Include="00_MainEditor\ObjectEditor.h" />
     <ClInclude Include="01_EditorView\EditorView.h" />
+    <ClInclude Include="01_EditorView\ObjectView.h" />
     <ClInclude Include="02_EditorResourceManager\EditorResourceManager.h" />
-    <ClInclude Include="03_EditorMapFileIO\EditorMap.h" />
+    <ClInclude Include="03_EditorMapFileIO\EditorMapFileIO.h" />
     <ClInclude Include="04_EditorPalette\EditorPalette.h" />
     <ClInclude Include="05_EditorPivotEditor\EditorPivotEditor.h" />
     <ClInclude Include="06_EditorColliderEditor\EditorColliderEditor.h" />
@@ -158,10 +162,13 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="00_MainEditor\DontStarve_EditorMain.cpp" />
+    <ClCompile Include="00_MainEditor\EditorLauncher.cpp" />
+    <ClCompile Include="00_MainEditor\MapEditor.cpp" />
+    <ClCompile Include="00_MainEditor\ObjectEditor.cpp" />
     <ClCompile Include="01_EditorView\EditorView.cpp" />
+    <ClCompile Include="01_EditorView\ObjectView.cpp" />
     <ClCompile Include="02_EditorResourceManager\EditorResourceManager.cpp" />
-    <ClCompile Include="03_EditorMapFileIO\EditorMap.cpp" />
+    <ClCompile Include="03_EditorMapFileIO\EditorMapFileIO.cpp" />
     <ClCompile Include="04_EditorPalette\EditorPalette.cpp" />
     <ClCompile Include="05_EditorPivotEditor\EditorPivotEditor.cpp" />
     <ClCompile Include="06_EditorColliderEditor\EditorColliderEditor.cpp" />

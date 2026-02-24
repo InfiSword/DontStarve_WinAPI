@@ -34,6 +34,8 @@ public:
 
 	// 현재 씬 타입 반환
 	SceneType GetCurrentSceneType() const;
+	// 현재 씬 포인터 반환 (GameScene 캐스팅용)
+	BaseScene* GetCurrentScene() const { return m_currentScene; }
 	
 	// 씬 전환 요청 처리 (메인 루프에서 Update 이후 한 번만 호출)
 	void ProcessPendingSceneLoad();

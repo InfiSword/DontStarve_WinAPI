@@ -55,9 +55,9 @@ void UIText::Render()
 	if (!rectTransform) return;
 	
 	auto textParams = m_text->BuildRenderParams(rectTransform);
-	if (!textParams.text.empty() && textParams.font && textParams.brush && textParams.format) {
+	if (textParams.textPtr && !textParams.textPtr->empty() && textParams.font && textParams.brush && textParams.format) {
 		RenderManager::GetInstance()->AddTextCommand(
-			textParams.text,
+			textParams.textPtr,
 			textParams.font,
 			textParams.brush,
 			textParams.format,

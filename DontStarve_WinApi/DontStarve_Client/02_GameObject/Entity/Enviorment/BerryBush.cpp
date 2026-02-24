@@ -6,8 +6,8 @@
 BerryBush::BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true), m_state(GrassState::GRASS_IDLE)
 {
-	m_dropItemID = GOID_ITEM_BERRY;
-	m_dropItemCount = 1;
+	// Struct.h ObjectResourceTable: GOID_ITEM_BERRY (베리 부쉬 상호작용 시 드롭)
+	SetDropItem(GOID_ITEM_BERRY, 1);
 }
 
 BerryBush::~BerryBush() {}
@@ -42,13 +42,6 @@ void BerryBush::Release()
 bool BerryBush::OnInteraction(GameObject* obj)
 {
 	return Entity::OnInteraction(obj);
-}
-
-
-void BerryBush::SetDropItem(GameObjectID itemID, int count)
-{
-	m_dropItemID = itemID;
-	m_dropItemCount = count;
 }
 
 void BerryBush::Damaged(int damage)

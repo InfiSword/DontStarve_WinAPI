@@ -101,6 +101,10 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 
 	m_gameObjects.push_back(pObj);
 
+	// 뷰포트에 잡힐 때만 visible 목록에 추가 (다른 오브젝트와 동일하게 뷰포트 기준으로만 렌더링)
+	CameraManager* cam = CameraManager::GetInstance();
+	if (cam) cam->TryAddToVisibleIfInViewport(pObj);
+
 	Player* player = dynamic_cast<Player*>(pObj);
 	if (player) {
 		m_cachedPlayer = player;
@@ -236,7 +240,7 @@ void ObjectManager::InitializeFactories()
 	m_gameObjectFactories[GOID_BUILDING_PIGHOUSE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		return new PigHouse(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
 	};
-	registerIds({ GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	registerIds({ GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG, GOID_BUILDING_SPIDER_SACEGG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		return new SpiderEgg(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
 	});
 
@@ -252,8 +256,15 @@ void ObjectManager::InitializeFactories()
 	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_GRASS] = itemFactory(L"Cut Grass", L"Bundled grass, good for crafting.");
 	m_gameObjectFactories[GOID_ITEM_GOLD_ROCK] = itemFactory(L"Gold", L"Shiny and valuable.");
 	m_gameObjectFactories[GOID_ITEM_ROPE] = itemFactory(L"Rope", L"Useful for crafting.");
+	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_STONE] = itemFactory(L"Cut Stone", L"Stone blocks for building.");
 	m_gameObjectFactories[GOID_ITEM_MEAT] = itemFactory(L"Meat", L"Fresh meat.");
 	m_gameObjectFactories[GOID_ITEM_BERRY] = itemFactory(L"Berry", L"Sweet and nutritious.");
+	m_gameObjectFactories[GOID_ITEM_WOOD_2] = itemFactory(L"Wooden Plank", L"Planks for crafting.");
+	m_gameObjectFactories[GOID_ITEM_SMALL_MEAT] = itemFactory(L"Small Meat", L"A small piece of meat.");
+	m_gameObjectFactories[GOID_ITEM_MONSTER_MEAT] = itemFactory(L"Monster Meat", L"Strange meat from a monster.");
+	m_gameObjectFactories[GOID_ITEM_COOKED_MONSTER_MEAT] = itemFactory(L"Cooked Monster Meat", L"Cooked monster meat.");
+	m_gameObjectFactories[GOID_ITEM_COOKED_SMALL_MEAT] = itemFactory(L"Cooked Small Meat", L"Cooked small meat.");
+	m_gameObjectFactories[GOID_ITEM_COOKED_MEAT] = itemFactory(L"Cooked Meat", L"A nicely cooked piece of meat.");
 	
 	// 도구 테이블 - 모든 도구 ID로 name/desc만 조회 (내구도·효율는 Tool/Axe 생성자 기본값 또는 Axe는 GetAxeStats 사용)
 	struct ToolDef { std::wstring name; std::wstring desc; };

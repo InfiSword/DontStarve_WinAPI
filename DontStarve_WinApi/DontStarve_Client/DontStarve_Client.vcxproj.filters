@@ -63,6 +63,8 @@
     <ClCompile Include="02_GameObject\UI\UIButton.cpp" />
     <ClCompile Include="02_GameObject\UI\UIText.cpp" />
     <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
+    <ClCompile Include="02_GameObject\UI\PlayerHPUI.cpp" />
+    <ClCompile Include="02_GameObject\Component\Sprite\Sprite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -133,6 +135,9 @@
     <ClInclude Include="02_GameObject\UI\UIButton.h" />
     <ClInclude Include="02_GameObject\UI\UIText.h" />
     <ClInclude Include="02_GameObject\UI\CraftingUI.h" />
+    <ClInclude Include="02_GameObject\UI\PlayerHPUI.h" />
+    <ClInclude Include="02_GameObject\Component\Sprite\Sprite.h" />
+    <ClInclude Include="02_GameObject\UI\CraftingRecipe.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

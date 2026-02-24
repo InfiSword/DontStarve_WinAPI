@@ -4,7 +4,7 @@
 #include <ctime>
 
 GameProgressManager::GameProgressManager()
-	: m_saveFilePath(L"../GameData/game_progress.txt")
+	: m_saveFilePath(L"GameData/game_progress.txt")
 {
 }
 

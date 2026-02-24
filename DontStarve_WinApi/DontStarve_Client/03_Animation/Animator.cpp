@@ -18,9 +18,6 @@ void Animator::Init() {
     Component::Init();
 }
 
-// 애니메이션 등록 (frameDuration: 모든 프레임에 적용되는 지속 시간, 기본 0.03초)
-// flipHorizontal: false(기본값)이면 LEFT 방향일 때만 자동 반전, true면 강제 반전
-// LEFT 방향일 때 미리 반전된 이미지를 저장하면 렌더링 시 Transform 불필요 (최적화)
 void Animator::RegisterAnimation(int state, Direction dir, 
                                 const std::wstring& imagePath,
                                 UINT frameWidth, UINT frameHeight,
@@ -106,21 +103,19 @@ void Animator::Update(float deltaTime)
         // 현재 프레임 인덱스 계산
         int currentFrameIndex = GetCurrentFrameIndex();
         
-        // 프레임 변경 추적 및 이벤트 처리
+        // 프레임 변경 시, 건너뛴 프레임 포함해 지나친 모든 프레임에 대해 이벤트 발생 (deltaTime이 커서 frame 4 등을 건너뛰는 경우 대비)
         if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame)
 		{
-            m_lastTriggeredFrame = currentFrameIndex;
-            
-            // 현재 프레임에 등록된 이벤트 확인 및 콜백 호출
             const std::map<int, std::wstring>& eventFrames = m_currentClip->GetEventFrames();
-            auto eventIt = eventFrames.find(currentFrameIndex);
-            if (eventIt != eventFrames.end()) {
-                // 이벤트 콜백이 설정되어 있으면 호출
-                const AnimationEventCallback& callback = m_currentClip->GetEventCallback();
-                if (callback) {
-                    callback(currentFrameIndex, eventIt->second);
-                }
+            const AnimationEventCallback& callback = m_currentClip->GetEventCallback();
+            const int startIdx = m_lastTriggeredFrame + 1;
+            const int endIdx = currentFrameIndex;
+            for (int fi = startIdx; fi <= endIdx && callback; ++fi) {
+                auto eventIt = eventFrames.find(fi);
+                if (eventIt != eventFrames.end())
+                    callback(fi, eventIt->second);
             }
+            m_lastTriggeredFrame = currentFrameIndex;
         }       
     }
 }

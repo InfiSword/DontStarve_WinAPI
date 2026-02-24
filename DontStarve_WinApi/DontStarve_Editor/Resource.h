@@ -12,8 +12,6 @@
 #define IDM_NEW					110
 #define IDM_SAVE				111
 #define IDM_LOAD				112
-#define IDC_MAP_WIDTH			1000
-#define IDC_MAP_HEIGHT			1001
 #define IDC_PIVOT_X				1002
 #define IDC_PIVOT_Y				1003
 #define IDC_COLL_OFFSET_X		1004

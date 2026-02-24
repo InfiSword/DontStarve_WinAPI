@@ -14,6 +14,8 @@ public:
     virtual void Release() override;
     virtual bool OnInteraction(GameObject* obj) override;
 
+    virtual bool CanInteract() const override { return !m_isDead && IsEnabled(); }
+
     virtual void Damaged(int damage) override;
 
 protected:

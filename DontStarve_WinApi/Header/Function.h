@@ -158,11 +158,18 @@ namespace ResourcePathUtils
 		}
 
 		std::wstring line;
+		std::wstring pendingLine;  // for OBJECTS: next line read but not Collider (re-process next iteration)
 		enum Section { NONE, METADATA, PLAYER, TILES, OBJECTS, WALKABLE } section = NONE;
 		int currentTileRow = 0;
 		int currentWalkRow = 0;
 
-		while (std::getline(file, line)) {
+		while (true) {
+			if (!pendingLine.empty()) {
+				line = pendingLine;
+				pendingLine.clear();
+			}
+			else if (!std::getline(file, line))
+				break;
 			if (line.empty() || line[0] == L'#') {
 				if (line.find(L"# TILES") != std::wstring::npos || line == L"# TILES") {
 					section = TILES;
@@ -237,27 +244,21 @@ namespace ResourcePathUtils
 				}
 				currentTileRow++;
 			}
-			// 오브젝트 파싱
+			// 오브젝트 파싱 (형식: Type,ID,x,y 4필드만. 리소스/피벗/콜라이더는 생성 시 ResourceManager에서 조회)
 			else if (section == OBJECTS) {
 				if (line.find(L"0,0,0,0,0") != std::wstring::npos) continue;
 				
 				std::wstringstream ss(line);
-				std::wstring type, id, x, y, resource, pivotX, pivotY;
+				std::wstring type, id, x, y;
 				if (std::getline(ss, type, L',') &&
 					std::getline(ss, id, L',') &&
 					std::getline(ss, x, L',') &&
-					std::getline(ss, y, L',') &&
-					std::getline(ss, resource, L',') &&
-					std::getline(ss, pivotX, L',') &&
-					std::getline(ss, pivotY, L',')) {
+					std::getline(ss, y, L',')) {
 					
-					// 공백 제거
 					type.erase(0, type.find_first_not_of(L" \t"));
 					type.erase(type.find_last_not_of(L" \t") + 1);
 					id.erase(0, id.find_first_not_of(L" \t"));
 					id.erase(id.find_last_not_of(L" \t") + 1);
-					resource.erase(0, resource.find_first_not_of(L" \t"));
-					resource.erase(resource.find_last_not_of(L" \t") + 1);
 					
 					GameObjectID objID = EnumTables::GetGameObjectID(id.c_str());
 					GameObjectType objType = EnumTables::GetGameObjectType(type.c_str());
@@ -265,82 +266,13 @@ namespace ResourcePathUtils
 					if (objID != GOID_NONE && objType != GOBJ_NONE) {
 						float objX = std::stof(x);
 						float objY = std::stof(y);
-						float objPivotX = std::stof(pivotX);
-						float objPivotY = std::stof(pivotY);
 						
-					ResourcePathUtils::ObjectResourceDef objData;
-					objData.type = objType;
-					objData.id = objID;
-					objData.x = objX;
-					objData.y = objY;
-					objData.pivotX = objPivotX;
-					objData.pivotY = objPivotY;
-					
-					// 리소스 정보 가져오기 (콜백: type+id로 오브젝트 리소스 조회, Editor는 baseDir/imageName 복원용)
-					const ResourcePathUtils::ObjectResourceDef* resourceData = getObjectResourceInfo(objType, objID);
-					if (resourceData) {
-						objData.baseDir = resourceData->baseDir;
-						objData.imageName = resourceData->imageName;
-						objData.hasCollider = resourceData->hasCollider;
-						objData.colliderType = resourceData->colliderType;
-						objData.colliderOffsetX = resourceData->colliderOffsetX;
-						objData.colliderOffsetY = resourceData->colliderOffsetY;
-						objData.colliderWidth = resourceData->colliderWidth;
-						objData.colliderHeight = resourceData->colliderHeight;
-						objData.colliderCenterX = resourceData->colliderCenterX;
-						objData.colliderCenterY = resourceData->colliderCenterY;
-						objData.colliderRadius = resourceData->colliderRadius;
-					}
-					else {
-						// 콜백이 nullptr을 반환하면 파일에서 파싱한 resource 필드 사용
-						objData.baseDir = resource;
-						objData.imageName = L"";
-					}
-						
-						// 콜라이더 정보 파싱 (다음 줄 확인)
-						std::streampos currentPos = file.tellg();
-						if (std::getline(file, line)) {
-							std::wstringstream cs(line);
-							std::wstring lbl, hasC, cTyp, oX, oY, wd, ht, cX, cY, rad;
-							std::getline(cs, lbl, L',');
-							lbl.erase(0, lbl.find_first_not_of(L" \t"));
-							lbl.erase(lbl.find_last_not_of(L" \t") + 1);
-							
-							if (lbl == L"Collider") {
-								std::getline(cs, hasC, L',');
-								std::getline(cs, cTyp, L',');
-								std::getline(cs, oX, L',');
-								std::getline(cs, oY, L',');
-								std::getline(cs, wd, L',');
-								std::getline(cs, ht, L',');
-								std::getline(cs, cX, L',');
-								std::getline(cs, cY, L',');
-								std::getline(cs, rad);
-								
-								if (!hasC.empty()) {
-									objData.hasCollider = (hasC == L"1" || hasC == L"true");
-									if (objData.hasCollider) {
-										int cVal = cTyp.empty() ? 0 : std::stoi(cTyp);
-										objData.colliderType = (cVal >= 0 && cVal <= COLLIDER_COUNT) ? (ColliderType)cVal : COLLIDER_BOX;
-										if (!oX.empty()) objData.colliderOffsetX = std::stoi(oX);
-										if (!oY.empty()) objData.colliderOffsetY = std::stoi(oY);
-										if (!wd.empty()) objData.colliderWidth = std::stoi(wd);
-										if (!ht.empty()) objData.colliderHeight = std::stoi(ht);
-										// Circle 콜라이더 정보 (Box도 이 값들을 가질 수 있으므로 타입 체크 필요)
-										if (!cX.empty() && !cY.empty() && !rad.empty()) {
-											objData.colliderCenterX = std::stof(cX);
-											objData.colliderCenterY = std::stof(cY);
-											objData.colliderRadius = std::stof(rad);
-										}
-									}
-								}
-							}
-							else {
-								// Collider 라벨이 아니면 파일 포인터 되돌리기
-								file.seekg(currentPos);
-							}
-						}
-						
+						ResourcePathUtils::ObjectResourceDef objData;
+						objData.type = objType;
+						objData.id = objID;
+						objData.x = objX;
+						objData.y = objY;
+						// 나머지 필드(baseDir, pivot, collider 등)는 기본값 유지. 생성 시 ResourceManager에서 조회
 						outMapData.gameObjects.push_back(objData);
 					}
 				}
@@ -361,6 +293,47 @@ namespace ResourcePathUtils
 		}
 		
 		file.close();
+		return true;
+	}
+
+	// 오브젝트 오버라이드 파일 파싱 (Client·Editor 공통)
+	// 형식: TypeName IDName pivotX pivotY hasCollider colliderType offsetX offsetY width height centerX centerY radius
+	// 각 줄마다 apply(type, id, overrideDef) 호출. overrideDef에는 pivot·콜라이더 필드만 채워짐.
+	template<typename ApplyOverrideFunc>
+	inline bool ParseObjectResourceOverridesFile(const std::wstring& filePath, ApplyOverrideFunc apply)
+	{
+		std::wifstream ifs(filePath);
+		if (!ifs.is_open()) return false;
+		std::wstring line;
+		while (std::getline(ifs, line)) {
+			if (line.empty() || line[0] == L'#') continue;
+			std::wstringstream iss(line);
+			std::wstring typeName, idName;
+			float pivotX = 0.5f, pivotY = 1.0f;
+			int hasColliderInt = 0, colliderTypeInt = 0;
+			int offsetX = 0, offsetY = 0, width = 0, height = 0;
+			float centerX = 0, centerY = 0, radius = 0;
+			if (!(iss >> typeName >> idName >> pivotX >> pivotY >> hasColliderInt >> colliderTypeInt
+				>> offsetX >> offsetY >> width >> height >> centerX >> centerY >> radius)) continue;
+			GameObjectType type = EnumTables::GetGameObjectType(typeName.c_str());
+			GameObjectID id = EnumTables::GetGameObjectID(idName.c_str());
+			if (type == GOBJ_NONE || id == GOID_NONE) continue;
+			ResourcePathUtils::ObjectResourceDef overrideDef;
+			overrideDef.type = type;
+			overrideDef.id = id;
+			overrideDef.pivotX = pivotX;
+			overrideDef.pivotY = pivotY;
+			overrideDef.hasCollider = (hasColliderInt != 0);
+			overrideDef.colliderType = (colliderTypeInt >= 0 && colliderTypeInt < (int)COLLIDER_COUNT) ? (ColliderType)colliderTypeInt : COLLIDER_BOX;
+			overrideDef.colliderOffsetX = offsetX;
+			overrideDef.colliderOffsetY = offsetY;
+			overrideDef.colliderWidth = width;
+			overrideDef.colliderHeight = height;
+			overrideDef.colliderCenterX = centerX;
+			overrideDef.colliderCenterY = centerY;
+			overrideDef.colliderRadius = radius;
+			apply(type, id, overrideDef);
+		}
 		return true;
 	}
 

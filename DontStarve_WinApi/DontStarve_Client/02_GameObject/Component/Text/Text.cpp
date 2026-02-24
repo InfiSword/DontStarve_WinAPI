@@ -75,7 +75,7 @@ TextRenderParams Text::BuildRenderParams(const RectTransform* rectTransform)
 	float pivotX = rectTransform->GetPivotX();
 	float pivotY = rectTransform->GetPivotY();
 
-	params.text = m_text;
+	params.textPtr = &m_text;
 	params.font = m_font.get();
 	params.brush = m_brush.get();
 	params.format = m_format.get();

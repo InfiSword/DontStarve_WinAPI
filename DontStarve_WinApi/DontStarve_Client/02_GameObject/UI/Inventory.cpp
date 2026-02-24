@@ -4,14 +4,15 @@
 #include "UIImage.h"
 #include "UIText.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
+#include "../../01_Manager/InventoryManager/InventoryManager.h"
+#include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../02_GameObject/Item/Item.h"
-#include "../../02_GameObject/Item/Tool/Tool.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 #include "../../02_GameObject/Component/Transform/RectTransform.h"
 
+// 슬롯 소유의 Item을 해제하고 비움 (count==0일 때 RemoveItem/ConsumeItems에서 호출)
 void ItemSlot::Clear() {
 	if (item) { delete item; item = nullptr; }
 	count = 0;
@@ -298,10 +299,7 @@ bool Inventory::ContainsScreenPoint(float screenX, float screenY) const {
 }
 
 void Inventory::HandleSlotClick(int slotIndex, Player* player) {
-	const ItemSlot& slot = GetSlot(slotIndex);
-	if (slot.IsEmpty()) return;
-	if (dynamic_cast<Tool*>(slot.item))
-		player->ToggleEquipItem(slotIndex);
+		InventoryManager::GetInstance()->TryUseItem(player, slotIndex);
 }
 
 bool Inventory::HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player) {

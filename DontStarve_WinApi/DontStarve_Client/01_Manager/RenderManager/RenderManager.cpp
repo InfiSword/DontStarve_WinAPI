@@ -33,7 +33,7 @@ void RenderManager::LateUpdate()
 void RenderManager::Release()
 {
 	Clear();
-	m_drawCommands.shrink_to_fit(); // 완전 해제는 Release()에서만 수행
+	m_drawCommands.shrink_to_fit();
 }
 
 void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped)
@@ -63,11 +63,12 @@ void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::Rect
 	m_drawCommands.emplace_back(std::move(command));
 }
 
-void RenderManager::AddTextCommand(const std::wstring& text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey)
+void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey)
 {
+	if (!text) return;
 	DrawCommand command{};
 	command.type = DRAW_COMMAND_TEXT;
-	command.text = text;
+	command.textPtr = text;
 	command.pFont = pFont;
 	command.pBrush = pBrush;
 	command.pStringFormat = pStringFormat;
@@ -98,6 +99,19 @@ void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gd
 	command.type = DRAW_COMMAND_FILL_RECTANGLE;
 	command.destRect = rect;
 	command.color = color;
+	command.layer = layer;
+	command.sortKey = sortKey;
+	command.objectScreenPos = Gdiplus::PointF(rect.X, rect.Y);
+
+	m_drawCommands.emplace_back(std::move(command));
+}
+
+void RenderManager::AddDrawEllipseCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey) {
+	DrawCommand command{};
+	command.type = DRAW_COMMAND_ELLIPSE;
+	command.destRect = rect;
+	command.color = color;
+	command.thickness = thickness;
 	command.layer = layer;
 	command.sortKey = sortKey;
 	command.objectScreenPos = Gdiplus::PointF(rect.X, rect.Y);
@@ -143,6 +157,10 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 	if (anim != nullptr) {
 		// Animator는 Transform만 지원 (월드 오브젝트)
 		if (!transform) {
+			return;
+		}
+		// SpriteRenderer가 비활성화된 경우 그리지 않음 
+		if (spriteRenderer && !spriteRenderer->IsEnabled()) {
 			return;
 		}
 
@@ -372,20 +390,24 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics) {
 				pGraphics->Restore(gstate);
 		}
 		else if (cmd.type == DRAW_COMMAND_TEXT) {
-			if (cmd.pFont && cmd.pBrush && cmd.pStringFormat) {
-				pGraphics->DrawString(cmd.text.c_str(), -1, cmd.pFont, cmd.destRect, cmd.pStringFormat, cmd.pBrush);
+			if (cmd.pFont && cmd.pBrush && cmd.pStringFormat && cmd.textPtr) {
+				pGraphics->DrawString(cmd.textPtr->c_str(), -1, cmd.pFont, cmd.destRect, cmd.pStringFormat, cmd.pBrush);
 			}
 		}
 		else if (cmd.type == DRAW_COMMAND_RECTANGLE) {
 			Gdiplus::Pen pen(cmd.color, cmd.thickness);
 			pGraphics->DrawRectangle(&pen, cmd.destRect);
 		}
+		else if (cmd.type == DRAW_COMMAND_ELLIPSE) {
+			Gdiplus::Pen pen(cmd.color, cmd.thickness);
+			pGraphics->DrawEllipse(&pen, cmd.destRect);
+		}
 		else if (cmd.type == DRAW_COMMAND_FILL_RECTANGLE) {
 			Gdiplus::SolidBrush brush(cmd.color);
 			pGraphics->FillRectangle(&brush, cmd.destRect);
 		}
 	}
-	
+
 	// 렌더링 완료 후 명령 큐 비우기 (다음 프레임을 위해)
 	Clear();
 }

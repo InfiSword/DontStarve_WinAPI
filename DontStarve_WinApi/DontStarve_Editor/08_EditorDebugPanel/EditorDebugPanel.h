@@ -5,18 +5,22 @@ class EditorPalette;
 class EditorPivotEditor;
 class EditorColliderEditor;
 class EditorWalkableEditor;
-class DontStarve_EditorMain;
+class MapEditor;
+class ObjectEditor;
 
 class EditorDebugPanel
 {
-	friend class DontStarve_EditorMain;
-
 public:
 	EditorDebugPanel() = default;
 	~EditorDebugPanel() = default;
 
+	// MapEditor용
 	void SetDependencies(EditorView* pView, EditorPalette* pPalette, EditorPivotEditor* pPivotEditor,
-		EditorColliderEditor* pColliderEditor, EditorWalkableEditor* pWalkableEditor, DontStarve_EditorMain* pMain);
+		EditorColliderEditor* pColliderEditor, EditorWalkableEditor* pWalkableEditor, MapEditor* pMain);
+
+	// ObjectEditor용
+	void SetDependencies(EditorView* pView, EditorPalette* pPalette, EditorPivotEditor* pPivotEditor,
+		EditorColliderEditor* pColliderEditor, ObjectEditor* pMain);
 
 	void DrawDebugInfo(Gdiplus::Graphics* pGraphics);
 	void HandleMouseWheel(int zDelta, int mx, int my);
@@ -33,7 +37,8 @@ private:
 	EditorPivotEditor* m_pPivotEditor = nullptr;
 	EditorColliderEditor* m_pColliderEditor = nullptr;
 	EditorWalkableEditor* m_pWalkableEditor = nullptr;
-	DontStarve_EditorMain* m_pMain = nullptr;
+	MapEditor* m_pMain = nullptr;
+	ObjectEditor* m_pObjectMain = nullptr;
 
 	bool m_showDebugInfo = true;
 	float m_debugInfoScrollY = 0.0f;

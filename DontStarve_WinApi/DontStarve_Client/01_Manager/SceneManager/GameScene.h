@@ -4,6 +4,7 @@
 class GameObject;
 class Player;
 class CraftingUI;
+class PlayerHPUI;
 
 class GameScene : public BaseScene
 {
@@ -23,6 +24,21 @@ public:
 	// 맵 데이터 초기화 (SceneManager가 소유한 MapData 포인터만 받음)
 	void Init(const MapData* mapData);
 
+	// Walkable 영역 정보 조회 (몬스터, 기타 시스템에서 사용)
+	bool HasWalkableBounds() const { return m_hasWalkableBounds; }
+	void GetWalkableBounds(float& outMinX, float& outMinY, float& outMaxX, float& outMaxY) const
+	{
+		if (!m_hasWalkableBounds)
+		{
+			outMinX = outMinY = outMaxX = outMaxY = 0.0f;
+			return;
+		}
+		outMinX = m_walkableMinX;
+		outMinY = m_walkableMinY;
+		outMaxX = m_walkableMaxX;
+		outMaxY = m_walkableMaxY;
+	}
+
 	// 플레이어 생성 함수 (public으로 노출)
 	void SpawnPlayer();
 	
@@ -36,10 +52,20 @@ private:
 private:
 	// 맵 데이터 (SceneManager가 소유, GameScene은 포인터로만 참조)
 	const MapData* m_mapData;
+
+	// Walkable 영역 경계 (월드 좌표)
+	bool m_hasWalkableBounds;
+	float m_walkableMinX;
+	float m_walkableMinY;
+	float m_walkableMaxX;
+	float m_walkableMaxY;
 	
 	// 선택된 캐릭터 ID
 	GameObjectID m_selectedCharacterID;
 
 	// 크래프팅 UI
 	CraftingUI* m_craftingUI;
+
+	// 플레이어 HP UI (우측 상단 게이지 + Game Over 패널)
+	PlayerHPUI* m_playerHPUI;
 };

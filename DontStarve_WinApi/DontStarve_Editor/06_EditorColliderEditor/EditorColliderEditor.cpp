@@ -3,18 +3,17 @@
 #include "../Resource.h"
 #include "../01_EditorView/EditorView.h"
 #include "../02_EditorResourceManager/EditorResourceManager.h"
-#include "../03_EditorMapFileIO/EditorMap.h"
-#include "../00_MainEditor/DontStarve_EditorMain.h"
+#include "../00_MainEditor/ObjectEditor.h"
 #include "Struct.h"
 #include <algorithm>
 #include <cmath>
 
 const float EditorColliderEditor::MIN_COLLIDER_RADIUS = 2.0f;
 
-void EditorColliderEditor::SetDependencies(EditorView* pView, const EditorResourceManager* pResources, DontStarve_EditorMain* pMain) {
+void EditorColliderEditor::SetDependencies(EditorView* pView, EditorResourceManager* pResources, ObjectEditor* pContext) {
 	m_pView = pView;
 	m_pResources = pResources;
-	m_pMain = pMain;
+	m_pContext = pContext;
 }
 
 const ResourcePathUtils::ObjectResourceDef* EditorColliderEditor::GetObjectVariant(GameObjectType type, GameObjectID id) const {
@@ -156,7 +155,8 @@ int EditorColliderEditor::GetColliderHandleAt(POINT screenPos) {
 	return -1;
 }
 
-void EditorColliderEditor::UpdateColliderDrag(POINT mousePos) {
+void EditorColliderEditor::UpdateColliderDrag(POINT mousePos) 
+{
 	if (!m_isDraggingCollider || !m_editingColliderObject || !m_pView) return;
 
 	int deltaX = mousePos.x - m_colliderEditStartMousePos.x;
@@ -235,15 +235,12 @@ void EditorColliderEditor::UpdateColliderDrag(POINT mousePos) {
 }
 
 void EditorColliderEditor::ApplyColliderToSameType(ResourcePathUtils::ObjectResourceDef* source) {
-	if (!m_pMain) return;
+	if (!m_pContext) return;
 	ResourcePathUtils::ObjectResourceDef* src = source ? source : m_editingColliderObject;
 	if (!src) return;
 	if (!source && (!m_isColliderEditMode || !m_editingColliderObject)) return;
 
-	// Main의 m_gameObjects와 m_colliderTemplates에 friend로 접근
-	std::vector<ResourcePathUtils::ObjectResourceDef>& gameObjects = m_pMain->m_gameObjects;
-	std::map<std::pair<int, int>, DontStarve_EditorMain::ColliderTemplate>& colliderTemplates = m_pMain->m_colliderTemplates;
-
+	std::vector<ResourcePathUtils::ObjectResourceDef>& gameObjects = m_pContext->GetGameObjects();
 	int appliedCount = 0;
 	for (ResourcePathUtils::ObjectResourceDef& obj : gameObjects) {
 		if (&obj == src) continue;
@@ -260,22 +257,16 @@ void EditorColliderEditor::ApplyColliderToSameType(ResourcePathUtils::ObjectReso
 		appliedCount++;
 	}
 
-	DontStarve_EditorMain::ColliderTemplate t;
-	t.hasCollider = src->hasCollider;
-	t.colliderType = src->colliderType;
-	t.colliderOffsetX = src->colliderOffsetX;
-	t.colliderOffsetY = src->colliderOffsetY;
-	t.colliderWidth = src->colliderWidth;
-	t.colliderHeight = src->colliderHeight;
-	t.colliderCenterX = src->colliderCenterX;
-	t.colliderCenterY = src->colliderCenterY;
-	t.colliderRadius = src->colliderRadius;
-	colliderTemplates[std::make_pair((int)src->type, (int)src->id)] = t;
-	EditorMap::SaveColliderTemplates(m_pMain);
+	SaveEditingObjectToGameData();
 
 	std::wstringstream ss;
 	ss << L"ApplyColliderToSameType: applied to " << appliedCount << L" object(s)\n";
 	OutputDebugStringW(ss.str().c_str());
+}
+
+void EditorColliderEditor::SaveEditingObjectToGameData() {
+	if (m_pResources && m_editingColliderObject)
+		m_pResources->SaveObjectResourceOverride(m_editingColliderObject->type, m_editingColliderObject->id, *m_editingColliderObject);
 }
 
 void EditorColliderEditor::DrawColliders(Gdiplus::Graphics* pGraphics) const {
@@ -490,6 +481,7 @@ static LRESULT CALLBACK ColliderDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 					obj->colliderCenterY = cy;
 					obj->colliderRadius = r;
 				}
+				pEditor->SaveEditingObjectToGameData();
 			}
 			DestroyWindow(hWnd);
 			return 0;

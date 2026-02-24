@@ -19,9 +19,9 @@ public:
                           float pivotX = 0.5f, float pivotY = 1.0f,
                           bool loop = true,
                           float frameDuration = 0.03f,
-                          bool flipHorizontal = false);  // false(기본값): LEFT 방향일 때만 자동 반전, true: 강제 반전
+                          bool flipHorizontal = false);  
+	// false(기본값): LEFT 방향일 때만 자동 반전, true: 강제 반전 
     
-    // 등록된 애니메이션 클립 가져오기 (이벤트 등록용)
     AnimationClip* GetAnimationClip(int state, Direction dir);
 
     void SetState(int state, Direction direction);

@@ -45,6 +45,9 @@ public:
 	// 제거된 오브젝트를 visible 목록에서 즉시 제거 (삭제 전 호출하여 댕글링 포인터 방지)
 	void RemoveFromVisibleObjects(GameObject* obj);
 
+	// 새 오브젝트 추가 시 호출. 현재 뷰포트에 잡히면 visible 목록에만 추가, 아니면 미추가(다른 오브젝트와 동일)
+	void TryAddToVisibleIfInViewport(GameObject* obj);
+
 	// 월드 좌표에 있는 상호작용 가능 오브젝트 찾기 (화면 역순, AABB, CanInteract()만 후보)
 	GameObject* FindInteractableObjectAtPosition(float worldX, float worldY);
 
@@ -60,17 +63,28 @@ public:
 	
 	void ClearTileCache();
 
+	// Walkable 영역으로 카메라 이동 제한 (맵 로드 후 호출)
+	void SetWalkableBoundsFromMapData(const MapData* mapData);
+	// 외부에서 계산된 Walkable 경계를 설정 (GameScene 등에서 사용)
+	void SetWalkableBounds(float minX, float minY, float maxX, float maxY);
+
 private:
     GameObject* m_target;
 	Gdiplus::PointF m_cameraPos;
 
 	bool m_followMode;
+
+	// Walkable 영역 경계 (카메라 클램프용, 월드 좌표)
+	bool m_hasWalkableBounds;
+	float m_walkableMinX, m_walkableMinY, m_walkableMaxX, m_walkableMaxY;
 	
 	// 뷰포트 관리
 	std::vector<GameObject*> m_visibleObjects;
 	Gdiplus::RectF m_lastViewportRect;
 	bool m_viewportChanged;
+	
 	void CheckViewportChanged();
+	bool IsObjectInViewport(GameObject* obj) const;
 
 	// 타일 캐시 관리
 	std::map<UINT, TileCacheData> m_tileCache;

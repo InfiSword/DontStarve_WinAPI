@@ -3,9 +3,10 @@
 #include "pch.h"
 #include "framework.h"
 #include "DontStarve_Editor.h"
-#include "00_MainEditor/DontStarve_EditorMain.h"
-#include "Resource.h"
-#include <commdlg.h>
+#include "00_MainEditor/IEditorScreen.h"
+#include "00_MainEditor/EditorLauncher.h"
+#include "00_MainEditor/MapEditor.h"
+#include "00_MainEditor/ObjectEditor.h"
 
 #define MAX_LOADSTRING 100
 
@@ -17,7 +18,10 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 HWND g_hWnd;
 ULONG_PTR g_gdiplusToken;
 
-DontStarve_EditorMain* mainEditor = nullptr;
+// 현재 화면 (런처 / 맵 에디터 / 오브젝트 에디터). 메뉴 IDM_* 는 해당 에디터 포인터 사용.
+IEditorScreen* g_currentScreen = nullptr;
+MapEditor* mapEditor = nullptr;      // g_currentScreen이 MapEditor일 때만 유효
+ObjectEditor* objectEditor = nullptr; // g_currentScreen이 ObjectEditor일 때만 유효
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -55,23 +59,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     Gdiplus::GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
 
-    // EditMain 초기화 (에러 처리 포함)
-    mainEditor = new(std::nothrow) DontStarve_EditorMain();
-    if (!mainEditor) {
-        MessageBox(nullptr, L"메모리 부족으로 에디터를 초기화할 수 없습니다.", L"초기화 오류", MB_OK | MB_ICONERROR);
+    // 초기 화면: 런처 (MapEditor / ObjectEditor 버튼)
+    g_currentScreen = new(std::nothrow) EditorLauncher();
+    if (!g_currentScreen) {
+        MessageBox(nullptr, L"메모리 부족으로 런처를 초기화할 수 없습니다.", L"초기화 오류", MB_OK | MB_ICONERROR);
         Gdiplus::GdiplusShutdown(g_gdiplusToken);
         return FALSE;
     }
-
+    mapEditor = nullptr;
     try {
-        mainEditor->Initialize();
+        g_currentScreen->Initialize();
     }
     catch (...) {
-        MessageBox(nullptr, L"에디터 초기화 중 오류가 발생했습니다.", L"초기화 오류", MB_OK | MB_ICONERROR);
-        Utils::SafeDelete(mainEditor);
+        MessageBox(nullptr, L"런처 초기화 중 오류가 발생했습니다.", L"초기화 오류", MB_OK | MB_ICONERROR);
+        if (g_currentScreen) { g_currentScreen->Release(); delete g_currentScreen; g_currentScreen = nullptr; }
         Gdiplus::GdiplusShutdown(g_gdiplusToken);
         return FALSE;
     }
+    SetWindowText(g_hWnd, L"DontStarve Editor - Select Mode");
 
     // 성능 상수 정의
     constexpr ULONGLONG TARGET_FRAME_TIME = 16;     // 60 FPS (1000ms / 60)
@@ -110,26 +115,77 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             lastFrameTime = currentTime;
             frameCount++;
 
-            // 게임 업데이트 및 렌더링
-            mainEditor->Update();
-            mainEditor->Render();
+            if (g_currentScreen) {
+                g_currentScreen->Update();
+                g_currentScreen->Render();
+            }
+
+            // 화면 전환 요청 처리 (런처 버튼 클릭 / Back to main)
+            EditorScreenSwitch sw = g_currentScreen ? g_currentScreen->GetRequestedSwitch() : EditorScreenSwitch::None;
+            if (sw != EditorScreenSwitch::None) {
+                if (g_currentScreen) {
+                    g_currentScreen->Release();
+                    delete g_currentScreen;
+                    g_currentScreen = nullptr;
+                }
+                mapEditor = nullptr;
+                objectEditor = nullptr;
+                if (sw == EditorScreenSwitch::MapEditor) {
+                    g_currentScreen = new(std::nothrow) MapEditor();
+                    if (g_currentScreen) {
+                        try {
+                            g_currentScreen->Initialize();
+                            mapEditor = static_cast<MapEditor*>(g_currentScreen);
+                        }
+                        catch (...) {
+                            g_currentScreen->Release();
+                            delete g_currentScreen;
+                            g_currentScreen = nullptr;
+                        }
+                    }
+                }
+                else if (sw == EditorScreenSwitch::ObjectEditor) {
+                    g_currentScreen = new(std::nothrow) ObjectEditor();
+                    if (g_currentScreen) {
+                        try {
+                            g_currentScreen->Initialize();
+                            objectEditor = static_cast<ObjectEditor*>(g_currentScreen);
+                        }
+                        catch (...) {
+                            g_currentScreen->Release();
+                            delete g_currentScreen;
+                            g_currentScreen = nullptr;
+                        }
+                    }
+                }
+                else if (sw == EditorScreenSwitch::BackToLauncher) {
+                    g_currentScreen = new(std::nothrow) EditorLauncher();
+                    if (g_currentScreen) {
+                        try { g_currentScreen->Initialize(); }
+                        catch (...) {
+                            g_currentScreen->Release();
+                            delete g_currentScreen;
+                            g_currentScreen = nullptr;
+                        }
+                    }
+                    SetWindowText(g_hWnd, L"DontStarve Editor - Select Mode");
+                }
+            }
 
             // FPS/정보 업데이트 (1초마다)
-            if (currentTime - lastInfoUpdateTime >= INFO_UPDATE_INTERVAL)
+            if (currentTime - lastInfoUpdateTime >= INFO_UPDATE_INTERVAL && g_currentScreen)
             {
                 lastInfoUpdateTime = currentTime;
-
-                // FPS 계산
                 currentFPS = (float)frameCount / (INFO_UPDATE_INTERVAL / 1000.0f);
                 frameCount = 0;
-
-                // EditMain에 FPS 전달
-                mainEditor->SetCurrentFPS(currentFPS);
-
-                // 창 제목 업데이트 (메모리 정보 포함)
-                float memoryMB = mainEditor->GetLayerMemoryUsageMB();
-                swprintf_s(windowTitle, L"DontStarve Editor - FPS: %.1f | Memory: %.1fMB",
-                    currentFPS, memoryMB);
+                g_currentScreen->SetCurrentFPS(currentFPS);
+                float memoryMB = g_currentScreen->GetLayerMemoryUsageMB();
+                if (memoryMB >= 0 && currentFPS >= 0)
+                    swprintf_s(windowTitle, L"DontStarve Editor - FPS: %.1f | Memory: %.1fMB", currentFPS, memoryMB);
+                else if (mapEditor)
+                    swprintf_s(windowTitle, L"DontStarve Editor - Map Editor");
+                else
+                    swprintf_s(windowTitle, L"DontStarve Editor - Object Editor");
                 SetWindowText(g_hWnd, windowTitle);
             }
         }
@@ -140,10 +196,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    if (mainEditor) {
-        mainEditor->Release();
-        Utils::SafeDelete(mainEditor);
+    if (g_currentScreen) {
+        g_currentScreen->Release();
+        delete g_currentScreen;
+        g_currentScreen = nullptr;
     }
+    mapEditor = nullptr;
+    objectEditor = nullptr;
     Gdiplus::GdiplusShutdown(g_gdiplusToken);     // GDI+ 종료
     return (int)msg.wParam;
 }
@@ -223,7 +282,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     // WM_PAINT 메시지는 EditMain의 Render()에서 처리하므로 여기서 직접 그리지 않습니다.
     // WM_DESTROY 및 WM_KEYDOWN (Escape)은 여기서 처리합니다.
-    // 그 외 모든 메시지는 g_mainEditor로 전달하여 처리합니다.
+    // 그 외 모든 메시지는 g_currentScreen으로 전달하여 처리합니다.
     switch (message)
     {
     case WM_COMMAND:
@@ -235,15 +294,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
         case IDM_NEW:
         {
-            if (mainEditor) {
+            if (mapEditor) {
                 int result = MessageBox(hWnd,
                     L"현재 작업 중인 맵이 초기화됩니다.\n저장하지 않은 변경사항은 손실됩니다.\n계속하시겠습니까?",
                     L"새 맵", MB_YESNO | MB_ICONQUESTION);
 
                 if (result == IDYES) {
-                    mainEditor->NewMap();
+                    mapEditor->NewMap();
                     MessageBox(hWnd, L"새 맵이 생성되었습니다.\n플레이어 스폰 포인트가 맵 중앙으로 설정되었습니다.", L"새 맵 완료", MB_OK | MB_ICONINFORMATION);
-                    InvalidateRect(hWnd, NULL, FALSE); // 화면 갱신
+                    InvalidateRect(hWnd, NULL, FALSE);
                 }
             }
         }
@@ -251,10 +310,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case IDM_SAVE:
         {
-            if (mainEditor) {
+            if (objectEditor) {
+                if (objectEditor->SaveObjects()) {
+                    InvalidateRect(hWnd, NULL, FALSE);
+                }
+                else {
+                    MessageBox(hWnd, L"오브젝트 리소스 저장에 실패했습니다.", L"저장 오류", MB_OK | MB_ICONERROR);
+                }
+            }
+            else if (mapEditor) {
                 WCHAR fileName[MAX_PATH] = {};
-                if (mainEditor->ShowSaveFileDialog(fileName, MAX_PATH)) {
-                    if (mainEditor->SaveMap(fileName)) {
+                if (mapEditor->ShowSaveFileDialog(fileName, MAX_PATH)) {
+                    if (mapEditor->SaveMap(fileName)) {
                         MessageBox(hWnd, L"맵이 성공적으로 저장되었습니다.", L"저장 완료", MB_OK | MB_ICONINFORMATION);
                     }
                     else {
@@ -267,12 +334,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         case IDM_LOAD:
         {
-            if (mainEditor) {
+            if (mapEditor) {
                 WCHAR fileName[MAX_PATH] = {};
-                if (mainEditor->ShowOpenFileDialog(fileName, MAX_PATH)) {
-                    if (mainEditor->LoadMap(fileName)) {
+                if (mapEditor->ShowOpenFileDialog(fileName, MAX_PATH)) {
+                    if (mapEditor->LoadMap(fileName)) {
                         MessageBox(hWnd, L"맵이 성공적으로 불러와졌습니다.", L"불러오기 완료", MB_OK | MB_ICONINFORMATION);
-                        InvalidateRect(hWnd, NULL, FALSE); // 화면 갱신
+                        InvalidateRect(hWnd, NULL, FALSE);
                     }
                     else {
                         MessageBox(hWnd, L"맵 불러오기에 실패했습니다.", L"불러오기 오류", MB_OK | MB_ICONERROR);
@@ -308,6 +375,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_KEYDOWN:
         if (wParam == VK_ESCAPE)
         {
+            if (g_currentScreen) {
+                LRESULT r = g_currentScreen->HandleMessage(hWnd, message, wParam, lParam);
+                if (r == 0) return 0;
+            }
             DestroyWindow(hWnd);
         }
         // Ctrl 조합 단축키 처리
@@ -331,27 +402,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 SendMessage(hWnd, WM_COMMAND, IDM_SAVE, 0);
                 return 0;
             }
-            // Ctrl+M: 맵 크기 설정 창
+            // Ctrl+M: 맵 크기 설정 (MapEditor만)
             else if (wParam == 'M' || wParam == 'm')
             {
-                if (mainEditor) {
-                    mainEditor->ShowMapSizeDialog(hWnd);
+                if (mapEditor) {
+                    mapEditor->ShowMapSizeDialog(hWnd);
                     InvalidateRect(hWnd, NULL, FALSE);
                 }
                 return 0;
             }
         }
-        // F1~F12 등 특수 키는 EditMain으로 전달
+        // F1~F12: 현재 화면으로 전달
         else if (wParam >= VK_F1 && wParam <= VK_F12)
         {
-            if (mainEditor != nullptr) {
-                return mainEditor->HandleMessage(hWnd, message, wParam, lParam);
+            if (g_currentScreen != nullptr) {
+                return g_currentScreen->HandleMessage(hWnd, message, wParam, lParam);
             }
         }
     default:
-        if (mainEditor != nullptr) {
-            // EditMain의 메시지 처리 함수로 메시지 전달
-            return mainEditor->HandleMessage(hWnd, message, wParam, lParam);
+        if (g_currentScreen != nullptr) {
+            return g_currentScreen->HandleMessage(hWnd, message, wParam, lParam);
         }
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

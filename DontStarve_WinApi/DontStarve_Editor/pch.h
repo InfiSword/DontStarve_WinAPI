@@ -6,6 +6,7 @@
 #include <list>
 #include <vector>    
 #include <map>      
+#include <commdlg.h>
 #include <string>    
 #include <fstream>  
 #include <sstream>

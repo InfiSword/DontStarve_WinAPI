@@ -171,6 +171,12 @@ void UIButton::UpdateHoverStateImmediate()
 	}
 }
 
+void UIButton::SetSortKey(float sortKey)
+{
+	if (m_image)
+		m_image->SetSortKey(sortKey);
+}
+
 void UIButton::Release()
 {
 	m_image = nullptr;

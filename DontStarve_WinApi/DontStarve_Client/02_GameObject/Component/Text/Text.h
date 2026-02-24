@@ -7,7 +7,7 @@ struct TextStyle {
 };
 
 struct TextRenderParams {
-	std::wstring text;
+	const std::wstring* textPtr = nullptr;  
 	Gdiplus::Font* font = nullptr;
 	Gdiplus::Brush* brush = nullptr;
 	Gdiplus::StringFormat* format = nullptr;

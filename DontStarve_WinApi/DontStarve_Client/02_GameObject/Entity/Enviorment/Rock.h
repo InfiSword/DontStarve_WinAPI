@@ -2,6 +2,7 @@
 #include "../Entity.h"
 
 class ResourceManager;
+class Sprite;
 
 class Rock : public Entity
 {
@@ -18,14 +19,14 @@ public:
     virtual bool OnInteraction(GameObject* obj) override;
 
     virtual void Damaged(int damage) override;
+    virtual void Die() override;
 
 private:
     int m_hp;
     int maxHp;
-    float m_hitAnimTimer;
     RockState m_state;
 
-private:
-    Gdiplus::Bitmap* m_rockCracked;
-    Gdiplus::Bitmap* m_rockBroken;
+    std::shared_ptr<Sprite> m_spriteIntact;
+    std::shared_ptr<Sprite> m_spriteCracked;
+    std::shared_ptr<Sprite> m_spriteBroken;
 }; 

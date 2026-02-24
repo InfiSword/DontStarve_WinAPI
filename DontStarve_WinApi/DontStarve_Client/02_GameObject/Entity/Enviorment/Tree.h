@@ -21,7 +21,6 @@ public:
     virtual void Die() override;
 
 protected:
-    std::wstring tree_Grade;
     int m_hp;
     int maxHp;
     float m_baseX, m_baseY;

@@ -3,6 +3,7 @@
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Component/Collider/Collider.h"
+#include <Enum.h>
 
 ColliderManager::ColliderManager()
 {
@@ -87,4 +88,20 @@ bool ColliderManager::CheckCollision(GameObject* obj1, GameObject* obj2)
 
     // 각 콜라이더 간의 충돌 검사 (실제로는 각 게임오브젝트에서 처리)
     return collider1->IntersectsCollider(collider2);
+}
+
+void ColliderManager::GetObjectsIntersecting(Collider* pCollider, std::vector<GameObject*>& out)
+{
+    out.clear();
+    if (!pCollider || !pCollider->IsEnabled()) return;
+
+    GameObject* owner = pCollider->GetOwner();
+    for (Collider* other : m_colliders) {
+        if (!other || other == pCollider || !other->IsEnabled()) continue;
+        GameObject* obj = other->GetOwner();
+        if (!obj || obj == owner || !obj->IsEnabled()) continue;
+        if (obj->GetType() != GOBJ_MONSTER) continue;
+        if (pCollider->IntersectsCollider(other))
+            out.push_back(obj);
+    }
 }

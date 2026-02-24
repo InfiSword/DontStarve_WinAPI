@@ -30,16 +30,28 @@
     <ClInclude Include="pch.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="00_MainEditor\DontStarve_EditorMain.h">
+    <ClInclude Include="00_MainEditor\EditorLauncher.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="00_MainEditor\IEditorScreen.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="00_MainEditor\MapEditor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="00_MainEditor\ObjectEditor.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="01_EditorView\EditorView.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="01_EditorView\ObjectView.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="02_EditorResourceManager\EditorResourceManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="03_EditorMapFileIO\EditorMap.h">
+    <ClInclude Include="03_MapFileIO\MapFileIO.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="04_EditorPalette\EditorPalette.h">
@@ -68,16 +80,25 @@
     <ClCompile Include="pch.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="00_MainEditor\DontStarve_EditorMain.cpp">
+    <ClCompile Include="00_MainEditor\EditorLauncher.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="00_MainEditor\MapEditor.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="00_MainEditor\ObjectEditor.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="01_EditorView\EditorView.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="01_EditorView\ObjectView.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
     <ClCompile Include="02_EditorResourceManager\EditorResourceManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="03_EditorMapFileIO\EditorMap.cpp">
+    <ClCompile Include="03_MapFileIO\MapFileIO.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="04_EditorPalette\EditorPalette.cpp">

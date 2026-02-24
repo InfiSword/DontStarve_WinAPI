@@ -13,6 +13,7 @@
 
 CameraManager::CameraManager()
     : m_cameraPos({ 0,0 }), m_target(nullptr), m_followMode(true), m_viewportChanged(true),
+    m_hasWalkableBounds(false), m_walkableMinX(0), m_walkableMinY(0), m_walkableMaxX(0), m_walkableMaxY(0),
     m_lastStartTileX(0), m_lastStartTileY(0), m_lastEndTileX(0), m_lastEndTileY(0),
     m_tileRangeInitialized(false)
 {
@@ -30,6 +31,7 @@ void CameraManager::Init()
     m_visibleObjects.clear();
     m_tileCache.clear();
     m_tileRangeInitialized = false;
+    m_hasWalkableBounds = false;
 }
 
 void CameraManager::Update(float deltaTime)
@@ -120,64 +122,83 @@ void CameraManager::FollowTarget()
 		if (std::abs(newX - m_cameraPos.X) > EPSILON || std::abs(newY - m_cameraPos.Y) > EPSILON) {
 			m_cameraPos.X = newX;
 			m_cameraPos.Y = newY;
+
+			// Walkable 영역이 설정된 경우, 뷰포트가 이동 가능 영역을 벗어나지 않도록 카메라 클램프
+			if (m_hasWalkableBounds) {
+				float halfW = WINCX / 2.0f;
+				float halfH = WINCY / 2.0f;
+				float minCamX = m_walkableMinX + halfW;
+				float maxCamX = m_walkableMaxX - halfW;
+				float minCamY = m_walkableMinY + halfH;
+				float maxCamY = m_walkableMaxY - halfH;
+				if (minCamX > maxCamX) { float mid = (minCamX + maxCamX) * 0.5f; minCamX = mid; maxCamX = mid; }
+				if (minCamY > maxCamY) { float mid = (minCamY + maxCamY) * 0.5f; minCamY = mid; maxCamY = mid; }
+				m_cameraPos.X = (std::max)(minCamX, (std::min)(maxCamX, m_cameraPos.X));
+				m_cameraPos.Y = (std::max)(minCamY, (std::min)(maxCamY, m_cameraPos.Y));
+			}
 		}
 	}
 }
 
-void CameraManager::UpdateVisibleObjects()
+bool CameraManager::IsObjectInViewport(GameObject* obj) const
 {
-	m_visibleObjects.clear();
-	
-	ObjectManager* objectManager = ObjectManager::GetInstance();
-	if (!objectManager) return;
-	
-	const std::vector<GameObject*>& allObjects = objectManager->GetGameObjects();
-	if (allObjects.empty()) return;
-	
+	if (!obj || !obj->IsEnabled()) return false;
+
+	Transform* transform = obj->GetComponent<Transform>();
+	if (!transform) return false;
+
 	Gdiplus::RectF viewportRect = GetViewportWorldRect();
 	const float MARGIN = 200.0f;
 	float startX = viewportRect.X - MARGIN;
 	float endX   = viewportRect.X + viewportRect.Width + MARGIN;
 	float startY = viewportRect.Y - MARGIN;
 	float endY   = viewportRect.Y + viewportRect.Height + MARGIN;
-	
+
+	float objX = transform->GetX();
+	float objY = transform->GetY();
+	if (objX < startX || objX > endX || objY < startY || objY > endY) return false;
+
+	SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>();
+	bool hasSprite   = (spriteRenderer && spriteRenderer->GetSprite());
+	bool hasAnimator = (obj->GetComponent<Animator>() != nullptr);
+	if (!hasSprite && !hasAnimator) return false;
+
+	Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
+	bool boundsIntersect = (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
+	                        objBounds.Y < endY && objBounds.Y + objBounds.Height > startY);
+	if (!boundsIntersect) return false;
+
+	Gdiplus::PointF screenTopLeft     = WorldToScreen(objBounds.X,                  objBounds.Y);
+	Gdiplus::PointF screenTopRight    = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y);
+	Gdiplus::PointF screenBottomLeft  = WorldToScreen(objBounds.X,                  objBounds.Y + objBounds.Height);
+	Gdiplus::PointF screenBottomRight = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y + objBounds.Height);
+
+	float screenLeft   = (std::min)((std::min)(screenTopLeft.X,  screenTopRight.X),  (std::min)(screenBottomLeft.X,  screenBottomRight.X));
+	float screenRight  = (std::max)((std::max)(screenTopLeft.X,  screenTopRight.X),  (std::max)(screenBottomLeft.X,  screenBottomRight.X));
+	float screenTop    = (std::min)((std::min)(screenTopLeft.Y,  screenTopRight.Y),  (std::min)(screenBottomLeft.Y,  screenBottomRight.Y));
+	float screenBottom = (std::max)((std::max)(screenTopLeft.Y,  screenTopRight.Y),  (std::max)(screenBottomLeft.Y,  screenBottomRight.Y));
+
+	if (screenRight < 0 || screenLeft > WINCX || screenBottom < 0 || screenTop > WINCY) return false;
+	return true;
+}
+
+void CameraManager::UpdateVisibleObjects()
+{
+	m_visibleObjects.clear();
+
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	if (!objectManager) return;
+
+	const std::vector<GameObject*>& allObjects = objectManager->GetGameObjects();
+	if (allObjects.empty()) return;
+
 	m_visibleObjects.reserve(allObjects.size() / 4);
 
 	for (GameObject* obj : allObjects) {
-		if (!obj || !obj->IsEnabled()) continue;
-		
-		Transform* transform = obj->GetComponent<Transform>();
-		if (!transform) continue;
-		
-		float objX = transform->GetX();
-		float objY = transform->GetY();
-		if (objX < startX || objX > endX || objY < startY || objY > endY) continue;
-		
-		SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>();
-		bool hasSprite   = (spriteRenderer && spriteRenderer->GetSprite());
-		bool hasAnimator = (obj->GetComponent<Animator>() != nullptr);
-		if (!hasSprite && !hasAnimator) continue;
-		
-		Gdiplus::RectF objBounds = GetSpriteBoundingBox(obj);
-		bool boundsIntersect = (objBounds.X < endX && objBounds.X + objBounds.Width > startX &&
-		                        objBounds.Y < endY && objBounds.Y + objBounds.Height > startY);
-		if (!boundsIntersect) continue;
-		
-		Gdiplus::PointF screenTopLeft     = WorldToScreen(objBounds.X,                  objBounds.Y);
-		Gdiplus::PointF screenTopRight    = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y);
-		Gdiplus::PointF screenBottomLeft  = WorldToScreen(objBounds.X,                  objBounds.Y + objBounds.Height);
-		Gdiplus::PointF screenBottomRight = WorldToScreen(objBounds.X + objBounds.Width, objBounds.Y + objBounds.Height);
-		
-		float screenLeft   = (std::min)((std::min)(screenTopLeft.X,  screenTopRight.X),  (std::min)(screenBottomLeft.X,  screenBottomRight.X));
-		float screenRight  = (std::max)((std::max)(screenTopLeft.X,  screenTopRight.X),  (std::max)(screenBottomLeft.X,  screenBottomRight.X));
-		float screenTop    = (std::min)((std::min)(screenTopLeft.Y,  screenTopRight.Y),  (std::min)(screenBottomLeft.Y,  screenBottomRight.Y));
-		float screenBottom = (std::max)((std::max)(screenTopLeft.Y,  screenTopRight.Y),  (std::max)(screenBottomLeft.Y,  screenBottomRight.Y));
-		
-		if (screenRight < 0 || screenLeft > WINCX || screenBottom < 0 || screenTop > WINCY) continue;
-		
-		m_visibleObjects.push_back(obj);
+		if (IsObjectInViewport(obj))
+			m_visibleObjects.push_back(obj);
 	}
-	
+
 	m_viewportChanged = false;
 }
 
@@ -188,6 +209,15 @@ void CameraManager::RemoveFromVisibleObjects(GameObject* obj)
 	if (it != m_visibleObjects.end()) {
 		m_visibleObjects.erase(it);
 	}
+}
+
+void CameraManager::TryAddToVisibleIfInViewport(GameObject* obj)
+{
+	if (!obj) return;
+	if (!IsObjectInViewport(obj)) return;
+	auto it = std::find(m_visibleObjects.begin(), m_visibleObjects.end(), obj);
+	if (it == m_visibleObjects.end())
+		m_visibleObjects.push_back(obj);
 }
 
 GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float worldY)
@@ -376,6 +406,7 @@ void CameraManager::RenderVisibleGameObjects()
 			continue;
 		}
 		renderManager->RenderGameObject(obj);
+		obj->RenderDebugOverlay();
 	}
 }
 
@@ -424,6 +455,39 @@ void CameraManager::ClearTileCache()
 		}
 	}
 	m_tileCache.clear();
+}
+
+void CameraManager::SetWalkableBoundsFromMapData(const MapData* mapData)
+{
+	m_hasWalkableBounds = false;
+	if (!mapData || mapData->mapWidth <= 0 || mapData->mapHeight <= 0) return;
+
+	float minX = 1e9f, minY = 1e9f, maxX = -1e9f, maxY = -1e9f;
+	int count = 0;
+	for (int y = 0; y < mapData->mapHeight; ++y) {
+		for (int x = 0; x < mapData->mapWidth; ++x) {
+			if (!mapData->walkableAreas[x][y]) continue;
+			float wx = (float)x * TILE_SIZE + TILE_SIZE * 0.5f;
+			float wy = (float)y * TILE_SIZE + TILE_SIZE * 0.5f;
+			if (wx < minX) minX = wx;
+			if (wy < minY) minY = wy;
+			if (wx > maxX) maxX = wx;
+			if (wy > maxY) maxY = wy;
+			++count;
+		}
+	}
+	if (count > 0) {
+		SetWalkableBounds(minX, minY, maxX, maxY);
+	}
+}
+
+void CameraManager::SetWalkableBounds(float minX, float minY, float maxX, float maxY)
+{
+	m_hasWalkableBounds = true;
+	m_walkableMinX = minX;
+	m_walkableMinY = minY;
+	m_walkableMaxX = maxX;
+	m_walkableMaxY = maxY;
 }
 
 void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& tileData, TileCacheData& cacheData)

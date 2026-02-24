@@ -11,8 +11,18 @@
 #include "../GameProgressManager/GameProgressManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/UI/CraftingUI.h"
+#include "../../02_GameObject/UI/PlayerHPUI.h"
 
-GameScene::GameScene() : m_selectedCharacterID(GOID_NONE), m_craftingUI(nullptr)
+GameScene::GameScene()
+	: m_mapData(nullptr)
+	, m_hasWalkableBounds(false)
+	, m_walkableMinX(0.0f)
+	, m_walkableMinY(0.0f)
+	, m_walkableMaxX(0.0f)
+	, m_walkableMaxY(0.0f)
+	, m_selectedCharacterID(GOID_NONE)
+	, m_craftingUI(nullptr)
+	, m_playerHPUI(nullptr)
 {
 }
 
@@ -58,6 +68,12 @@ void GameScene::Init()
 		// CraftingUI는 내부적으로 필요한 UI 요소들을 UIManager에 추가함
 	}
 
+	// 플레이어 HP UI 생성 (우측 상단 게이지 + Game Over 패널)
+	m_playerHPUI = new PlayerHPUI();
+	if (m_playerHPUI) {
+		m_playerHPUI->Init();
+	}
+
 	// GameProgressManager 초기화 (게임 진행도 로드)
 	GameProgressManager::GetInstance()->Init();
 }
@@ -66,9 +82,50 @@ void GameScene::Init(const MapData* mapData)
 {
 	// 맵 데이터 참조만 저장 (복사 없음, SceneManager가 소유)
 	m_mapData = mapData;
+	m_hasWalkableBounds = false;
 
 	// 기본 초기화
 	Init();
+
+	// Walkable 경계 계산 (맵 데이터 기준, 월드 좌표)
+	if (m_mapData && m_mapData->mapWidth > 0 && m_mapData->mapHeight > 0)
+	{
+		float minX = 1e9f, minY = 1e9f, maxX = -1e9f, maxY = -1e9f;
+		int count = 0;
+		for (int y = 0; y < m_mapData->mapHeight; ++y)
+		{
+			for (int x = 0; x < m_mapData->mapWidth; ++x)
+			{
+				if (!m_mapData->walkableAreas[x][y])
+					continue;
+
+				float wx = static_cast<float>(x) * TILE_SIZE + TILE_SIZE * 0.5f;
+				float wy = static_cast<float>(y) * TILE_SIZE + TILE_SIZE * 0.5f;
+
+				if (wx < minX) minX = wx;
+				if (wy < minY) minY = wy;
+				if (wx > maxX) maxX = wx;
+				if (wy > maxY) maxY = wy;
+				++count;
+			}
+		}
+
+		if (count > 0)
+		{
+			m_hasWalkableBounds = true;
+			m_walkableMinX = minX;
+			m_walkableMinY = minY;
+			m_walkableMaxX = maxX;
+			m_walkableMaxY = maxY;
+
+			// Walkable 영역으로 카메라 이동 제한 설정 (에디터에서 설정한 이동 가능 구역만큼만 카메라 이동)
+			CameraManager* cameraManager = CameraManager::GetInstance();
+			if (cameraManager)
+			{
+				cameraManager->SetWalkableBounds(m_walkableMinX, m_walkableMinY, m_walkableMaxX, m_walkableMaxY);
+			}
+		}
+	}
 
 	// 맵 데이터의 게임오브젝트들을 생성
 	CreateGameObjectsFromMapData();
@@ -85,6 +142,9 @@ void GameScene::Update(float deltaTime)
 	CameraManager::GetInstance()->Update(deltaTime);
 	RenderManager::GetInstance()->Update(deltaTime);
 	InventoryManager::GetInstance()->Update(deltaTime);
+	if (m_playerHPUI) {
+		m_playerHPUI->Update(deltaTime);
+	}
 }
 
 void GameScene::LateUpdate()
@@ -136,6 +196,11 @@ void GameScene::Render()
 		uiManager->Render();
 	}
 	
+	// 5-2. 플레이어 HP UI (우측 상단 게이지 + Game Over 시 블록)
+	if (m_playerHPUI) {
+		m_playerHPUI->Render();
+	}
+	
 	// 6. InventoryManager (인벤토리 UI 렌더링)
 	InventoryManager* inventoryManager = InventoryManager::GetInstance();
 	if (inventoryManager) {
@@ -145,6 +210,13 @@ void GameScene::Render()
 
 void GameScene::Release()
 {
+	// 플레이어 HP UI 해제
+	if (m_playerHPUI) {
+		m_playerHPUI->Release();
+		delete m_playerHPUI;
+		m_playerHPUI = nullptr;
+	}
+
 	// 크래프팅 UI 해제
 	if (m_craftingUI) {
 		m_craftingUI->Release();
@@ -174,13 +246,10 @@ void GameScene::CreateGameObjectsFromMapData()
 	}
 
 	int createdCount = 0;
-	for (const ResourcePathUtils::ObjectResourceDef& objData : m_mapData->gameObjects) 
+	for (const ResourcePathUtils::ObjectResourceDef& objData : m_mapData->gameObjects)
 	{
-		// 맵 파일의 콜라이더 정보를 포함한 resourceData 생성 (objData를 직접 사용)
-		ResourcePathUtils::ObjectResourceDef resourceData = objData;
-		
-		// 리소스 데이터와 함께 게임 오브젝트 생성
-		GameObject* obj = objectManager->CreateGameObject(objData.id, objData.x, objData.y, &resourceData);
+		// 맵에는 배치(type, id, x, y)만 있음. 오브젝트 정보는 ObjectManager가 ResourceManager에서 조회
+		GameObject* obj = objectManager->CreateGameObject(objData.id, objData.x, objData.y, nullptr);
 		if (obj) {
 			createdCount++;
 		}

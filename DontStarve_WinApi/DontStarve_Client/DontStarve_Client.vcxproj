@@ -173,7 +173,9 @@
     <ClInclude Include="02_GameObject\Item\Tool\Pickaxe\Pickaxe.h" />
     <ClInclude Include="02_GameObject\Item\Tool\Torch\Torch.h" />
     <ClInclude Include="02_GameObject\Object.h" />
+    <ClInclude Include="02_GameObject\UI\CraftingRecipe.h" />
     <ClInclude Include="02_GameObject\UI\CraftingUI.h" />
+    <ClInclude Include="02_GameObject\UI\PlayerHPUI.h" />
     <ClInclude Include="02_GameObject\UI\UIElement.h" />
     <ClInclude Include="02_GameObject\UI\UIImage.h" />
     <ClInclude Include="02_GameObject\UI\UIButton.h" />
@@ -243,6 +245,7 @@
     <ClCompile Include="02_GameObject\Item\Tool\Torch\Torch.cpp" />
     <ClCompile Include="02_GameObject\Object.cpp" />
     <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
+    <ClCompile Include="02_GameObject\UI\PlayerHPUI.cpp" />
     <ClCompile Include="02_GameObject\UI\UIElement.cpp" />
     <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
     <ClCompile Include="02_GameObject\UI\UIButton.cpp" />

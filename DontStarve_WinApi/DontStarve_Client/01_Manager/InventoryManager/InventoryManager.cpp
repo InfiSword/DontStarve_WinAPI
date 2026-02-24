@@ -3,6 +3,7 @@
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Item/Item.h"
+#include "../../02_GameObject/Item/Tool/Tool.h"
 #include "../../02_GameObject/UI/Inventory.h"
 #include "../../02_GameObject/UI/CraftingRecipe.h"
 #include "../../01_Manager/SceneManager/SceneManager.h"
@@ -85,7 +86,7 @@ bool InventoryManager::TryGainItemFromWorldObject(Player* player, GameObject* wo
 	return anyItemAdded;
 }
 
-// 아이템 사용 처리
+// 아이템 사용 처리 (도구 장착 토글, 음식 섭취 등)
 bool InventoryManager::TryUseItem(Player* player, int slotIndex) {
 	if (!player) return false;
 	
@@ -95,14 +96,41 @@ bool InventoryManager::TryUseItem(Player* player, int slotIndex) {
 	const ItemSlot& slot = inventory->GetSlot(slotIndex);
 	if (slot.IsEmpty()) return false;
 	
-	// 아이템 타입에 따른 사용 처리
 	Item* item = slot.item;
 	
-	// TODO: 아이템 타입별 사용 로직 구현
-	// 예: 도구 사용, 음식 아이템 사용, 장비 아이템 장착 등
+	// 도구: 장착/해제 토글
+	if (dynamic_cast<Tool*>(item)) {
+		player->ToggleEquipItem(slotIndex);
+		return true;
+	}
+
+	// 음식
+	GameObjectID itemID = item->GetID();
+	int healAmount = GetFoodHealAmount(itemID);
+	if (healAmount > 0) {
+		if (inventory->RemoveItem(slotIndex, 1)) {
+			player->Heal(healAmount);
+			return true;
+		}
+		return false;
+	}
 	
+	// TODO: 그 외 아이템 타입별 사용 로직
 	OutputDebugStringW((L"InventoryManager: 아이템 사용 - 슬롯 " + std::to_wstring(slotIndex) + L"\n").c_str());
 	return true;
+}
+
+int InventoryManager::GetFoodHealAmount(GameObjectID itemID) const {
+	switch (itemID) {
+	case GOID_ITEM_BERRY:                return 8;
+	case GOID_ITEM_MEAT:                 return 12;
+	case GOID_ITEM_SMALL_MEAT:          return 8;
+	case GOID_ITEM_MONSTER_MEAT:         return 10;
+	case GOID_ITEM_COOKED_MONSTER_MEAT: return 20;
+	case GOID_ITEM_COOKED_SMALL_MEAT:   return 12;
+	case GOID_ITEM_COOKED_MEAT:         return 25;
+	default:                             return 0;
+	}
 }
 
 // 아이템 버리기 (월드에 드롭)

@@ -1,6 +1,6 @@
 #include "99_Default/pch.h"
 #include "ResourceManager.h"
-
+#include <fstream>
 
 ResourceManager::ResourceManager()
 {
@@ -21,10 +21,27 @@ void ResourceManager::Init()
 		def.id = entry.id;
 		def.baseDir = entry.baseDir;
 		def.imageName = entry.imageName;
-		def.pivotX = entry.pivotX;
-		def.pivotY = entry.pivotY;
 		RegisterObjectResource(entry.id, def);
 	}
+
+	// GameData/object_resource_overrides.txt 로드 후 id별 pivot/콜라이더 덮어쓰기 (Function.h 공통 파서 사용)
+	ResourcePathUtils::ParseObjectResourceOverridesFile(L"GameData/object_resource_overrides.txt",
+		[this](GameObjectType, GameObjectID id, const ResourcePathUtils::ObjectResourceDef& overrideDef) {
+			auto it = m_objectResources.find(id);
+			if (it != m_objectResources.end()) {
+				it->second.pivotX = overrideDef.pivotX;
+				it->second.pivotY = overrideDef.pivotY;
+				it->second.hasCollider = overrideDef.hasCollider;
+				it->second.colliderType = overrideDef.colliderType;
+				it->second.colliderOffsetX = overrideDef.colliderOffsetX;
+				it->second.colliderOffsetY = overrideDef.colliderOffsetY;
+				it->second.colliderWidth = overrideDef.colliderWidth;
+				it->second.colliderHeight = overrideDef.colliderHeight;
+				it->second.colliderCenterX = overrideDef.colliderCenterX;
+				it->second.colliderCenterY = overrideDef.colliderCenterY;
+				it->second.colliderRadius = overrideDef.colliderRadius;
+			}
+		});
 }
 
 void ResourceManager::Release()

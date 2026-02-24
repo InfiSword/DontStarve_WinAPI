@@ -48,6 +48,9 @@ public:
 	virtual bool OnInteraction(GameObject* obj);
 	virtual bool CanInteract() const { return m_isInteractive; }
 
+	// 디버그/시각화 오버레이 
+	virtual void RenderDebugOverlay() {}
+
     template <typename T, typename... Args>
     T* AddComponent(Args&&... args) {
         T* newComponent = new T(this, std::forward<Args>(args)...);
@@ -70,6 +73,19 @@ public:
             }
         }
         return nullptr;
+    }
+
+    /** 동일 타입의 모든 컴포넌트를 반환 (클릭 감지 시 body/attack 콜라이더 등 여러 개 검사용) */
+    template <typename T>
+    std::vector<T*> GetComponents() const {
+        std::vector<T*> result;
+        if (m_bReleased) return result;
+        for (Component* component : m_components) {
+            if (!component) continue;
+            T* target = dynamic_cast<T*>(component);
+            if (target) result.push_back(target);
+        }
+        return result;
     }
 
 	// inline 함수

@@ -45,6 +45,8 @@ void Tree::Update(float deltaTime)
 
 void Tree::LateUpdate()
 {
+	// 부모 호출 필수: GameObject::LateUpdate()에서 UpdateCoroutines()가 실행되어 쉐이킹 코루틴이 동작함
+	Entity::LateUpdate();
 }
 
 void Tree::Release()
@@ -63,13 +65,22 @@ void Tree::Damaged(int damage)
 
 	m_hp -= damage;
 
-	// 쉐이킹 중이면 원래 위치로 복원한 뒤 그 위치를 새 기준점으로 사용
+	// 연타 대응: 이미 쉐이킹 중이면 현재 오프셋 위치가 아닌 기준점(m_baseX/Y)으로 복원 후, 기존 코루틴 제거하고 새 쉐이킹 시작 (기준점은 갱신하지 않음)
 	if (m_isShaking && transform) {
 		transform->SetPosition(m_baseX, m_baseY);
 	}
 	else if (transform) {
 		m_baseX = transform->GetX();
 		m_baseY = transform->GetY();
+	}
+
+	// HP 0 이면 쉐이킹 없이 즉시 제거 및 통나무 드롭
+	if (m_hp <= 0) {
+		if (transform) transform->SetPosition(m_baseX, m_baseY);
+		m_isShaking = false;
+		m_isDead = true;
+		Die();
+		return;
 	}
 
 	StopAllCoroutines();
@@ -82,23 +93,18 @@ void Tree::Damaged(int damage)
 	float amount = m_shakeAmount;
 	float speed = m_shakeSpeed;
 	Transform* tr = transform;
-	bool shouldDie = (m_hp <= 0);
 
 	StartCoroutine([=](float dt) mutable -> bool {
 		elapsed += dt;
 		if (elapsed >= duration) {
 			if (tr) tr->SetPosition(baseX, baseY);
 			m_isShaking = false;
-			if (shouldDie) {
-				m_isDead = true;
-				Die();
-			}
 			return false;
 		}
+		// 좌우로만 흔들기 (X만 오프셋)
 		if (tr) {
 			float offsetX = sinf(elapsed * speed) * amount;
-			float offsetY = cosf(elapsed * speed) * amount;
-			tr->SetPosition(baseX + offsetX, baseY + offsetY);
+			tr->SetPosition(baseX + offsetX, baseY);
 		}
 		return true;
 	});
@@ -115,7 +121,7 @@ void Tree::Die()
 	float ty = transform ? transform->GetY() : 0.0f;
 
 	ObjectManager* objMgr = ObjectManager::GetInstance();
-	if (objMgr) {
+
 		GameObjectID dropItemID = GetDropItemID();
 		int dropCount = GetDropItemCount();
 		if (dropItemID != GOID_NONE && dropCount > 0) {
@@ -128,5 +134,5 @@ void Tree::Die()
 			}
 		}
 		objMgr->RemoveGameObject(this);
-	}
+	
 }

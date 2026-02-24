@@ -3,9 +3,9 @@
 #include <gdiplus.h>
 #include "Define.h"
 #include "Enum.h"
-#include <cstddef> 
+#include <cstddef>
 #include <string>
-#include <cstring> 
+#include <cstring>
 #include <vector>
 #include <map>
 #include <cmath>
@@ -93,6 +93,7 @@ namespace EnumTables {
 		{ GOID_MONSTER_REDHOUNDDOG,      L"GOID_MONSTER_REDHOUNDDOG" },
 		{ GOID_MONSTER_ICEHOUNDDOG,      L"GOID_MONSTER_ICEHOUNDDOG" },
 		{ GOID_BUILDING_PIGHOUSE,        L"GOID_BUILDING_PIGHOUSE" },
+		{ GOID_BUILDING_SPIDER_SACEGG,   L"GOID_BUILDING_SPIDER_SACEGG" },
 		{ GOID_BUILDING_SPIDER_SMALLEGG, L"GOID_BUILDING_SPIDER_SMALLEGG" },
 		{ GOID_BUILDING_SPIDER_NORMALEGG,L"GOID_BUILDING_SPIDER_NORMALEGG" },
 		{ GOID_BUILDING_SPIDER_TALLEGG,  L"GOID_BUILDING_SPIDER_TALLEGG" },
@@ -105,6 +106,14 @@ namespace EnumTables {
 		{ GOID_ITEM_CUT_NORMAL_STONE,    L"GOID_ITEM_CUT_NORMAL_STONE" },
 		{ GOID_ITEM_MEAT,                L"GOID_ITEM_MEAT" },
 		{ GOID_ITEM_BERRY,               L"GOID_ITEM_BERRY" },
+		{ GOID_ITEM_WOOD_2,             L"GOID_ITEM_WOOD_2" },
+		{ GOID_ITEM_SMALL_MEAT,         L"GOID_ITEM_SMALL_MEAT" },
+		{ GOID_ITEM_MONSTER_MEAT,       L"GOID_ITEM_MONSTER_MEAT" },
+		{ GOID_ITEM_COOKED_MONSTER_MEAT, L"GOID_ITEM_COOKED_MONSTER_MEAT" },
+		{ GOID_ITEM_COOKED_SMALL_MEAT,  L"GOID_ITEM_COOKED_SMALL_MEAT" },
+		{ GOID_ITEM_COOKED_MEAT,        L"GOID_ITEM_COOKED_MEAT" },
+		{ GOID_TOOL_HALBERD,             L"GOID_TOOL_HALBERD" },
+		{ GOID_TOOL_HAMMER,              L"GOID_TOOL_HAMMER" },
 		{ GOID_PLAYER_WILSON,            L"GOID_PLAYER_WILSON" },
 		{ GOID_PLAYER_WILLOW,            L"GOID_PLAYER_WILLOW" },
 		{ GOID_PLAYER_WOLFGANG,          L"GOID_PLAYER_WOLFGANG" },
@@ -124,9 +133,7 @@ namespace EnumTables {
 
 // 리소스 경로 관련 구조체
 namespace ResourcePathUtils
-{
-	// ====================== 정적 리소스 테이블용 구조체 =======================
-	
+{	
 	// 타일 리소스 정적 테이블 엔트리 (컴파일 타임 상수)
 	struct TileDefEntry {
 		TileType type;
@@ -135,14 +142,12 @@ namespace ResourcePathUtils
 		const wchar_t* imageName;
 	};
 
-	// 오브젝트 리소스 정적 테이블 엔트리 (컴파일 타임 상수)
+	// 오브젝트 리소스 정적 테이블 엔트리 (컴파일 타임 상수, 이미지 경로만. pivot은 오브젝트 에디터에서 편집)
 	struct ObjectDefEntry {
 		GameObjectType type;
 		GameObjectID id;
 		const wchar_t* baseDir;
 		const wchar_t* imageName;
-		float pivotX;
-		float pivotY;
 	};
 
 	// ====================== 정적 리소스 테이블 =======================
@@ -167,45 +172,54 @@ namespace ResourcePathUtils
 
 	// 오브젝트 리소스 정적 테이블
 	static constexpr ObjectDefEntry ObjectResourceTable[] = {
-		{ GOBJ_PLAYER, GOID_PLAYER_WILSON, L"Resource\\Objects\\Player\\Wilson", L"", 0.5f, 1.0f },
-		{ GOBJ_PLAYER, GOID_PLAYER_WILLOW, L"Resource\\Objects\\Player\\Willow", L"", 0.5f, 1.0f },
-		{ GOBJ_PLAYER, GOID_PLAYER_WOLFGANG, L"Resource\\Objects\\Player\\Wolfgang", L"", 0.5f, 1.0f },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_SHORT, L"Resource\\Objects\\Tree1\\Short", L"evergreen_evergreen_short_idle_short_01.png", 0.5f, 1.0f },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_NORMAL, L"Resource\\Objects\\Tree1\\Normal", L"evergreen_evergreen_short_idle_normal_01.png", 0.5f, 1.0f },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_TALL, L"Resource\\Objects\\Tree1\\Tall", L"evergreen_evergreen_short_idle_tall_01.png", 0.5f, 1.0f },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_ROCK, L"Resource\\Objects\\Rock\\Rock_Normal", L"rock01-0.png", 0.5f, 1.0f },
-		{ GOBJ_NATURAL_ENVIR, GOID_GOLD_ROCK, L"Resource\\Objects\\Rock\\Rock_Gold", L"rock02-0.png", 0.5f, 1.0f },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_GRASS, L"Resource\\Objects\\Grass", L"grass.png", 0.5f, 1.0f },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_SAPLING, L"Resource\\Objects\\Twign", L"sapling.png", 0.5f, 1.0f },
-		{ GOBJ_NATURAL_ENVIR, GOID_BERRY_TREE, L"Resource\\Objects\\Bush", L"BerryBush.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_GRASS, L"Resource\\Objects\\ingredient", L"cutgrass01-0.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_NORMAL_ROCK, L"Resource\\Objects\\ingredient", L"rocks01-0.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_NORMAL_TWIGS, L"Resource\\Objects\\ingredient", L"twigs01-0.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_NORMAL_TREE_LOG, L"Resource\\Objects\\ingredient", L"Tree1_log.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_GOLD_ROCK, L"Resource\\Objects\\ingredient", L"Gold_Item.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_ROPE, L"Resource\\Objects\\ingredient", L"rope01-0.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_STONE, L"Resource\\Objects\\ingredient", L"cutstone01-0.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_MEAT, L"Resource\\Objects\\ingredient", L"meat-0.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_ITEM_BERRY, L"Resource\\Objects\\ingredient", L"Berry.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_TOOL_GOLDEN_SCYTHE, L"Resource\\Objects\\Tools", L"Golden_Scythe_02.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_TOOL_HAM_BAT, L"Resource\\Objects\\Tools", L"hamBat_01.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_TOOL_PICKAXE, L"Resource\\Objects\\Tools", L"pickaxe-0.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_TOOL_RED_AXE, L"Resource\\Objects\\Tools", L"Red_Axe_02.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_TOOL_SPEAR, L"Resource\\Objects\\Tools", L"spear_03.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_TOOL_SWAP_AXE, L"Resource\\Objects\\Tools", L"swap_axe-0.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_TOOL_SWAP_SPEAR, L"Resource\\Objects\\Tools", L"swap_spear_wathgrithr_lightning-5.png", 0.5f, 1.0f },
-		{ GOBJ_ITEM, GOID_TOOL_TORCH, L"Resource\\Objects\\Tools", L"torch.png", 0.5f, 1.0f },
-		{ GOBJ_MONSTER, GOID_MONSTER_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Normal_Spider", L"Spider_spider_idle_01.png", 0.5f, 1.0f },
-		{ GOBJ_MONSTER, GOID_MONSTER_WARRIOR_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Warrior_Spider", L"Warrior_spider_idle_01.png", 0.5f, 1.0f },
-		{ GOBJ_MONSTER, GOID_MONSTER_PIG, L"Resource\\Objects\\Monster\\Pig", L"pig_Image.png", 0.5f, 1.0f },
-		{ GOBJ_MONSTER, GOID_MONSTER_HOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Normal_Hound", L"Hound_hound_Image.png", 0.5f, 1.0f },
-		{ GOBJ_MONSTER, GOID_MONSTER_QUEEN_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Queen", L"Queen_spider_queen_Image.png", 0.5f, 1.0f },
-		{ GOBJ_MONSTER, GOID_MONSTER_REDHOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Red_Hound", L"RedHound_hound_Image.png", 0.5f, 1.0f },
-		{ GOBJ_MONSTER, GOID_MONSTER_ICEHOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Ice_Hound", L"IceHound_hound_Image.png", 0.5f, 1.0f },
-		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_SMALLEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_small_Image.png", 0.5f, 1.0f },
-		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_NORMALEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_medium_Image.png", 0.5f, 1.0f },
-		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_TALLEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_large_Image.png", 0.5f, 1.0f },
-		{ GOBJ_BUILDING, GOID_BUILDING_PIGHOUSE, L"Resource\\Objects\\Building\\House", L"pig_house.png", 0.5f, 1.0f }
+		{ GOBJ_PLAYER, GOID_PLAYER_WILSON, L"Resource\\Objects\\Player\\Wilson", L"" },
+		{ GOBJ_PLAYER, GOID_PLAYER_WILLOW, L"Resource\\Objects\\Player\\Willow", L"" },
+		{ GOBJ_PLAYER, GOID_PLAYER_WOLFGANG, L"Resource\\Objects\\Player\\Wolfgang", L"" },
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_SHORT, L"Resource\\Objects\\Tree1\\Short", L"evergreen_evergreen_short_idle_short_01.png" },
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_NORMAL, L"Resource\\Objects\\Tree1\\Normal", L"evergreen_evergreen_short_idle_normal_01.png" },
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_TALL, L"Resource\\Objects\\Tree1\\Tall", L"evergreen_evergreen_short_idle_tall_01.png" },
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_ROCK, L"Resource\\Objects\\Rock\\Rock_Normal", L"rock01-0.png" },
+		{ GOBJ_NATURAL_ENVIR, GOID_GOLD_ROCK, L"Resource\\Objects\\Rock\\Rock_Gold", L"rock02-0.png" },
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_GRASS, L"Resource\\Objects\\Grass", L"grass.png" },
+		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_SAPLING, L"Resource\\Objects\\Twign", L"sapling.png" },
+		{ GOBJ_NATURAL_ENVIR, GOID_BERRY_TREE, L"Resource\\Objects\\Bush", L"BerryBush.png" },
+		{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_GRASS, L"Resource\\Objects\\ingredient", L"cutgrass01-0.png" },
+		{ GOBJ_ITEM, GOID_ITEM_NORMAL_ROCK, L"Resource\\Objects\\ingredient", L"rocks01-0.png" },
+		{ GOBJ_ITEM, GOID_ITEM_NORMAL_TWIGS, L"Resource\\Objects\\ingredient", L"twigs01-0.png" },
+		{ GOBJ_ITEM, GOID_ITEM_NORMAL_TREE_LOG, L"Resource\\Objects\\ingredient", L"Tree1_log.png" },
+		{ GOBJ_ITEM, GOID_ITEM_GOLD_ROCK, L"Resource\\Objects\\ingredient", L"Gold_Item.png" },
+		{ GOBJ_ITEM, GOID_ITEM_ROPE, L"Resource\\Objects\\ingredient", L"rope01-0.png" },
+		{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_STONE, L"Resource\\Objects\\ingredient", L"cutstone01-0.png" },
+		{ GOBJ_ITEM, GOID_ITEM_MEAT, L"Resource\\Objects\\food", L"meat-0.png" },
+		{ GOBJ_ITEM, GOID_ITEM_BERRY, L"Resource\\Objects\\food", L"Berry.png" },
+		{ GOBJ_ITEM, GOID_ITEM_WOOD_2, L"Resource\\Objects\\ingredient", L"Wood_2.png" },
+		{ GOBJ_ITEM, GOID_ITEM_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-0.png" },
+		{ GOBJ_ITEM, GOID_ITEM_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
+		{ GOBJ_ITEM, GOID_ITEM_COOKED_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
+		{ GOBJ_ITEM, GOID_ITEM_COOKED_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-1.png" },
+		{ GOBJ_ITEM, GOID_ITEM_COOKED_MEAT, L"Resource\\Objects\\food", L"meat_01-1.png" },
+		{ GOBJ_ITEM, GOID_TOOL_GOLDEN_SCYTHE, L"Resource\\Objects\\Tools", L"Golden_Scythe_02.png" },
+		{ GOBJ_ITEM, GOID_TOOL_HAM_BAT, L"Resource\\Objects\\Tools", L"hamBat_01.png" },
+		{ GOBJ_ITEM, GOID_TOOL_PICKAXE, L"Resource\\Objects\\Tools", L"pickaxe-0.png" },
+		{ GOBJ_ITEM, GOID_TOOL_RED_AXE, L"Resource\\Objects\\Tools", L"Red_Axe_02.png" },
+		{ GOBJ_ITEM, GOID_TOOL_SPEAR, L"Resource\\Objects\\Tools", L"spear_03.png" },
+		{ GOBJ_ITEM, GOID_TOOL_SWAP_AXE, L"Resource\\Objects\\Tools", L"swap_axe-0.png" },
+		{ GOBJ_ITEM, GOID_TOOL_SWAP_SPEAR, L"Resource\\Objects\\Tools", L"swap_spear_wathgrithr_lightning-5.png" },
+		{ GOBJ_ITEM, GOID_TOOL_TORCH, L"Resource\\Objects\\Tools", L"torch.png" },
+		{ GOBJ_ITEM, GOID_TOOL_HALBERD, L"Resource\\Objects\\Tools", L"halberd.png" },
+		{ GOBJ_ITEM, GOID_TOOL_HAMMER, L"Resource\\Objects\\Tools", L"hammer.png" },
+		{ GOBJ_MONSTER, GOID_MONSTER_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Normal_Spider", L"Spider_spider_idle_01.png" },
+		{ GOBJ_MONSTER, GOID_MONSTER_WARRIOR_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Warrior_Spider", L"Warrior_spider_idle_01.png" },
+		{ GOBJ_MONSTER, GOID_MONSTER_PIG, L"Resource\\Objects\\Monster\\Pig", L"pig_Image.png" },
+		{ GOBJ_MONSTER, GOID_MONSTER_HOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Normal_Hound", L"Hound_hound_Image.png" },
+		{ GOBJ_MONSTER, GOID_MONSTER_QUEEN_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Queen", L"Queen_spider_queen_Image.png" },
+		{ GOBJ_MONSTER, GOID_MONSTER_REDHOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Red_Hound", L"RedHound_hound_Image.png" },
+		{ GOBJ_MONSTER, GOID_MONSTER_ICEHOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Ice_Hound", L"IceHound_hound_Image.png" },
+		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_SACEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_small_Image.png" },
+		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_SMALLEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_small_Image.png" },
+		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_NORMALEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_medium_Image.png" },
+		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_TALLEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_large_Image.png" },
+		{ GOBJ_BUILDING, GOID_BUILDING_PIGHOUSE, L"Resource\\Objects\\Building\\House", L"pig_house.png" }
 	};
 
 	static constexpr size_t ObjectResourceCount = sizeof(ObjectResourceTable) / sizeof(ObjectDefEntry);
@@ -228,7 +242,7 @@ namespace ResourcePathUtils
 		{}
 	};
 
-	// 오브젝트 리소스 정의 구조체 (런타임 사용, std::wstring 사용)
+	// 오브젝트 리소스 정의 구조체
 	struct ObjectResourceDef {
 		GameObjectType type;
 		GameObjectID id;
@@ -294,7 +308,7 @@ struct DrawCommand {
 	float sortKey = 0.0f;
 	Direction direction = DIR_DOWN;
 
-	std::wstring text;
+	const std::wstring* textPtr = nullptr;  // TEXT 타입일 때 사용 (소유하지 않음, 같은 프레임 Flush에서만 참조)
 	Gdiplus::Font* pFont = nullptr;
 	Gdiplus::Brush* pBrush = nullptr;
 	Gdiplus::StringFormat* pStringFormat = nullptr;

@@ -111,11 +111,11 @@ void SceneManager::ReleaseCurrentScene()
 
 void SceneManager::LoadAllMapData()
 {
-	// 게임 시작 시 모든 맵 파일 로드 (MapData 폴더의 .dsm 파일들)
+	// 게임 시작 시 모든 맵 파일 로드 (GameData 폴더의 .dsm 파일들)
 	// 주의: CharacterSelectScene에서 사용하는 경로와 일치해야 함!
 	std::vector<std::wstring> mapFiles = {
-		L"MapData/00_map.dsm"
-		// 향후 추가 맵 파일들을 여기에 등록 (예: L"MapData/01_map.dsm")
+		L"GameData/00_map.dsm"
+		// 향후 추가 맵 파일들을 여기에 등록 (예: L"GameData/01_map.dsm")
 	};
 
 	for (const std::wstring& mapFileName : mapFiles) {
@@ -132,13 +132,11 @@ void SceneManager::LoadAllMapData()
 
 bool SceneManager::ParseMapFile(const std::wstring& mapFileName, MapData& outMapData)
 {
-	// ResourceManager를 통해 오브젝트 리소스 정보 조회 (콜백)
+	// 맵 파일에는 type, id, x, y만 저장됨. 오브젝트 상세(피벗/콜라이더)는 파서에서 사용하지 않음(생성 시 ResourceManager에서 조회)
 	ResourceManager* resMgr = ResourceManager::GetInstance();
 	auto getObjectResourceInfo = [resMgr](GameObjectType /*type*/, GameObjectID id) -> const ResourcePathUtils::ObjectResourceDef* {
 		return resMgr->GetObjectResourceInfo(id);
 	};
-	
-	// Function.h의 공통 파싱 함수 사용 (성공 여부 반환)
 	return ResourcePathUtils::ParseMapFileInto(mapFileName, outMapData, getObjectResourceInfo);
 }
 

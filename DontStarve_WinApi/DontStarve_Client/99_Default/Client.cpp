@@ -9,7 +9,7 @@
 
 #define MAX_LOADSTRING 100
 
-// 실행 파일 위치에서 Resource·MapData가 있는 프로젝트 루트로 작업 디렉터리 설정
+// 실행 파일 위치에서 Resource·GameData가 있는 프로젝트 루트로 작업 디렉터리 설정
 static void EnsureResourceWorkingDirectory()
 {
     wchar_t exePath[MAX_PATH];
@@ -57,7 +57,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // Resource/MapData 상대 경로가 맞도록 작업 디렉터리를 프로젝트 루트로 설정
+    // Resource·GameData 등 상대 경로가 맞도록 작업 디렉터리를 프로젝트 루트로 설정
     EnsureResourceWorkingDirectory();
 
     // 전역 문자열을 초기화합니다.

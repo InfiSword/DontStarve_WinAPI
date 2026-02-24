@@ -2,7 +2,7 @@
 #include "EditorLayerComposer.h"
 #include "../01_EditorView/EditorView.h"
 #include "../02_EditorResourceManager/EditorResourceManager.h"
-#include "../00_MainEditor/DontStarve_EditorMain.h"
+#include "../00_MainEditor/MapEditor.h"
 #include "../../Header/Define.h"
 #include "../../Header/Function.h"
 #include "../../Header/Struct.h"
@@ -21,7 +21,7 @@ EditorLayerComposer::~EditorLayerComposer()
 	DeleteLayerBitmaps();
 }
 
-void EditorLayerComposer::SetDependencies(EditorView* pView, EditorResourceManager* pResources, DontStarve_EditorMain* pMain)
+void EditorLayerComposer::SetDependencies(EditorView* pView, EditorResourceManager* pResources, MapEditor* pMain)
 {
 	m_pView = pView;
 	m_pResources = pResources;

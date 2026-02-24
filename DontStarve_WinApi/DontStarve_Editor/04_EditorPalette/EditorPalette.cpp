@@ -2,19 +2,17 @@
 #include "EditorPalette.h"
 #include "../02_EditorResourceManager/EditorResourceManager.h"
 
-void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourceManager* pResources) {
+void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourceManager* pResources, bool showTiles) {
 	m_pResources = pResources;
 	if (!m_pResources) return;
 
 	int paletteWidth = 80;
 	int paletteHeight = clientHeight;
 
-	m_paletteRect = {
-		clientWidth - paletteWidth,
-		0,
-		clientWidth,
-		paletteHeight
-	};
+	m_paletteRect.left = clientWidth - paletteWidth;
+	m_paletteRect.top = 0;
+	m_paletteRect.right = clientWidth;
+	m_paletteRect.bottom = paletteHeight;
 
 	m_paletteItems.clear();
 
@@ -22,31 +20,32 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourc
 	const int padding = 5;
 	int currentY = m_paletteRect.top + padding;
 
-	for (int i = 0; i < TILE_COUNT; ++i) {
-		TileType type = (TileType)i;
-		if (type == TILE_NONE || type == TILE_COUNT) continue;
+	if (showTiles) {
+		for (int i = 0; i < TILE_COUNT; ++i) {
+			TileType type = (TileType)i;
+			if (type == TILE_NONE || type == TILE_COUNT) continue;
 
-		auto type_map_it = m_pResources->GetTileVariants().find(type);
-		if (type_map_it != m_pResources->GetTileVariants().end() && !type_map_it->second.empty()) {
-			const ResourcePathUtils::TileResourceDef& sampleVariant = type_map_it->second.begin()->second;
-			Gdiplus::Bitmap* iconBitmap = nullptr;
-			Gdiplus::RectF iconSrcRect(0, 0, 0, 0);
-			if (!sampleVariant.imageName.empty()) {
-				// 캐시된 비트맵 로드
-				std::wstring fullPath = sampleVariant.baseDir;
-				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-					fullPath += L"\\";
+			auto type_map_it = m_pResources->GetTileVariants().find(type);
+			if (type_map_it != m_pResources->GetTileVariants().end() && !type_map_it->second.empty()) {
+				const ResourcePathUtils::TileResourceDef& sampleVariant = type_map_it->second.begin()->second;
+				Gdiplus::Bitmap* iconBitmap = nullptr;
+				Gdiplus::RectF iconSrcRect(0, 0, 0, 0);
+				if (!sampleVariant.imageName.empty()) {
+					std::wstring fullPath = sampleVariant.baseDir;
+					if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
+						fullPath += L"\\";
+					}
+					fullPath += sampleVariant.imageName;
+					std::shared_ptr<Gdiplus::Bitmap> sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
+					if (sharedBitmap) {
+						iconBitmap = sharedBitmap.get();
+						iconSrcRect = Gdiplus::RectF(0, 0, (float)iconBitmap->GetWidth(), (float)iconBitmap->GetHeight());
+					}
 				}
-				fullPath += sampleVariant.imageName;
-				std::shared_ptr<Gdiplus::Bitmap> sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
-				if (sharedBitmap) {
-					iconBitmap = sharedBitmap.get();
-					iconSrcRect = Gdiplus::RectF(0, 0, (float)iconBitmap->GetWidth(), (float)iconBitmap->GetHeight());
-				}
+				RECT itemRect = { m_paletteRect.left + padding, currentY, m_paletteRect.left + padding + itemSize, currentY + itemSize };
+				m_paletteItems.push_back({ CATEGORY_TILE, (int)type, (UINT)type, itemRect, iconBitmap, iconSrcRect });
+				currentY += itemSize + padding;
 			}
-			RECT itemRect = { m_paletteRect.left + padding, currentY, m_paletteRect.left + padding + itemSize, currentY + itemSize };
-			m_paletteItems.push_back({ CATEGORY_TILE, (int)type, (UINT)type, itemRect, iconBitmap, iconSrcRect });
-			currentY += itemSize + padding;
 		}
 	}
 
@@ -140,35 +139,35 @@ void EditorPalette::DrawSubPalette(Gdiplus::Graphics* pGraphics) const {
 		Gdiplus::Bitmap* itemBitmap = nullptr;
 		Gdiplus::RectF itemSourceRect;
 		std::wstring itemName = L"";
+		std::shared_ptr<Gdiplus::Bitmap> sharedBitmap;
 
 		if (m_subPalette.category == CATEGORY_TILE) {
 			const ResourcePathUtils::TileResourceDef* tv = m_subPalette.currentTileVariantDefs[i].second;
-			if (tv && !tv->imageName.empty()) {
+			if (tv && !tv->imageName.empty() && m_pResources) {
 				std::wstring fullPath = tv->baseDir;
 				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
 					fullPath += L"\\";
 				}
 				fullPath += tv->imageName;
-				itemBitmap = Gdiplus::Bitmap::FromFile(fullPath.c_str());
-				if (itemBitmap && itemBitmap->GetLastStatus() == Gdiplus::Ok) {
+				sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
+				if (sharedBitmap && sharedBitmap->GetLastStatus() == Gdiplus::Ok) {
+					itemBitmap = sharedBitmap.get();
 					itemSourceRect = Gdiplus::RectF(0, 0, (float)itemBitmap->GetWidth(), (float)itemBitmap->GetHeight());
 					itemName = EnumTables::GetEnumName(tv->id);
-				} else {
-					if (itemBitmap) delete itemBitmap;
-					itemBitmap = nullptr;
 				}
 			}
 		}
 		else if (m_subPalette.category == CATEGORY_OBJECT) {
 			const ResourcePathUtils::ObjectResourceDef* ov = m_subPalette.currentObjectVariantDefs[i].second;
-			if (ov && !ov->imageName.empty()) {
+			if (ov && !ov->imageName.empty() && m_pResources) {
 				std::wstring fullPath = ov->baseDir;
 				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
 					fullPath += L"\\";
 				}
 				fullPath += ov->imageName;
-				itemBitmap = Gdiplus::Bitmap::FromFile(fullPath.c_str());
-				if (itemBitmap && itemBitmap->GetLastStatus() == Gdiplus::Ok) {
+				sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
+				if (sharedBitmap && sharedBitmap->GetLastStatus() == Gdiplus::Ok) {
+					itemBitmap = sharedBitmap.get();
 					itemSourceRect = Gdiplus::RectF(0, 0, (float)itemBitmap->GetWidth(), (float)itemBitmap->GetHeight());
 					itemName = EnumTables::GetEnumName(ov->id);
 				}

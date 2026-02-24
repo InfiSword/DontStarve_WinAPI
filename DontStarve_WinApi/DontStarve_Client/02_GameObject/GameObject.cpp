@@ -94,26 +94,38 @@ bool GameObject::OnInteraction(GameObject* obj)
 
 void GameObject::StartCoroutine(CoroutineHandle coroutine)
 {
-	if (coroutine)
-		m_coroutines.push_back(std::move(coroutine));
+	if (!coroutine) return;
+	// 첫 코루틴 등록 시 재할당 횟수 감소 (프록시/할당 압력 완화)
+	if (m_coroutines.capacity() == 0)
+		m_coroutines.reserve(4);
+	m_coroutines.push_back(std::move(coroutine));
 }
 
 void GameObject::StopAllCoroutines()
 {
 	m_coroutines.clear();
+	m_coroutines.shrink_to_fit();
 }
 
 void GameObject::UpdateCoroutines(float deltaTime)
 {
 	if (m_coroutines.empty()) return;
 
-	// 완료된 코루틴(false 반환)을 제거하면서 순회
-	auto it = m_coroutines.begin();
-	while (it != m_coroutines.end()) {
-		bool stillRunning = (*it)(deltaTime);
-		if (!stillRunning)
-			it = m_coroutines.erase(it);
-		else
-			++it;
+	size_t i = 0;
+	while (i < m_coroutines.size()) {
+		bool stillRunning = m_coroutines[i](deltaTime);
+		if (!stillRunning) {
+			if (i == m_coroutines.size() - 1) {
+				m_coroutines.pop_back();
+			} else {
+				m_coroutines[i] = std::move(m_coroutines.back());
+				m_coroutines.pop_back();
+			}
+		} else {
+			++i;
+		}
 	}
+	// 코루틴이 모두 끝나면 예약된 capacity 반환 (메모리 누적 완화)
+	if (m_coroutines.empty())
+		m_coroutines.shrink_to_fit();
 }

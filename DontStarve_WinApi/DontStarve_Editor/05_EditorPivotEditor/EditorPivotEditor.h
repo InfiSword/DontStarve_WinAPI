@@ -10,7 +10,7 @@ public:
 	EditorPivotEditor() = default;
 	~EditorPivotEditor() = default;
 
-	void SetDependencies(EditorView* pView, const EditorResourceManager* pResources);
+	void SetDependencies(EditorView* pView, EditorResourceManager* pResources);
 
 	void StartPivotEdit(ResourcePathUtils::ObjectResourceDef* pObject);
 	void EndPivotEdit();
@@ -25,7 +25,7 @@ public:
 
 private:
 	EditorView* m_pView = nullptr;
-	const EditorResourceManager* m_pResources = nullptr;
+	EditorResourceManager* m_pResources = nullptr;
 
 	bool m_isPivotEditMode = false;
 	POINT m_pivotEditPos = { 0, 0 };

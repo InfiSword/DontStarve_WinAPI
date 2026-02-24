@@ -21,7 +21,7 @@
 ### 4. 진행도 저장/로드
 - 텍스트 파일 형식 (.txt)
 - 디버깅 편의를 위한 가독성 있는 포맷
-- 저장 위치: `../GameData/game_progress.txt`
+- 저장 위치: `GameData/game_progress.txt` (프로젝트 루트 기준)
 
 ## 사용 방법
 

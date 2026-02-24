@@ -6,17 +6,34 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../02_GameObject/UI/Inventory.h"
 #include "../../../03_Animation/Animator.h"
+#include "../../../03_Animation/AnimationClip.h"
 #include "../../Item/Tool/Tool.h"
 #include "../../Component/Transform/Transform.h"
 #include "../../Component/Collider/Collider.h"
+#include "../../Component/Collider/BoxCollider.h"
+#include "../../../01_Manager/ColliderManager/ColliderManager.h"
+#include "../../../01_Manager/RenderManager/RenderManager.h"
+#include "../../Entity/Monster/Monster.h"
 
 static const float CHOP_PIVOT_X = 0.3f;
 static const float CHOP_PIVOT_Y = 0.9f;
+static const float MINE_PIVOT_X = 0.5f;
+static const float MINE_PIVOT_Y = 0.9f;
+static const float ATTACK_RANGE = 80.0f;  // 몬스터와 이 거리 이내면 공격 시작
+// 기본 IDLE 이미지 크기 (Wilson_Idle_Down: 126x189, pivot 0.5/1.0 → 로컬 왼쪽위 -63, -189)
+static const int IDLE_FRAME_WIDTH = 126;
+static const int IDLE_FRAME_HEIGHT = 189;
+// 공격 콜라이더 (로컬): 바라보는 방향에 따른 전방 박스 (offsetX, offsetY, width, height)
+static const int ATTACK_BOX_W = 80, ATTACK_BOX_H = 60;
+static const int ATTACK_BOX_DOWN[]  = { -40,    0, ATTACK_BOX_W, ATTACK_BOX_H };  // 발 앞
+static const int ATTACK_BOX_UP[]    = { -40,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 머리 쪽
+static const int ATTACK_BOX_LEFT[]  = { -80,  -30, ATTACK_BOX_W, ATTACK_BOX_H };  // 왼쪽
+static const int ATTACK_BOX_RIGHT[] = {   0,  -30, ATTACK_BOX_W, ATTACK_BOX_H };  // 오른쪽
 
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),  // baseDir 빈 경우 imageName만 사용(플레이어는 Animator에서 경로 사용)
+	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
 	hp(100), maxHp(100), m_playerSpeed(300.f), m_stopThreshold(10),
-	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr), m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr), m_state(PlayerState::IDLE), isMoveToGoal(false)
+	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr), m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr), m_attackTarget(nullptr), m_attackCollider(nullptr), m_state(PlayerState::IDLE), isMoveToGoal(false)
 {
 }
 
@@ -111,6 +128,72 @@ void Player::Init()
 		}
 	}
 
+	// MINE (곡괭이 채광, Down 방향 고정 — Chop과 동일 패턴)
+	const UINT MINE_TOTAL_FRAMES = 39;
+	const int MINE_HIT_FRAME = 4;
+	const int MINE_LAST_FRAME = MINE_TOTAL_FRAMES - 1; // 50
+	std::wstring pickaxePath = base + L"\\Pickaxe\\pickaxe_wilson_pickaxe_loop_down.png";
+	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+		m_animator->RegisterAnimation((int)PlayerState::MINE, (Direction)dir, pickaxePath,
+			/*311*/0, /*360*/ 0, 6, MINE_TOTAL_FRAMES, MINE_PIVOT_X, MINE_PIVOT_Y, false, 0.01f);
+		AnimationClip* clip = m_animator->GetAnimationClip((int)PlayerState::MINE, (Direction)dir);
+		if (clip) {
+			clip->AddEventFrame(MINE_HIT_FRAME, L"mine_hit");
+			clip->AddEventFrame(MINE_LAST_FRAME, L"mine_end");
+			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+				if (eventName == L"mine_hit") {
+					this->OnMineHit();
+				}
+				else if (eventName == L"mine_end") {
+					this->OnMineEnd();
+				}
+				});
+		}
+	}
+
+	// ATTACK (4열 36프레임, 6번째 프레임에 attack_hit, 마지막에 attack_end)
+	const UINT ATTACK_TOTAL_FRAMES = 36;
+	const int ATTACK_HIT_FRAME = 5;
+	const int ATTACK_LAST_FRAME = ATTACK_TOTAL_FRAMES - 1;
+	std::wstring attackDownPath = base + L"\\Attack\\Wilson_Attack_down.png";
+	std::wstring attackUpPath = base + L"\\Attack\\Wilson_Attack_up.png";
+	std::wstring attackSidePath = base + L"\\Attack\\Wilson_Attack_side.png";
+	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_DOWN, attackDownPath,
+		0, 0, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_UP, attackUpPath,
+		0, 0, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_LEFT, attackSidePath,
+		0, 0, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f, false);
+	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_RIGHT, attackSidePath,
+		0, 0, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+		AnimationClip* clip = m_animator->GetAnimationClip((int)PlayerState::ATTACK, (Direction)dir);
+		if (clip) {
+			clip->AddEventFrame(ATTACK_HIT_FRAME, L"attack_hit");
+			clip->AddEventFrame(ATTACK_LAST_FRAME, L"attack_end");
+			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+				if (eventName == L"attack_hit") this->OnAttackHit();
+				else if (eventName == L"attack_end") this->OnAttackEnd();
+				});
+		}
+	}
+
+	// 기본 idle 이미지 크기의 콜라이더 (Pig와 동일하게 상호작용/클릭 감지 등에 사용)
+	BoxCollider* bodyCollider = AddComponent<BoxCollider>();
+	if (bodyCollider) {
+		int left = -(IDLE_FRAME_WIDTH / 2);
+		int top = -IDLE_FRAME_HEIGHT;
+		bodyCollider->SetBoundingBox(left, top, IDLE_FRAME_WIDTH, IDLE_FRAME_HEIGHT);
+		bodyCollider->SetColliderEnabled(true);
+	}
+
+	// 공격 판정용 콜라이더 (기본 비활성, ATTACK 6프레임 시에만 활성)
+	m_attackCollider = AddComponent<BoxCollider>();
+	if (m_attackCollider) {
+		m_attackCollider->SetBoundingBox(-40, 0, 80, 60);
+		m_attackCollider->SetColliderEnabled(false);
+	}
+
 	if (!m_inventory) {
 		m_inventory = new Inventory();
 	}
@@ -152,6 +235,18 @@ void Player::ToggleEquipItem(int slotIndex)
 
 void Player::Damaged(int damage)
 {
+	if (damage <= 0) return;
+	hp = (std::max)(0, hp - damage);
+	if (hp <= 0) {
+		m_isDead = true;
+		Die();
+	}
+}
+
+void Player::Heal(int amount)
+{
+	if (amount <= 0) return;
+	hp = (std::min)(maxHp, hp + amount);
 }
 
 void Player::UpdateAnimatorState() {
@@ -190,10 +285,24 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 
 void Player::Update(float deltaTime)
 {
-	// 컴포넌트(Animator 등)를 먼저 갱신
 	GameObject::Update(deltaTime);
 
 	HandleMovement();
+
+	// ATTACK 상태: 방향에 따라 공격 콜라이더 위치 갱신, 6프레임(인덱스 5)일 때만 활성화
+	if (m_state == PlayerState::ATTACK && m_attackCollider && m_animator && transform) {
+		Direction dir = transform->GetDirection();
+		if (dir == DIR_DOWN) m_attackCollider->SetBoundingBox(ATTACK_BOX_DOWN[0], ATTACK_BOX_DOWN[1], ATTACK_BOX_DOWN[2], ATTACK_BOX_DOWN[3]);
+		else if (dir == DIR_UP) m_attackCollider->SetBoundingBox(ATTACK_BOX_UP[0], ATTACK_BOX_UP[1], ATTACK_BOX_UP[2], ATTACK_BOX_UP[3]);
+		else if (dir == DIR_LEFT) m_attackCollider->SetBoundingBox(ATTACK_BOX_LEFT[0], ATTACK_BOX_LEFT[1], ATTACK_BOX_LEFT[2], ATTACK_BOX_LEFT[3]);
+		else m_attackCollider->SetBoundingBox(ATTACK_BOX_RIGHT[0], ATTACK_BOX_RIGHT[1], ATTACK_BOX_RIGHT[2], ATTACK_BOX_RIGHT[3]);
+
+		int frameIdx = m_animator->GetCurrentFrameIndex();
+		m_attackCollider->SetColliderEnabled(frameIdx == 5);
+	}
+	else if (m_attackCollider) {
+		m_attackCollider->SetColliderEnabled(false);
+	}
 
 	float moveSpeedThisFrame = m_playerSpeed * deltaTime;
 
@@ -203,6 +312,24 @@ void Player::Update(float deltaTime)
 		float dy = m_targetWorldPos.Y - transform->GetY();
 		float distance = std::sqrt(dx * dx + dy * dy);
 
+		// 공격 대상으로 이동 중일 때: 사거리 내면 이동 중단 후 ATTACK
+		if (m_attackTarget && m_attackTarget->IsEnabled()) {
+			Transform* targetT = m_attackTarget->GetComponent<Transform>();
+			if (targetT) {
+				float ax = targetT->GetX() - transform->GetX();
+				float ay = targetT->GetY() - transform->GetY();
+				float distToTarget = std::sqrt(ax * ax + ay * ay);
+				if (distToTarget <= ATTACK_RANGE) {
+					isMoveToGoal = false;
+					Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
+					transform->SetDirection(faceDir);
+					m_state = PlayerState::ATTACK;
+					UpdateAnimatorState();
+					return;
+				}
+			}
+		}
+
 		// 도착 여부 판정 (인라인화: IsArrivedAtTarget)
 		const float arrivalEpsilon = 1.0f;
 		bool isArrived = (distance < arrivalEpsilon) || (distance <= m_stopThreshold) || (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame);
@@ -211,6 +338,20 @@ void Player::Update(float deltaTime)
 			transform->SetX(m_targetWorldPos.X);
 			transform->SetY(m_targetWorldPos.Y);
 			isMoveToGoal = false;
+
+			// 공격 대상으로 도착한 경우: 방향만 맞추고 ATTACK
+			if (m_attackTarget && m_attackTarget->IsEnabled()) {
+				Transform* targetT = m_attackTarget->GetComponent<Transform>();
+				if (targetT) {
+					float ax = targetT->GetX() - transform->GetX();
+					float ay = targetT->GetY() - transform->GetY();
+					Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
+					transform->SetDirection(faceDir);
+					m_state = PlayerState::ATTACK;
+					UpdateAnimatorState();
+					return;
+				}
+			}
 
 			// 도착 시 상호작용 처리
 			if (m_pendingInteractionTarget && m_pendingInteractionTarget->IsEnabled()) {
@@ -259,8 +400,8 @@ void Player::TryStartInteraction(float worldX, float worldY)
 
 	GameObject* target = cameraManager->FindInteractableObjectAtPosition(worldX, worldY);
 
-	// CHOP/PICKUP 진행 중인 경우
-	if (m_state == PlayerState::CHOP || m_state == PlayerState::PICKUP) {
+	// CHOP/MINE/PICKUP 진행 중인 경우
+	if (m_state == PlayerState::CHOP || m_state == PlayerState::MINE || m_state == PlayerState::PICKUP) {
 		if (target != nullptr && target == m_activeInteractionTarget) {
 			// 현재 상호작용 중인 대상과 동일 → 애니메이션 유지 (재시작 안 함)
 			return;
@@ -289,12 +430,19 @@ void Player::TryStartInteraction(float worldX, float worldY)
 					canInteract = (equippedID == GOID_TOOL_RED_AXE || equippedID == GOID_TOOL_SWAP_AXE);
 				}
 			}
+			else if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK) {
+				if (m_equippedItem && m_equippedItem->GetID() == GOID_TOOL_PICKAXE)
+					canInteract = true;
+			}
 			else {
 				canInteract = true;
 			}
 			break;
 		case GOBJ_ITEM:
 			canInteract = true;
+			break;
+		case GOBJ_MONSTER:
+			canInteract = true;  // 몬스터 클릭 시 공격 대상으로 이동
 			break;
 		default:
 			canInteract = false;
@@ -310,7 +458,12 @@ void Player::TryStartInteraction(float worldX, float worldY)
 	if (!targetTransform) return;
 
 	SetTargetPosition(targetTransform->GetX(), targetTransform->GetY());
-	m_pendingInteractionTarget = target;
+	if (target->GetType() == GOBJ_MONSTER) {
+		m_attackTarget = target;
+	}
+	else {
+		m_pendingInteractionTarget = target;
+	}
 }
 
 
@@ -385,16 +538,14 @@ void Player::OnChopHit()
 	if (m_state != PlayerState::CHOP || !m_activeInteractionTarget) return;
 
 	GameObjectID objID = m_activeInteractionTarget->GetID();
-	if (objID != GOID_NORMAL_TREE_SHORT && objID != GOID_NORMAL_TREE_NORMAL && objID != GOID_NORMAL_TREE_TALL) 
-		return;	
-	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);	
-	if (entity)
-	{
-		Tool* axe = dynamic_cast<Tool*>(m_equippedItem);
-		int damage = axe ? axe->GetDamage() : 10; // 도구가 없어도 기본 데미지 10 적용
-		entity->Damaged(damage);
-		if (entity->IsDead()) m_activeInteractionTarget = nullptr;
-	}
+	if (objID != GOID_NORMAL_TREE_SHORT && objID != GOID_NORMAL_TREE_NORMAL && objID != GOID_NORMAL_TREE_TALL)
+		return;
+	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
+	if (!entity) return;
+	Tool* axe = dynamic_cast<Tool*>(m_equippedItem);
+	int damage = axe ? (int)axe->GetDamage() : 10;
+	entity->Damaged(damage);
+	if (entity->IsDead()) m_activeInteractionTarget = nullptr;
 }
 
 void Player::OnChopEnd()
@@ -407,6 +558,59 @@ void Player::OnChopEnd()
 	m_activeInteractionTarget = nullptr;
 	m_pendingInteractionTarget = nullptr;
 
+	UpdateAnimatorState();
+}
+
+void Player::OnMineHit()
+{
+	if (m_state != PlayerState::MINE || !m_activeInteractionTarget) return;
+
+	GameObjectID objID = m_activeInteractionTarget->GetID();
+	if (objID != GOID_NORMAL_ROCK && objID != GOID_GOLD_ROCK)
+		return;
+	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
+	if (!entity) return;
+	Tool* pickaxe = dynamic_cast<Tool*>(m_equippedItem);
+	int damage = pickaxe ? (int)pickaxe->GetDamage() : 10;
+	entity->Damaged(damage);
+	if (entity->IsDead()) m_activeInteractionTarget = nullptr;
+}
+
+void Player::OnMineEnd()
+{
+	if (m_state != PlayerState::MINE) return;
+
+	transform->SetPivot(0.5f, transform->GetPivotY());
+	transform->SetDirection(DIR_DOWN);
+	m_state = PlayerState::IDLE;
+	m_activeInteractionTarget = nullptr;
+	m_pendingInteractionTarget = nullptr;
+
+	UpdateAnimatorState();
+}
+
+void Player::OnAttackHit()
+{
+	if (m_state != PlayerState::ATTACK || !m_attackCollider || !m_attackCollider->IsEnabled()) return;
+
+	int damage = 10;
+	Tool* tool = dynamic_cast<Tool*>(m_equippedItem);
+	if (tool) damage = (int)tool->GetDamage();
+
+	std::vector<GameObject*> hitTargets;
+	ColliderManager::GetInstance()->GetObjectsIntersecting(m_attackCollider, hitTargets);
+	for (GameObject* obj : hitTargets) {
+		Monster* m = dynamic_cast<Monster*>(obj);
+		if (m && m->IsEnabled()) m->Damaged(damage);
+	}
+}
+
+void Player::OnAttackEnd()
+{
+	if (m_state != PlayerState::ATTACK) return;
+	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
+	m_state = PlayerState::IDLE;
+	m_attackTarget = nullptr;
 	UpdateAnimatorState();
 }
 
@@ -432,7 +636,14 @@ bool Player::OnInteraction(GameObject* obj)
 			UpdateAnimatorState();
 			return true;				
 		}
-		else {
+		if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK)
+		{
+			transform->SetDirection(DIR_DOWN);
+			m_state = PlayerState::MINE;
+			UpdateAnimatorState();
+			return true;
+		}
+		{
 			// PICKUP 상태 설정 (애니메이션 이벤트에서 종료 처리)
 			m_state = PlayerState::PICKUP;
 			UpdateAnimatorState();
@@ -484,6 +695,9 @@ void Player::HandleRightClick(float worldX, float worldY)
 // 좌/우클릭 입력 처리. 인벤토리 UI 영역 위 클릭은 월드 상호작용·이동에 사용하지 않음.
 void Player::HandleMovement()
 {
+	if (GetHp() <= 0)
+		return;
+
 	InputManager* inputManager = InputManager::GetInstance();
 	if (!inputManager)
 		return;
@@ -491,6 +705,14 @@ void Player::HandleMovement()
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (!cameraManager)
 		return;
+
+	// Space: 현재 방향으로 공격 (CHOP/MINE/PICKUP/ATTACK 중이 아닐 때만)
+	if (inputManager->IsKeyPressed(VK_SPACE)) {
+		if (m_state != PlayerState::CHOP && m_state != PlayerState::MINE && m_state != PlayerState::PICKUP && m_state != PlayerState::ATTACK) {
+			m_state = PlayerState::ATTACK;
+			UpdateAnimatorState();
+		}
+	}
 
 	if (inputManager->IsLButtonClicked()) {
 		POINT mousePos = inputManager->GetMousePos();
@@ -508,4 +730,26 @@ void Player::HandleMovement()
 		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld((float)mousePos.x, (float)mousePos.y);
 		HandleRightClick(worldPos.X, worldPos.Y);
 	}
+}
+
+void Player::RenderDebugOverlay()
+{
+	// ATTACK 상태일 때 공격 콜라이더 위치를 시각화 (방향에 따라 이미 Update에서 박스가 설정됨)
+	if (m_state != PlayerState::ATTACK || !m_attackCollider || !transform) return;
+
+	CameraManager* cameraManager = CameraManager::GetInstance();
+	RenderManager* renderManager = RenderManager::GetInstance();
+	if (!cameraManager || !renderManager) return;
+
+	RECT worldBox = m_attackCollider->GetWorldBoundingBox();
+	Gdiplus::PointF screenTopLeft = cameraManager->WorldToScreen((float)worldBox.left, (float)worldBox.top);
+	Gdiplus::PointF screenBottomRight = cameraManager->WorldToScreen((float)worldBox.right, (float)worldBox.bottom);
+	float w = screenBottomRight.X - screenTopLeft.X;
+	float h = screenBottomRight.Y - screenTopLeft.Y;
+	Gdiplus::RectF rect(screenTopLeft.X, screenTopLeft.Y, w, h);
+
+	Gdiplus::Color fillColor(50, 255, 165, 0);   // 반투명 주황
+	Gdiplus::Color lineColor(255, 255, 165, 0); // 주황 외곽선
+	renderManager->AddFillRectangleCommand(rect, fillColor, LAYER_DEBUG_OVERLAY, 9998.0f);
+	renderManager->AddDrawCommand(rect, lineColor, 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
 }

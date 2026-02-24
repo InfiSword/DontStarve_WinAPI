@@ -20,7 +20,7 @@ public:
 	EditorPalette() = default;
 	~EditorPalette() = default;
 
-	void InitPalette(int clientWidth, int clientHeight, EditorResourceManager* pResources);
+	void InitPalette(int clientWidth, int clientHeight, EditorResourceManager* pResources, bool showTiles = true);
 
 	void DrawPalette(Gdiplus::Graphics* pGraphics) const;
 	void DrawSubPalette(Gdiplus::Graphics* pGraphics) const;

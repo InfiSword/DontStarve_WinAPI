@@ -2,17 +2,17 @@
 
 class EditorView;
 class EditorResourceManager;
-class DontStarve_EditorMain;
+class MapEditor;
 
 class EditorLayerComposer
 {
-	friend class DontStarve_EditorMain;
+	friend class MapEditor;
 
 public:
 	EditorLayerComposer();
 	~EditorLayerComposer();
 
-	void SetDependencies(EditorView* pView, EditorResourceManager* pResources, DontStarve_EditorMain* pMain);
+	void SetDependencies(EditorView* pView, EditorResourceManager* pResources, MapEditor* pMain);
 
 	// 레이어 합성 함수들
 	void ComposeGridLayer();
@@ -40,7 +40,7 @@ public:
 private:
 	EditorView* m_pView = nullptr;
 	EditorResourceManager* m_pResources = nullptr;
-	DontStarve_EditorMain* m_pMain = nullptr;
+	MapEditor* m_pMain = nullptr;
 
 	// 레이어 비트맵들
 	Gdiplus::Bitmap* m_gridLayerBitmap = nullptr;

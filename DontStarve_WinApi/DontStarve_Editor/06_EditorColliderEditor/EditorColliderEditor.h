@@ -3,17 +3,15 @@
 namespace ResourcePathUtils { struct ObjectResourceDef; }
 class EditorView;
 class EditorResourceManager;
-class DontStarve_EditorMain;
+class ObjectEditor;
 
 class EditorColliderEditor
 {
-	friend class DontStarve_EditorMain;
-
 public:
 	EditorColliderEditor() = default;
 	~EditorColliderEditor() = default;
 
-	void SetDependencies(EditorView* pView, const EditorResourceManager* pResources, DontStarve_EditorMain* pMain);
+	void SetDependencies(EditorView* pView, EditorResourceManager* pResources, ObjectEditor* pContext);
 
 	void StartColliderEdit(ResourcePathUtils::ObjectResourceDef* obj);
 	void EndColliderEdit();
@@ -34,6 +32,7 @@ public:
 
 	void ToggleColliderType();
 	void ShowColliderDialog(HWND parent);
+	void SaveEditingObjectToGameData();
 
 	int GetMinColliderSize() const { return MIN_COLLIDER_SIZE; }
 	float GetMinColliderRadius() const { return MIN_COLLIDER_RADIUS; }
@@ -43,8 +42,8 @@ private:
 	static const float MIN_COLLIDER_RADIUS;
 
 	EditorView* m_pView = nullptr;
-	const EditorResourceManager* m_pResources = nullptr;
-	DontStarve_EditorMain* m_pMain = nullptr;
+	EditorResourceManager* m_pResources = nullptr;
+	ObjectEditor* m_pContext = nullptr;
 
 	bool m_isColliderEditMode = false;
 	ResourcePathUtils::ObjectResourceDef* m_editingColliderObject = nullptr;

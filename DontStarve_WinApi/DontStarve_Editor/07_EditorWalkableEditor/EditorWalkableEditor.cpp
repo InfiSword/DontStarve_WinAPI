@@ -1,11 +1,9 @@
 #include "../pch.h"
 #include "EditorWalkableEditor.h"
 #include "../01_EditorView/EditorView.h"
-#include "../00_MainEditor/DontStarve_EditorMain.h"
-#include "Struct.h"
-#include <algorithm>
+#include "../00_MainEditor/MapEditor.h"
 
-void EditorWalkableEditor::SetDependencies(EditorView* pView, DontStarve_EditorMain* pMain) {
+void EditorWalkableEditor::SetDependencies(EditorView* pView, MapEditor* pMain) {
 	m_pView = pView;
 	m_pMain = pMain;
 }
@@ -27,6 +25,16 @@ void EditorWalkableEditor::ToggleWalkableEditMode() {
 	}
 }
 
+void EditorWalkableEditor::SetAllMapBlocked() {
+	if (!m_pMain) return;
+	bool(*walkableAreaMap)[MAP_WIDTH] = m_pMain->m_walkableAreaMap;
+	int w = m_pMain->GetMapWidth();
+	int h = m_pMain->GetMapHeight();
+	for (int y = 0; y < h; ++y)
+		for (int x = 0; x < w; ++x)
+			walkableAreaMap[y][x] = false;
+}
+
 void EditorWalkableEditor::OnLeftButtonDown(POINT clickPoint, HWND hWnd) {
 	if (!m_isWalkableEditMode || !m_pView || !m_pMain) return;
 
@@ -39,9 +47,7 @@ void EditorWalkableEditor::OnLeftButtonDown(POINT clickPoint, HWND hWnd) {
 void EditorWalkableEditor::OnLeftButtonUp() {
 	if (!m_isDraggingWalkable || !m_pView || !m_pMain) return;
 
-	// Main의 m_walkableAreaMap에 friend로 접근
 	bool(*walkableAreaMap)[MAP_WIDTH] = m_pMain->m_walkableAreaMap;
-
 	Gdiplus::PointF startWorldPos = m_pView->ScreenToWorld(Gdiplus::PointF((float)m_walkableDragStart.x, (float)m_walkableDragStart.y));
 	Gdiplus::PointF endWorldPos = m_pView->ScreenToWorld(Gdiplus::PointF((float)m_walkableDragEnd.x, (float)m_walkableDragEnd.y));
 
@@ -55,7 +61,7 @@ void EditorWalkableEditor::OnLeftButtonUp() {
 	int minTileY = min(startTileY, endTileY);
 	int maxTileY = max(startTileY, endTileY);
 
-	bool newWalkableState = !walkableAreaMap[minTileY][minTileX];
+	bool newWalkableState = (m_paintMode == WalkablePaintMode::PaintWalkable);
 	for (int y = minTileY; y <= maxTileY; ++y) {
 		for (int x = minTileX; x <= maxTileX; ++x) {
 			walkableAreaMap[y][x] = newWalkableState;
@@ -64,11 +70,7 @@ void EditorWalkableEditor::OnLeftButtonUp() {
 
 	m_isDraggingWalkable = false;
 	ReleaseCapture();
-
-	std::wstringstream debugSS;
-	debugSS << L"Walkable area set: (" << minTileX << L"," << minTileY << L") to ("
-		<< maxTileX << L"," << maxTileY << L") = " << (newWalkableState ? L"WALKABLE" : L"BLOCKED") << L"\n";
-	OutputDebugStringW(debugSS.str().c_str());
+	InvalidateRect(g_hWnd, NULL, FALSE);
 }
 
 void EditorWalkableEditor::OnMouseMove(POINT mousePos, HWND hWnd) {
@@ -78,13 +80,42 @@ void EditorWalkableEditor::OnMouseMove(POINT mousePos, HWND hWnd) {
 	}
 }
 
+namespace {
+	const int kToolbarLeft = 12;
+	const int kToolbarTop = 8;
+	const int kToolbarBtnW = 100;
+	const int kToolbarBtnH = 32;
+	const int kToolbarSpacing = 8;
+}
+
+bool EditorWalkableEditor::HandleToolbarClick(POINT pt, int clientW, int clientH) {
+	(void)clientW;
+	(void)clientH;
+	Gdiplus::RectF r1((Gdiplus::REAL)kToolbarLeft, (Gdiplus::REAL)kToolbarTop, (Gdiplus::REAL)kToolbarBtnW, (Gdiplus::REAL)kToolbarBtnH);
+	Gdiplus::RectF r2((Gdiplus::REAL)(kToolbarLeft + kToolbarBtnW + kToolbarSpacing), (Gdiplus::REAL)kToolbarTop, (Gdiplus::REAL)kToolbarBtnW, (Gdiplus::REAL)kToolbarBtnH);
+	Gdiplus::RectF r3((Gdiplus::REAL)(kToolbarLeft + 2 * (kToolbarBtnW + kToolbarSpacing)), (Gdiplus::REAL)kToolbarTop, (Gdiplus::REAL)kToolbarBtnW, (Gdiplus::REAL)kToolbarBtnH);
+	if (r1.Contains((Gdiplus::REAL)pt.x, (Gdiplus::REAL)pt.y)) {
+		SetAllMapBlocked();
+		return true;
+	}
+	if (r2.Contains((Gdiplus::REAL)pt.x, (Gdiplus::REAL)pt.y)) {
+		m_paintMode = WalkablePaintMode::PaintBlocked;
+		return true;
+	}
+	if (r3.Contains((Gdiplus::REAL)pt.x, (Gdiplus::REAL)pt.y)) {
+		m_paintMode = WalkablePaintMode::PaintWalkable;
+		return true;
+	}
+	return false;
+}
+
 void EditorWalkableEditor::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) const {
 	if (!pGraphics || !m_isWalkableEditMode || !m_pView || !m_pMain) return;
 
-	bool(*walkableAreaMap)[MAP_WIDTH] = m_pMain->m_walkableAreaMap;
-
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
+
+	bool(*walkableAreaMap)[MAP_WIDTH] = m_pMain->m_walkableAreaMap;
 	Gdiplus::PointF viewTopLeft = m_pView->ScreenToWorld(Gdiplus::PointF(0, 0));
 	Gdiplus::PointF viewBottomRight = m_pView->ScreenToWorld(Gdiplus::PointF((float)clientRect.right, (float)clientRect.bottom));
 
@@ -99,6 +130,7 @@ void EditorWalkableEditor::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) const
 
 	float screenTileSize = (float)TILE_SIZE * m_pView->GetZoomFactor();
 
+	// 1) 그리드(초록=이동가능, 빨강=이동불가) 전체 그림
 	for (int y = startY; y < endY; ++y) {
 		for (int x = startX; x < endX; ++x) {
 			float worldX = (float)x * TILE_SIZE;
@@ -123,6 +155,7 @@ void EditorWalkableEditor::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) const
 		}
 	}
 
+	// 2) 드래그 미리보기
 	if (m_isDraggingWalkable) {
 		int minX = min(m_walkableDragStart.x, m_walkableDragEnd.x);
 		int maxX = max(m_walkableDragStart.x, m_walkableDragEnd.x);
@@ -137,11 +170,37 @@ void EditorWalkableEditor::DrawWalkableAreas(Gdiplus::Graphics* pGraphics) const
 		pGraphics->DrawRectangle(&dragPen, dragRect);
 	}
 
-	Gdiplus::Font font(L"Arial", 14, Gdiplus::FontStyleBold);
+	// 3) 상단 툴바 버튼 (그리드보다 위에 그려서 버튼이 항상 보이도록)
+	Gdiplus::RectF r1((Gdiplus::REAL)kToolbarLeft, (Gdiplus::REAL)kToolbarTop, (Gdiplus::REAL)kToolbarBtnW, (Gdiplus::REAL)kToolbarBtnH);
+	Gdiplus::RectF r2((Gdiplus::REAL)(kToolbarLeft + kToolbarBtnW + kToolbarSpacing), (Gdiplus::REAL)kToolbarTop, (Gdiplus::REAL)kToolbarBtnW, (Gdiplus::REAL)kToolbarBtnH);
+	Gdiplus::RectF r3((Gdiplus::REAL)(kToolbarLeft + 2 * (kToolbarBtnW + kToolbarSpacing)), (Gdiplus::REAL)kToolbarTop, (Gdiplus::REAL)kToolbarBtnW, (Gdiplus::REAL)kToolbarBtnH);
+	Gdiplus::SolidBrush btnBrush(Gdiplus::Color(255, 70, 130, 180));
+	Gdiplus::SolidBrush btnActiveBrush(Gdiplus::Color(255, 100, 160, 220));
+	Gdiplus::Pen btnPen(Gdiplus::Color(255, 50, 80, 120), 1.0f);
+	Gdiplus::Pen btnActivePen(Gdiplus::Color(255, 255, 255, 255), 2.0f);
+	Gdiplus::Font btnFont(L"Malgun Gothic", 10, Gdiplus::FontStyleRegular);
+	Gdiplus::SolidBrush btnTextBrush(Gdiplus::Color(255, 255, 255, 255));
+	Gdiplus::StringFormat sf;
+	sf.SetAlignment(Gdiplus::StringAlignmentCenter);
+	sf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+
+	auto drawButton = [&](const Gdiplus::RectF& rect, const WCHAR* text, bool active) {
+		pGraphics->FillRectangle(active ? &btnActiveBrush : &btnBrush, rect);
+		pGraphics->DrawRectangle(active ? &btnActivePen : &btnPen, rect);
+		pGraphics->DrawString(text, -1, &btnFont, rect, &sf, &btnTextBrush);
+	};
+	drawButton(r1, L"전체 이동불가", false);
+	drawButton(r2, L"이동 불가", m_paintMode == WalkablePaintMode::PaintBlocked);
+	drawButton(r3, L"이동 가능", m_paintMode == WalkablePaintMode::PaintWalkable);
+
+	// 4) 힌트 텍스트
+	Gdiplus::Font font(L"Arial", 12, Gdiplus::FontStyleBold);
 	Gdiplus::SolidBrush textBrush(Gdiplus::Color(255, 255, 255, 255));
 	Gdiplus::SolidBrush backgroundBrush(Gdiplus::Color(150, 0, 0, 0));
-	Gdiplus::RectF textBgRect(10, 10, 300, 30);
+	Gdiplus::RectF textBgRect(10, (Gdiplus::REAL)(kToolbarTop + kToolbarBtnH + 4), 320, 24);
 	pGraphics->FillRectangle(&backgroundBrush, textBgRect);
-	pGraphics->DrawString(L"Walkable Area Edit Mode - Drag to toggle", -1, &font,
-		Gdiplus::PointF(15, 15), &textBrush);
+	const WCHAR* modeStr = (m_paintMode == WalkablePaintMode::PaintWalkable) ? L"이동 가능" : L"이동 불가";
+	std::wstring hint = std::wstring(L"Walkable - Drag to paint (") + modeStr + L")";
+	pGraphics->DrawString(hint.c_str(), -1, &font,
+		Gdiplus::PointF(15, (Gdiplus::REAL)(kToolbarTop + kToolbarBtnH + 6)), &textBrush);
 }

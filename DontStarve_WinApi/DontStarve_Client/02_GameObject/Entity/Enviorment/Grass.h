@@ -18,10 +18,6 @@ public:
     virtual void Damaged(int damage) override;
     virtual bool OnInteraction(GameObject* obj) override;
 
-    virtual GameObjectID GetDropItemID() const { return m_dropItemID; }
-    virtual int GetDropItemCount() const { return m_dropItemCount; }
-    virtual void SetDropItem(GameObjectID itemID, int count = 1);
-
 private:
     GrassState m_state;
 };

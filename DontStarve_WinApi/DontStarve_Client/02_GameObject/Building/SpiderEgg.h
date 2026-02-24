@@ -3,6 +3,22 @@
 
 class ResourceManager;
 
+// Egg 단계: Sac(땅에서 막 생성), Small, Medium, Large
+enum class EggStage { Sac = 0, Small, Medium, Large, EggStageCount };
+
+// Animator 상태 상수 (int state)
+enum EggAnimState {
+    EGG_STATE_IDLE_SMALL = 0,
+    EGG_STATE_IDLE_MEDIUM = 1,
+    EGG_STATE_IDLE_LARGE = 2,
+    EGG_STATE_HIT_SMALL = 10,
+    EGG_STATE_HIT_MEDIUM = 11,
+    EGG_STATE_HIT_LARGE = 12,
+    EGG_STATE_GROW_SAC_TO_SMALL = 20,
+    EGG_STATE_GROW_SMALL_TO_MEDIUM = 21,
+    EGG_STATE_GROW_MEDIUM_TO_LARGE = 22
+};
+
 class SpiderEgg : public Building
 {
 public:
@@ -22,6 +38,14 @@ public:
     void SetTimeState(BuildingState buildingState) override;
     BuildingState GetTimeState() const override;
 
-private:
+    // 성장: Sac→Small, Small→Medium, Medium→Large. 해당 성장 애니 재생 후 단계 전환.
+    void Grow();
 
+    EggStage GetEggStage() const { return m_eggStage; }
+    void SetEggStage(EggStage stage) { m_eggStage = stage; }
+
+private:
+    EggStage m_eggStage;
+    bool m_isPlayingGrowth;
+    bool m_isPlayingHit;
 };

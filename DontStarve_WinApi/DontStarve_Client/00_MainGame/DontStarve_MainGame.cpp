@@ -1,7 +1,5 @@
 #include "99_Default/pch.h"
 #include "DontStarve_MainGame.h"
-
-// Manager includes
 #include "../01_Manager/TimeManager/TimeManager.h"
 #include "../01_Manager/CameraManager/CameraManager.h"
 #include "../01_Manager/InputManager/InputManager.h"

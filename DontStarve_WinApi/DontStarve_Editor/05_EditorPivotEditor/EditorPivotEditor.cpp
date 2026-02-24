@@ -5,7 +5,7 @@
 #include "../02_EditorResourceManager/EditorResourceManager.h"
 #include "Struct.h"
 
-void EditorPivotEditor::SetDependencies(EditorView* pView, const EditorResourceManager* pResources) {
+void EditorPivotEditor::SetDependencies(EditorView* pView, EditorResourceManager* pResources) {
 	m_pView = pView;
 	m_pResources = pResources;
 }
@@ -30,10 +30,7 @@ void EditorPivotEditor::StartPivotEdit(ResourcePathUtils::ObjectResourceDef* pOb
 		fullPath += L"\\";
 	}
 	fullPath += ov->imageName;
-	std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
-	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
-		if (pBitmap) pBitmap.reset();
-	}
+	std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
 		m_isPivotEditMode = false;
 		m_editingObject = nullptr;
@@ -42,8 +39,9 @@ void EditorPivotEditor::StartPivotEdit(ResourcePathUtils::ObjectResourceDef* pOb
 	float objWidth = (float)pBitmap->GetWidth();
 	float objHeight = (float)pBitmap->GetHeight();
 
-	float screenX_center = (float)pObject->x * m_pView->GetZoomFactor() + m_pView->GetMapOffset().x;
-	float screenY_center = (float)pObject->y * m_pView->GetZoomFactor() + m_pView->GetMapOffset().y;
+	// 월드 좌표 → 화면 좌표 (EditorView와 동일: world * zoom + offset)
+	float screenX_center = (float)pObject->x * m_pView->GetZoomFactor() + (float)m_pView->GetMapOffset().x;
+	float screenY_center = (float)pObject->y * m_pView->GetZoomFactor() + (float)m_pView->GetMapOffset().y;
 
 	float scaledWidth = objWidth * m_pView->GetZoomFactor();
 	float scaledHeight = objHeight * m_pView->GetZoomFactor();
@@ -66,17 +64,14 @@ void EditorPivotEditor::UpdatePivotEdit(POINT mousePos) {
 		fullPath += L"\\";
 	}
 	fullPath += ov->imageName;
-	std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
-	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
-		if (pBitmap) pBitmap.reset();
-	}
+	std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) return;
 
 	float objWidth = (float)pBitmap->GetWidth();
 	float objHeight = (float)pBitmap->GetHeight();
 
-	float screenX_center = (float)m_editingObject->x * m_pView->GetZoomFactor() + m_pView->GetMapOffset().x;
-	float screenY_center = (float)m_editingObject->y * m_pView->GetZoomFactor() + m_pView->GetMapOffset().y;
+	float screenX_center = (float)m_editingObject->x * m_pView->GetZoomFactor() + (float)m_pView->GetMapOffset().x;
+	float screenY_center = (float)m_editingObject->y * m_pView->GetZoomFactor() + (float)m_pView->GetMapOffset().y;
 
 	float scaledWidth = objWidth * m_pView->GetZoomFactor();
 	float scaledHeight = objHeight * m_pView->GetZoomFactor();
@@ -110,10 +105,7 @@ void EditorPivotEditor::DrawPivotEditor(Gdiplus::Graphics* pGraphics) const {
 		fullPath += L"\\";
 	}
 	fullPath += ov->imageName;
-	std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
-	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
-		if (pBitmap) pBitmap.reset();
-	}
+	std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) return;
 
 	float objWorldX = (float)m_editingObject->x;
@@ -122,8 +114,8 @@ void EditorPivotEditor::DrawPivotEditor(Gdiplus::Graphics* pGraphics) const {
 	float objWidth = (float)pBitmap->GetWidth();
 	float objHeight = (float)pBitmap->GetHeight();
 
-	float screenX_center = objWorldX * m_pView->GetZoomFactor() + m_pView->GetMapOffset().x;
-	float screenY_center = objWorldY * m_pView->GetZoomFactor() + m_pView->GetMapOffset().y;
+	float screenX_center = objWorldX * m_pView->GetZoomFactor() + (float)m_pView->GetMapOffset().x;
+	float screenY_center = objWorldY * m_pView->GetZoomFactor() + (float)m_pView->GetMapOffset().y;
 
 	float scaledWidth = objWidth * m_pView->GetZoomFactor();
 	float scaledHeight = objHeight * m_pView->GetZoomFactor();
@@ -134,11 +126,12 @@ void EditorPivotEditor::DrawPivotEditor(Gdiplus::Graphics* pGraphics) const {
 	float pivotScreenX = imageRenderLeft + (m_editingObject->pivotX * scaledWidth);
 	float pivotScreenY = imageRenderTop + (m_editingObject->pivotY * scaledHeight);
 
-	Gdiplus::Pen pivotPen(Gdiplus::Color(255, 255, 0, 0), 2.0f);
+	// 피벗 십자·테두리 초록색 표시
+	Gdiplus::Pen pivotPen(Gdiplus::Color(255, 0, 200, 0), 2.0f);
 	pGraphics->DrawLine(&pivotPen, pivotScreenX - 10, pivotScreenY, pivotScreenX + 10, pivotScreenY);
 	pGraphics->DrawLine(&pivotPen, pivotScreenX, pivotScreenY - 10, pivotScreenX, pivotScreenY + 10);
 
-	Gdiplus::Pen bboxPen(Gdiplus::Color(255, 0, 255, 255), 1.0f);
+	Gdiplus::Pen bboxPen(Gdiplus::Color(255, 0, 180, 0), 1.0f);
 	pGraphics->DrawRectangle(&bboxPen, imageRenderLeft, imageRenderTop, scaledWidth, scaledHeight);
 }
 
@@ -157,7 +150,7 @@ static LRESULT CALLBACK PivotDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM 
 		CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
 		p = (PivotDlgParam*)cs->lpCreateParams;
 		SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)p);
-		HINSTANCE hInst = (HINSTANCE)GetWindowLongPtrW(hWnd, GWLP_HINSTANCE);
+		HINSTANCE hInst = (HINSTANCE)cs->hInstance;
 		CreateWindowW(L"Static", L"Pivot X (0.0~1.0):", WS_CHILD | WS_VISIBLE, 10, 12, 90, 18, hWnd, nullptr, hInst, nullptr);
 		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE, 105, 10, 60, 18, hWnd, (HMENU)(UINT_PTR)IDC_PIVOT_X, hInst, nullptr);
 		CreateWindowW(L"Static", L"Pivot Y (0.0~1.0):", WS_CHILD | WS_VISIBLE, 10, 38, 90, 18, hWnd, nullptr, hInst, nullptr);
@@ -203,7 +196,8 @@ static LRESULT CALLBACK PivotDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM 
 void EditorPivotEditor::ShowPivotDialog(HWND parent) {
 	if (!m_isPivotEditMode || !m_editingObject) return;
 	PivotDlgParam param = { m_currentPivotX, m_currentPivotY, 0.0f, 0.0f, false };
-	HINSTANCE hInst = (HINSTANCE)GetWindowLongPtrW(parent, GWLP_HINSTANCE);
+	HINSTANCE hInst = (HINSTANCE)GetModuleHandle(nullptr);
+	if (!hInst) hInst = (HINSTANCE)GetWindowLongPtrW(parent, GWLP_HINSTANCE);
 	WNDCLASSEXW wc = {};
 	wc.cbSize = sizeof(wc);
 	if (!GetClassInfoExW(hInst, L"PivotDlgClass", &wc)) {
@@ -215,7 +209,7 @@ void EditorPivotEditor::ShowPivotDialog(HWND parent) {
 		wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
 		wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 		wc.lpszClassName = L"PivotDlgClass";
-		RegisterClassExW(&wc);
+		if (!RegisterClassExW(&wc)) return;
 	}
 	HWND hDlg = CreateWindowExW(WS_EX_DLGMODALFRAME | WS_EX_TOPMOST, L"PivotDlgClass", L"피벗 입력",
 		WS_POPUP | WS_CAPTION | WS_SYSMENU, 0, 0, 240, 120, parent, nullptr, hInst, &param);
@@ -244,5 +238,7 @@ void EditorPivotEditor::ShowPivotDialog(HWND parent) {
 		m_currentPivotY = param.outY;
 		m_editingObject->pivotX = param.outX;
 		m_editingObject->pivotY = param.outY;
+		if (m_pResources)
+			m_pResources->SaveObjectResourceOverride(m_editingObject->type, m_editingObject->id, *m_editingObject);
 	}
 }
