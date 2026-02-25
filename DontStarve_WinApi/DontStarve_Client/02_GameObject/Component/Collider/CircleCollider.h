@@ -17,12 +17,11 @@ public:
     virtual bool IntersectsCollider(const Collider* other) const override;
         // 월드 좌표로 변환된 boundingBox 가져오기 (원을 감싸는 사각형)
 
-    virtual RECT GetWorldBoundingBox() const override;
     virtual bool ContainsPoint(float worldX, float worldY) const override;
     virtual void GetCenterWorld(float& outX, float& outY) const override;
     
-    // 원 설정
-    void SetCircle(float centerX, float centerY, float radius);
+    // 원형 오브젝트 콜라이더 설정
+    void SetObjectCollider(float centerX, float centerY, float radius);
     
     // 월드 좌표에서 원의 중심점과 반지름 가져오기
     void GetWorldCircle(float& centerX, float& centerY, float& radius) const;

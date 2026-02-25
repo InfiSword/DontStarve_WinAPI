@@ -24,14 +24,9 @@ public:
 	void RemoveGameObject(GameObject* pObj);
 	void ClearAllObjects();
 
-	// 플레이어 캐시된 포인터 반환 함수
 	Player* GetPlayer() const;
 
-	// 게임오브젝트 반환 (읽기 전용, 안전성 보장)
 	const std::vector<GameObject*>& GetGameObjects() const { return m_gameObjects; }
-	
-	// 실제 바운드 박스를 이용한 정확한 충돌 검사
-	GameObject* FindObjectAtPositionWithBounds(float x, float y);
 	
 	// 게임오브젝트 생성 (모든 GameObject와 Item 통합 관리)
 	// addToManager: true면 ObjectManager에 추가, false면 생성만 하고 추가하지 않음 (인벤토리 아이템 등)

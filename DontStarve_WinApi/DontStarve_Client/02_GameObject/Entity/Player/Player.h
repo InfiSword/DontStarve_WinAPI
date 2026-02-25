@@ -1,6 +1,6 @@
 #pragma once
 #include "../Entity.h"
-#include "../../Item/Item.h"
+#include "../../Item/Tool/Tool.h"
 
 class Inventory;
 class ResourceManager;
@@ -28,7 +28,7 @@ public:
 
 	PlayerState GetPlayerState() const { return (PlayerState)m_state; }
 
-	Item* GetEquippedItem() const { return m_equippedItem; }
+	Tool* GetEquippedItem() const { return m_equippedItem; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
 
 	void ToggleEquipItem(int slotIndex);
@@ -40,9 +40,10 @@ public:
 
 	void Heal(int amount);
 
-	virtual void RenderDebugOverlay() override;
-
 private:
+	// singleTarget=true: 첫 번째 몬스터만 피해, false: 콜라이더와 겹치는 모든 몬스터 피해
+	void ApplyAttackDamage(int damage, bool singleTarget = true);
+
 	void TryStartInteraction(float worldX, float worldY);
 	void UpdateAnimatorState();
 	
@@ -60,7 +61,7 @@ private:
 	GameObject* m_activeInteractionTarget;   // 현재 상호작용 중인 대상 (FinalizePickup용)
 	
 	GameObject* m_attackTarget;               // 공격할 몬스터 (클릭 시 설정, 사거리 도달 시 ATTACK)
-	BoxCollider* m_attackCollider;            // 공격 판정용 (ATTACK 상태 6프레임 시만 활성)
+	BoxCollider* m_attackCollider;            // 공격 판정용 (ATTACK 상태 16프레임 시만 활성)
 
 	PlayerState m_state;
 	int hp;
@@ -71,5 +72,5 @@ private:
 	float m_stopThreshold;
 
 	int m_equippedSlotIndex;
-	Item* m_equippedItem;
+	Tool* m_equippedItem;
 };

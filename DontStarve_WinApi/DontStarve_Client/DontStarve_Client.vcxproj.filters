@@ -12,11 +12,7 @@
     <ClCompile Include="01_Manager\ColliderManager\ColliderManager.cpp" />
     <ClCompile Include="01_Manager\GraphicsManager\GraphicsManager.cpp" />
     <ClCompile Include="02_GameObject\Entity\Player\Player.cpp" />
-    <ClCompile Include="02_GameObject\Item\Tool\Axe\Axe.cpp" />
     <ClCompile Include="02_GameObject\Item\Tool\Tool.cpp" />
-    <ClCompile Include="02_GameObject\Item\Tool\Weapon\Weapon.cpp" />
-    <ClCompile Include="02_GameObject\Item\Tool\Pickaxe\Pickaxe.cpp" />
-    <ClCompile Include="02_GameObject\Item\Tool\Torch\Torch.cpp" />
     <ClCompile Include="03_Animation\AnimationClip.cpp" />
     <ClCompile Include="03_Animation\Animator.cpp" />
     <ClCompile Include="03_Animation\SpriteSheet.cpp" />
@@ -81,11 +77,7 @@
     <ClInclude Include="01_Manager\ColliderManager\ColliderManager.h" />
     <ClInclude Include="01_Manager\GraphicsManager\GraphicsManager.h" />
     <ClInclude Include="02_GameObject\Entity\Player\Player.h" />
-    <ClInclude Include="02_GameObject\Item\Tool\Axe\Axe.h" />
     <ClInclude Include="02_GameObject\Item\Tool\Tool.h" />
-    <ClInclude Include="02_GameObject\Item\Tool\Weapon\Weapon.h" />
-    <ClInclude Include="02_GameObject\Item\Tool\Pickaxe\Pickaxe.h" />
-    <ClInclude Include="02_GameObject\Item\Tool\Torch\Torch.h" />
     <ClInclude Include="03_Animation\AnimationClip.h" />
     <ClInclude Include="03_Animation\Animator.h" />
     <ClInclude Include="03_Animation\SpriteSheet.h" />

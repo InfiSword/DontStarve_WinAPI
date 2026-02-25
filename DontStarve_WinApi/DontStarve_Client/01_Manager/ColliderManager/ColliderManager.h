@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 class GameObject;    
 class Collider;
 
@@ -25,8 +23,8 @@ public:
     // 충돌 처리
     bool CheckCollision(GameObject* obj1, GameObject* obj2);
 
-    // 공격 콜라이더와 겹치는 몬스터(GOBJ_MONSTER) 오브젝트 목록 반환 (owner 제외)
-    void GetObjectsIntersecting(Collider* pCollider, std::vector<GameObject*>& out);
+	// 콜라이더 쌍 전용 충돌 검사 헬퍼
+	bool Intersects(Collider* a, Collider* b);
 
 private:
     std::vector<Collider*> m_colliders; // 등록된 콜라이더들

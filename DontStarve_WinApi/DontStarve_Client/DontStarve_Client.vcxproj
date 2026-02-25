@@ -167,11 +167,7 @@
     <ClInclude Include="02_GameObject\Entity\Monster\Monster.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Rock.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Tree.h" />
-    <ClInclude Include="02_GameObject\Item\Tool\Axe\Axe.h" />
     <ClInclude Include="02_GameObject\Item\Tool\Tool.h" />
-    <ClInclude Include="02_GameObject\Item\Tool\Weapon\Weapon.h" />
-    <ClInclude Include="02_GameObject\Item\Tool\Pickaxe\Pickaxe.h" />
-    <ClInclude Include="02_GameObject\Item\Tool\Torch\Torch.h" />
     <ClInclude Include="02_GameObject\Object.h" />
     <ClInclude Include="02_GameObject\UI\CraftingRecipe.h" />
     <ClInclude Include="02_GameObject\UI\CraftingUI.h" />
@@ -238,11 +234,7 @@
     <ClCompile Include="02_GameObject\Entity\Monster\Monster.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Rock.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Tree.cpp" />
-    <ClCompile Include="02_GameObject\Item\Tool\Axe\Axe.cpp" />
     <ClCompile Include="02_GameObject\Item\Tool\Tool.cpp" />
-    <ClCompile Include="02_GameObject\Item\Tool\Weapon\Weapon.cpp" />
-    <ClCompile Include="02_GameObject\Item\Tool\Pickaxe\Pickaxe.cpp" />
-    <ClCompile Include="02_GameObject\Item\Tool\Torch\Torch.cpp" />
     <ClCompile Include="02_GameObject\Object.cpp" />
     <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
     <ClCompile Include="02_GameObject\UI\PlayerHPUI.cpp" />

@@ -20,11 +20,7 @@
 #include "../../02_GameObject/Building/PigHouse.h"
 #include "../../02_GameObject/Building/SpiderEgg.h"
 #include "../../02_GameObject/Item/Ingredient.h"
-#include "../../02_GameObject/Item/Tool/Axe/Axe.h"
 #include "../../02_GameObject/Item/Tool/Tool.h"
-#include "../../02_GameObject/Item/Tool/Weapon/Weapon.h"
-#include "../../02_GameObject/Item/Tool/Pickaxe/Pickaxe.h"
-#include "../../02_GameObject/Item/Tool/Torch/Torch.h"
 
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Collider/BoxCollider.h"
@@ -169,23 +165,6 @@ Player* ObjectManager::GetPlayer() const
 	return m_cachedPlayer;
 }
 
-
-GameObject* ObjectManager::FindObjectAtPositionWithBounds(float x, float y)
-{
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	if (!cameraManager) return nullptr;
-
-	GameObject* found = nullptr;
-	ForEachEnabledObject([&](GameObject* obj) {
-		if (found) return;
-		Gdiplus::RectF objBounds = cameraManager->GetSpriteBoundingBox(obj);
-		if (x >= objBounds.X && x <= objBounds.X + objBounds.Width &&
-			y >= objBounds.Y && y <= objBounds.Y + objBounds.Height)
-			found = obj;
-	});
-	return found;
-}
-
 void ObjectManager::InitializeFactories()
 {
 	// 동일 팩토리 함수를 여러 ID에 등록하는 헬퍼
@@ -266,45 +245,35 @@ void ObjectManager::InitializeFactories()
 	m_gameObjectFactories[GOID_ITEM_COOKED_SMALL_MEAT] = itemFactory(L"Cooked Small Meat", L"Cooked small meat.");
 	m_gameObjectFactories[GOID_ITEM_COOKED_MEAT] = itemFactory(L"Cooked Meat", L"A nicely cooked piece of meat.");
 	
-	// 도구 테이블 - 모든 도구 ID로 name/desc만 조회 (내구도·효율는 Tool/Axe 생성자 기본값 또는 Axe는 GetAxeStats 사용)
+	// 도구: ID별 name/desc 테이블 조회 후 Tool 직접 생성
 	struct ToolDef { std::wstring name; std::wstring desc; };
 	auto GetToolDef = [](GameObjectID id) -> ToolDef {
 		switch (id) {
 			case GOID_TOOL_GOLDEN_SCYTHE: return { L"Golden Scythe", L"A golden scythe for harvesting." };
-			case GOID_TOOL_HAM_BAT:       return { L"Ham Bat", L"A weapon made from ham." };
-			case GOID_TOOL_PICKAXE:       return { L"Pickaxe", L"Mines rocks and ores." };
-			case GOID_TOOL_SPEAR:         return { L"Spear", L"A simple spear for combat." };
-			case GOID_TOOL_SWAP_SPEAR:    return { L"Swap Spear", L"A lightning-infused spear." };
-			case GOID_TOOL_TORCH:         return { L"Torch", L"Provides light in darkness." };
-			case GOID_TOOL_RED_AXE:       return { L"Red Axe", L"Cuts down trees." };
-			case GOID_TOOL_SWAP_AXE:      return { L"Swap Axe", L"An axe with special properties." };
-			default:                      return { L"Tool", L"" };
+			case GOID_TOOL_HAM_BAT:       return { L"Ham Bat",       L"A weapon made from ham." };
+			case GOID_TOOL_PICKAXE:       return { L"Pickaxe",       L"Mines rocks and ores." };
+			case GOID_TOOL_SPEAR:         return { L"Spear",         L"A simple spear for combat." };
+			case GOID_TOOL_SWAP_SPEAR:    return { L"Swap Spear",    L"A lightning-infused spear." };
+			case GOID_TOOL_TORCH:         return { L"Torch",         L"Provides light in darkness." };
+			case GOID_TOOL_RED_AXE:       return { L"Red Axe",       L"Cuts down trees." };
+			case GOID_TOOL_SWAP_AXE:      return { L"Swap Axe",      L"An axe with special properties." };
+			case GOID_TOOL_HALBERD:       return { L"Halberd",       L"A heavy polearm for long reach." };
+			case GOID_TOOL_HAMMER:        return { L"Hammer",        L"Used for deconstructing structures." };
+			default:                      return { L"Tool",          L"" };
 		}
 	};
 
-	// Tool 팩토리: GetToolDef로 name/desc 조회 후, ID에 따라 Weapon / Pickaxe / Torch / Axe / Tool 생성
 	auto toolFactory = [GetToolDef](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ToolDef def = GetToolDef(id);
-		if (id == GOID_TOOL_RED_AXE || id == GOID_TOOL_SWAP_AXE)
-			return new Axe(id, def.name, def.desc, data->baseDir, data->imageName);
-		if (id == GOID_TOOL_GOLDEN_SCYTHE || id == GOID_TOOL_HAM_BAT || id == GOID_TOOL_SPEAR || id == GOID_TOOL_SWAP_SPEAR)
-			return new Weapon(id, def.name, def.desc, data->baseDir, data->imageName);
-		if (id == GOID_TOOL_PICKAXE)
-			return new Pickaxe(id, def.name, def.desc, data->baseDir, data->imageName);
-		if (id == GOID_TOOL_TORCH)
-			return new Torch(id, def.name, def.desc, data->baseDir, data->imageName);
-		return new Tool(id, def.name, def.desc, data->baseDir, data->imageName, 0.0f);
+		return new Tool(id, def.name, def.desc, data->baseDir, data->imageName);
 	};
 
-	// 다른 도구들 설정 (Tool 팩토리 등록): GOID_TOOL_GOLDEN_SCYTHE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE, GOID_TOOL_SPEAR, GOID_TOOL_SWAP_SPEAR, GOID_TOOL_TORCH, GOID_TOOL_RED_AXE, GOID_TOOL_SWAP_AXE
-	m_gameObjectFactories[GOID_TOOL_GOLDEN_SCYTHE] = toolFactory;
-	m_gameObjectFactories[GOID_TOOL_HAM_BAT] = toolFactory;
-	m_gameObjectFactories[GOID_TOOL_PICKAXE] = toolFactory;
-	m_gameObjectFactories[GOID_TOOL_SPEAR] = toolFactory;
-	m_gameObjectFactories[GOID_TOOL_SWAP_SPEAR] = toolFactory;
-	m_gameObjectFactories[GOID_TOOL_TORCH] = toolFactory;
-	m_gameObjectFactories[GOID_TOOL_RED_AXE] = toolFactory;
-	m_gameObjectFactories[GOID_TOOL_SWAP_AXE] = toolFactory;
+	registerIds({
+		GOID_TOOL_GOLDEN_SCYTHE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE,
+		GOID_TOOL_SPEAR, GOID_TOOL_SWAP_SPEAR, GOID_TOOL_TORCH,
+		GOID_TOOL_RED_AXE, GOID_TOOL_SWAP_AXE, GOID_TOOL_HALBERD,
+		GOID_TOOL_HAMMER
+	}, toolFactory);
 }
 
 // ========================================
@@ -332,7 +301,7 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 				if (data->hasCollider) {
 					if (data->colliderType == COLLIDER_BOX) {
 						BoxCollider* col = newObj->AddComponent<BoxCollider>();
-						col->SetBoundingBox(
+						col->SetObjectCollider(
 							data->colliderOffsetX,
 							data->colliderOffsetY,
 							data->colliderWidth,

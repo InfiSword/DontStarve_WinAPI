@@ -11,6 +11,7 @@ struct TileCacheData {
 };
 
 class GameObject;
+class Collider;
 
 class CameraManager : public CSingleTon<CameraManager>
 {
@@ -50,6 +51,9 @@ public:
 
 	// 월드 좌표에 있는 상호작용 가능 오브젝트 찾기 (화면 역순, AABB, CanInteract()만 후보)
 	GameObject* FindInteractableObjectAtPosition(float worldX, float worldY);
+
+	// 공격 콜라이더와 겹치는 뷰포트 내 오브젝트 목록 반환 (타입 필터 없음)
+	void FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects);
 
 	// Sprite 바운딩 박스 계산
 	Gdiplus::RectF GetSpriteBoundingBox(GameObject* obj) const;

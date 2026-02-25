@@ -4,6 +4,7 @@
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 #include "../../02_GameObject/Component/Collider/Collider.h"
+#include "../ColliderManager/ColliderManager.h"
 #include "../InputManager/InputManager.h" 
 #include "../ObjectManager/ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
@@ -224,15 +225,43 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float 
 {
 	for (int i = (int)m_visibleObjects.size() - 1; i >= 0; --i) {
 		GameObject* obj = m_visibleObjects[i];
-		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) continue;
-
-		Collider* collider = obj->GetComponent<Collider>();
-		if (!collider || !collider->IsEnabled())
+		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) {
 			continue;
-		if (collider->ContainsPoint(worldX, worldY))
-			return obj;
+		}
+
+		// 하나의 오브젝트에 여러 Collider(예: body, attack)가 붙을 수 있으므로
+		// 모든 Collider를 검사해서 상호작용용 콜라이더 중 하나라도 클릭 지점을 포함하면 해당 오브젝트를 반환한다.
+		auto colliders = obj->GetComponents<Collider>();
+		for (Collider* collider : colliders) {
+			if (!collider || !collider->IsEnabled() || !collider->IsInteractionCollider()) {
+				continue;
+			}
+			if (collider->ContainsPoint(worldX, worldY)) {
+				return obj;
+			}
+		}
 	}
 	return nullptr;
+}
+
+void CameraManager::FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects)
+{
+	outObjects.clear();
+	if (!pCollider || !pCollider->IsEnabled()) return;
+
+	ColliderManager* colliderMgr = ColliderManager::GetInstance();
+	for (GameObject* obj : m_visibleObjects) {
+		if (!obj || !obj->IsEnabled()) continue;
+
+		auto colliders = obj->GetComponents<Collider>();
+		for (Collider* col : colliders) {
+			if (!col || !col->IsEnabled()) continue;
+			if (colliderMgr->Intersects(pCollider, col)) {
+				outObjects.push_back(obj);
+				break;
+			}
+		}
+	}
 }
 
 Gdiplus::RectF CameraManager::GetSpriteBoundingBox(GameObject* obj) const

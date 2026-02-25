@@ -140,8 +140,9 @@ void Pig::Init()
 	// 공격 판정용 콜라이더 (MONSTER_ATTACK 시 방향별 전방, hit 프레임에만 활성)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
-		m_attackCollider->SetBoundingBox(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
+		m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
 		m_attackCollider->SetColliderEnabled(false);
+		m_attackCollider->SetInteractionCollider(false);
 	}
 
 	// Animator 초기화 확인
@@ -166,10 +167,29 @@ void Pig::Update(float deltaTime)
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	// HIT / DEATH 상태면 Pig AI 건너뛰고 애니메이션만 유지
-	if (m_state == MONSTER_HIT || m_state == MONSTER_DEATH)
+	// HIT 상태: 피격 애니메이션 재생 후 종료되면 추격 또는 대기 상태로 전환
+	if (m_state == MONSTER_HIT)
 	{
-		m_animator->SetState((int)m_state, transform->GetDirection());
+		m_animator->SetState((int)MONSTER_HIT, transform->GetDirection());
+		if (m_animator->IsAnimationDone())
+		{
+			// 피격 후 플레이어를 인식했다면 추격, 아니면 다시 IDLE
+			if (m_aggroTarget && m_aggroTarget->IsEnabled())
+			{
+				m_state = MONSTER_CHASE;
+			}
+			else
+			{
+				m_state = MONSTER_IDLE;
+			}
+		}
+		return;
+	}
+
+	// DEATH 상태: 사망 애니메이션만 유지 (비활성화는 Monster::Damaged에서 처리)
+	if (m_state == MONSTER_DEATH)
+	{
+		m_animator->SetState((int)MONSTER_DEATH, transform->GetDirection());
 		return;
 	}
 
@@ -249,10 +269,10 @@ void Pig::Update(float deltaTime)
 		m_animator->SetState((int)MONSTER_ATTACK, transform->GetDirection());
 		if (m_attackCollider && transform) {
 			Direction dir = transform->GetDirection();
-			if (dir == DIR_DOWN) m_attackCollider->SetBoundingBox(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
-			else if (dir == DIR_UP) m_attackCollider->SetBoundingBox(PIG_ATTACK_UP[0], PIG_ATTACK_UP[1], PIG_ATTACK_UP[2], PIG_ATTACK_UP[3]);
-			else if (dir == DIR_LEFT) m_attackCollider->SetBoundingBox(PIG_ATTACK_LEFT[0], PIG_ATTACK_LEFT[1], PIG_ATTACK_LEFT[2], PIG_ATTACK_LEFT[3]);
-			else m_attackCollider->SetBoundingBox(PIG_ATTACK_RIGHT[0], PIG_ATTACK_RIGHT[1], PIG_ATTACK_RIGHT[2], PIG_ATTACK_RIGHT[3]);
+			if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
+			else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(PIG_ATTACK_UP[0], PIG_ATTACK_UP[1], PIG_ATTACK_UP[2], PIG_ATTACK_UP[3]);
+			else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(PIG_ATTACK_LEFT[0], PIG_ATTACK_LEFT[1], PIG_ATTACK_LEFT[2], PIG_ATTACK_LEFT[3]);
+			else m_attackCollider->SetObjectCollider(PIG_ATTACK_RIGHT[0], PIG_ATTACK_RIGHT[1], PIG_ATTACK_RIGHT[2], PIG_ATTACK_RIGHT[3]);
 
 			int frameIdx = m_animator->GetCurrentFrameIndex();
 			if (frameIdx == PIG_ATTACK_HIT_FRAME) {
@@ -356,7 +376,6 @@ void Pig::Damaged(int damage)
 	Monster::Damaged(damage);
 	if (!IsDead() && IsEnabled()) {
 		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
-		m_state = MONSTER_CHASE;
 	}
 }
 
@@ -368,17 +387,8 @@ void Pig::RenderDebugOverlay()
 	if (!cameraManager || !renderManager) return;
 
 	// 몬스터 body 콜라이더 박스 표시 (클릭/상호작용 영역, 청록색)
-	std::vector<BoxCollider*> boxColliders = GetComponents<BoxCollider>();
-	for (BoxCollider* col : boxColliders) {
-		if (!col || col == m_attackCollider) continue;
-		RECT worldBox = col->GetWorldBoundingBox();
-		Gdiplus::PointF screenTL = cameraManager->WorldToScreen((float)worldBox.left, (float)worldBox.top);
-		Gdiplus::PointF screenBR = cameraManager->WorldToScreen((float)worldBox.right, (float)worldBox.bottom);
-		float w = screenBR.X - screenTL.X, h = screenBR.Y - screenTL.Y;
-		Gdiplus::RectF rect(screenTL.X, screenTL.Y, w, h);
-		renderManager->AddFillRectangleCommand(rect, Gdiplus::Color(40, 0, 255, 255), LAYER_DEBUG_OVERLAY, 9996.0f);
-		renderManager->AddDrawCommand(rect, Gdiplus::Color(255, 0, 200, 200), 2.0f, LAYER_DEBUG_OVERLAY, 9997.0f);
-	}
+	// Pig의 body 콜라이더 Gizmo는 ColliderManager::RenderGizmos()에서
+	// 각 BoxCollider::RenderGizmo() 호출을 통해 공통 패턴으로 그려집니다.
 
 	// 행동 반경 원 (보라색)
 	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(transform->GetX(), transform->GetY());
@@ -396,15 +406,4 @@ void Pig::RenderDebugOverlay()
 		LAYER_DEBUG_OVERLAY,
 		9998.0f
 	);
-
-	// MONSTER_ATTACK 시 공격 콜라이더 시각화 (방향별 전방 박스, 빨간색)
-	if (m_state == MONSTER_ATTACK && m_attackCollider) {
-		RECT worldBox = m_attackCollider->GetWorldBoundingBox();
-		Gdiplus::PointF screenTL = cameraManager->WorldToScreen((float)worldBox.left, (float)worldBox.top);
-		Gdiplus::PointF screenBR = cameraManager->WorldToScreen((float)worldBox.right, (float)worldBox.bottom);
-		float w = screenBR.X - screenTL.X, h = screenBR.Y - screenTL.Y;
-		Gdiplus::RectF rect(screenTL.X, screenTL.Y, w, h);
-		renderManager->AddFillRectangleCommand(rect, Gdiplus::Color(60, 255, 0, 0), LAYER_DEBUG_OVERLAY, 9997.0f);
-		renderManager->AddDrawCommand(rect, Gdiplus::Color(255, 255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
-	}
 }

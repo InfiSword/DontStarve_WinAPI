@@ -177,10 +177,10 @@ void GameScene::Render()
 	}
 	
 	// 3. 디버그용 콜라이더 Gizmo 렌더링
-	// ColliderManager* colliderManager = ColliderManager::GetInstance();
-	// if (colliderManager) {
-	// 	colliderManager->RenderGizmos();
-	// }
+	 ColliderManager* colliderManager = ColliderManager::GetInstance();
+	 if (colliderManager) {
+	 	colliderManager->RenderGizmos();
+	 }
 	
 	// 4. InputManager (입력 관련 렌더링)
 	InputManager* inputManager = InputManager::GetInstance();

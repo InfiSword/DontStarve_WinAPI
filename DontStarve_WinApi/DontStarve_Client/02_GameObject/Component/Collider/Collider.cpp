@@ -4,10 +4,9 @@
 #include "../../GameObject.h"
 
 Collider::Collider(GameObject* owner) 
-    : Component(owner),
-    m_mapColliderDataValid(false), m_mapColliderOffsetX(0), m_mapColliderOffsetY(0),
-    m_mapColliderWidth(0), m_mapColliderHeight(0)
+    : Component(owner)
 {
+    m_isInteractionCollider = true;
 }
 
 void Collider::Init()
@@ -25,24 +24,5 @@ void Collider::Release()
 void Collider::Update(float deltaTime)
 {
     Component::Update(deltaTime);
-}
-
-void Collider::SetMapColliderData(bool hasCollider, int offsetX, int offsetY, int width, int height)
-{
-    m_mapColliderDataValid = hasCollider;
-    if (hasCollider) {
-        m_mapColliderOffsetX = offsetX;
-        m_mapColliderOffsetY = offsetY;
-        m_mapColliderWidth = width;
-        m_mapColliderHeight = height;
-    }
-}
-
-void Collider::GetMapColliderData(int& offsetX, int& offsetY, int& width, int& height) const
-{
-    offsetX = m_mapColliderOffsetX;
-    offsetY = m_mapColliderOffsetY;
-    width = m_mapColliderWidth;
-    height = m_mapColliderHeight;
 }
 

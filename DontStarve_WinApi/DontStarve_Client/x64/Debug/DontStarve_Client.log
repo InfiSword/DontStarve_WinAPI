@@ -1,29 +1,25 @@
-﻿  CameraManager.cpp
+﻿  DontStarve_MainGame.cpp
+  CameraManager.cpp
   ColliderManager.cpp
+  InputManager.cpp
   InventoryManager.cpp
   ObjectManager.cpp
   RenderManager.cpp
-  CharacterSelectScene.cpp
   GameScene.cpp
-  TitleScene.cpp
-  UIManager.cpp
+  SceneManager.cpp
   Building.cpp
   PigHouse.cpp
   SpiderEgg.cpp
-  Button.cpp
   BoxCollider.cpp
   CircleCollider.cpp
-  Collider.cpp
-  Image.cpp
-  RectTransform.cpp
   Entity.cpp
   BerryBush.cpp
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
   Grass.cpp
   Rock.cpp
   Sapling.cpp
   Tree.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
   Boss_Hound.cpp
   Boss_SpiderQueen.cpp
   Hound.cpp
@@ -31,25 +27,10 @@
   Pig.cpp
   Spider.cpp
   Player.cpp
-  GameObject.cpp
   Ingredient.cpp
-  Item.cpp
-  Axe.cpp
-  Pickaxe.cpp
-  Tool.cpp
-E:\Project\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Item\Tool\Axe\Axe.cpp(14,87): warning C4244: '인수': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  (소스 파일 '/02_GameObject/Item/Tool/Axe/Axe.cpp'을(를) 컴파일하는 중)
-  
-  Torch.cpp
-  Weapon.cpp
   CraftingUI.cpp
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
   Inventory.cpp
   PlayerHPUI.cpp
   UIButton.cpp
-  UIElement.cpp
-  UIImage.cpp
-  UIText.cpp
   코드를 생성하고 있습니다...
   DontStarve_Client.vcxproj -> E:\Project\DontStarve_WinAPI\DontStarve_WinApi\Build\DontStarve_Client.exe

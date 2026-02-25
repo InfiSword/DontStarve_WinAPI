@@ -20,13 +20,6 @@ void Tree::Init()
 {
 	Entity::Init();
 	SetDropItem(GOID_ITEM_NORMAL_TREE_LOG, 1);
-
-	const int TREE_COLLIDER_WIDTH = 64;
-	const int TREE_COLLIDER_HEIGHT = 128;
-	BoxCollider* collider = AddComponent<BoxCollider>();
-	if (collider) {
-		collider->SetBoundingBox(-TREE_COLLIDER_WIDTH / 2, -TREE_COLLIDER_HEIGHT, TREE_COLLIDER_WIDTH, TREE_COLLIDER_HEIGHT);
-	}
 }
 
 void Tree::LateInit()

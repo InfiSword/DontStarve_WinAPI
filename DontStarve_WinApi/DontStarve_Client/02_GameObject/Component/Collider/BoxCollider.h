@@ -14,13 +14,14 @@ public:
     // 충돌 검사 메서드 구현
     virtual bool IntersectsCollider(const Collider* other) const override;
     
-    // 월드 좌표로 변환된 boundingBox 가져오기
-    virtual RECT GetWorldBoundingBox() const override;
     virtual bool ContainsPoint(float worldX, float worldY) const override;
     virtual void GetCenterWorld(float& outX, float& outY) const override;
     
-    // 콜라이더 설정
-    void SetBoundingBox(int offsetX, int offsetY, int width, int height);
+    // 오브젝트(사각형) 콜라이더 설정
+    void SetObjectCollider(int offsetX, int offsetY, int width, int height);
+
+    // 월드 좌표 기준 bounding box 계산
+    RECT GetWorldBoundingBox() const;
     
     // Gizmo 렌더링
     virtual void RenderGizmo() override;

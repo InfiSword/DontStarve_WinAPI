@@ -90,18 +90,9 @@ bool ColliderManager::CheckCollision(GameObject* obj1, GameObject* obj2)
     return collider1->IntersectsCollider(collider2);
 }
 
-void ColliderManager::GetObjectsIntersecting(Collider* pCollider, std::vector<GameObject*>& out)
+bool ColliderManager::Intersects(Collider* a, Collider* b)
 {
-    out.clear();
-    if (!pCollider || !pCollider->IsEnabled()) return;
-
-    GameObject* owner = pCollider->GetOwner();
-    for (Collider* other : m_colliders) {
-        if (!other || other == pCollider || !other->IsEnabled()) continue;
-        GameObject* obj = other->GetOwner();
-        if (!obj || obj == owner || !obj->IsEnabled()) continue;
-        if (obj->GetType() != GOBJ_MONSTER) continue;
-        if (pCollider->IntersectsCollider(other))
-            out.push_back(obj);
-    }
+	if (!a || !b) return false;
+	if (!a->IsEnabled() || !b->IsEnabled()) return false;
+	return a->IntersectsCollider(b);
 }

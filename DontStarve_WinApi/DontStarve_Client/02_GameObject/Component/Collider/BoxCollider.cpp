@@ -16,7 +16,6 @@ BoxCollider::BoxCollider(GameObject* owner)
 
 bool BoxCollider::IntersectsCollider(const Collider* other) const
 {
-	// Unity 스타일: 비활성화된 콜라이더는 충돌 검사에서 제외
 	if (!IsEnabled() || !other || !other->IsEnabled()) {
 		return false;
 	}
@@ -54,20 +53,6 @@ bool BoxCollider::IntersectsCollider(const Collider* other) const
 	return false;
 }
 
-RECT BoxCollider::GetWorldBoundingBox() const
-{
-	GameObject* owner = GetOwner();
-	Transform* transform = owner ? owner->GetComponent<Transform>() : nullptr;
-	float ox = transform ? transform->GetX() : 0.0f;
-	float oy = transform ? transform->GetY() : 0.0f;
-	return {
-		(int)(m_boundingBox.left   + ox),
-		(int)(m_boundingBox.top    + oy),
-		(int)(m_boundingBox.right  + ox),
-		(int)(m_boundingBox.bottom + oy)
-	};
-}
-
 bool BoxCollider::ContainsPoint(float worldX, float worldY) const
 {
 	const RECT& box = GetWorldBoundingBox();
@@ -82,7 +67,7 @@ void BoxCollider::GetCenterWorld(float& outX, float& outY) const
 	outY = ((float)box.top + (float)box.bottom) * 0.5f;
 }
 
-void BoxCollider::SetBoundingBox(int offsetX, int offsetY, int width, int height)
+void BoxCollider::SetObjectCollider(int offsetX, int offsetY, int width, int height)
 {
 	m_boundingBox = {
 		offsetX,
@@ -90,6 +75,23 @@ void BoxCollider::SetBoundingBox(int offsetX, int offsetY, int width, int height
 		offsetX + width,
 		offsetY + height
 	};
+}
+
+RECT BoxCollider::GetWorldBoundingBox() const
+{
+	GameObject* owner = GetOwner();
+	Transform* transform = owner ? owner->GetComponent<Transform>() : nullptr;
+
+	float ox = transform ? transform->GetX() : 0.0f;
+	float oy = transform ? transform->GetY() : 0.0f;
+
+	RECT worldBox;
+	worldBox.left   = static_cast<LONG>(ox + static_cast<float>(m_boundingBox.left));
+	worldBox.top    = static_cast<LONG>(oy + static_cast<float>(m_boundingBox.top));
+	worldBox.right  = static_cast<LONG>(ox + static_cast<float>(m_boundingBox.right));
+	worldBox.bottom = static_cast<LONG>(oy + static_cast<float>(m_boundingBox.bottom));
+
+	return worldBox;
 }
 
 void BoxCollider::RenderGizmo()

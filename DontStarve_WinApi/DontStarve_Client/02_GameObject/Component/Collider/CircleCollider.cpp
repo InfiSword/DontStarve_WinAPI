@@ -58,19 +58,6 @@ bool CircleCollider::IntersectsCollider(const Collider* other) const
 	return false;
 }
 
-RECT CircleCollider::GetWorldBoundingBox() const
-{
-	// BoxCollider와 동일하게 월드 좌표 기준 AABB 반환 (Transform 반영)
-	float worldCenterX, worldCenterY, worldRadius;
-	GetWorldCircle(worldCenterX, worldCenterY, worldRadius);
-	return {
-		(int)(worldCenterX - worldRadius),
-		(int)(worldCenterY - worldRadius),
-		(int)(worldCenterX + worldRadius),
-		(int)(worldCenterY + worldRadius)
-	};
-}
-
 bool CircleCollider::ContainsPoint(float worldX, float worldY) const
 {
 	float centerX, centerY, radius;
@@ -86,7 +73,7 @@ void CircleCollider::GetCenterWorld(float& outX, float& outY) const
 	GetWorldCircle(outX, outY, radius);
 }
 
-void CircleCollider::SetCircle(float centerX, float centerY, float radius)
+void CircleCollider::SetObjectCollider(float centerX, float centerY, float radius)
 {
 	m_centerX = centerX;
 	m_centerY = centerY;
