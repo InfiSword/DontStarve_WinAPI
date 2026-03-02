@@ -91,7 +91,7 @@ void Player::Init()
 	const UINT PICKUP_TOTAL_FRAMES = 20;
 	const int PICKUP_LAST_FRAME = PICKUP_TOTAL_FRAMES - 1; // 19
 	std::wstring pickupPath = base + L"\\Interact\\Interact_wilson_pickup_pst_down.png";
-	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+	for (int dir = DIR_DOWN; dir < DIR_COUNT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
 			127, 201, 6, PICKUP_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
 		// AnimationClip에 직접 이벤트 등록 및 콜백 설정
