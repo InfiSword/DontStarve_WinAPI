@@ -41,7 +41,7 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourc
 					}
 				}
 				RECT itemRect = { m_paletteRect.left + padding, currentY, m_paletteRect.left + padding + itemSize, currentY + itemSize };
-				m_paletteItems.push_back({ CATEGORY_TILE, (int)type, (UINT)type, itemRect, iconBitmap, iconSrcRect });
+				m_paletteItems.push_back({ (UINT)type, CATEGORY_TILE, itemRect, iconBitmap, iconSrcRect });
 				currentY += itemSize + padding;
 			}
 		}
@@ -72,7 +72,7 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourc
 				}
 			}
 			RECT itemRect = { m_paletteRect.left + padding, currentY, m_paletteRect.left + padding + itemSize, currentY + itemSize };
-			m_paletteItems.push_back({ CATEGORY_OBJECT, (int)cat, (UINT)cat, itemRect, iconBitmap, iconSrcRect });
+			m_paletteItems.push_back({ (UINT)cat, CATEGORY_OBJECT, itemRect, iconBitmap, iconSrcRect });
 			currentY += itemSize + padding;
 		}
 	}
@@ -236,10 +236,10 @@ bool EditorPalette::HandleMainPaletteClick(POINT clickPoint, int clientHeight) {
 
 			if (m_paletteItems[i].category == CATEGORY_TILE) {
 				m_subPalette.category = CATEGORY_TILE;
-				m_subPalette.targetCategoryId = m_paletteItems[i].typeId;
+				m_subPalette.targetCategoryId = (int)m_paletteItems[i].resourceId;
 				m_subPalette.currentTileVariantDefs.clear();
 				auto const& tileVars = m_pResources->GetTileVariants();
-				auto type_map_it = tileVars.find((TileType)m_paletteItems[i].typeId);
+				auto type_map_it = tileVars.find((TileType)m_paletteItems[i].resourceId);
 				if (type_map_it != tileVars.end()) {
 					for (auto const& pair : type_map_it->second) {
 						m_subPalette.currentTileVariantDefs.push_back({ pair.first, &(pair.second) });
@@ -249,9 +249,9 @@ bool EditorPalette::HandleMainPaletteClick(POINT clickPoint, int clientHeight) {
 			}
 			else if (m_paletteItems[i].category == CATEGORY_OBJECT) {
 				m_subPalette.category = CATEGORY_OBJECT;
-				m_subPalette.targetCategoryId = m_paletteItems[i].typeId;
+				m_subPalette.targetCategoryId = (int)m_paletteItems[i].resourceId;
 				m_subPalette.currentObjectVariantDefs.clear();
-				ObjectCategory targetCat = (ObjectCategory)m_paletteItems[i].typeId;
+				ObjectCategory targetCat = (ObjectCategory)m_paletteItems[i].resourceId;
 				for (auto const& pair : m_pResources->GetObjectVariants()) {
 					if (EditorResourceManager::GetCategoryFromID(pair.first) == targetCat) {
 						m_subPalette.currentObjectVariantDefs.push_back({ pair.first, &(pair.second) });

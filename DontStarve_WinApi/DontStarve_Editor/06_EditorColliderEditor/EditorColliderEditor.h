@@ -55,5 +55,5 @@ private:
 	float m_initialColliderRadius = 0.0f;
 	int m_draggingHandle = -1;
 
-	const ResourcePathUtils::ObjectResourceDef* GetObjectVariant(GameObjectType type, GameObjectID id) const;
+	const ResourcePathUtils::ObjectResourceDef* GetObjectVariant(GameObjectID id) const;
 };

@@ -6,12 +6,6 @@
 
 class EditorResourceManager;
 
-enum ItemCategory {
-	CATEGORY_NONE = 0,
-	CATEGORY_TILE = 1,
-	CATEGORY_OBJECT = 2
-};
-
 class EditorPalette
 {
 public:

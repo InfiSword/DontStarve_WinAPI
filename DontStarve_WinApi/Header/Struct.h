@@ -266,11 +266,16 @@ namespace ResourcePathUtils
 	};
 
 }
+enum ItemCategory {
+	CATEGORY_NONE = 0,
+	CATEGORY_TILE = 1,
+	CATEGORY_OBJECT = 2
+};
 
-struct PaletteItem {
-	int typeId;                // TileType 또는 0 (GameObjectID만 사용)
-	UINT resourceId;           // 리소스 ID (TileID 또는 GameObjectID)
-
+struct PaletteItem 
+{
+	UINT resourceId;			       // 리소스 ID (TileID 또는 GameObjectID)
+	ItemCategory category;             // 아이템 카테고리 
 	RECT displayRect;
 	Gdiplus::Bitmap* hBitmap;  // 아이콘 표시용 비트맵
 	Gdiplus::RectF iconSourceRect;

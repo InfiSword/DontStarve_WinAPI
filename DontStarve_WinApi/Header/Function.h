@@ -277,8 +277,7 @@ namespace ResourcePathUtils
 	}
 
 	// 오브젝트 오버라이드 파일 파싱 (Client·Editor 공통)
-	// 형식: TypeName(Unused) IDName pivotX pivotY hasCollider colliderType offsetX offsetY width height centerX centerY radius
-	// 각 줄마다 apply(unused, id, overrideDef) 호출. overrideDef에는 pivot·콜라이더 필드만 채워짐.
+	// 각 줄마다 apply(id, overrideDef) 호출. overrideDef에는 pivot·콜라이더 필드만 채워짐.
 	template<typename ApplyOverrideFunc>
 	inline bool ParseObjectResourceOverridesFile(const std::wstring& filePath, ApplyOverrideFunc apply)
 	{

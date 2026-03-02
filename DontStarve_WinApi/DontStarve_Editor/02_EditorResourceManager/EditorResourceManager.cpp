@@ -171,7 +171,7 @@ void EditorResourceManager::LoadObjectResourceOverrides()
 	if (dir.back() != L'\\') dir += L"\\";
 	std::wstring path = dir + L"object_resource_overrides.txt";
 	ResourcePathUtils::ParseObjectResourceOverridesFile(path,
-		[this](int /*unused*/, GameObjectID id, const ResourcePathUtils::ObjectResourceDef& overrideDef) {
+		[this](GameObjectID id, const ResourcePathUtils::ObjectResourceDef& overrideDef) {
 			auto it = m_objectVariants.find(id);
 			if (it == m_objectVariants.end()) return;
 			ResourcePathUtils::ObjectResourceDef& def = it->second;
