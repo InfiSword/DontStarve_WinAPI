@@ -5,8 +5,6 @@
 #include <map>
 
 class EditorResourceManager;
-class Gdiplus::Graphics;
-class Gdiplus::Bitmap;
 
 class EditorPalette
 {
@@ -26,9 +24,7 @@ public:
 	void DrawSubPalette(Gdiplus::Graphics* pGraphics) const;
 	void ComposePaletteLayer(Gdiplus::Bitmap* pLayerBitmap, bool* pDirty);
 
-	// Returns NotHandled if sub-palette was not open. Otherwise handles click and returns ClosedWithSelection or ClosedOutside.
 	SubPaletteClickResult HandleSubPaletteClick(POINT clickPoint);
-	// Returns true if click was on main palette (selected item and opened sub-palette).
 	bool HandleMainPaletteClick(POINT clickPoint, int clientHeight);
 
 	void CloseSubPalette();
@@ -48,8 +44,8 @@ public:
 private:
 	struct SubPaletteData {
 		bool isOpen = false;
-		ItemCategory category = CATEGORY_NONE;
-		int targetCategoryId = -1;
+		ItemCategory category = ItemCategory::CATEGORY_NONE;
+		int targetCategoryId = -1; // TileType(int) 또는 ObjectCategory(int)
 		RECT rect = { 0 };
 		std::vector<RECT> itemRects;
 		std::vector<std::pair<TileID, const ResourcePathUtils::TileResourceDef*>> currentTileVariantDefs;
@@ -63,5 +59,5 @@ private:
 	int m_selectedPaletteIndex = -1;
 	SubPaletteData m_subPalette;
 
-	EditorResourceManager* m_pResources = nullptr;  // GetCachedBitmap 호출을 위해 non-const
+	EditorResourceManager* m_pResources = nullptr;
 };

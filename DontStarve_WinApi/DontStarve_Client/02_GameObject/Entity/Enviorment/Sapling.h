@@ -19,5 +19,4 @@ public:
     virtual void Damaged(int damage) override;
 
 private:
-    GrassState m_state;
 };

@@ -1,12 +1,14 @@
 #include "99_Default/pch.h"
-#include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../Component/Sprite/SpriteRenderer.h"
 #include "Grass.h"
 
-Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true), m_state(GrassState::GRASS_IDLE)
+Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
+	, m_grassState(GrassState::IDLE)
+	, m_regrowTimer(0.0f)
 {
-	SetDropItem(GOID_ITEM_CUT_NORMAL_GRASS, 1);
+	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
 }
 
 Grass::~Grass() {}
@@ -14,36 +16,39 @@ Grass::~Grass() {}
 void Grass::Init()
 {
 	Entity::Init();
-	// 비트맵은 생성자에서 이미 로드됨
-	// Transform은 이제 Scale만 관리 (기본값 1.0f)
-	// 크기는 sprite의 실제 크기를 사용하므로 Transform에 설정할 필요 없음
-}
-
-void Grass::LateInit()
-{
 }
 
 void Grass::Update(float deltaTime)
 {
-	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
 	Entity::Update(deltaTime);
-}
 
-void Grass::LateUpdate()
-{
+	if (m_grassState == GrassState::REGROWING)
+	{
+		m_regrowTimer += deltaTime;
+		if (m_regrowTimer >= 10.0f) // 10초 후 재생성
+		{
+			m_grassState = GrassState::IDLE;
+			spriteRenderer->SetActive(true);
+		}
+	}
 }
 
 void Grass::Release()
 {
-	// Grass 전용 정리 작업
-	
-	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
 	Entity::Release();
 }
 
 bool Grass::OnInteraction(GameObject* obj)
 {
-	return Entity::OnInteraction(obj);
+	if (m_grassState != GrassState::IDLE) return false;
+
+	// 상호작용 시 아이템 드롭 처리 등 가능
+	m_grassState = GrassState::PICKED;
+	if (spriteRenderer) spriteRenderer->SetActive(false);
+	m_grassState = GrassState::REGROWING;
+	m_regrowTimer = 0.0f;
+
+	return true;
 }
 
 void Grass::Damaged(int damage)

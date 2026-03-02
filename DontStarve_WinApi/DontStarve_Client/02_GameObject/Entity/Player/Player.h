@@ -6,6 +6,18 @@ class Inventory;
 class ResourceManager;
 class BoxCollider;
 
+enum PlayerState {
+	IDLE,               // 대기 상태
+	WALK,               // 걷기 상태
+	MOVING_TO_TARGET,   // 클릭한 위치로 이동 중
+	PICKUP,             // 오브젝트를 집는 중
+	CHOP,
+	MINE,               // 곡괭이로 채광 중
+	ATTACK,
+	HIT,
+	COUNT,
+};
+
 class Player : public Entity
 {
 public:
@@ -35,9 +47,6 @@ public:
 
 	virtual void Damaged(int damage) override;
 
-	int GetHp() const { return hp; }
-	int GetMaxHp() const { return maxHp; }
-
 	void Heal(int amount);
 
 private:
@@ -63,13 +72,12 @@ private:
 	GameObject* m_attackTarget;               // 공격할 몬스터 (클릭 시 설정, 사거리 도달 시 ATTACK)
 	BoxCollider* m_attackCollider;            // 공격 판정용 (ATTACK 상태 16프레임 시만 활성)
 
-	PlayerState m_state;
-	int hp;
-	int maxHp;
 	bool isMoveToGoal;
 	float m_playerSpeed;
 	Gdiplus::PointF m_targetWorldPos;
 	float m_stopThreshold;
+	float m_attackRange;
+	int m_damage;
 
 	int m_equippedSlotIndex;
 	Tool* m_equippedItem;

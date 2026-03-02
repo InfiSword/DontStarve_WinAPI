@@ -68,15 +68,13 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 				int spIdx = m_pPalette->GetSelectedPaletteIndex();
 				const ResourcePathUtils::ObjectResourceDef* ov = m_pPalette->GetSelectedObjectVariant();
 				if (ov) {
-					ss << L"Placing: " << EnumTables::GetEnumName(ov->type)
-						<< L" / " << EnumTables::GetEnumName(ov->id) << L"\n";
+					ss << L"Placing: "  << EnumTables::GetEnumName(ov->id) << L"\n";
 				}
 			}
 
 			if (selectedObjectPtr) {
 				ss << L"\n--- Selected Object ---\n";
-				ss << L"Type: " << EnumTables::GetEnumName(selectedObjectPtr->type)
-					<< L"  ID: " << EnumTables::GetEnumName(selectedObjectPtr->id) << L"\n";
+				ss << L"  ID: " << EnumTables::GetEnumName(selectedObjectPtr->id) << L"\n";
 				ss << L"Pos: (" << (int)selectedObjectPtr->x << L", " << (int)selectedObjectPtr->y << L")\n";
 				ss << L"Pivot: (" << selectedObjectPtr->pivotX << L", " << selectedObjectPtr->pivotY << L")\n";
 				if (selectedObjectPtr->hasCollider) {
@@ -214,15 +212,13 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 			}
 			const ResourcePathUtils::ObjectResourceDef* ov = m_pPalette->GetSelectedObjectVariant();
 			if (ov) {
-				ss << L"선택된 오브젝트 - Type: " << EnumTables::GetEnumName(ov->type)
-					<< L", ID: " << EnumTables::GetEnumName(ov->id) << L"\n";
+				ss << L"선택된 오브젝트 - Type: " << L", ID: " << EnumTables::GetEnumName(ov->id) << L"\n";
 			}
 		}
 
 		if (selectedObjectPtr) {
 			ss << L"\n선택된 맵 오브젝트:" << L"\n";
-			ss << L"Type: " << EnumTables::GetEnumName(selectedObjectPtr->type)
-				<< L", ID: " << EnumTables::GetEnumName(selectedObjectPtr->id) << L"\n";
+			ss << L", ID: " << EnumTables::GetEnumName(selectedObjectPtr->id) << L"\n";
 			ss << L"위치 - X: " << selectedObjectPtr->x << L", Y: " << selectedObjectPtr->y << L"\n";
 			ss << L"Pivot: " << selectedObjectPtr->pivotX << L", " << selectedObjectPtr->pivotY << L"\n";
 		}

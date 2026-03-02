@@ -7,7 +7,7 @@
 UIImage::UIImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& imagePath, float sortKey,
                  float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY,
                  float anchoredPosX, float anchoredPosY)
-	: UIElement(GOBJ_UI, id, L"", L"", true, false)
+	: UIElement(id, L"", L"", true, false)
 {
 	m_rectTransform = GetRectTransform();
 	m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);

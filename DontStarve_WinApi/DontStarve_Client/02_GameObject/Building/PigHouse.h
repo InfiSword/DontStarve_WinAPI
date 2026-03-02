@@ -18,12 +18,9 @@ public:
     virtual void LateUpdate() override;
     virtual void Release() override;
 
-    // Building Ưȭ �޼ҵ�
     virtual void Damaged(int damage) override;
     virtual void SetTimeState(BuildingState buildingState) override;
     virtual BuildingState GetTimeState() const override;
-   
-    // virtual std::wstring GetAnimKey(BuildingState state) override;
 
 private:
 

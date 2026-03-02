@@ -1,24 +1,61 @@
 #include "99_Default/pch.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../../01_Manager/SceneManager/SceneManager.h"
+#include "../../../01_Manager/SceneManager/GameScene.h"
+#include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
 #include "../../../03_Animation/Animator.h"
+#include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
+#include "../../Component/Collider/BoxCollider.h"
+#include "../../Building/SpiderEgg.h"
 #include "Spider.h"
 
+const float Spider::ATTACK_RANGE = 50.0f;
+const float Spider::ATTACK_COOLDOWN = 1.2f;
+
+// 공격 콜라이더 설정 (거미 크기에 맞게 조정)
+static const int SPIDER_ATTACK_HIT_FRAME = 4;  // 8프레임 중 4프레임에 데미지
+static const int SPIDER_ATTACK_BOX_W = 60, SPIDER_ATTACK_BOX_H = 40;
+static const int SPIDER_ATTACK_DOWN[]  = { -30,   0, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
+static const int SPIDER_ATTACK_UP[]    = { -30, -40, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
+static const int SPIDER_ATTACK_LEFT[]  = { -60, -20, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
+static const int SPIDER_ATTACK_RIGHT[] = {   0, -20, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
+
 Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName)
+	, m_homeEgg(nullptr)
+	, m_spawnRadius(200.0f)
+	, m_aggroRadius(300.0f)
+	, m_deaggroRadius(400.0f)
+	, m_walkSpeed(60.0f)
+	, m_runSpeed(150.0f)
+	, m_attackCooldownTimer(0.0f)
+	, m_idleTimer(0.0f)
+	, m_idleDuration(2.0f)
+	, m_targetX(x)
+	, m_targetY(y)
+	, m_aggroTarget(nullptr)
+	, m_attackCollider(nullptr)
 {
 	m_hp = 80;
-	maxHp = m_hp;
+	m_maxHp = m_hp;
+	m_type = GO_TYPE_MONSTER;
 }
 
 Spider::~Spider() {}
 
 void Spider::Init()
 {
-	Monster::Init();
+	Entity::Init();
+	
+	m_state = (int)SpiderState::IDLE;
+	m_idleTimer = 0.0f;
+	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
+	m_attackCooldownTimer = 0.0f;
 	
 	// Transform 컴포넌트 확인
 	if (!this->transform) {
@@ -29,9 +66,14 @@ void Spider::Init()
 		}
 	}
 	
+	if (this->transform) {
+		m_targetX = this->transform->GetX();
+		m_targetY = this->transform->GetY();
+	}
+	
 	OutputDebugStringW((L"Spider: Init 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 
-	// Animator 생성 및 애니메이션 등록 (AnimationDefinition 클래스 제거)
+	// Animator 생성 및 애니메이션 등록
 	if (!m_animator) {
 		m_animator = AddComponent<Animator>();
 	}
@@ -46,37 +88,44 @@ void Spider::Init()
 			// IDLE
 			std::wstring idlePath = base + L"Spider_spider_idle_01.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir, idlePath,
-					80, 80, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+				m_animator->RegisterAnimation((int)SpiderState::IDLE, (Direction)dir, idlePath,
+					0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			}
 
 			// WALK
-			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_DOWN, base + L"Spider_spider_walk_loop_down.png",
-				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_UP, base + L"Spider_spider_walk_loop_up.png",
-				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_DOWN, base + L"Spider_spider_walk_loop_down.png",
+				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_UP, base + L"Spider_spider_walk_loop_up.png",
+				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			std::wstring walkSidePath = base + L"Spider_spider_walk_loop_side.png";
-			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_LEFT, walkSidePath,
-				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_RIGHT, walkSidePath,
-				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_LEFT, walkSidePath,
+				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f, false);
+			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_RIGHT, walkSidePath,
+				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 
 			// ATTACK
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN, base + L"Spider_spider_atk_down.png",
-				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP, base + L"Spider_spider_atk_up.png",
-				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_DOWN, base + L"Spider_spider_atk_down.png",
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_UP, base + L"Spider_spider_atk_up.png",
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			std::wstring attackSidePath = base + L"Spider_spider_atk_side.png";
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT, attackSidePath,
-				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT, attackSidePath,
-				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_LEFT, attackSidePath,
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f, false);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_RIGHT, attackSidePath,
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 
 			// HIT / DEATH
-			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN, base + L"Spider_spider_hit.png",
-				80, 80, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN, base + L"Spider_spider_death.png",
-				80, 80, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::HIT, DIR_DOWN, base + L"Spider_spider_hit.png",
+				0, 0, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::DEATH, DIR_DOWN, base + L"Spider_spider_death.png",
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+
+			// TAUNT
+			std::wstring tauntPath = base + L"Spider_spider_taunt.png";
+			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				m_animator->RegisterAnimation((int)SpiderState::TAUNT, (Direction)dir, tauntPath,
+					0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			}
 		}
 		else if (m_id == GOID_MONSTER_WARRIOR_SPIDER) {
 			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_WARRIOR_SPIDER);
@@ -86,63 +135,385 @@ void Spider::Init()
 			// IDLE
 			std::wstring idlePath = base + L"Warrior_spider_idle_01.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)MONSTER_IDLE, (Direction)dir, idlePath,
-					80, 80, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+				m_animator->RegisterAnimation((int)SpiderState::IDLE, (Direction)dir, idlePath,
+					0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			}
 
 			// WALK
-			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_DOWN, base + L"Warrior_spider_walk_loop_down.png",
-				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_UP, base + L"Warrior_spider_walk_loop_up.png",
-				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_DOWN, base + L"Warrior_spider_walk_loop_down.png",
+				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_UP, base + L"Warrior_spider_walk_loop_up.png",
+				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			std::wstring walkSidePath = base + L"Warrior_spider_walk_loop_side.png";
-			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_LEFT, walkSidePath,
-				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_WALK, DIR_RIGHT, walkSidePath,
-				80, 80, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_LEFT, walkSidePath,
+				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f, false);
+			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_RIGHT, walkSidePath,
+				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 
 			// ATTACK
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_DOWN, base + L"Warrior_spider_atk_down.png",
-				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_UP, base + L"Warrior_spider_atk_up.png",
-				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_DOWN, base + L"Warrior_spider_atk_down.png",
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_UP, base + L"Warrior_spider_atk_up.png",
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			std::wstring attackSidePath = base + L"Warrior_spider_atk_side.png";
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_LEFT, attackSidePath,
-				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_ATTACK, DIR_RIGHT, attackSidePath,
-				100, 100, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_LEFT, attackSidePath,
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f, false);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_RIGHT, attackSidePath,
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 
 			// HIT / DEATH
-			m_animator->RegisterAnimation((int)MONSTER_HIT, DIR_DOWN, base + L"Warrior_spider_hit.png",
-				80, 80, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
-			m_animator->RegisterAnimation((int)MONSTER_DEATH, DIR_DOWN, base + L"Warrior_spider_death.png",
-				80, 80, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::HIT, DIR_DOWN, base + L"Warrior_spider_hit.png",
+				0, 0, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			m_animator->RegisterAnimation((int)SpiderState::DEATH, DIR_DOWN, base + L"Warrior_spider_death.png",
+				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+
+			// TAUNT
+			std::wstring tauntPath = base + L"Warrior_spider_taunt.png";
+			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				m_animator->RegisterAnimation((int)SpiderState::TAUNT, (Direction)dir, tauntPath,
+					0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+			}
 		}
 
-		// 초기 상태 적용
-		m_animator->SetState((int)m_state, this->transform->GetDirection());
+		m_animator->SetState(m_state, this->transform->GetDirection());
 	}
 	
-	// Animator 초기화 확인
-	Animator* animator = GetComponent<Animator>();
-	if (animator) {
-		// Animator 초기화 확인
-		const SpriteSheet* spriteSheet = animator->GetSpriteSheet();
-		if (spriteSheet) {
-			OutputDebugStringW((L"Spider: Animator 초기화 성공 - ID: " + std::to_wstring(m_id) + L", SpriteSheet 로드됨\n").c_str());
-		} else {
-			OutputDebugStringW((L"Spider: Animator 초기화 실패 - ID: " + std::to_wstring(m_id) + L", SpriteSheet 없음\n").c_str());
+	// 공격 판정용 콜라이더
+	m_attackCollider = AddComponent<BoxCollider>();
+	if (m_attackCollider) {
+		m_attackCollider->SetObjectCollider(SPIDER_ATTACK_DOWN[0], SPIDER_ATTACK_DOWN[1], SPIDER_ATTACK_DOWN[2], SPIDER_ATTACK_DOWN[3]);
+		m_attackCollider->SetColliderEnabled(false);
+	}
+}
+
+void Spider::SetHomeEgg(SpiderEgg* egg, float spawnRadius)
+{
+	m_homeEgg = egg;
+	m_spawnRadius = spawnRadius;
+}
+
+void Spider::SetAggroTarget(GameObject* target)
+{
+	if (target && target->IsEnabled())
+	{
+		m_aggroTarget = target;
+		m_state = (int)SpiderState::TAUNT;
+
+		// 방향 설정 (타겟 쪽으로)
+		Transform* targetTr = target->GetComponent<Transform>();
+		if (targetTr && transform) {
+			float dx = targetTr->GetX() - transform->GetX();
+			float dy = targetTr->GetY() - transform->GetY();
+			Direction newDir;
+			if (std::abs(dx) > std::abs(dy))
+				newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
+			else
+				newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
+			transform->SetDirection(newDir);
 		}
-	} else {
-		OutputDebugStringW((L"Spider: Animator 생성 실패 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	}
+}
+
+void Spider::Update(float deltaTime)
+{
+	Entity::Update(deltaTime);
+
+	if (!IsEnabled() || !transform || !m_animator)
+		return;
+
+	// 공격 쿨타임 감소
+	if (m_attackCooldownTimer > 0.0f) {
+		m_attackCooldownTimer -= deltaTime;
+	}
+
+	// HIT 상태
+	if (m_state == (int)SpiderState::HIT)
+	{
+		m_animator->SetState((int)SpiderState::HIT, transform->GetDirection());
+		if (m_animator->IsAnimationDone())
+		{
+			if (m_aggroTarget && m_aggroTarget->IsEnabled())
+			{
+				m_state = (int)SpiderState::CHASE;
+				m_attackCooldownTimer = 0.0f;
+			}
+			else
+			{
+				m_state = (int)SpiderState::IDLE;
+			}
+		}
+		return;
+	}
+
+	// TAUNT 상태
+	if (m_state == (int)SpiderState::TAUNT)
+	{
+		m_animator->SetState((int)SpiderState::TAUNT, transform->GetDirection());
+		if (m_animator->IsAnimationDone())
+		{
+			if (m_aggroTarget && m_aggroTarget->IsEnabled())
+			{
+				m_state = (int)SpiderState::CHASE;
+			}
+			else
+			{
+				m_state = (int)SpiderState::IDLE;
+			}
+		}
+		return;
+	}
+
+	// DEATH 상태
+	if (m_state == (int)SpiderState::DEATH)
+	{
+		m_animator->SetState((int)SpiderState::DEATH, transform->GetDirection());
+		
+		if (m_animator->IsAnimationDone())
+		{
+			OutputDebugStringW(L"Spider: Death 애니메이션 종료, 객체 제거 요청\n");
+			ObjectManager::GetInstance()->RemoveGameObject(this);
+		}
+		return;
+	}
+
+	// 플레이어 찾기 및 어그로 판정
+	GameObject* player = ObjectManager::GetInstance()->GetPlayer();
+	if (player && player->IsEnabled())
+	{
+		Transform* playerTransform = player->GetComponent<Transform>();
+		if (playerTransform)
+		{
+			float dx = playerTransform->GetX() - transform->GetX();
+			float dy = playerTransform->GetY() - transform->GetY();
+			float distToPlayer = sqrtf(dx * dx + dy * dy);
+
+			// 어그로 감지 (원형 범위)
+			if (!m_aggroTarget && distToPlayer <= m_aggroRadius)
+			{
+				m_aggroTarget = player;
+				// 플레이어 발견 시 Taunt 애니메이션 재생
+				m_state = (int)SpiderState::TAUNT;
+				
+				// 방향 설정 (플레이어 쪽으로)
+				Direction newDir;
+				if (std::abs(dx) > std::abs(dy))
+					newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
+				else
+					newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
+				transform->SetDirection(newDir);
+			}
+
+			// 어그로 해제 (deaggro 범위 벗어남)
+			if (m_aggroTarget && distToPlayer > m_deaggroRadius)
+			{
+				m_aggroTarget = nullptr;
+				m_state = (int)SpiderState::IDLE;
+				m_idleTimer = 0.0f;
+				m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
+				m_attackCooldownTimer = 0.0f;
+			}
+		}
+	}
+
+	// CHASE 상태
+	if (m_state == (int)SpiderState::CHASE)
+	{
+		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
+			m_aggroTarget = nullptr;
+			m_state = (int)SpiderState::IDLE;
+			m_idleTimer = 0.0f;
+			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
+			m_attackCooldownTimer = 0.0f;
+			return;
+		}
+
+		Transform* targetTr = m_aggroTarget->GetComponent<Transform>();
+		if (!targetTr) {
+			m_aggroTarget = nullptr;
+			m_state = (int)SpiderState::IDLE;
+			return;
+		}
+
+		float tx = targetTr->GetX();
+		float ty = targetTr->GetY();
+		float cx = transform->GetX();
+		float cy = transform->GetY();
+		float dx = tx - cx;
+		float dy = ty - cy;
+		float distance = sqrtf(dx * dx + dy * dy);
+
+		Direction newDir;
+		if (distance < 0.0001f) 
+			newDir = transform->GetDirection();
+		else if (std::abs(dx) > std::abs(dy)) 
+			newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
+		else 
+			newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
+
+		// 공격 사거리 내이고 쿨타임 끝남
+		if (distance <= ATTACK_RANGE && m_attackCooldownTimer <= 0.0f) {
+			transform->SetDirection(newDir);
+			m_state = (int)SpiderState::ATTACK;
+			m_animator->SetState((int)SpiderState::ATTACK, transform->GetDirection());
+			m_attackCooldownTimer = ATTACK_COOLDOWN;
+			return;
+		}
+
+		// 공격 사거리 내이지만 쿨타임 중
+		if (distance <= ATTACK_RANGE && m_attackCooldownTimer > 0.0f) {
+			transform->SetDirection(newDir);
+			m_animator->SetState((int)SpiderState::IDLE, transform->GetDirection());
+			return;
+		}
+
+		// 추격
+		if (transform->GetDirection() != newDir) 
+			transform->SetDirection(newDir);
+		m_animator->SetState((int)SpiderState::WALK, transform->GetDirection());
+
+		float moveDist = m_runSpeed * deltaTime;
+		float step = (std::min)(moveDist, distance);
+		if (distance > 0.0001f) {
+			float nx = cx + (dx / distance) * step;
+			float ny = cy + (dy / distance) * step;
+			transform->SetPosition(nx, ny);
+		}
+		return;
+	}
+
+	// ATTACK 상태
+	if (m_state == (int)SpiderState::ATTACK)
+	{
+		m_animator->SetState((int)SpiderState::ATTACK, transform->GetDirection());
+		if (m_attackCollider && transform) {
+			Direction dir = transform->GetDirection();
+			if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_DOWN[0], SPIDER_ATTACK_DOWN[1], SPIDER_ATTACK_DOWN[2], SPIDER_ATTACK_DOWN[3]);
+			else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_UP[0], SPIDER_ATTACK_UP[1], SPIDER_ATTACK_UP[2], SPIDER_ATTACK_UP[3]);
+			else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_LEFT[0], SPIDER_ATTACK_LEFT[1], SPIDER_ATTACK_LEFT[2], SPIDER_ATTACK_LEFT[3]);
+			else m_attackCollider->SetObjectCollider(SPIDER_ATTACK_RIGHT[0], SPIDER_ATTACK_RIGHT[1], SPIDER_ATTACK_RIGHT[2], SPIDER_ATTACK_RIGHT[3]);
+
+			int frameIdx = m_animator->GetCurrentFrameIndex();
+			if (frameIdx == SPIDER_ATTACK_HIT_FRAME) {
+				m_attackCollider->SetColliderEnabled(true);
+				if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
+					Transform* pt = m_aggroTarget->GetComponent<Transform>();
+					if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
+						Entity* playerEntity = dynamic_cast<Entity*>(m_aggroTarget);
+						if (playerEntity) playerEntity->Damaged(8);
+					}
+				}
+			}
+			else
+				m_attackCollider->SetColliderEnabled(false);
+		}
+		
+		if (m_animator->IsAnimationDone()) {
+			if (m_attackCollider) 
+				m_attackCollider->SetColliderEnabled(false);
+			m_state = (int)SpiderState::CHASE;
+		}
+		return;
+	}
+
+	// IDLE 상태 - 거미집 주변 배회
+	if (m_state == (int)SpiderState::IDLE)
+	{
+		m_idleTimer += deltaTime;
+		if (m_idleTimer >= m_idleDuration)
+		{
+			// 거미집 중심으로 무작위 목표 선택
+			float centerX = transform->GetX();
+			float centerY = transform->GetY();
+			
+			if (m_homeEgg && m_homeEgg->IsEnabled())
+			{
+				Transform* eggTransform = m_homeEgg->GetComponent<Transform>();
+				if (eggTransform)
+				{
+					centerX = eggTransform->GetX();
+					centerY = eggTransform->GetY();
+				}
+			}
+
+			float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
+			float dist = (rand() / (float)RAND_MAX) * m_spawnRadius;
+			m_targetX = centerX + cosf(angle) * dist;
+			m_targetY = centerY + sinf(angle) * dist;
+
+			m_state = (int)SpiderState::WALK;
+			m_idleTimer = 0.0f;
+			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
+		}
+		else
+		{
+			m_animator->SetState((int)SpiderState::IDLE, transform->GetDirection());
+		}
+		return;
+	}
+
+	// WALK 상태 - 목표 지점으로 이동
+	if (m_state == (int)SpiderState::WALK)
+	{
+		float cx = transform->GetX();
+		float cy = transform->GetY();
+		float dx = m_targetX - cx;
+		float dy = m_targetY - cy;
+		float distance = sqrtf(dx * dx + dy * dy);
+
+		Direction newDir;
+		if (distance < 0.0001f)
+			newDir = transform->GetDirection();
+		else if (std::abs(dx) > std::abs(dy))
+			newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
+		else
+			newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
+		
+		if (transform->GetDirection() != newDir)
+			transform->SetDirection(newDir);
+		m_animator->SetState((int)SpiderState::WALK, transform->GetDirection());
+
+		const float arrivalEpsilon = 2.0f;
+		float moveDist = m_walkSpeed * deltaTime;
+		bool arrived = (distance < arrivalEpsilon) || (distance <= moveDist);
+
+		if (arrived)
+		{
+			transform->SetPosition(m_targetX, m_targetY);
+			m_state = (int)SpiderState::IDLE;
+			m_idleTimer = 0.0f;
+			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
+		}
+		else
+		{
+			float step = (std::min)(moveDist, distance);
+			float nx = cx + (dx / distance) * step;
+			float ny = cy + (dy / distance) * step;
+			transform->SetPosition(nx, ny);
+		}
 	}
 }
 
 bool Spider::OnInteraction(GameObject* obj)
 {
-	return Monster::OnInteraction(obj);
+	return Entity::OnInteraction(obj);
 }
 
 void Spider::Damaged(int damage)
 {
+	m_hp -= damage;
+	m_state = (int)SpiderState::HIT;
+
+	if (m_hp <= 0) {
+		m_hp = 0;
+		m_state = (int)SpiderState::DEATH;
+		m_isDead = true;
+		
+		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
+		GameProgressManager::GetInstance()->OnMonsterKilled(GetID(), currentScene);
+	}
+
+	if (!IsDead() && IsEnabled()) {
+		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		m_attackCooldownTimer = 0.0f;
+	}
 }

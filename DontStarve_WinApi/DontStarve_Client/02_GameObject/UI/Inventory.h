@@ -18,6 +18,7 @@ struct ItemSlot {
 
 class Inventory {
 private:
+	Player* m_player;  
 	std::vector<ItemSlot> m_slots;
 	const UINT  ITEM_STACK_MAX = 99;
 
@@ -36,7 +37,7 @@ private:
 	std::vector<UIText*>   m_slotCountTexts;
 
 public:
-	Inventory();
+	Inventory(Player* owner);
 	~Inventory();
 
 	void Init();
@@ -49,6 +50,10 @@ public:
 	bool CheckHasEnoughItems(const std::map<UINT, UINT>& requiredItems) const;
 
 	const ItemSlot& GetSlot(int index) const;
+	Item* GetItem(int index) const {
+		if (index < 0 || index >= (int)m_slots.size()) return nullptr;
+		return m_slots[index].item;
+	}
 
 	void Render(int equippedSlotIndex);
 
@@ -63,4 +68,3 @@ private:
 
 	Gdiplus::RectF GetBgRect() const;
 };
-

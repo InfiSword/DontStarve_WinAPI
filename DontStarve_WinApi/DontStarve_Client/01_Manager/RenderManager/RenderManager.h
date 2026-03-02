@@ -1,5 +1,11 @@
 #pragma once
 
+#include "../../../Header/Enum.h"
+#include "../../../Header/Struct.h"
+#include <vector>
+#include <string>
+#include <algorithm>
+
 class GameObject;
 
 class RenderManager : public CSingleTon<RenderManager>

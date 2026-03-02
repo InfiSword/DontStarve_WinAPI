@@ -13,7 +13,7 @@
 #include "../Component/Sprite/Image.h"
 
 CraftingUI::CraftingUI()
-	: UIElement(GOBJ_UI, GOID_CRAFT_BAR, L"", L"", true, false),
+	: UIElement(GOID_CRAFT_BAR, L"", L"", true, false),
 	m_craftBar(nullptr),
 	m_craftIcon(nullptr),
 	m_menuCreateIcon(nullptr),

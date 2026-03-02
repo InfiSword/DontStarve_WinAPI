@@ -41,40 +41,49 @@ std::unique_ptr<SpriteSheet> SpriteSheet::CreateFromFile(
         }
     }
 
-    // 이미지 실제 크기에 맞게 프레임 크기 자동 계산
-    // - 기본적으로 전달받은 frameWidth/frameHeight를 사용하되
-    // - 0이 넘어오면 이미지 크기와 framesPerRow/totalFrames를 기반으로 계산
+    // 이미지 실제 크기 정보
     UINT sheetWidth = bitmap->GetWidth();
     UINT sheetHeight = bitmap->GetHeight();
-    UINT rows = (framesPerRow == 0) ? 0 : (totalFrames + framesPerRow - 1) / framesPerRow;
-
+    
+    // 최종 프레임 크기 (자동 계산 또는 전달받은 값 사용)
     UINT finalFrameWidth = frameWidth;
     UINT finalFrameHeight = frameHeight;
 
-    if (framesPerRow == 0 || totalFrames == 0 || sheetWidth == 0 || sheetHeight == 0) {
-        // 잘못된 설정인 경우, 기존 파라미터를 그대로 사용
-        finalFrameWidth = frameWidth;
-        finalFrameHeight = frameHeight;
-    }
-    else {
+    // 자동 계산이 필요한 경우 (frameWidth 또는 frameHeight가 0)
+    if ((finalFrameWidth == 0 || finalFrameHeight == 0) && 
+        framesPerRow > 0 && totalFrames > 0 && 
+        sheetWidth > 0 && sheetHeight > 0) 
+    {
+        // 행 개수 계산: 올림 나눗셈 (totalFrames를 framesPerRow로 나눈 값을 올림)
+        // 예시: 33프레임 ÷ 4열 = (33 + 4 - 1) / 4 = 9행
+        //       36프레임 ÷ 6열 = (36 + 6 - 1) / 6 = 6행
+        UINT totalRows = (totalFrames + framesPerRow - 1) / framesPerRow;
+        
+        // 자동 프레임 크기 계산
         if (finalFrameWidth == 0) {
-            finalFrameWidth = (rows > 0) ? sheetWidth / framesPerRow : sheetWidth;
+            finalFrameWidth = sheetWidth / framesPerRow;
         }
         if (finalFrameHeight == 0) {
-            finalFrameHeight = (rows > 0) ? sheetHeight / rows : sheetHeight;
+            finalFrameHeight = sheetHeight / totalRows;
         }
 
-        // 전달된 frameWidth/Height가 이미지 계산 값과 크게 다를 경우 디버그 로그 남김
-        /*UINT expectedWidth = (rows > 0) ? sheetWidth / framesPerRow : 0;
-        UINT expectedHeight = (rows > 0) ? sheetHeight / rows : 0;
-        if (expectedWidth != 0 && expectedHeight != 0 &&
-            (frameWidth != 0 || frameHeight != 0) &&
-            (frameWidth != expectedWidth || frameHeight != expectedHeight)) 
-		{
-            OutputDebugStringW((L"SpriteSheet: 프레임 크기와 이미지가 일치하지 않습니다 - " + imagePath +
-                L" (입력: " + std::to_wstring(frameWidth) + L"x" + std::to_wstring(frameHeight) +
-                L", 자동계산: " + std::to_wstring(expectedWidth) + L"x" + std::to_wstring(expectedHeight) + L")\n").c_str());
-        }*/
+        // 디버그: 계산된 프레임 크기 출력
+        #ifdef _DEBUG
+        OutputDebugStringW((L"SpriteSheet 자동 계산 - " + imagePath + 
+            L"\n  이미지 크기: " + std::to_wstring(sheetWidth) + L"x" + std::to_wstring(sheetHeight) +
+            L"\n  프레임 배치: " + std::to_wstring(framesPerRow) + L"열 x " + std::to_wstring(totalRows) + L"행 (총 " + std::to_wstring(totalFrames) + L"개)" +
+            L"\n  프레임 크기: " + std::to_wstring(finalFrameWidth) + L"x" + std::to_wstring(finalFrameHeight) + L"\n").c_str());
+        #endif
+    }
+
+    // 잘못된 설정 검증
+    if (finalFrameWidth == 0 || finalFrameHeight == 0) {
+        OutputDebugStringW((L"SpriteSheet: 프레임 크기를 계산할 수 없습니다 - " + imagePath + 
+            L"\n  framesPerRow: " + std::to_wstring(framesPerRow) + 
+            L", totalFrames: " + std::to_wstring(totalFrames) +
+            L", sheetSize: " + std::to_wstring(sheetWidth) + L"x" + std::to_wstring(sheetHeight) + L"\n").c_str());
+        delete bitmap;
+        return nullptr;
     }
 
     return std::make_unique<SpriteSheet>(bitmap, finalFrameWidth, finalFrameHeight, framesPerRow, totalFrames, flipHorizontal);

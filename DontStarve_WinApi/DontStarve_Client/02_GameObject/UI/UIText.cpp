@@ -11,7 +11,7 @@ UIText::UIText(GameObjectID id, float width, float height,
                Gdiplus::StringAlignment hAlign, Gdiplus::StringAlignment vAlign,
                float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY,
                float anchoredPosX, float anchoredPosY)
-	: UIElement(GOBJ_UI, id, L"", L"", true, false),
+	: UIElement(id, L"", L"", true, false),
 	m_text(nullptr)
 {
 	// UIElement에서 이미 RectTransform이 생성되었으므로 GetRectTransform() 사용

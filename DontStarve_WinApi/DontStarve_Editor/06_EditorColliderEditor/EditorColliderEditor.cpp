@@ -16,9 +16,9 @@ void EditorColliderEditor::SetDependencies(EditorView* pView, EditorResourceMana
 	m_pContext = pContext;
 }
 
-const ResourcePathUtils::ObjectResourceDef* EditorColliderEditor::GetObjectVariant(GameObjectType type, GameObjectID id) const {
+const ResourcePathUtils::ObjectResourceDef* EditorColliderEditor::GetObjectVariant(GameObjectID id) const {
 	if (!m_pResources) return nullptr;
-	return m_pResources->GetObjectVariant(type, id);
+	return m_pResources->GetObjectVariant(id);
 }
 
 void EditorColliderEditor::StartColliderEdit(ResourcePathUtils::ObjectResourceDef* obj) {
@@ -31,22 +31,14 @@ void EditorColliderEditor::StartColliderEdit(ResourcePathUtils::ObjectResourceDe
 		m_editingColliderObject->hasCollider = true;
 		m_editingColliderObject->colliderType = COLLIDER_BOX;
 
-		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(obj->type, obj->id);
+		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(obj->id);
 		if (!ov || ov->imageName.empty()) {
-			OutputDebugStringW(L"Error: ObjectVariant not found for collider edit.\n");
 			m_isColliderEditMode = false;
 			m_editingColliderObject = nullptr;
 			return;
 		}
-		std::wstring fullPath = ov->baseDir;
-		if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-			fullPath += L"\\";
-		}
-		fullPath += ov->imageName;
+		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 		std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
-		if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
-			if (pBitmap) pBitmap.reset();
-		}
 		if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
 			m_isColliderEditMode = false;
 			m_editingColliderObject = nullptr;
@@ -92,7 +84,6 @@ int EditorColliderEditor::GetColliderHandleAt(POINT screenPos) {
 	if (!m_isColliderEditMode || !m_editingColliderObject || !m_editingColliderObject->hasCollider || !m_pView) return -1;
 
 	float handleSize = 8.0f;
-	float halfHandle = handleSize / 2.0f;
 	float clickTolerance = handleSize / 2.0f;
 
 	if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
@@ -213,8 +204,6 @@ void EditorColliderEditor::UpdateColliderDrag(POINT mousePos)
 			m_editingColliderObject->colliderCenterY = m_initialColliderCenterY + unzoomedDeltaY;
 		}
 		else if (m_draggingHandle == 5) {
-			float objRenderX = (float)m_editingColliderObject->x * m_pView->GetZoomFactor() + m_pView->GetMapOffset().x;
-			float objRenderY = (float)m_editingColliderObject->y * m_pView->GetZoomFactor() + m_pView->GetMapOffset().y;
 			float worldCenterX = m_editingColliderObject->x + m_initialColliderCenterX;
 			float worldCenterY = m_editingColliderObject->y + m_initialColliderCenterY;
 			float screenCenterX = worldCenterX * m_pView->GetZoomFactor() + m_pView->GetMapOffset().x;
@@ -238,13 +227,12 @@ void EditorColliderEditor::ApplyColliderToSameType(ResourcePathUtils::ObjectReso
 	if (!m_pContext) return;
 	ResourcePathUtils::ObjectResourceDef* src = source ? source : m_editingColliderObject;
 	if (!src) return;
-	if (!source && (!m_isColliderEditMode || !m_editingColliderObject)) return;
 
 	std::vector<ResourcePathUtils::ObjectResourceDef>& gameObjects = m_pContext->GetGameObjects();
 	int appliedCount = 0;
 	for (ResourcePathUtils::ObjectResourceDef& obj : gameObjects) {
 		if (&obj == src) continue;
-		if (obj.type != src->type || obj.id != src->id) continue;
+		if (obj.id != src->id) continue;
 		obj.hasCollider = src->hasCollider;
 		obj.colliderType = src->colliderType;
 		obj.colliderOffsetX = src->colliderOffsetX;
@@ -258,22 +246,18 @@ void EditorColliderEditor::ApplyColliderToSameType(ResourcePathUtils::ObjectReso
 	}
 
 	SaveEditingObjectToGameData();
-
-	std::wstringstream ss;
-	ss << L"ApplyColliderToSameType: applied to " << appliedCount << L" object(s)\n";
-	OutputDebugStringW(ss.str().c_str());
 }
 
 void EditorColliderEditor::SaveEditingObjectToGameData() {
 	if (m_pResources && m_editingColliderObject)
-		m_pResources->SaveObjectResourceOverride(m_editingColliderObject->type, m_editingColliderObject->id, *m_editingColliderObject);
+		m_pResources->SaveObjectResourceOverride(m_editingColliderObject->id, *m_editingColliderObject);
 }
 
 void EditorColliderEditor::DrawColliders(Gdiplus::Graphics* pGraphics) const {
 	if (!pGraphics || !m_isColliderEditMode || !m_editingColliderObject || !m_pView || !m_pResources) return;
 
 	ResourcePathUtils::ObjectResourceDef& obj = *m_editingColliderObject;
-	const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(obj.type, obj.id);
+	const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(obj.id);
 	if (!ov) return;
 
 	Gdiplus::Pen colliderPen(Gdiplus::Color(255, 0, 255, 0), 2.0f);
@@ -313,7 +297,7 @@ void EditorColliderEditor::DrawColliders(Gdiplus::Graphics* pGraphics) const {
 		pGraphics->DrawEllipse(&colliderPen, circleRect);
 
 		float centerHandleX = screenCenterX - halfHandleReal;
-		float centerHandleY = screenCenterY - halfHandleReal;
+		float centerHandleY = screenCenterY - handleSizeReal / 2.0f;
 		pGraphics->FillRectangle(&handleBrush, centerHandleX, centerHandleY, handleSizeReal, handleSizeReal);
 
 		float radiusHandleX = screenCenterX + screenRadius - halfHandleReal;
@@ -365,13 +349,9 @@ void EditorColliderEditor::ToggleColliderType() {
 
 	if (m_editingColliderObject->colliderType == COLLIDER_BOX) {
 		m_editingColliderObject->colliderType = COLLIDER_CIRCLE;
-		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
+		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(m_editingColliderObject->id);
 		if (ov && !ov->imageName.empty()) {
-			std::wstring fullPath = ov->baseDir;
-			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-				fullPath += L"\\";
-			}
-			fullPath += ov->imageName;
+			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 			std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
 			if (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) {
 				int imageWidth = (int)pBitmap->GetWidth();
@@ -385,13 +365,9 @@ void EditorColliderEditor::ToggleColliderType() {
 	}
 	else {
 		m_editingColliderObject->colliderType = COLLIDER_BOX;
-		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(m_editingColliderObject->type, m_editingColliderObject->id);
+		const ResourcePathUtils::ObjectResourceDef* ov = GetObjectVariant(m_editingColliderObject->id);
 		if (ov && !ov->imageName.empty()) {
-			std::wstring fullPath = ov->baseDir;
-			if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-				fullPath += L"\\";
-			}
-			fullPath += ov->imageName;
+			std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 			std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromFile(fullPath.c_str()));
 			if (pBitmap && pBitmap->GetLastStatus() == Gdiplus::Ok) {
 				int imageWidth = (int)pBitmap->GetWidth();
@@ -405,7 +381,6 @@ void EditorColliderEditor::ToggleColliderType() {
 	}
 }
 
-// ----- 콜라이더 입력 다이얼로그 (Box: offset/width/height, Circle: center/radius) -----
 static LRESULT CALLBACK ColliderDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	EditorColliderEditor* pEditor = (EditorColliderEditor*)GetWindowLongPtrW(hWnd, GWLP_USERDATA);
 	ResourcePathUtils::ObjectResourceDef* obj = pEditor ? pEditor->GetEditingColliderObject() : nullptr;

@@ -1,32 +1,29 @@
 #pragma once
 #include "../Entity.h"
 
-class ResourceManager;
-class Sprite;
+enum class RockState {
+	INTACT = 0,   // 온전한 상태 (level1)
+	CRACKED,      // 금 간 상태 (level2)  
+	BROKEN,       // 깨진 상태 (level3)
+	DESTROYED,    // 완전히 파괴된 상태
+	COUNT
+};
 
 class Rock : public Entity
 {
 public:
-    Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"");
     virtual ~Rock();
 
     virtual void Init() override;
-    virtual void LateInit() override;
-    virtual void Update(float deltaTime) override;
-    virtual void LateUpdate() override;
     virtual void Release() override;
-
-    virtual bool OnInteraction(GameObject* obj) override;
 
     virtual void Damaged(int damage) override;
     virtual void Die() override;
 
-private:
-    int m_hp;
-    int maxHp;
-    RockState m_state;
+    RockState GetRockState() const { return m_rockState; }
 
-    std::shared_ptr<Sprite> m_spriteIntact;
-    std::shared_ptr<Sprite> m_spriteCracked;
-    std::shared_ptr<Sprite> m_spriteBroken;
-}; 
+private:
+    RockState m_rockState;
+	int m_hp;
+};

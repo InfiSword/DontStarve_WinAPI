@@ -4,8 +4,9 @@
 #include "BerryBush.h"
 
 BerryBush::BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true), m_state(GrassState::GRASS_IDLE)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true)
 {
+	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
 	// Struct.h ObjectResourceTable: GOID_ITEM_BERRY (베리 부쉬 상호작용 시 드롭)
 	SetDropItem(GOID_ITEM_BERRY, 1);
 }

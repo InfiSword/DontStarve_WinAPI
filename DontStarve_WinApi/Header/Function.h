@@ -47,22 +47,6 @@ namespace EnumTables {
 		return TILEID_NONE;
 	}
 
-	// GameObjectType -> 문자열
-	inline const WCHAR* GetEnumName(GameObjectType value) {
-		for (const auto& entry : GameObjectTypeTable) {
-			if (entry.value == value) return entry.name;
-		}
-		return L"UNKNOWN";
-	}
-
-	// 문자열 -> GameObjectType
-	inline GameObjectType GetGameObjectType(const WCHAR* name) {
-		for (const auto& entry : GameObjectTypeTable) {
-			if (std::wcscmp(entry.name, name) == 0) return entry.value;
-		}
-		return GOBJ_NONE;
-	}
-
 	// GameObjectID -> 문자열
 	inline const WCHAR* GetEnumName(GameObjectID value) {
 		for (const auto& entry : GameObjectIDTable) {
@@ -244,31 +228,27 @@ namespace ResourcePathUtils
 				}
 				currentTileRow++;
 			}
-			// 오브젝트 파싱 (형식: Type,ID,x,y 4필드만. 리소스/피벗/콜라이더는 생성 시 ResourceManager에서 조회)
+			// 오브젝트 파싱 (형식: Type(Unused),ID,x,y 4필드만. 리소스/피벗/콜라이더는 생성 시 ResourceManager에서 조회)
 			else if (section == OBJECTS) {
 				if (line.find(L"0,0,0,0,0") != std::wstring::npos) continue;
 				
 				std::wstringstream ss(line);
-				std::wstring type, id, x, y;
-				if (std::getline(ss, type, L',') &&
+				std::wstring unused_type, id, x, y;
+				if (std::getline(ss, unused_type, L',') &&
 					std::getline(ss, id, L',') &&
 					std::getline(ss, x, L',') &&
 					std::getline(ss, y, L',')) {
 					
-					type.erase(0, type.find_first_not_of(L" \t"));
-					type.erase(type.find_last_not_of(L" \t") + 1);
 					id.erase(0, id.find_first_not_of(L" \t"));
 					id.erase(id.find_last_not_of(L" \t") + 1);
 					
 					GameObjectID objID = EnumTables::GetGameObjectID(id.c_str());
-					GameObjectType objType = EnumTables::GetGameObjectType(type.c_str());
 					
-					if (objID != GOID_NONE && objType != GOBJ_NONE) {
+					if (objID != GOID_NONE) {
 						float objX = std::stof(x);
 						float objY = std::stof(y);
 						
 						ResourcePathUtils::ObjectResourceDef objData;
-						objData.type = objType;
 						objData.id = objID;
 						objData.x = objX;
 						objData.y = objY;
@@ -297,8 +277,7 @@ namespace ResourcePathUtils
 	}
 
 	// 오브젝트 오버라이드 파일 파싱 (Client·Editor 공통)
-	// 형식: TypeName IDName pivotX pivotY hasCollider colliderType offsetX offsetY width height centerX centerY radius
-	// 각 줄마다 apply(type, id, overrideDef) 호출. overrideDef에는 pivot·콜라이더 필드만 채워짐.
+	// 각 줄마다 apply(id, overrideDef) 호출. overrideDef에는 pivot·콜라이더 필드만 채워짐.
 	template<typename ApplyOverrideFunc>
 	inline bool ParseObjectResourceOverridesFile(const std::wstring& filePath, ApplyOverrideFunc apply)
 	{
@@ -308,18 +287,16 @@ namespace ResourcePathUtils
 		while (std::getline(ifs, line)) {
 			if (line.empty() || line[0] == L'#') continue;
 			std::wstringstream iss(line);
-			std::wstring typeName, idName;
+			std::wstring unused_typeName, idName;
 			float pivotX = 0.5f, pivotY = 1.0f;
 			int hasColliderInt = 0, colliderTypeInt = 0;
 			int offsetX = 0, offsetY = 0, width = 0, height = 0;
 			float centerX = 0, centerY = 0, radius = 0;
-			if (!(iss >> typeName >> idName >> pivotX >> pivotY >> hasColliderInt >> colliderTypeInt
+			if (!(iss >> unused_typeName >> idName >> pivotX >> pivotY >> hasColliderInt >> colliderTypeInt
 				>> offsetX >> offsetY >> width >> height >> centerX >> centerY >> radius)) continue;
-			GameObjectType type = EnumTables::GetGameObjectType(typeName.c_str());
 			GameObjectID id = EnumTables::GetGameObjectID(idName.c_str());
-			if (type == GOBJ_NONE || id == GOID_NONE) continue;
+			if (id == GOID_NONE) continue;
 			ResourcePathUtils::ObjectResourceDef overrideDef;
-			overrideDef.type = type;
 			overrideDef.id = id;
 			overrideDef.pivotX = pivotX;
 			overrideDef.pivotY = pivotY;
@@ -332,24 +309,19 @@ namespace ResourcePathUtils
 			overrideDef.colliderCenterX = centerX;
 			overrideDef.colliderCenterY = centerY;
 			overrideDef.colliderRadius = radius;
-			apply(type, id, overrideDef);
+			apply(id, overrideDef);
 		}
 		return true;
 	}
 
-	// baseDir와 imageName을 결합하여 전체 경로 생성 (경로 결합 로직 중복 제거)
+	// baseDir와 imageName을 결합하여 전체 경로 생성
 	inline std::wstring BuildResourcePath(const std::wstring& baseDir, const std::wstring& imageName) {
-		if (baseDir.empty()) {
-			OutputDebugStringW(L"BuildResourcePath: baseDir가 비어있습니다. 경로를 생성할 수 없습니다.\n");
-			return L"";  // 오류: baseDir가 비어있으면 빈 문자열 반환
-		}
-		if (imageName.empty()) {
-			OutputDebugStringW(L"BuildResourcePath: imageName이 비어있습니다. 경로를 생성할 수 없습니다.\n");
-			return L"";  // 오류: imageName이 비어있으면 빈 문자열 반환
-		}
+		if (baseDir.empty()) return imageName; // baseDir가 없으면 이름만 반환
+		if (imageName.empty()) return L"";
+		
 		std::wstring fullPath = baseDir;
 		if (fullPath.back() != L'\\' && fullPath.back() != L'/') {
-			fullPath += L'\\';  // Windows 경로 구분자는 하나면 충분
+			fullPath += L'\\';
 		}
 		fullPath += imageName;
 		return fullPath;

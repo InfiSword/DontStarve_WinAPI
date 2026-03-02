@@ -13,7 +13,7 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 	const std::shared_ptr<Sprite>& normalSprite, const std::shared_ptr<Sprite>& hoverSprite,
 	float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY,
 	float anchoredPosX, float anchoredPosY)
-	: UIElement(GOBJ_UI, id, L"", L"", true, false),
+	: UIElement(id, L"", L"", true, false),
 	m_image(nullptr),
 	m_buttonComp(nullptr),
 	m_normalSprite(nullptr),
@@ -62,14 +62,14 @@ void UIButton::Update(float deltaTime)
 	if (!m_buttonComp || !m_image || !m_rectTransform) return;
 
 	m_image->Update(deltaTime);
-	ButtonState previousState = m_buttonComp->GetState();
+	Button::State previousState = m_buttonComp->GetState();
 	bool callbackInvoked = m_buttonComp->UpdateState(m_rectTransform, m_image);
 	if (callbackInvoked) return;
 	if (!m_buttonComp || !m_image) return;
 
-	ButtonState currentState = m_buttonComp->GetState();
+	Button::State currentState = m_buttonComp->GetState();
 	if (previousState != currentState) {
-		if (currentState == ButtonState::HOVER && m_hoverSprite)
+		if (currentState == Button::State::HOVER && m_hoverSprite)
 			m_image->SetSprite(m_hoverSprite);
 		else if (m_normalSprite)
 			m_image->SetSprite(m_normalSprite);
@@ -131,11 +131,6 @@ void UIButton::SetDisabled(bool disabled)
 	m_buttonComp->SetDisabled(disabled);
 }
 
-ButtonState UIButton::GetButtonState() const
-{
-	return m_buttonComp->GetState();
-}
-
 void UIButton::SetHoverColor(const Gdiplus::Color& color)
 {
 	m_buttonComp->SetHoverColor(color);
@@ -159,12 +154,12 @@ void UIButton::SetDisabledColor(const Gdiplus::Color& color)
 void UIButton::UpdateHoverStateImmediate()
 {
 	if (!m_buttonComp || !m_image || !m_rectTransform) return;
-	ButtonState previousState = m_buttonComp->GetState();
+	Button::State previousState = m_buttonComp->GetState();
 	bool callbackInvoked = m_buttonComp->UpdateState(m_rectTransform, m_image);
 	if (callbackInvoked || !m_buttonComp || !m_image) return;
-	ButtonState currentState = m_buttonComp->GetState();
+	Button::State currentState = m_buttonComp->GetState();
 	if (previousState != currentState) {
-		if (currentState == ButtonState::HOVER && m_hoverSprite)
+		if (currentState == Button::State::HOVER && m_hoverSprite)
 			m_image->SetSprite(m_hoverSprite);
 		else if (m_normalSprite)
 			m_image->SetSprite(m_normalSprite);

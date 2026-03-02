@@ -18,8 +18,9 @@ void ItemSlot::Clear() {
 	count = 0;
 }
 
-Inventory::Inventory()
-	: m_slots(INVENTORY_SLOT_COUNT)
+Inventory::Inventory(Player* owner)
+	:m_player(owner)
+	, m_slots(INVENTORY_SLOT_COUNT)
 	, SLOT_WIDTH(64.0f)
 	, SLOT_HEIGHT(64.0f)
 	, SLOT_PADDING(10.0f)

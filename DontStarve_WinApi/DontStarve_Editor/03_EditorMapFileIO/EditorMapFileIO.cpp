@@ -5,20 +5,16 @@
 #include "../02_EditorResourceManager/EditorResourceManager.h"
 #include "../09_EditorLayerComposer/EditorLayerComposer.h"
 
-// ----- 맵 크기 다이얼로그 -----
 struct MapSizeDlgParam {
 	int curW, curH;
 	int outW, outH;
-	int idWidth, idHeight;  // Edit 컨트롤 ID (MapEditor에서 전달)
+	int idWidth, idHeight;
 	bool ok;
 };
 
 bool EditorMapFileIO::SaveMap(MapEditor* pMain, const WCHAR* filename) {
 	std::wofstream outFile(filename);
 	if (!outFile.is_open()) {
-		OutputDebugStringW(L"맵 파일 열기 실패: ");
-		OutputDebugStringW(filename);
-		OutputDebugStringW(L"\n");
 		return false;
 	}
 	outFile << L"# MAP_METADATA\n";
@@ -46,7 +42,8 @@ bool EditorMapFileIO::SaveMap(MapEditor* pMain, const WCHAR* filename) {
 	}
 	outFile << L"\n# OBJECTS\n";
 	for (const auto& obj : pMain->m_gameObjects) {
-		outFile << EnumTables::GetEnumName(obj.type) << L"," << EnumTables::GetEnumName(obj.id) << L","
+		// 저장 시에는 GOBJ_NONE 또는 상징적인 값을 넣거나 ID만 사용 (Function.h 파서 호환)
+		outFile << L"GOBJ_UNUSED," << EnumTables::GetEnumName(obj.id) << L","
 			<< obj.x << L"," << obj.y << L"\n";
 	}
 	outFile << L"\n# WALKABLE_AREAS\n";
@@ -61,9 +58,6 @@ bool EditorMapFileIO::SaveMap(MapEditor* pMain, const WCHAR* filename) {
 	std::wstring pathStr(filename);
 	size_t pathSep = pathStr.find_last_of(L"\\/");
 	pMain->m_lastMapDirectory = (pathSep != std::wstring::npos) ? pathStr.substr(0, pathSep + 1) : L"";
-	OutputDebugStringW(L"맵 저장 완료: ");
-	OutputDebugStringW(filename);
-	OutputDebugStringW(L"\n");
 	return true;
 }
 
@@ -99,7 +93,6 @@ static bool GetGameDataDialogPath(WCHAR* outPath, DWORD pathSize) {
 }
 
 bool EditorMapFileIO::ShowSaveFileDialog(MapEditor* pMain, WCHAR* fileName, DWORD fileNameSize) {
-	(void)pMain;
 	WCHAR gameDataPath[MAX_PATH];
 	GetGameDataDialogPath(gameDataPath, MAX_PATH);
 	fileName[0] = L'\0';
@@ -118,7 +111,6 @@ bool EditorMapFileIO::ShowSaveFileDialog(MapEditor* pMain, WCHAR* fileName, DWOR
 }
 
 bool EditorMapFileIO::ShowOpenFileDialog(MapEditor* pMain, WCHAR* fileName, DWORD fileNameSize) {
-	(void)pMain;
 	WCHAR gameDataPath[MAX_PATH];
 	GetGameDataDialogPath(gameDataPath, MAX_PATH);
 	fileName[0] = L'\0';
@@ -137,37 +129,23 @@ bool EditorMapFileIO::ShowOpenFileDialog(MapEditor* pMain, WCHAR* fileName, DWOR
 
 bool EditorMapFileIO::LoadMap(MapEditor* pMain, const WCHAR* filename) {
 	if (GetFileAttributesW(filename) == INVALID_FILE_ATTRIBUTES) {
-		OutputDebugStringW(L"맵 파일을 찾을 수 없습니다: ");
-		OutputDebugStringW(filename);
-		OutputDebugStringW(L"\n");
 		return false;
 	}
 	std::wstring pathStr(filename);
 	size_t pathSep = pathStr.find_last_of(L"\\/");
 	pMain->m_lastMapDirectory = (pathSep != std::wstring::npos) ? pathStr.substr(0, pathSep + 1) : L"";
 
-	// Function.h 공통 파서: 맵에는 type, id, x, y만 저장됨. 피벗/콜라이더는 맵에 없음
 	MapData mapData;
-	auto getObjectResourceInfo = [pMain](GameObjectType type, GameObjectID id) -> const ResourcePathUtils::ObjectResourceDef* {
-		return pMain->m_pResources->GetObjectVariant(type, id);
+	auto getObjectResourceInfo = [pMain](int /*type_unused*/, GameObjectID id) -> const ResourcePathUtils::ObjectResourceDef* {
+		return pMain->m_pResources->GetObjectVariant(id);
 	};
 	if (!ResourcePathUtils::ParseMapFileInto(filename, mapData, getObjectResourceInfo)) {
-		OutputDebugStringW(L"맵 파일 파싱 실패: ");
-		OutputDebugStringW(filename);
-		OutputDebugStringW(L"\n");
 		return false;
 	}
 
-	// 맵 크기 설정 (파일에서 읽은 크기, 1~MAP_WIDTH/HEIGHT로 클램프)
 	pMain->m_mapWidth = max(1, min(MAP_WIDTH, mapData.mapWidth));
 	pMain->m_mapHeight = max(1, min(MAP_HEIGHT, mapData.mapHeight));
 	
-	std::wstringstream mapSizeDebugSS;
-	mapSizeDebugSS << L"[맵 로드] 맵 크기 설정: " << pMain->m_mapWidth << L" x " << pMain->m_mapHeight 
-	               << L" (파일: " << mapData.mapWidth << L" x " << mapData.mapHeight << L")\n";
-	OutputDebugStringW(mapSizeDebugSS.str().c_str());
-
-	// MapData를 MapEditor에 복사
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < MAP_WIDTH; ++x) {
 			pMain->m_tileMap[y][x] = ResourcePathUtils::TileResourceDef();
@@ -175,41 +153,20 @@ bool EditorMapFileIO::LoadMap(MapEditor* pMain, const WCHAR* filename) {
 		}
 	}
 
-	// 타일 데이터 복사 (절대경로로 직접 복사)
-	// MapData.tiles[x][y] → m_tileMap[y][x] 형식 변환 (맵 파일은 열 우선, 에디터는 행 우선)
-	int loadedTileCount = 0;
 	for (int y = 0; y < mapData.mapHeight && y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < mapData.mapWidth && x < MAP_WIDTH; ++x) {
 			const ResourcePathUtils::TileResourceDef& tile = mapData.tiles[x][y];
 			if (tile.type != TILE_NONE && tile.id != TILEID_NONE) {
 				pMain->m_tileMap[y][x] = tile;
-				loadedTileCount++;
-				
-				// 처음 몇 개 타일 상세 정보 출력
-				if (loadedTileCount <= 3) {
-					std::wstringstream detailSS;
-					detailSS << L"  타일[" << y << L"][" << x << L"]: type=" << (int)tile.type 
-					         << L", id=" << (int)tile.id << L", imageName=" << tile.imageName << L"\n";
-					OutputDebugStringW(detailSS.str().c_str());
-				}
 			}
 		}
 	}
 	
-	std::wstringstream debugSS;
-	debugSS << L"타일 로드 완료: " << loadedTileCount << L"개 타일이 복사됨\n";
-	OutputDebugStringW(debugSS.str().c_str());
-
-	// 오브젝트 데이터 복사 (맵에는 type, id, x, y만 있음 → variant에서 baseDir/imageName·피벗·콜라이더 채움)
 	pMain->m_gameObjects = mapData.gameObjects;
 	for (ResourcePathUtils::ObjectResourceDef& obj : pMain->m_gameObjects) {
-		const ResourcePathUtils::ObjectResourceDef* ov = pMain->m_pResources->GetObjectVariant(obj.type, obj.id);
-		if (!ov) {
-			std::wstringstream ds;
-			ds << L"[맵 로드] 경고: 오브젝트 리소스 없음 (Type: " << (int)obj.type << L", ID: " << (int)obj.id << L")\n";
-			OutputDebugStringW(ds.str().c_str());
-			continue;
-		}
+		const ResourcePathUtils::ObjectResourceDef* ov = pMain->m_pResources->GetObjectVariant(obj.id);
+		if (!ov) continue;
+		
 		obj.baseDir = ov->baseDir;
 		obj.imageName = ov->imageName;
 		obj.pivotX = ov->pivotX;
@@ -224,18 +181,13 @@ bool EditorMapFileIO::LoadMap(MapEditor* pMain, const WCHAR* filename) {
 		obj.colliderCenterY = ov->colliderCenterY;
 		obj.colliderRadius = ov->colliderRadius;
 	}
-	debugSS.str(L"");
-	debugSS << L"오브젝트 로드 완료: " << pMain->m_gameObjects.size() << L"개 (variant 기준 피벗/콜라이더 적용)\n";
-	OutputDebugStringW(debugSS.str().c_str());
 
-	// Walkable 영역 복사 (mapData와 에디터 모두 [x][y] 형식 사용)
 	for (int y = 0; y < mapData.mapHeight && y < MAP_HEIGHT; ++y) {
 		for (int x = 0; x < mapData.mapWidth && x < MAP_WIDTH; ++x) {
 			pMain->m_walkableAreaMap[y][x] = mapData.walkableAreas[x][y];
 		}
 	}
 
-	// 플레이어 스폰 설정
 	if (mapData.playerSpawn.x >= 0 && mapData.playerSpawn.y >= 0) {
 		pMain->m_playerSpawnPoint = Gdiplus::PointF(mapData.playerSpawn.x, mapData.playerSpawn.y);
 		pMain->m_hasPlayerSpawn = true;
@@ -252,51 +204,33 @@ bool EditorMapFileIO::LoadMap(MapEditor* pMain, const WCHAR* filename) {
 		pMain->m_hasPlayerSpawn = true;
 	}
 
-	// 레이어 갱신 플래그 설정 및 강제 렌더링
 	pMain->m_pLayerComposer->SetGridLayerDirty(true);
 	pMain->m_pLayerComposer->SetTileLayerDirty(true);
 	pMain->m_pLayerComposer->SetObjectLayerDirty(true);
 	pMain->m_objectsDirty = true;
 	
-	// 카메라를 맵 중심으로 이동 (로드된 맵이 보이도록)
 	HWND hWnd = g_hWnd;
 	RECT clientRect;
 	if (GetClientRect(hWnd, &clientRect)) {
 		int clientWidth = clientRect.right - clientRect.left;
 		int clientHeight = clientRect.bottom - clientRect.top;
 		
-		// 맵 중심 좌표 (월드 좌표)
 		float mapCenterX = (pMain->m_mapWidth / 2.0f) * TILE_SIZE;
 		float mapCenterY = (pMain->m_mapHeight / 2.0f) * TILE_SIZE;
 		
-		// 카메라 오프셋 계산 (맵 중심이 화면 중앙에 오도록)
 		float zoomFactor = pMain->m_pView->GetZoomFactor();
 		int offsetX = (int)(mapCenterX * zoomFactor - clientWidth / 2.0f);
 		int offsetY = (int)(mapCenterY * zoomFactor - clientHeight / 2.0f);
 		
 		pMain->m_pView->SetMapOffsetClamped(offsetX, offsetY, clientWidth, clientHeight, 
 		                                     pMain->m_mapWidth, pMain->m_mapHeight);
-		
-		std::wstringstream debugSS;
-		debugSS << L"[맵 로드] 카메라를 맵 중심으로 이동: (" << offsetX << L", " << offsetY << L")\n";
-		OutputDebugStringW(debugSS.str().c_str());
 	}
 	
-	// 즉시 화면 갱신 강제
 	if (hWnd) {
 		InvalidateRect(hWnd, NULL, FALSE);
 		UpdateWindow(hWnd);
 	}
 	
-	OutputDebugStringW(L"===== 맵 불러오기 완료 =====\n");
-	OutputDebugStringW(L"파일: ");
-	OutputDebugStringW(filename);
-	OutputDebugStringW(L"\n");
-	std::wstringstream summaryDebug;
-	summaryDebug << L"맵 크기: " << pMain->m_mapWidth << L"x" << pMain->m_mapHeight << L"\n";
-	summaryDebug << L"타일: " << loadedTileCount << L"개, 오브젝트: " << pMain->m_gameObjects.size() << L"개\n";
-	summaryDebug << L"===========================\n";
-	OutputDebugStringW(summaryDebug.str().c_str());
 	return true;
 }
 

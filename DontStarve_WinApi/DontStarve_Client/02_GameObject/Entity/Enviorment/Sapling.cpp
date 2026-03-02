@@ -4,8 +4,9 @@
 #include "Sapling.h"
 
 Sapling::Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_NATURAL_ENVIR, id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true), m_state(GrassState::GRASS_IDLE)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true)
 {
+	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
 	SetDropItem(GOID_ITEM_NORMAL_TWIGS, 1);
 }
 
