@@ -13,17 +13,12 @@
 #include "../../Component/Collider/BoxCollider.h"
 #include "../../../01_Manager/ColliderManager/ColliderManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
-#include "../../Entity/Monster/Monster.h"
 
 static const float CHOP_PIVOT_X = 0.3f;
 static const float CHOP_PIVOT_Y = 0.9f;
 static const float MINE_PIVOT_X = 0.5f;
 static const float MINE_PIVOT_Y = 0.9f;
-static const float DEFAULT_ATTACK_RANGE = 80.0f;  // 몬스터와 이 거리 이내면 공격 시작
-// 기본 IDLE 이미지 크기 (Wilson_Idle_Down: 126x189, pivot 0.5/1.0 → 로컬 왼쪽위 -63, -189)
-static const int IDLE_FRAME_WIDTH = 126;
-static const int IDLE_FRAME_HEIGHT = 189;
-// 공격 콜라이더 (로컬): 바라보는 방향에 따른 전방 박스 (offsetX, offsetY, width, height)
+
 static const int ATTACK_BOX_W = 80, ATTACK_BOX_H = 120;
 static const int ATTACK_BOX_DOWN[]  = { -40,    0, ATTACK_BOX_W, ATTACK_BOX_H };  // 발 앞
 static const int ATTACK_BOX_UP[]    = { -40,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 머리 쪽
@@ -31,14 +26,17 @@ static const int ATTACK_BOX_LEFT[]  = { -80,  -60, ATTACK_BOX_W, ATTACK_BOX_H };
 static const int ATTACK_BOX_RIGHT[] = {   0,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 오른쪽
 
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(GOBJ_PLAYER, characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
-	hp(100), maxHp(100), m_playerSpeed(300.f), m_stopThreshold(10),
+	: Entity(characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
+	m_playerSpeed(300.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr),
 	m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr),
 	m_attackTarget(nullptr), m_attackCollider(nullptr),
-	m_state(PlayerState::IDLE),
 	isMoveToGoal(false)
 {
+	m_hp = 100;
+    m_maxHp= 100;
+	m_state = (int)PlayerState::IDLE;
+	m_type = GO_TYPE_PLAYER;
 }
 
 Player::~Player() { Release(); }
@@ -183,25 +181,15 @@ void Player::Init()
 		}
 	}
 
-	// 기본 idle 이미지 크기의 콜라이더 (Pig와 동일하게 상호작용/클릭 감지 등에 사용)
-	BoxCollider* bodyCollider = AddComponent<BoxCollider>();
-	if (bodyCollider) {
-		int left = -(IDLE_FRAME_WIDTH / 2);
-		int top = -IDLE_FRAME_HEIGHT;
-		bodyCollider->SetObjectCollider(left, top, IDLE_FRAME_WIDTH, IDLE_FRAME_HEIGHT);
-		bodyCollider->SetColliderEnabled(true);
-	}
-
 	// 공격 판정용 콜라이더 (기본 비활성, ATTACK 6프레임 시에만 활성)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
 		m_attackCollider->SetObjectCollider(-40, 0, 80, 60);
 		m_attackCollider->SetColliderEnabled(false);
-		m_attackCollider->SetInteractionCollider(false);
 	}
 
 	if (!m_inventory) {
-		m_inventory = new Inventory();
+		m_inventory = new Inventory(this);
 	}
 
 	UpdateAnimatorState();
@@ -223,6 +211,9 @@ void Player::ToggleEquipItem(int slotIndex)
 	if (!toolItem)
 		return;
 
+	m_damage = static_cast<int>(toolItem->GetDamage());
+	m_attackRange = toolItem->GetAttackRange();
+
 	if (m_equippedSlotIndex != -1) {
 		if (m_equippedSlotIndex == slotIndex) {
 			m_equippedSlotIndex = -1;
@@ -242,8 +233,8 @@ void Player::ToggleEquipItem(int slotIndex)
 void Player::Damaged(int damage)
 {
 	if (damage <= 0) return;
-	hp = (std::max)(0, hp - damage);
-	if (hp <= 0) {
+	m_hp = (std::max)(0, m_hp - damage);
+	if (m_hp <= 0) {
 		m_isDead = true;
 		Die();
 	}
@@ -252,7 +243,7 @@ void Player::Damaged(int damage)
 void Player::Heal(int amount)
 {
 	if (amount <= 0) return;
-	hp = (std::min)(maxHp, hp + amount);
+	m_hp = (std::min)(m_maxHp, m_hp + amount);
 }
 
 void Player::UpdateAnimatorState() {
@@ -305,9 +296,6 @@ void Player::Update(float deltaTime)
 		float dy = m_targetWorldPos.Y - transform->GetY();
 		float distance = std::sqrt(dx * dx + dy * dy);
 
-		// 장착 도구의 공격 사거리 사용 (없으면 기본값)
-		float attackRange = (m_equippedItem && m_equippedItem->CanAttack()) ? m_equippedItem->GetAttackRange() : DEFAULT_ATTACK_RANGE;
-
 		// 공격 대상으로 이동 중일 때: 사거리 내면 이동 중단 후 ATTACK
 		if (m_attackTarget && m_attackTarget->IsEnabled()) {
 			Transform* targetT = m_attackTarget->GetComponent<Transform>();
@@ -315,7 +303,7 @@ void Player::Update(float deltaTime)
 				float ax = targetT->GetX() - transform->GetX();
 				float ay = targetT->GetY() - transform->GetY();
 				float distToTarget = std::sqrt(ax * ax + ay * ay);
-				if (distToTarget <= attackRange) {
+				if (distToTarget <= m_attackRange) {
 					isMoveToGoal = false;
 					Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
 					transform->SetDirection(faceDir);
@@ -342,10 +330,10 @@ void Player::Update(float deltaTime)
 					float ax = targetT->GetX() - transform->GetX();
 					float ay = targetT->GetY() - transform->GetY();
 					float distToTarget = std::sqrt(ax * ax + ay * ay);
-					if (distToTarget <= attackRange) {
+					if (distToTarget <= m_attackRange) {
 						Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
 						transform->SetDirection(faceDir);
-						m_state = PlayerState::ATTACK;
+						m_state = (int)PlayerState::ATTACK;
 						UpdateAnimatorState();
 						return;
 					}
@@ -368,14 +356,14 @@ void Player::Update(float deltaTime)
 				transform->SetDirection(dir);
 				// OnInteraction의 반환값을 확인하여 실패 시 IDLE 상태로 전환
 				if (!OnInteraction(m_activeInteractionTarget)) {
-					m_state = PlayerState::IDLE;
+					m_state = (int)PlayerState::IDLE;
 					UpdateAnimatorState();
 				}
 			}
 			else {
 				// 대기 중인 상호작용이 없거나 유효하지 않으면 IDLE 상태로 전환
 				m_pendingInteractionTarget = nullptr;
-				m_state = PlayerState::IDLE;
+				m_state = (int)PlayerState::IDLE;
 				UpdateAnimatorState();
 			}
 		}
@@ -425,7 +413,7 @@ void Player::TryStartInteraction(float worldX, float worldY)
 		GameObjectID objID = target->GetID();
 		GameObjectType objType = target->GetType();
 		switch (objType) {
-		case GOBJ_NATURAL_ENVIR:
+		case GO_TYPE_NATURAL_ENVIRONMENT:
 			if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
 				if (m_equippedItem) {
 					GameObjectID equippedID = m_equippedItem->GetID();
@@ -440,10 +428,11 @@ void Player::TryStartInteraction(float worldX, float worldY)
 				canInteract = true;
 			}
 			break;
-		case GOBJ_ITEM:
+		case GO_TYPE_ITEM:
 			canInteract = true;
 			break;
-		case GOBJ_MONSTER: {
+		case GO_TYPE_MONSTER:
+		{
 			// 몬스터 클릭: 장착 도구가 공격 가능할 때만 추격 및 공격
 			canInteract = (m_equippedItem && m_equippedItem->CanAttack());
 			break;
@@ -463,7 +452,7 @@ void Player::TryStartInteraction(float worldX, float worldY)
 
 	// 몬스터: 이동 목표를 몬스터 위치로 두고, 공격 대상을 설정.
 	// Update()에서 목표로 이동하다가 사거리(ATTACK_RANGE) 안에 들어오면 이동 중단 후 ATTACK 상태로 전환.
-	if (target->GetType() == GOBJ_MONSTER) {
+	if (target->GetType() == GO_TYPE_MONSTER) {
 		m_pendingInteractionTarget = nullptr;
 		m_attackTarget = target;
 		SetTargetPosition(targetTransform->GetX(), targetTransform->GetY());
@@ -494,7 +483,7 @@ void Player::FinalizePickup()
 
 	bool itemAdded = false;
 
-	if (objType == GOBJ_ITEM) {
+	if (objType == GO_TYPE_ITEM) {
 		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(objID, 0.0f, 0.0f, nullptr, false);
 		Item* item = dynamic_cast<Item*>(itemObj);
 		if (item) {
@@ -508,7 +497,7 @@ void Player::FinalizePickup()
 			}
 		}
 	}
-	else if (objType == GOBJ_NATURAL_ENVIR) {
+	else if (objType == GO_TYPE_NATURAL_ENVIRONMENT) {
 		Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
 		GameObjectID itemID = entity ? entity->GetDropItemID() : GOID_NONE;
 		int itemCount = entity ? entity->GetDropItemCount() : 0;
@@ -552,8 +541,8 @@ void Player::OnChopHit()
 		return;
 	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
 	if (!entity) return;
-	int damage = m_equippedItem ? (int)m_equippedItem->GetDamage() : 10;
-	entity->Damaged(damage);
+
+	entity->Damaged(m_damage);
 	if (entity->IsDead()) m_activeInteractionTarget = nullptr;
 }
 
@@ -579,8 +568,8 @@ void Player::OnMineHit()
 		return;
 	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
 	if (!entity) return;
-	int damage = m_equippedItem ? (int)m_equippedItem->GetDamage() : 10;
-	entity->Damaged(damage);
+
+	entity->Damaged(m_damage);
 	if (entity->IsDead()) m_activeInteractionTarget = nullptr;
 }
 
@@ -610,8 +599,7 @@ void Player::OnAttackHit()
 
 	m_attackCollider->SetColliderEnabled(true);
 
-	int damage = m_equippedItem ? (int)m_equippedItem->GetDamage() : 10;
-	ApplyAttackDamage(damage);
+	ApplyAttackDamage(m_damage);
 
 	m_attackCollider->SetColliderEnabled(false);
 }
@@ -626,10 +614,9 @@ void Player::ApplyAttackDamage(int damage, bool singleTarget)
 
 	for (GameObject* obj : hits) {
 		if (!obj || !obj->IsEnabled()) continue;
-		if (obj->GetType() != GOBJ_MONSTER) continue;
-		Monster* monster = dynamic_cast<Monster*>(obj);
-		if (monster) {
-			monster->Damaged(damage);
+		Entity* attacker = dynamic_cast<Entity*>(obj);
+		if (attacker) {
+			attacker->Damaged(damage);
 			if (singleTarget) break;
 		}
 	}
@@ -646,19 +633,12 @@ void Player::OnAttackEnd()
 
 bool Player::OnInteraction(GameObject* obj)
 {
-	// Player 상호작용은 TryStartInteraction 단계에서 이미
-	// target->CanInteract(), Player::CanInteractWith(target) 로 검증이 끝났으므로
-	// Entity::OnInteraction(GameObject::OnInteraction)을 다시 호출해서
-	// "플레이어 자신(this)"의 CanInteract()를 검사할 필요가 없다.
-	// (플레이어는 isInteractive=false 이므로 기존 코드는 항상 false를 반환해서
-	// PICKUP/CHOP 상태로 진입하지 못했다.)
-
 	GameObjectID objID = obj->GetID();
 	GameObjectType objType = obj->GetType();
 
 	switch (objType)
 	{
-	case GOBJ_NATURAL_ENVIR:
+	case GO_TYPE_NATURAL_ENVIRONMENT:
 		if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) 
 		{
 			transform->SetDirection(DIR_DOWN);
@@ -679,7 +659,7 @@ bool Player::OnInteraction(GameObject* obj)
 			UpdateAnimatorState();
 			return true;
 		}
-	case GOBJ_ITEM:
+	case GO_TYPE_ITEM:
 		// PICKUP 상태 설정 (애니메이션 이벤트에서 종료 처리)
 		m_state = PlayerState::PICKUP;
 		UpdateAnimatorState();
