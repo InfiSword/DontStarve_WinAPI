@@ -25,12 +25,6 @@ namespace EnumTables {
 		const WCHAR* name;
 	};
 
-	// GameObjectType 테이블 엔트리 구조체
-	struct GameObjectTypeEntry {
-		GameObjectType value;
-		const WCHAR* name;
-	};
-
 	// GameObjectID 테이블 엔트리 구조체
 	struct GameObjectIDEntry {
 		GameObjectID value;
@@ -61,17 +55,6 @@ namespace EnumTables {
 		{ TILEID_FOREST_01, L"TILEID_FOREST_01" },
 		{ TILEID_FOREST_02, L"TILEID_FOREST_02" },
 		{ TILEID_FOREST_03, L"TILEID_FOREST_03" }
-	};
-
-	// GameObjectType 테이블
-	static constexpr GameObjectTypeEntry GameObjectTypeTable[] = {
-		{ GOBJ_NONE,         L"GOBJ_NONE" },
-		{ GOBJ_ITEM,         L"GOBJ_ITEM" },
-		{ GOBJ_NATURAL_ENVIR,L"GOBJ_NATURAL_ENVIR" },
-		{ GOBJ_MONSTER,      L"GOBJ_MONSTER" },
-		{ GOBJ_BUILDING,     L"GOBJ_BUILDING" },
-		{ GOBJ_UI,           L"GOBJ_UI" },
-		{ GOBJ_COUNT,        L"GOBJ_COUNT" }
 	};
 
 	// GameObjectID 테이블
@@ -142,9 +125,8 @@ namespace ResourcePathUtils
 		const wchar_t* imageName;
 	};
 
-	// 오브젝트 리소스 정적 테이블 엔트리 (컴파일 타임 상수, 이미지 경로만. pivot은 오브젝트 에디터에서 편집)
+	// 오브젝트 리소스 정적 테이블 엔트리
 	struct ObjectDefEntry {
-		GameObjectType type;
 		GameObjectID id;
 		const wchar_t* baseDir;
 		const wchar_t* imageName;
@@ -172,54 +154,54 @@ namespace ResourcePathUtils
 
 	// 오브젝트 리소스 정적 테이블
 	static constexpr ObjectDefEntry ObjectResourceTable[] = {
-		{ GOBJ_PLAYER, GOID_PLAYER_WILSON, L"Resource\\Objects\\Player\\Wilson", L"" },
-		{ GOBJ_PLAYER, GOID_PLAYER_WILLOW, L"Resource\\Objects\\Player\\Willow", L"" },
-		{ GOBJ_PLAYER, GOID_PLAYER_WOLFGANG, L"Resource\\Objects\\Player\\Wolfgang", L"" },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_SHORT, L"Resource\\Objects\\Tree1\\Short", L"evergreen_evergreen_short_idle_short_01.png" },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_NORMAL, L"Resource\\Objects\\Tree1\\Normal", L"evergreen_evergreen_short_idle_normal_01.png" },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_TREE_TALL, L"Resource\\Objects\\Tree1\\Tall", L"evergreen_evergreen_short_idle_tall_01.png" },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_ROCK, L"Resource\\Objects\\Rock\\Rock_Normal", L"rock01-0.png" },
-		{ GOBJ_NATURAL_ENVIR, GOID_GOLD_ROCK, L"Resource\\Objects\\Rock\\Rock_Gold", L"rock02-0.png" },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_GRASS, L"Resource\\Objects\\Grass", L"grass.png" },
-		{ GOBJ_NATURAL_ENVIR, GOID_NORMAL_SAPLING, L"Resource\\Objects\\Twign", L"sapling.png" },
-		{ GOBJ_NATURAL_ENVIR, GOID_BERRY_TREE, L"Resource\\Objects\\Bush", L"BerryBush.png" },
-		{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_GRASS, L"Resource\\Objects\\ingredient", L"cutgrass01-0.png" },
-		{ GOBJ_ITEM, GOID_ITEM_NORMAL_ROCK, L"Resource\\Objects\\ingredient", L"rocks01-0.png" },
-		{ GOBJ_ITEM, GOID_ITEM_NORMAL_TWIGS, L"Resource\\Objects\\ingredient", L"twigs01-0.png" },
-		{ GOBJ_ITEM, GOID_ITEM_NORMAL_TREE_LOG, L"Resource\\Objects\\ingredient", L"Tree1_log.png" },
-		{ GOBJ_ITEM, GOID_ITEM_GOLD_ROCK, L"Resource\\Objects\\ingredient", L"Gold_Item.png" },
-		{ GOBJ_ITEM, GOID_ITEM_ROPE, L"Resource\\Objects\\ingredient", L"rope01-0.png" },
-		{ GOBJ_ITEM, GOID_ITEM_CUT_NORMAL_STONE, L"Resource\\Objects\\ingredient", L"cutstone01-0.png" },
-		{ GOBJ_ITEM, GOID_ITEM_MEAT, L"Resource\\Objects\\food", L"meat-0.png" },
-		{ GOBJ_ITEM, GOID_ITEM_BERRY, L"Resource\\Objects\\food", L"Berry.png" },
-		{ GOBJ_ITEM, GOID_ITEM_WOOD_2, L"Resource\\Objects\\ingredient", L"Wood_2.png" },
-		{ GOBJ_ITEM, GOID_ITEM_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-0.png" },
-		{ GOBJ_ITEM, GOID_ITEM_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
-		{ GOBJ_ITEM, GOID_ITEM_COOKED_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
-		{ GOBJ_ITEM, GOID_ITEM_COOKED_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-1.png" },
-		{ GOBJ_ITEM, GOID_ITEM_COOKED_MEAT, L"Resource\\Objects\\food", L"meat_01-1.png" },
-		{ GOBJ_ITEM, GOID_TOOL_GOLDEN_SCYTHE, L"Resource\\Objects\\Tools", L"Golden_Scythe_02.png" },
-		{ GOBJ_ITEM, GOID_TOOL_HAM_BAT, L"Resource\\Objects\\Tools", L"hamBat_01.png" },
-		{ GOBJ_ITEM, GOID_TOOL_PICKAXE, L"Resource\\Objects\\Tools", L"pickaxe-0.png" },
-		{ GOBJ_ITEM, GOID_TOOL_RED_AXE, L"Resource\\Objects\\Tools", L"Red_Axe_02.png" },
-		{ GOBJ_ITEM, GOID_TOOL_SPEAR, L"Resource\\Objects\\Tools", L"spear_03.png" },
-		{ GOBJ_ITEM, GOID_TOOL_SWAP_AXE, L"Resource\\Objects\\Tools", L"swap_axe-0.png" },
-		{ GOBJ_ITEM, GOID_TOOL_SWAP_SPEAR, L"Resource\\Objects\\Tools", L"swap_spear_wathgrithr_lightning-5.png" },
-		{ GOBJ_ITEM, GOID_TOOL_TORCH, L"Resource\\Objects\\Tools", L"torch.png" },
-		{ GOBJ_ITEM, GOID_TOOL_HALBERD, L"Resource\\Objects\\Tools", L"halberd.png" },
-		{ GOBJ_ITEM, GOID_TOOL_HAMMER, L"Resource\\Objects\\Tools", L"hammer.png" },
-		{ GOBJ_MONSTER, GOID_MONSTER_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Normal_Spider", L"Spider_spider_idle_01.png" },
-		{ GOBJ_MONSTER, GOID_MONSTER_WARRIOR_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Warrior_Spider", L"Warrior_spider_idle_01.png" },
-		{ GOBJ_MONSTER, GOID_MONSTER_PIG, L"Resource\\Objects\\Monster\\Pig", L"pig_Image.png" },
-		{ GOBJ_MONSTER, GOID_MONSTER_HOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Normal_Hound", L"Hound_hound_Image.png" },
-		{ GOBJ_MONSTER, GOID_MONSTER_QUEEN_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Queen", L"Queen_spider_queen_Image.png" },
-		{ GOBJ_MONSTER, GOID_MONSTER_REDHOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Red_Hound", L"RedHound_hound_Image.png" },
-		{ GOBJ_MONSTER, GOID_MONSTER_ICEHOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Ice_Hound", L"IceHound_hound_Image.png" },
-		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_SACEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_small_Image.png" },
-		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_SMALLEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_small_Image.png" },
-		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_NORMALEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_medium_Image.png" },
-		{ GOBJ_BUILDING, GOID_BUILDING_SPIDER_TALLEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_large_Image.png" },
-		{ GOBJ_BUILDING, GOID_BUILDING_PIGHOUSE, L"Resource\\Objects\\Building\\House", L"pig_house.png" }
+		{ GOID_PLAYER_WILSON, L"Resource\\Objects\\Player\\Wilson", L"" },
+		{ GOID_PLAYER_WILLOW, L"Resource\\Objects\\Player\\Willow", L"" },
+		{ GOID_PLAYER_WOLFGANG, L"Resource\\Objects\\Player\\Wolfgang", L"" },
+		{ GOID_NORMAL_TREE_SHORT, L"Resource\\Objects\\Tree1\\Short", L"evergreen_evergreen_short_idle_short_01.png" },
+		{ GOID_NORMAL_TREE_NORMAL, L"Resource\\Objects\\Tree1\\Normal", L"evergreen_evergreen_short_idle_normal_01.png" },
+		{ GOID_NORMAL_TREE_TALL, L"Resource\\Objects\\Tree1\\Tall", L"evergreen_evergreen_short_idle_tall_01.png" },
+		{ GOID_NORMAL_ROCK, L"Resource\\Objects\\Rock\\Rock_Normal", L"rock01-0.png" },
+		{ GOID_GOLD_ROCK, L"Resource\\Objects\\Rock\\Rock_Gold", L"rock02-0.png" },
+		{ GOID_NORMAL_GRASS, L"Resource\\Objects\\Grass", L"grass.png" },
+		{ GOID_NORMAL_SAPLING, L"Resource\\Objects\\Twign", L"sapling.png" },
+		{ GOID_BERRY_TREE, L"Resource\\Objects\\Bush", L"BerryBush.png" },
+		{ GOID_ITEM_CUT_NORMAL_GRASS, L"Resource\\Objects\\ingredient", L"cutgrass01-0.png" },
+		{ GOID_ITEM_NORMAL_ROCK, L"Resource\\Objects\\ingredient", L"rocks01-0.png" },
+		{ GOID_ITEM_NORMAL_TWIGS, L"Resource\\Objects\\ingredient", L"twigs01-0.png" },
+		{ GOID_ITEM_NORMAL_TREE_LOG, L"Resource\\Objects\\ingredient", L"Tree1_log.png" },
+		{ GOID_ITEM_GOLD_ROCK, L"Resource\\Objects\\ingredient", L"Gold_Item.png" },
+		{ GOID_ITEM_ROPE, L"Resource\\Objects\\ingredient", L"rope01-0.png" },
+		{ GOID_ITEM_CUT_NORMAL_STONE, L"Resource\\Objects\\ingredient", L"cutstone01-0.png" },
+		{ GOID_ITEM_MEAT, L"Resource\\Objects\\food", L"meat-0.png" },
+		{ GOID_ITEM_BERRY, L"Resource\\Objects\\food", L"Berry.png" },
+		{ GOID_ITEM_WOOD_2, L"Resource\\Objects\\ingredient", L"Wood_2.png" },
+		{ GOID_ITEM_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-0.png" },
+		{ GOID_ITEM_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
+		{ GOID_ITEM_COOKED_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
+		{ GOID_ITEM_COOKED_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-1.png" },
+		{ GOID_ITEM_COOKED_MEAT, L"Resource\\Objects\\food", L"meat_01-1.png" },
+		{ GOID_TOOL_GOLDEN_SCYTHE, L"Resource\\Objects\\Tools", L"Golden_Scythe_02.png" },
+		{ GOID_TOOL_HAM_BAT, L"Resource\\Objects\\Tools", L"hamBat_01.png" },
+		{ GOID_TOOL_PICKAXE, L"Resource\\Objects\\Tools", L"pickaxe-0.png" },
+		{ GOID_TOOL_RED_AXE, L"Resource\\Objects\\Tools", L"Red_Axe_02.png" },
+		{ GOID_TOOL_SPEAR, L"Resource\\Objects\\Tools", L"spear_03.png" },
+		{ GOID_TOOL_SWAP_AXE, L"Resource\\Objects\\Tools", L"swap_axe-0.png" },
+		{ GOID_TOOL_SWAP_SPEAR, L"Resource\\Objects\\Tools", L"swap_spear_wathgrithr_lightning-5.png" },
+		{ GOID_TOOL_TORCH, L"Resource\\Objects\\Tools", L"torch.png" },
+		{ GOID_TOOL_HALBERD, L"Resource\\Objects\\Tools", L"halberd.png" },
+		{ GOID_TOOL_HAMMER, L"Resource\\Objects\\Tools", L"hammer.png" },
+		{ GOID_MONSTER_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Normal_Spider", L"Spider_spider_idle_01.png" },
+		{ GOID_MONSTER_WARRIOR_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Warrior_Spider", L"Warrior_spider_idle_01.png" },
+		{ GOID_MONSTER_PIG, L"Resource\\Objects\\Monster\\Pig", L"pig_Image.png" },
+		{ GOID_MONSTER_HOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Normal_Hound", L"Hound_hound_Image.png" },
+		{ GOID_MONSTER_QUEEN_SPIDER, L"Resource\\Objects\\Monster\\Spider\\Queen", L"Queen_spider_queen_Image.png" },
+		{ GOID_MONSTER_REDHOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Red_Hound", L"RedHound_hound_Image.png" },
+		{ GOID_MONSTER_ICEHOUNDDOG, L"Resource\\Objects\\Monster\\Hound\\Ice_Hound", L"IceHound_hound_Image.png" },
+		{ GOID_BUILDING_SPIDER_SACEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_small_Image.png" },
+		{ GOID_BUILDING_SPIDER_SMALLEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_small_Image.png" },
+		{ GOID_BUILDING_SPIDER_NORMALEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_medium_Image.png" },
+		{ GOID_BUILDING_SPIDER_TALLEGG, L"Resource\\Objects\\Building\\Egg", L"Egg_spider_cocoon_large_Image.png" },
+		{ GOID_BUILDING_PIGHOUSE, L"Resource\\Objects\\Building\\House", L"pig_house.png" }
 	};
 
 	static constexpr size_t ObjectResourceCount = sizeof(ObjectResourceTable) / sizeof(ObjectDefEntry);
@@ -244,7 +226,6 @@ namespace ResourcePathUtils
 
 	// 오브젝트 리소스 정의 구조체
 	struct ObjectResourceDef {
-		GameObjectType type;
 		GameObjectID id;
 		std::wstring baseDir;    // 상대경로 (../Resource/ 기준 디렉토리)
 		std::wstring imageName;  // 파일명만 (baseDir과 결합하여 사용)
@@ -266,16 +247,16 @@ namespace ResourcePathUtils
 		float colliderRadius = 0.0f;
 
 		ObjectResourceDef()
-			: type(GOBJ_NONE), id(GOID_NONE), pivotX(0.5f), pivotY(1.0f), x(0), y(0)
+			: id(GOID_NONE), pivotX(0.5f), pivotY(1.0f), x(0), y(0)
 		{}
 
-		ObjectResourceDef(GameObjectType type_val, GameObjectID id_val, float x_val, float y_val,
+		ObjectResourceDef(GameObjectID id_val, float x_val, float y_val,
 			const std::wstring& baseDir_val, const std::wstring& imageName_val, float pivotX_val, float pivotY_val,
 			bool hasCollider_val = false, ColliderType colliderType_val = COLLIDER_BOX,
 			int colliderOffsetX_val = 0, int colliderOffsetY_val = 0,
 			int colliderWidth_val = 0, int colliderHeight_val = 0,
 			float colliderCenterX_val = 0.0f, float colliderCenterY_val = 0.0f, float colliderRadius_val = 0.0f)
-			: type(type_val), id(id_val), baseDir(baseDir_val), imageName(imageName_val),
+			: id(id_val), baseDir(baseDir_val), imageName(imageName_val),
 			pivotX(pivotX_val), pivotY(pivotY_val), x(x_val), y(y_val),
 			hasCollider(hasCollider_val), colliderType(colliderType_val),
 			colliderOffsetX(colliderOffsetX_val), colliderOffsetY(colliderOffsetY_val),
@@ -287,8 +268,7 @@ namespace ResourcePathUtils
 }
 
 struct PaletteItem {
-	ItemCategory category;     // CATEGORY_TILE, CATEGORY_OBJECT
-	int typeId;                // TileType 또는 GameObjectType
+	int typeId;                // TileType 또는 0 (GameObjectID만 사용)
 	UINT resourceId;           // 리소스 ID (TileID 또는 GameObjectID)
 
 	RECT displayRect;
@@ -317,7 +297,7 @@ struct DrawCommand {
 	float thickness = 0.0f;
 	Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);  // 색상 틴트 (기본값: 흰색, 덮어쓰기 방식 - Unity Sprite 스타일)
 	bool hasTint = false;  // 틴트 적용 여부
-	bool preFlipped = false;  // 비트맵이 미리 반전되어 있는지 여부 (이중 반전 방지용)
+	bool preFlipped = false;  // 비전이 미리 반전되어 있는지 여부 (이중 반전 방지용)
 };
 
 struct PlayerSpawnData {

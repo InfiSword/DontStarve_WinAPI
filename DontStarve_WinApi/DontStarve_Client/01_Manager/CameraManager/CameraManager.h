@@ -37,6 +37,7 @@ public:
 	void SetTarget(GameObject* target);
 	const GameObject* GetTarget() const;
 	void FollowTarget();
+
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 	bool IsFollowMode() const { return m_followMode; }
 	

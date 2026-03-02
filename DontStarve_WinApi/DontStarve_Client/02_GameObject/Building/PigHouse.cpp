@@ -19,7 +19,7 @@ void PigHouse::Init()
 	// 부모 클래스의 Init() 호출
 	Building::Init();
 	
-	m_buildingState = BUILDING_NOON;
+	m_buildingState = BuildingState::NOON;
 }
 
 void PigHouse::LateInit()
@@ -50,12 +50,12 @@ void PigHouse::Damaged(int damage)
     if (m_hp <= 0)
     {
         m_hp = 0;
-        m_buildingState = BUILDING_DESTROYED;
+        m_buildingState = BuildingState::DESTROYED;
         OutputDebugStringW(L"PigHouse: 파괴됨\n");
     }
     else if (m_hp <= m_maxHp / 2)
     {
-        m_buildingState = BUILDING_DAMAGED;
+        m_buildingState = BuildingState::DAMAGED;
         OutputDebugStringW(L"PigHouse: 손상됨\n");
     }
 }
@@ -69,21 +69,3 @@ BuildingState PigHouse::GetTimeState() const
 {
     return m_buildingState;
 }
-
-//std::wstring PigHouse::GetAnimKey(BuildingState state)
-//{
-//    std::wstring key;
-//    if (state == BUILDING_NOON) {
-//        key = L"PigHouse_Noon";
-//    }
-//    else if (state == BUILDING_NIGHT) {
-//        key = L"PigHouse_Night";
-//    }
-//    else if (state == BUILDING_DAMAGED) {
-//        key = L"PigHouse_Damaged";
-//    }
-//    else {
-//        key = L"PigHouse_Destroyed";
-//    }
-//    return key;
-//}

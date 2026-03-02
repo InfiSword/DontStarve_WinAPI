@@ -28,7 +28,6 @@ void ObjectEditor::InitPalette()
 {
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
-	// 오브젝트 에디터에서는 타일을 팔레트에 표시하지 않음 (오브젝트만 표시)
 	m_pPalette->InitPalette(clientRect.right, clientRect.bottom, m_pResources.get(), false);
 }
 
@@ -56,7 +55,6 @@ void ObjectEditor::Initialize()
 		m_paletteLayerBitmap = new Gdiplus::Bitmap(paletteW, paletteH, PixelFormat32bppARGB);
 
 	m_pView->SetZoomFactor(1.0f);
-	// 이동 제한 = 25% 줌 시 한 화면 크기. 초기 뷰 = 가상 맵 중앙이 윈도우 중앙에 오도록
 	CenterViewOnMap(g_hWnd);
 	m_paletteLayerDirty = true;
 	UpdateLauncherButtonRect(clientRect.right, clientRect.bottom);
@@ -87,7 +85,6 @@ void ObjectEditor::UpdateCenterButtonRect(int clientW, int clientH)
 
 void ObjectEditor::UpdateSaveButtonRect(int clientW, int clientH)
 {
-	// 저장/맵중앙 버튼 위치는 UpdateCenterButtonRect에서 함께 설정
 	(void)clientW;
 	(void)clientH;
 }
@@ -111,10 +108,9 @@ void ObjectEditor::CenterViewOnMap(HWND hWnd)
 {
 	RECT clientRect;
 	GetClientRect(hWnd, &clientRect);
-	// 윈도우 중앙 (1000x800 → 500, 400)에 가상 맵 중앙이 오도록. 가상 맵 크기 = 25% 줌 시 한 화면(4*client) → 중앙 = 2*client
 	float screenCenterX = (float)(clientRect.right) * 0.5f;
 	float screenCenterY = (float)(clientRect.bottom) * 0.5f;
-	float centerWorldX = (float)(clientRect.right) * 2.0f;  // 4*clientW / 2
+	float centerWorldX = (float)(clientRect.right) * 2.0f;
 	float centerWorldY = (float)(clientRect.bottom) * 2.0f;
 	float zoom = m_pView->GetZoomFactor();
 	int offsetX = (int)(screenCenterX - centerWorldX * zoom);
@@ -125,7 +121,6 @@ void ObjectEditor::CenterViewOnMap(HWND hWnd)
 
 void ObjectEditor::Update()
 {
-	// 저장 메시지 표시 중에는 계속 그리기 요청하여 2.5초 후 자연스럽게 사라지게 함
 	if (m_savedMessageShowUntil != 0 && GetTickCount64() < m_savedMessageShowUntil)
 		InvalidateRect(g_hWnd, NULL, FALSE);
 }
@@ -137,11 +132,9 @@ void ObjectEditor::DrawObjects(Gdiplus::Graphics* pGraphics)
 	GetClientRect(g_hWnd, &clientRect);
 
 	for (const auto& obj : m_gameObjects) {
-		const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(obj.type, obj.id);
+		const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(obj.id);
 		if (!ov || ov->imageName.empty()) continue;
-		std::wstring fullPath = ov->baseDir;
-		if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') fullPath += L"\\";
-		fullPath += ov->imageName;
+		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 		std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 		if (!pBitmap) continue;
 		float w = (float)pBitmap->GetWidth();
@@ -168,9 +161,7 @@ void ObjectEditor::DrawPreview(Gdiplus::Graphics* pGraphics)
 	if (!pItem || pItem->category != CATEGORY_OBJECT) return;
 	const ResourcePathUtils::ObjectResourceDef* ov = m_pPalette->GetSelectedObjectVariant();
 	if (!ov || ov->imageName.empty()) return;
-	std::wstring fullPath = ov->baseDir;
-	if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') fullPath += L"\\";
-	fullPath += ov->imageName;
+	std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 	std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 	if (!pBitmap) return;
 	Gdiplus::PointF screenPos = WorldToScreen(m_snappedPreviewPos);
@@ -254,7 +245,7 @@ void ObjectEditor::SpawnSelectedPaletteObjectAtViewCenter(HWND hWnd)
 	if (needFallback) {
 		const ResourcePathUtils::ObjectResourceDef* same = nullptr;
 		for (const auto& o : m_gameObjects) {
-			if (o.type == (GameObjectType)pItem->typeId && o.id == selectedObjectID) { same = &o; break; }
+			if (o.id == selectedObjectID) { same = &o; break; }
 		}
 		if (same) {
 			pivotX = same->pivotX; pivotY = same->pivotY; hasCollider = same->hasCollider; colliderType = same->colliderType;
@@ -263,9 +254,7 @@ void ObjectEditor::SpawnSelectedPaletteObjectAtViewCenter(HWND hWnd)
 		} else {
 			int iw = 32, ih = 32;
 			if (!ov->imageName.empty()) {
-				std::wstring fp = ov->baseDir;
-				if (!fp.empty() && fp.back() != L'\\' && fp.back() != L'/') fp += L"\\";
-				fp += ov->imageName;
+				std::wstring fp = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 				auto b = m_pResources->GetCachedBitmap(fp);
 				if (b) { iw = b->GetWidth(); ih = b->GetHeight(); }
 			}
@@ -274,7 +263,7 @@ void ObjectEditor::SpawnSelectedPaletteObjectAtViewCenter(HWND hWnd)
 			cr = (float)((iw < ih) ? iw : ih) * 0.5f;
 		}
 	}
-	ResourcePathUtils::ObjectResourceDef newObj((GameObjectType)pItem->typeId, selectedObjectID,
+	ResourcePathUtils::ObjectResourceDef newObj(selectedObjectID,
 		worldCenter.X, worldCenter.Y, ov->baseDir, ov->imageName, pivotX, pivotY,
 		hasCollider, colliderType, cox, coy, cw, ch, ccx, ccy, cr);
 	AddObject(newObj);
@@ -307,7 +296,7 @@ void ObjectEditor::ReplaceSelectedObjectWithPaletteSelection(HWND hWnd)
 	if (needFallback) {
 		const ResourcePathUtils::ObjectResourceDef* same = nullptr;
 		for (const auto& o : m_gameObjects) {
-			if (o.type == (GameObjectType)pItem->typeId && o.id == selectedObjectID) { same = &o; break; }
+			if (o.id == selectedObjectID) { same = &o; break; }
 		}
 		if (same) {
 			pivotX = same->pivotX; pivotY = same->pivotY; hasCollider = same->hasCollider; colliderType = same->colliderType;
@@ -316,9 +305,7 @@ void ObjectEditor::ReplaceSelectedObjectWithPaletteSelection(HWND hWnd)
 		} else {
 			int iw = 32, ih = 32;
 			if (!ov->imageName.empty()) {
-				std::wstring fp = ov->baseDir;
-				if (!fp.empty() && fp.back() != L'\\' && fp.back() != L'/') fp += L"\\";
-				fp += ov->imageName;
+				std::wstring fp = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 				auto b = m_pResources->GetCachedBitmap(fp);
 				if (b) { iw = b->GetWidth(); ih = b->GetHeight(); }
 			}
@@ -327,7 +314,7 @@ void ObjectEditor::ReplaceSelectedObjectWithPaletteSelection(HWND hWnd)
 			cr = (float)((iw < ih) ? iw : ih) * 0.5f;
 		}
 	}
-	ResourcePathUtils::ObjectResourceDef newObj((GameObjectType)pItem->typeId, selectedObjectID,
+	ResourcePathUtils::ObjectResourceDef newObj(selectedObjectID,
 		oldX, oldY, ov->baseDir, ov->imageName, pivotX, pivotY,
 		hasCollider, colliderType, cox, coy, cw, ch, ccx, ccy, cr);
 
@@ -360,7 +347,7 @@ void ObjectEditor::HandlePlacingModeClick(POINT clickPoint, HWND hWnd)
 	if (needFallback) {
 		const ResourcePathUtils::ObjectResourceDef* same = nullptr;
 		for (const auto& o : m_gameObjects) {
-			if (o.type == (GameObjectType)pItem->typeId && o.id == selectedObjectID) { same = &o; break; }
+			if (o.id == selectedObjectID) { same = &o; break; }
 		}
 		if (same) {
 			pivotX = same->pivotX; pivotY = same->pivotY; hasCollider = same->hasCollider; colliderType = same->colliderType;
@@ -369,9 +356,7 @@ void ObjectEditor::HandlePlacingModeClick(POINT clickPoint, HWND hWnd)
 		} else {
 			int iw = 32, ih = 32;
 			if (!ov->imageName.empty()) {
-				std::wstring fp = ov->baseDir;
-				if (!fp.empty() && fp.back() != L'\\' && fp.back() != L'/') fp += L"\\";
-				fp += ov->imageName;
+				std::wstring fp = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 				auto b = m_pResources->GetCachedBitmap(fp);
 				if (b) { iw = b->GetWidth(); ih = b->GetHeight(); }
 			}
@@ -380,7 +365,7 @@ void ObjectEditor::HandlePlacingModeClick(POINT clickPoint, HWND hWnd)
 			cr = (float)((iw < ih) ? iw : ih) * 0.5f;
 		}
 	}
-	ResourcePathUtils::ObjectResourceDef newObj((GameObjectType)pItem->typeId, selectedObjectID,
+	ResourcePathUtils::ObjectResourceDef newObj(selectedObjectID,
 		mouseWorld.X, mouseWorld.Y, ov->baseDir, ov->imageName, pivotX, pivotY,
 		hasCollider, colliderType, cox, coy, cw, ch, ccx, ccy, cr);
 	AddObject(newObj);
@@ -392,11 +377,9 @@ void ObjectEditor::HandleObjectSelectionClick(POINT clickPoint, HWND hWnd)
 	Gdiplus::PointF worldClick = ScreenToWorld(Gdiplus::PointF((float)clickPoint.x, (float)clickPoint.y));
 	for (int i = (int)m_gameObjects.size() - 1; i >= 0; --i) {
 		ResourcePathUtils::ObjectResourceDef& obj = m_gameObjects[i];
-		const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(obj.type, obj.id);
+		const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(obj.id);
 		if (!ov || ov->imageName.empty()) continue;
-		std::wstring fullPath = ov->baseDir;
-		if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') fullPath += L"\\";
-		fullPath += ov->imageName;
+		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 		std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 		if (!pBitmap) continue;
 		float w = (float)pBitmap->GetWidth();
@@ -404,14 +387,12 @@ void ObjectEditor::HandleObjectSelectionClick(POINT clickPoint, HWND hWnd)
 		float left = (float)obj.x - (ov->pivotX * w);
 		float top = (float)obj.y - (ov->pivotY * h);
 		Gdiplus::RectF objWorldRect(left, top, w, h);
-		// 이미지 크기 바운딩 박스로 클릭 시 선택 (클릭 시 빨간 테두리 = 이미지 테두리)
 		if (!objWorldRect.Contains(worldClick.X, worldClick.Y)) continue;
 		m_selectedObjectPtr = &obj;
 		m_objectsDirty = true;
 		InvalidateRect(hWnd, NULL, FALSE);
 		return;
 	}
-	// 빈 영역 클릭 시 선택 해제하지 않음 (팔레트에서 다른 오브젝트 선택 시 교체하려면 선택 유지)
 }
 
 float ObjectEditor::GetLayerMemoryUsageMB() const
@@ -426,10 +407,9 @@ bool ObjectEditor::SaveObjects()
 		MessageBox(g_hWnd, L"선택된 오브젝트가 없습니다.", L"저장", MB_OK | MB_ICONINFORMATION);
 		return false;
 	}
-	// 피벗/콜라이더 편집 내용은 m_selectedObjectPtr(인스턴스)에 있음. 이 값을 variant에 반영하고 파일로 저장
-	bool ok = m_pResources->SaveObjectResourceOverride(m_selectedObjectPtr->type, m_selectedObjectPtr->id, *m_selectedObjectPtr);
+	bool ok = m_pResources->SaveObjectResourceOverride(m_selectedObjectPtr->id, *m_selectedObjectPtr);
 	if (ok)
-		m_savedMessageShowUntil = GetTickCount64() + 2500;  // 2.5초 동안 "저장했습니다" 표시
+		m_savedMessageShowUntil = GetTickCount64() + 2500;
 	return ok;
 }
 
@@ -454,7 +434,6 @@ void ObjectEditor::Render()
 	if (m_pDebugPanel->IsVisible()) {
 		m_pDebugPanel->DrawDebugInfo(m_pGraphics);
 	}
-	// 상단 저장하기 / 맵 중앙 버튼
 	{
 		Gdiplus::SolidBrush btnBrush(Gdiplus::Color(255, 70, 130, 180));
 		Gdiplus::Pen btnPen(Gdiplus::Color(255, 50, 80, 120), 2.0f);
@@ -472,7 +451,6 @@ void ObjectEditor::Render()
 		Gdiplus::RectF textRectCenter(m_rectCenterButton.X, m_rectCenterButton.Y, m_rectCenterButton.Width, m_rectCenterButton.Height);
 		m_pGraphics->DrawString(L"맵 중앙", -1, &font, textRectCenter, &sf, &textBrush);
 	}
-	// 좌측 하단 Launcher 버튼
 	{
 		Gdiplus::SolidBrush btnBrush(Gdiplus::Color(255, 70, 130, 180));
 		Gdiplus::Pen btnPen(Gdiplus::Color(255, 50, 80, 120), 2.0f);
@@ -486,7 +464,6 @@ void ObjectEditor::Render()
 		Gdiplus::RectF textRect(m_rectLauncherButton.X, m_rectLauncherButton.Y, m_rectLauncherButton.Width, m_rectLauncherButton.Height);
 		m_pGraphics->DrawString(L"Launcher", -1, &font, textRect, &sf, &textBrush);
 	}
-	// 저장 후 일정 시간 동안 "저장했습니다" 문구 표시
 	if (GetTickCount64() < m_savedMessageShowUntil) {
 		const WCHAR* msg = L"저장했습니다";
 		Gdiplus::Font msgFont(L"Malgun Gothic", 18, Gdiplus::FontStyleBold);
@@ -597,17 +574,14 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		RECT clientRect;
 		GetClientRect(hWnd, &clientRect);
 		POINT clickPoint = { LOWORD(lParam), HIWORD(lParam) };
-		// 상단 저장하기 버튼 클릭 시 선택 오브젝트 수정사항 저장
 		if (IsPointInSaveButton(clickPoint)) {
 			if (SaveObjects()) InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
 		}
-		// 가운데 상단 맵 중앙 버튼 클릭 시 뷰를 맵 중앙으로
 		if (IsPointInCenterButton(clickPoint)) {
 			CenterViewOnMap(hWnd);
 			return 0;
 		}
-		// 좌측 하단 Launcher 버튼 클릭 시 런처로 복귀
 		if (IsPointInLauncherButton(clickPoint)) {
 			m_requestedSwitch = EditorScreenSwitch::BackToLauncher;
 			InvalidateRect(hWnd, NULL, FALSE);
@@ -631,7 +605,6 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		auto subResult = m_pPalette->HandleSubPaletteClick(clickPoint);
 		if (subResult != EditorPalette::SubPaletteClickResult::NotHandled) {
 			if (subResult == EditorPalette::SubPaletteClickResult::ClosedWithSelection) {
-				// 선택된 오브젝트가 있으면 해당 오브젝트를 팔레트 선택으로 교체, 없으면 뷰 중앙에 스폰
 				if (m_selectedObjectPtr)
 					ReplaceSelectedObjectWithPaletteSelection(hWnd);
 				else
@@ -641,7 +614,6 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 				bool hasSel = (m_pPalette->GetSelectedPaletteIndex() >= 0 && m_pPalette->GetSelectedObjectVariant() != nullptr);
 				m_isPlacingMode = false;
 				if (!hasSel) m_pColliderEditor->EndColliderEdit();
-				// 선택 해제하지 않음 (m_selectedObjectPtr 유지)
 			}
 			m_paletteLayerDirty = true;
 			InvalidateRect(hWnd, NULL, FALSE);
@@ -655,7 +627,6 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 				return 0;
 			}
 		}
-		// 맵 영역 클릭: 오브젝트 선택만 (배치 모드 없음, 스폰은 팔레트 선택 시 뷰 중앙에만 수행)
 		HandleObjectSelectionClick(clickPoint, hWnd);
 	}
 	break;
@@ -675,7 +646,6 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 			InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
 		}
-		// 디버그 패널 위에서는 카메라 드래그 시작 안 함
 		if (m_pDebugPanel->IsVisible()) {
 			Gdiplus::RectF vr = m_pDebugPanel->GetViewportRect();
 			if (clickPoint.x >= (LONG)vr.X && clickPoint.x < (LONG)(vr.X + vr.Width) &&
@@ -712,7 +682,6 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		break;
 	case WM_MOUSEWHEEL: {
 		short zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-		// WM_MOUSEWHEEL의 lParam은 화면 좌표이므로 클라이언트 좌표로 변환 (MapEditor와 동일)
 		POINT ptScreen = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 		POINT ptClient = ptScreen;
 		ScreenToClient(hWnd, &ptClient);
@@ -727,7 +696,6 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 			}
 		}
 
-		// 윈도우 중앙을 기준으로 줌: 줌 후에도 윈도우 중앙에 있던 월드 점이 그대로 윈도우 중앙에 고정되도록 오프셋 보정
 		RECT clientRect;
 		GetClientRect(hWnd, &clientRect);
 		float centerX = (float)(clientRect.right) * 0.5f;
@@ -748,7 +716,6 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		return 0;
 	}
 	case WM_KEYDOWN: {
-		// Ctrl+S: 선택 오브젝트 수정사항 저장
 		if ((GetKeyState(VK_CONTROL) & 0x8000) && (wParam == 'S' || wParam == 's')) {
 			if (SaveObjects()) InvalidateRect(hWnd, NULL, FALSE);
 			return 0;
@@ -772,7 +739,6 @@ LRESULT ObjectEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPAR
 				m_pPivotEditor->EndPivotEdit();
 				redraw = true;
 			} else if (m_selectedObjectPtr) {
-				// 선택 해제 없음 (팔레트 교체를 위해 유지)
 				return 0;
 			} else {
 				m_requestedSwitch = EditorScreenSwitch::BackToLauncher;

@@ -18,18 +18,13 @@ void EditorPivotEditor::StartPivotEdit(ResourcePathUtils::ObjectResourceDef* pOb
 	m_currentPivotY = pObject->pivotY;
 	m_isPivotEditMode = true;
 
-	const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(pObject->type, pObject->id);
+	const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(pObject->id);
 	if (!ov || ov->imageName.empty()) {
-		OutputDebugStringW(L"Error: ObjectVariant not found for pivot edit.\n");
 		m_isPivotEditMode = false;
 		m_editingObject = nullptr;
 		return;
 	}
-	std::wstring fullPath = ov->baseDir;
-	if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-		fullPath += L"\\";
-	}
-	fullPath += ov->imageName;
+	std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 	std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
 		m_isPivotEditMode = false;
@@ -39,7 +34,6 @@ void EditorPivotEditor::StartPivotEdit(ResourcePathUtils::ObjectResourceDef* pOb
 	float objWidth = (float)pBitmap->GetWidth();
 	float objHeight = (float)pBitmap->GetHeight();
 
-	// 월드 좌표 → 화면 좌표 (EditorView와 동일: world * zoom + offset)
 	float screenX_center = (float)pObject->x * m_pView->GetZoomFactor() + (float)m_pView->GetMapOffset().x;
 	float screenY_center = (float)pObject->y * m_pView->GetZoomFactor() + (float)m_pView->GetMapOffset().y;
 
@@ -56,14 +50,10 @@ void EditorPivotEditor::StartPivotEdit(ResourcePathUtils::ObjectResourceDef* pOb
 void EditorPivotEditor::UpdatePivotEdit(POINT mousePos) {
 	if (!m_editingObject || !m_isPivotEditMode || !m_pView || !m_pResources) return;
 
-	const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(m_editingObject->type, m_editingObject->id);
+	const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(m_editingObject->id);
 	if (!ov || ov->imageName.empty()) return;
 
-	std::wstring fullPath = ov->baseDir;
-	if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-		fullPath += L"\\";
-	}
-	fullPath += ov->imageName;
+	std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 	std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) return;
 
@@ -97,14 +87,10 @@ void EditorPivotEditor::EndPivotEdit() {
 void EditorPivotEditor::DrawPivotEditor(Gdiplus::Graphics* pGraphics) const {
 	if (!pGraphics || !m_isPivotEditMode || !m_editingObject || !m_pView || !m_pResources) return;
 
-	const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(m_editingObject->type, m_editingObject->id);
+	const ResourcePathUtils::ObjectResourceDef* ov = m_pResources->GetObjectVariant(m_editingObject->id);
 	if (!ov || ov->imageName.empty()) return;
 
-	std::wstring fullPath = ov->baseDir;
-	if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-		fullPath += L"\\";
-	}
-	fullPath += ov->imageName;
+	std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 	std::shared_ptr<Gdiplus::Bitmap> pBitmap = m_pResources->GetCachedBitmap(fullPath);
 	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) return;
 
@@ -126,7 +112,6 @@ void EditorPivotEditor::DrawPivotEditor(Gdiplus::Graphics* pGraphics) const {
 	float pivotScreenX = imageRenderLeft + (m_editingObject->pivotX * scaledWidth);
 	float pivotScreenY = imageRenderTop + (m_editingObject->pivotY * scaledHeight);
 
-	// 피벗 십자·테두리 초록색 표시
 	Gdiplus::Pen pivotPen(Gdiplus::Color(255, 0, 200, 0), 2.0f);
 	pGraphics->DrawLine(&pivotPen, pivotScreenX - 10, pivotScreenY, pivotScreenX + 10, pivotScreenY);
 	pGraphics->DrawLine(&pivotPen, pivotScreenX, pivotScreenY - 10, pivotScreenX, pivotScreenY + 10);
@@ -135,7 +120,6 @@ void EditorPivotEditor::DrawPivotEditor(Gdiplus::Graphics* pGraphics) const {
 	pGraphics->DrawRectangle(&bboxPen, imageRenderLeft, imageRenderTop, scaledWidth, scaledHeight);
 }
 
-// ----- 피벗 입력 다이얼로그 (0.0~1.0) -----
 struct PivotDlgParam {
 	float curX, curY;
 	float outX, outY;
@@ -239,6 +223,6 @@ void EditorPivotEditor::ShowPivotDialog(HWND parent) {
 		m_editingObject->pivotX = param.outX;
 		m_editingObject->pivotY = param.outY;
 		if (m_pResources)
-			m_pResources->SaveObjectResourceOverride(m_editingObject->type, m_editingObject->id, *m_editingObject);
+			m_pResources->SaveObjectResourceOverride(m_editingObject->id, *m_editingObject);
 	}
 }

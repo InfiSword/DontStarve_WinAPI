@@ -18,8 +18,9 @@ void ItemSlot::Clear() {
 	count = 0;
 }
 
-Inventory::Inventory()
-	: m_slots(INVENTORY_SLOT_COUNT)
+Inventory::Inventory(Player* owner)
+	:m_player(owner)
+	, m_slots(INVENTORY_SLOT_COUNT)
 	, SLOT_WIDTH(64.0f)
 	, SLOT_HEIGHT(64.0f)
 	, SLOT_PADDING(10.0f)
@@ -269,7 +270,7 @@ void Inventory::Render(int equippedSlotIndex)
 			float bw = rt->GetWidth() * rt->GetScaleX();
 			float bh = rt->GetHeight() * rt->GetScaleY();
 			Gdiplus::RectF highlightRect(rt->GetX() - bw * 0.5f, rt->GetY() - bh * 0.5f, bw, bh);
-			pRM->AddDrawCommand(highlightRect, Gdiplus::Color(255, 255, 0, 0), 3.0f, LAYER_UI_FOREGROUND, 3.2f);
+			pRM->AddDrawCommand(highlightRect, Gdiplus::Color(255, 255, 255, 0), 3.0f, LAYER_UI_FOREGROUND, 3.2f);
 		}
 	}
 }

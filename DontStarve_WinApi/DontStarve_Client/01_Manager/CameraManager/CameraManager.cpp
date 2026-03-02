@@ -233,7 +233,7 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float 
 		// 모든 Collider를 검사해서 상호작용용 콜라이더 중 하나라도 클릭 지점을 포함하면 해당 오브젝트를 반환한다.
 		auto colliders = obj->GetComponents<Collider>();
 		for (Collider* collider : colliders) {
-			if (!collider || !collider->IsEnabled() || !collider->IsInteractionCollider()) {
+			if (!collider || !collider->IsEnabled() /*|| !collider->IsInteractionCollider()*/) {
 				continue;
 			}
 			if (collider->ContainsPoint(worldX, worldY)) {
@@ -431,7 +431,7 @@ void CameraManager::RenderVisibleGameObjects()
 	if (!renderManager) return;
 
 	for (GameObject* obj : m_visibleObjects) {
-		if (!obj || !obj->IsEnabled() || obj->GetType() == GOBJ_UI) {
+		if (!obj || !obj->IsEnabled()) {
 			continue;
 		}
 		renderManager->RenderGameObject(obj);

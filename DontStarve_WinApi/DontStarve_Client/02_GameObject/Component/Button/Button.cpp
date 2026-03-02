@@ -12,7 +12,7 @@ Button::Button(GameObject* owner,
 	const ButtonStateStyle& clickedStyle,
 	const ButtonStateStyle& disabledStyle)
 	: Component(owner),
-	m_buttonState(ButtonState::NORMAL),
+	m_buttonState(State::NORMAL),
 	m_isMouseOver(false),
 	m_isDisabled(false),
 	m_normal(normalStyle),
@@ -49,7 +49,7 @@ void Button::SetOnClickCallback(std::function<void()> callback)
 void Button::SetDisabled(bool disabled)
 {
 	m_isDisabled = disabled;
-	m_buttonState = disabled ? ButtonState::DISABLED : ButtonState::NORMAL;
+	m_buttonState = disabled ? State::DISABLED : State::NORMAL;
 }
 
 bool Button::IsPointInside(const RectTransform* rectTransform, ComponentElement::Image* image, float x, float y) const
@@ -85,14 +85,14 @@ bool Button::IsPointInside(const RectTransform* rectTransform, ComponentElement:
 	return (x >= left && x <= right && y >= top && y <= bottom);
 }
 
-const ButtonStateStyle& Button::GetStateStyle(ButtonState state) const
+const ButtonStateStyle& Button::GetStateStyle(State state) const
 {
 	switch (state) {
-	case ButtonState::HOVER:
+	case State::HOVER:
 		return m_hover;
-	case ButtonState::CLICKED:
+	case State::CLICKED:
 		return m_click;
-	case ButtonState::DISABLED:
+	case State::DISABLED:
 		return m_disabled;
 	default:
 		return m_normal;
@@ -103,9 +103,9 @@ bool Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 {
 	if (!rectTransform || !image) return false;
 
-	ButtonState previousState = m_buttonState;
+	State previousState = m_buttonState;
 
-	// 마우스 위치 가져오기 (모든 상태 판정에 공통으로 사용)
+	// 마우스 위치 가져오기
 	InputManager* inputManager = InputManager::GetInstance();
 	if (!inputManager) return false;
 	
@@ -117,7 +117,7 @@ bool Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 
 	// 비활성화 상태 처리
 	if (m_isDisabled) {
-		m_buttonState = ButtonState::DISABLED;
+		m_buttonState = State::DISABLED;
 		if (previousState != m_buttonState) {
 			ApplyVisualState(image);
 		}
@@ -126,31 +126,30 @@ bool Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 
 	// 클릭 처리 (가장 우선순위)
 	if (inside && inputManager->IsLButtonClicked()) {
-		m_buttonState = ButtonState::CLICKED;
-		// 콜백 호출 전에 상태 적용 (콜백에서 객체가 삭제될 수 있음)
+		m_buttonState = State::CLICKED;
 		if (previousState != m_buttonState) {
 			ApplyVisualState(image);
 		}
-		// 콜백이 이 객체를 삭제할 수 있으므로 마지막에 호출
+		// 콜백 호출
 		if (m_onClickCallback) {
 			m_onClickCallback();
-			return true; // 콜백 호출됨 → 호출부에서 버튼/UI 역참조 금지
+			return true; 
 		}
 		return false;
 	}
 
 	// 클릭 상태에서 버튼을 떼었을 때 처리
-	if (m_buttonState == ButtonState::CLICKED && !inputManager->IsLButtonDown()) {
-		m_buttonState = inside ? ButtonState::HOVER : ButtonState::NORMAL;
+	if (m_buttonState == State::CLICKED && !inputManager->IsLButtonDown()) {
+		m_buttonState = inside ? State::HOVER : State::NORMAL;
 		if (previousState != m_buttonState) {
 			ApplyVisualState(image);
 		}
 		return false;
 	}
 
-	// hover/normal 상태 처리 (WM_MOUSEMOVE에서 즉시 호출되므로 즉각적인 반응)
-	if (m_buttonState != ButtonState::CLICKED && m_buttonState != ButtonState::DISABLED) {
-		m_buttonState = inside ? ButtonState::HOVER : ButtonState::NORMAL;
+	// hover/normal 상태 처리
+	if (m_buttonState != State::CLICKED && m_buttonState != State::DISABLED) {
+		m_buttonState = inside ? State::HOVER : State::NORMAL;
 		if (previousState != m_buttonState) {
 			ApplyVisualState(image);
 		}
@@ -166,13 +165,11 @@ void Button::ApplyVisualState(ComponentElement::Image* image)
 
 	const ButtonStateStyle& style = GetStateStyle(m_buttonState);
 
-	// Image 컴포넌트 레이어 및 sortKey 적용
 	ComponentElement::ImageStyle imgStyle{
 		style.layer,
 		style.sortKeyOffset + static_cast<float>(m_buttonState)
 	};
 	image->ApplyStyle(imgStyle);
 
-	// Image 컴포넌트의 색상 설정 함수를 사용하여 틴트 색상 적용
 	image->SetTintColor(style.spriteColor);
 }

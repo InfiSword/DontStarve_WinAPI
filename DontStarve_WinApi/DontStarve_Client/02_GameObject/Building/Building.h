@@ -1,6 +1,14 @@
 #pragma once
 #include "../Entity/Entity.h"
 
+enum class BuildingState {
+	NOON = 0,
+	NIGHT,
+	DAMAGED,
+	DESTROYED,
+	COUNT
+};
+
 // Building - 건물을 의미하는 기본 클래스
 class Building : public Entity
 {

@@ -1,8 +1,6 @@
 #pragma once
 #include "Building.h"
 
-class ResourceManager;
-
 // Egg 단계: Sac(땅에서 막 생성), Small, Medium, Large
 enum class EggStage { Sac = 0, Small, Medium, Large, EggStageCount };
 
@@ -16,7 +14,8 @@ enum EggAnimState {
     EGG_STATE_HIT_LARGE = 12,
     EGG_STATE_GROW_SAC_TO_SMALL = 20,
     EGG_STATE_GROW_SMALL_TO_MEDIUM = 21,
-    EGG_STATE_GROW_MEDIUM_TO_LARGE = 22
+    EGG_STATE_GROW_MEDIUM_TO_LARGE = 22,
+    EGG_STATE_BURST_LARGE = 30
 };
 
 class SpiderEgg : public Building
@@ -33,6 +32,9 @@ public:
     virtual void LateUpdate() override;
     virtual void Release() override;
 
+    // GameObject 상호작용
+    virtual bool OnInteraction(GameObject* obj) override;
+
     // Building 특화 메서드
     virtual void Damaged(int damage) override;
     void SetTimeState(BuildingState buildingState) override;
@@ -43,9 +45,13 @@ public:
 
     EggStage GetEggStage() const { return m_eggStage; }
     void SetEggStage(EggStage stage) { m_eggStage = stage; }
+    
+    // 거미 스폰
+    void SpawnSpiders();
 
 private:
     EggStage m_eggStage;
     bool m_isPlayingGrowth;
     bool m_isPlayingHit;
+    float m_spawnRadius;  // 거미 스폰 범위
 };

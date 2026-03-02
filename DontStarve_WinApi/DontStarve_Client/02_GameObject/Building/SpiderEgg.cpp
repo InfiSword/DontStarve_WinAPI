@@ -2,10 +2,15 @@
 #include "SpiderEgg.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../03_Animation/Animator.h"
 #include "../../03_Animation/AnimationClip.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
+#include "../../02_GameObject/Component/Collider/BoxCollider.h"
+#include "../Entity/Monster/Spider.h"
+#include "../Entity/Player/Player.h"
+#include "../Item/Tool/Tool.h"
 
 SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivotY,
 	Direction _dir, const std::wstring& resourcePath,
@@ -14,6 +19,7 @@ SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivo
 	, m_eggStage(EggStage::Sac)
 	, m_isPlayingGrowth(false)
 	, m_isPlayingHit(false)
+	, m_spawnRadius(200.0f)
 {
 	if (id == GOID_BUILDING_SPIDER_SACEGG) m_eggStage = EggStage::Sac;
 	else if (id == GOID_BUILDING_SPIDER_SMALLEGG) m_eggStage = EggStage::Small;
@@ -32,7 +38,7 @@ void SpiderEgg::Init()
 	Building::Init();
 
 	OutputDebugStringW(L"SpiderEgg: Init 시작\n");
-	m_buildingState = BUILDING_NOON;
+	m_buildingState = BuildingState::NOON;
 
 	Transform* transform = GetComponent<Transform>();
 	if (!transform) {
@@ -81,11 +87,15 @@ void SpiderEgg::Init()
 	m_animator->RegisterAnimation(EGG_STATE_GROW_MEDIUM_TO_LARGE, DIR_DOWN, base + L"Grow\\Egg_spider_cocoon_grow_medium_to_large.png",
 		0, 0, 7, 43, px, py, false, 0.04f);
 
+	// Burst (loop=false)
+	m_animator->RegisterAnimation(EGG_STATE_BURST_LARGE, DIR_DOWN, base + L"Burst\\Egg_spider_cocoon_cocoon_large_burst.png",
+		0, 0, 7, 43, px, py, false, 0.04f);
+
 	// 현재 단계에 맞는 Idle로 시작
 	int idleState = EGG_STATE_IDLE_SMALL;
 	if (m_eggStage == EggStage::Medium) idleState = EGG_STATE_IDLE_MEDIUM;
 	else if (m_eggStage == EggStage::Large) idleState = EGG_STATE_IDLE_LARGE;
-	else if (m_eggStage == EggStage::Sac) idleState = EGG_STATE_IDLE_SMALL; // Sac은 아직 미표시 시 Idle Small로 대기
+	else if (m_eggStage == EggStage::Sac) idleState = EGG_STATE_IDLE_SMALL;
 	m_animator->SetState(idleState, transform->GetDirection());
 
 	// Sac 상태: 아무것도 렌더링하지 않음.
@@ -139,36 +149,51 @@ void SpiderEgg::Update(float deltaTime)
 
 void SpiderEgg::LateUpdate()
 {
-	// 부모 클래스의 LateUpdate() 호출하여 컴포넌트 업데이트
 	Building::LateUpdate();
 }
 
 void SpiderEgg::Release()
 {
-	// SpiderEgg 전용 정리 작업
 	m_animator = nullptr;
-
-	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
 	Building::Release();
+}
+
+bool SpiderEgg::OnInteraction(GameObject* obj)
+{
+	if (!obj) return false;
+
+	Player* pPlayer = dynamic_cast<Player*>(obj);
+	if (!pPlayer) return false;
+
+	// 도구를 장착하고 있는지 확인 (도구가 있어야 피해를 입힐 수 있음)
+	if (pPlayer->GetEquippedItem())
+	{
+		return true;
+	}
+
+	return false;
 }
 
 void SpiderEgg::Damaged(int damage)
 {
 	OutputDebugStringW((L"SpiderEgg: Damaged - 데미지: " + std::to_wstring(damage) + L"\n").c_str());
 
+	// 거미 스폰 (피격 시)
+	SpawnSpiders();
+
 	m_hp -= damage;
 	if (m_hp <= 0) {
 		m_hp = 0;
-		m_buildingState = BUILDING_DESTROYED;
+		m_buildingState = BuildingState::DESTROYED;
 		OutputDebugStringW(L"SpiderEgg: 파괴됨\n");
-		// TODO: 파괴 효과 처리
 	}
 	else {
 		if (m_hp <= m_maxHp / 2) {
-			m_buildingState = BUILDING_DAMAGED;
+			m_buildingState = BuildingState::DAMAGED;
 			OutputDebugStringW(L"SpiderEgg: 손상됨\n");
 		}
-		// 파괴되지 않았을 때만 Hit 애니메이션 재생
+		
+		// Hit 애니메이션 재생
 		if (m_animator) {
 			Transform* transform = GetComponent<Transform>();
 			if (transform) {
@@ -176,10 +201,75 @@ void SpiderEgg::Damaged(int damage)
 				int hitState = EGG_STATE_HIT_SMALL;
 				if (m_eggStage == EggStage::Medium) hitState = EGG_STATE_HIT_MEDIUM;
 				else if (m_eggStage == EggStage::Large) hitState = EGG_STATE_HIT_LARGE;
-				m_animator->SetState(hitState, transform->GetDirection());
+
+				// 만약 이미 Hit 애니메이션이 재생 중이라면 처음부터 다시 재생되도록 처리
+				if (m_animator->GetClip() == m_animator->GetAnimationClip(hitState, transform->GetDirection()))
+				{
+					m_animator->Stop();
+					m_animator->Play();
+				}
+				else
+				{
+					m_animator->SetState(hitState, transform->GetDirection());
+				}
 			}
 		}
 	}
+}
+
+void SpiderEgg::SpawnSpiders()
+{
+	Transform* eggTransform = GetComponent<Transform>();
+	if (!eggTransform) return;
+
+	float eggX = eggTransform->GetX();
+	float eggY = eggTransform->GetY();
+
+	// 거미집 단계에 따라 스폰 수 결정
+	int spawnCount = 0;
+	if (m_eggStage == EggStage::Small) spawnCount = 1;
+	else if (m_eggStage == EggStage::Medium) spawnCount = 2;
+	else if (m_eggStage == EggStage::Large) spawnCount = 3;
+
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	if (!objectManager) return;
+
+	for (int i = 0; i < spawnCount; ++i)
+	{
+		// 거미집 주변 무작위 위치 계산
+		float angle = (rand() / (float)RAND_MAX) * 6.283185307f;  // 0 ~ 2*PI
+		float distance = 50.0f + (rand() / (float)RAND_MAX) * 100.0f;  // 50 ~ 150 픽셀 거리
+		float spawnX = eggX + cosf(angle) * distance;
+		float spawnY = eggY + sinf(angle) * distance;
+
+		// 거미 생성 (Large 단계면 전사 거미 스폰 확률 추가)
+		GameObjectID spiderID = GOID_MONSTER_SPIDER;
+		if (m_eggStage == EggStage::Large && (rand() % 2 == 0)) {
+			spiderID = GOID_MONSTER_WARRIOR_SPIDER;
+		}
+
+		GameObject* spiderObj = objectManager->CreateGameObject(spiderID, spawnX, spawnY, nullptr, true);
+		if (spiderObj)
+		{
+			Spider* spider = dynamic_cast<Spider*>(spiderObj);
+			if (spider)
+			{
+				// 거미에게 소속 거미집 설정
+				spider->SetHomeEgg(this, m_spawnRadius);
+
+				// 플레이어 발견 시 타겟팅 (Egg가 공격받았을 때 나오는 거미는 플레이어를 즉시 타겟팅)
+				GameObject* player = objectManager->GetPlayer();
+				if (player) {
+					spider->SetAggroTarget(player);
+				}
+
+				OutputDebugStringW((L"SpiderEgg: 거미 스폰 성공 - 위치: (" + 
+					std::to_wstring(spawnX) + L", " + std::to_wstring(spawnY) + L")\n").c_str());
+			}
+		}
+	}
+
+	OutputDebugStringW((L"SpiderEgg: 거미 " + std::to_wstring(spawnCount) + L"마리 스폰 완료\n").c_str());
 }
 
 void SpiderEgg::Grow()
@@ -200,7 +290,6 @@ void SpiderEgg::Grow()
 		m_isPlayingGrowth = true;
 		m_animator->SetState(EGG_STATE_GROW_MEDIUM_TO_LARGE, transform->GetDirection());
 	}
-	// Large면 아무것도 하지 않음
 }
 
 void SpiderEgg::SetTimeState(BuildingState buildingState)

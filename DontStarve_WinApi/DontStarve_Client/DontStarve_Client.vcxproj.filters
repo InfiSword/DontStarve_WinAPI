@@ -16,7 +16,6 @@
     <ClCompile Include="03_Animation\AnimationClip.cpp" />
     <ClCompile Include="03_Animation\Animator.cpp" />
     <ClCompile Include="03_Animation\SpriteSheet.cpp" />
-    <ClCompile Include="02_GameObject\Entity\Monster\Monster.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Rock.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Tree.cpp" />
     <ClCompile Include="02_GameObject\Item\Ingredient.cpp" />
@@ -61,6 +60,10 @@
     <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
     <ClCompile Include="02_GameObject\UI\PlayerHPUI.cpp" />
     <ClCompile Include="02_GameObject\Component\Sprite\Sprite.cpp" />
+    <ClCompile Include="02_GameObject\Item\Tool\Axe\Axe.cpp" />
+    <ClCompile Include="02_GameObject\Item\Tool\Pickaxe\Pickaxe.cpp" />
+    <ClCompile Include="02_GameObject\Item\Tool\Torch\Torch.cpp" />
+    <ClCompile Include="02_GameObject\Item\Tool\Weapon\Weapon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -81,7 +84,6 @@
     <ClInclude Include="03_Animation\AnimationClip.h" />
     <ClInclude Include="03_Animation\Animator.h" />
     <ClInclude Include="03_Animation\SpriteSheet.h" />
-    <ClInclude Include="02_GameObject\Entity\Monster\Monster.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Rock.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Tree.h" />
     <ClInclude Include="01_Manager\AnimationManager\AnimationManager.h" />
@@ -130,6 +132,10 @@
     <ClInclude Include="02_GameObject\UI\PlayerHPUI.h" />
     <ClInclude Include="02_GameObject\Component\Sprite\Sprite.h" />
     <ClInclude Include="02_GameObject\UI\CraftingRecipe.h" />
+    <ClInclude Include="02_GameObject\Item\Tool\Axe\Axe.h" />
+    <ClInclude Include="02_GameObject\Item\Tool\Pickaxe\Pickaxe.h" />
+    <ClInclude Include="02_GameObject\Item\Tool\Torch\Torch.h" />
+    <ClInclude Include="02_GameObject\Item\Tool\Weapon\Weapon.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

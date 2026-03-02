@@ -1,24 +1,29 @@
 #pragma once
 #include "../Entity.h"
 
-class ResourceManager;
+enum class GrassState {
+	IDLE = 0,    // 일반 상태
+	PICKED,      // 뽑힌 상태
+	REGROWING,   // 재성장 중
+	COUNT
+};
 
 class Grass : public Entity
 {
 public:
-    Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+    Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"");
     virtual ~Grass();
 
     virtual void Init() override;
-    virtual void LateInit() override;
     virtual void Update(float deltaTime) override;
-    virtual void LateUpdate() override;
     virtual void Release() override;
 
-    virtual void Damaged(int damage) override;
     virtual bool OnInteraction(GameObject* obj) override;
+    virtual void Damaged(int damage) override;
+
+    GrassState GetGrassState() const { return m_grassState; }
 
 private:
-    GrassState m_state;
+    GrassState m_grassState;
+    float m_regrowTimer;
 };
-

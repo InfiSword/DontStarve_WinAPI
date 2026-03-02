@@ -8,12 +8,15 @@
 #include "../../02_GameObject/Component/Collider/CircleCollider.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
-Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
+Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
 	const std::wstring& baseDir, const std::wstring& imageName, bool isActive, bool isInteractive)
-	:GameObject(type, id, L"", imageName, isActive, isInteractive),
+	:GameObject(id, L"", imageName, isActive, isInteractive),
 	m_dropItemID(GOID_NONE),
 	m_dropItemCount(0),
 	m_isDead(false),
+	m_hp(100),
+	m_maxHp(100),
+	m_state(0),
 	m_animator(nullptr)
 {
 	// Transform 컴포넌트 추가
@@ -22,7 +25,7 @@ Entity::Entity(GameObjectType type, GameObjectID id, float x, float y, float piv
 	transform->SetPivot(pivotX, pivotY);
 	transform->SetDirection(_dir);
 
-	// SpriteRenderer 컴포넌트 추가 (baseDir + imageName으로 전체 경로 구성)
+	// SpriteRenderer 컴포넌트 추가
 	SpriteRenderer* spriteRenderer = AddComponent<SpriteRenderer>();
 	spriteRenderer->SetLayer(LAYER_WORLD_OBJECT);
 	if (!imageName.empty())
@@ -80,11 +83,9 @@ void Entity::Update(float deltaTime)
 
 void Entity::Release()
 {
-	// Entity 전용 정리 작업
 	m_animator = nullptr;
 	transform = nullptr;
 	spriteRenderer = nullptr;
 
-	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
 	GameObject::Release();
 }

@@ -132,9 +132,9 @@ void SceneManager::LoadAllMapData()
 
 bool SceneManager::ParseMapFile(const std::wstring& mapFileName, MapData& outMapData)
 {
-	// 맵 파일에는 type, id, x, y만 저장됨. 오브젝트 상세(피벗/콜라이더)는 파서에서 사용하지 않음(생성 시 ResourceManager에서 조회)
+	// 맵 파일에는 id, x, y만 저장됨. 오브젝트 상세(피벗/콜라이더)는 파서에서 사용하지 않음(생성 시 ResourceManager에서 조회)
 	ResourceManager* resMgr = ResourceManager::GetInstance();
-	auto getObjectResourceInfo = [resMgr](GameObjectType /*type*/, GameObjectID id) -> const ResourcePathUtils::ObjectResourceDef* {
+	auto getObjectResourceInfo = [resMgr](GameObjectID id) -> const ResourcePathUtils::ObjectResourceDef* {
 		return resMgr->GetObjectResourceInfo(id);
 	};
 	return ResourcePathUtils::ParseMapFileInto(mapFileName, outMapData, getObjectResourceInfo);

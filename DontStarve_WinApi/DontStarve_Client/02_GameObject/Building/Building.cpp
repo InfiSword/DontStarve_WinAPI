@@ -6,8 +6,8 @@
 Building::Building(GameObjectID id, float x, float y, float pivotX, float pivotY, 
     Direction _dir, const std::wstring& resourcePath,
                    const std::wstring& imageName, int hp)
-    : Entity(GOBJ_BUILDING, id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, true, true),
-      m_hp(hp), m_maxHp(hp), m_buildingState(BUILDING_NOON)
+    : Entity(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, true, true),
+      m_hp(hp), m_maxHp(hp), m_buildingState(BuildingState::NOON)
 {
 
 }
@@ -19,7 +19,7 @@ Building::~Building()
 void Building::Init()
 {
     Entity::Init();
-    m_buildingState = BUILDING_NOON;
+    m_buildingState = BuildingState::NOON;
 }
 
 void Building::LateInit()
@@ -55,12 +55,12 @@ void Building::Damaged(int damage)
     {
         m_hp = 0;
        
-        m_buildingState = BUILDING_DESTROYED;
+        m_buildingState = BuildingState::DESTROYED;
     }
     else if (m_hp <= m_maxHp / 2)
     {
 
-        m_buildingState = BUILDING_DAMAGED;
+        m_buildingState = BuildingState::DAMAGED;
     }
 }
 
@@ -74,21 +74,3 @@ BuildingState Building::GetTimeState() const
 {
     return m_buildingState;
 }
-
-//std::wstring Building::GetAnimKey(BuildingState state)
-//{
-//    std::wstring key;
-//    if (state == BUILDING_NOON) {
-//        key = L"Building_Noon";
-//    }
-//    else if (state == BUILDING_NIGHT) {
-//        key = L"Building_Night";
-//    }
-//    else if (state == BUILDING_DAMAGED) {
-//        key = L"Building_Damaged";
-//    }
-//    else {
-//        key = L"Building_Destroyed";
-//    }
-//    return key;
-//}

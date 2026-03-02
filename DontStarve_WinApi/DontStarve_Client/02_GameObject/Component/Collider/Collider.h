@@ -17,10 +17,6 @@ public:
     void SetColliderEnabled(bool enabled) { SetActive(enabled); }
     bool IsColliderEnabled() const { return IsEnabled(); }
 
-    // 상호작용(클릭 피킹)에 사용할 콜라이더인지 여부
-    void SetInteractionCollider(bool interaction) { m_isInteractionCollider = interaction; }
-    bool IsInteractionCollider() const { return m_isInteractionCollider; }
-
     virtual bool IntersectsCollider(const Collider* other) const = 0;  
 
     // 월드 좌표 점이 콜라이더 내부에 있는지 (상호작용 범위 판정 등에 사용)

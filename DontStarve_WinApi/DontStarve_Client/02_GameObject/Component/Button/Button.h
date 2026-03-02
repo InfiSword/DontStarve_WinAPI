@@ -15,6 +15,15 @@ struct ButtonStateStyle {
 class Button : public Component
 {
 public:
+	enum class State
+	{
+		NORMAL,
+		HOVER,
+		CLICKED,
+		DISABLED
+	};
+
+public:
 	Button(GameObject* owner,
 		const ButtonStateStyle& normalStyle,
 		const ButtonStateStyle& hoverStyle,
@@ -28,19 +37,13 @@ public:
 	void SetOnClickCallback(std::function<void()> callback);
 	
 	void SetDisabled(bool disabled);
-	ButtonState GetState() const { return m_buttonState; }
+	State GetState() const { return m_buttonState; }
 	bool IsDisabled() const { return m_isDisabled; }
 
-	const ButtonStateStyle& GetStateStyle(ButtonState state) const;
+	const ButtonStateStyle& GetStateStyle(State state) const;
 
 	bool UpdateState(const RectTransform* rectTransform, ComponentElement::Image* image);
 	void ApplyVisualState(ComponentElement::Image* image);
-	
-	// 스타일 설정 메서드
-	//void SetNormalStyle(const ButtonStateStyle& style) { m_normal = style; }
-	//void SetHoverStyle(const ButtonStateStyle& style) { m_hover = style; }
-	//void SetClickedStyle(const ButtonStateStyle& style) { m_click = style; }
-	//void SetDisabledStyle(const ButtonStateStyle& style) { m_disabled = style; }
 	
 	// 색상만 변경하는 편의 메서드
 	void SetNormalColor(const Gdiplus::Color& color) { m_normal.spriteColor = color; }
@@ -49,7 +52,7 @@ public:
 	void SetDisabledColor(const Gdiplus::Color& color) { m_disabled.spriteColor = color; }
 
 private:
-	ButtonState m_buttonState;
+	State m_buttonState;
 	bool m_isMouseOver;
 	bool m_isDisabled;
 	std::function<void()> m_onClickCallback;

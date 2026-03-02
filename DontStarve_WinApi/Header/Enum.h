@@ -30,71 +30,22 @@ enum TileID
 
 };
 
-// 보스 타입 정의
-enum BossType
-{
-	BOSS_NONE = 0,
-	BOSS_HOUND,           // Hound 보스
-	BOSS_SPIDER_QUEEN,    // Spider Queen 보스
-	BOSS_COUNT
-};
-
-// 캐릭터 타입 정의
-enum CharacterType
-{
-	CHARACTER_WILSON = 0,     // 기본 캐릭터 (항상 해금됨)
-	CHARACTER_WILLOW = 1,     // Hound 보스 클리어 시 해금
-	CHARACTER_WOLFGANG = 2,   // Spider Queen 보스 클리어 시 해금
-	CHARACTER_COUNT
-};
-
-// 씬 타입 정의 (타이틀, 캐릭터 선택, 게임, 각 씬 등)
-// (타이틀, 캐릭터 선택, 게임, 각 씬 등)
+// 씬 타입 정의
 enum SceneType
 {
 	SCENE_NONE = 0,
 	SCENE_TITLE,               // 타이틀 씬
 	SCENE_CHARACTER_SELECT,    // 캐릭터 선택 씬
-	SCENE_GAME_FARMING_AREA,        // 1번째: 농장 지역 (기본으로 해금)
-	SCENE_GAME_HOUND_FOREST,        // 2번째: 하운드 숲 (기본으로 해금)
-	SCENE_GAME_SPIDER_QUEEN_HOUSE,  // 3번째: 거미여왕 집 (기본으로 해금)
+	SCENE_GAME_FARMING_AREA,        // 1번째: 농장 지역
+	SCENE_GAME_HOUND_FOREST,        // 2번째: 하운드 숲
+	SCENE_GAME_SPIDER_QUEEN_HOUSE,  // 3번째: 거미여왕 집
 	SCENE_COUNT
-};
-
-// 맵 로드 상태 정의
-enum class LoadingState
-{
-	NOT_STARTED,
-	LOADING_MAP,
-	CREATING_OBJECTS,
-	SPAWNING_PLAYER,
-	COMPLETED,
-	FAILED
-};
-
-// 게임오브젝트 타입 정의
-enum GameObjectType {
-	GOBJ_NONE = 0,
-
-	GOBJ_PLAYER,
-	// 아이템, 도구 등등
-	GOBJ_ITEM,
-	// 자연 오브젝트 (나무, 돌, 풀)
-	GOBJ_NATURAL_ENVIR,
-	// 몬스터 
-	GOBJ_MONSTER,
-	// 건물
-	GOBJ_BUILDING,
-	// UI 요소 (버튼, 이미지 등)
-	GOBJ_UI,
-
-	GOBJ_COUNT      // 게임오브젝트 개수
 };
 
 enum GameObjectID : UINT {
 	GOID_NONE = 0,
 
-	// 자연 오브젝트
+	// 자연 오브젝트 (1 ~ 99)
 	GOID_NORMAL_GRASS = 1,
 	GOID_NORMAL_TREE_SHORT = 2,
 	GOID_NORMAL_TREE_NORMAL = 3,
@@ -104,7 +55,7 @@ enum GameObjectID : UINT {
 	GOID_NORMAL_SAPLING = 7,
 	GOID_BERRY_TREE = 8,
 
-	// 몬스터
+	// 몬스터 (100 ~ 199)
 	GOID_MONSTER_PIG = 101,
 	GOID_MONSTER_SPIDER = 102,
 	GOID_MONSTER_WARRIOR_SPIDER = 103,
@@ -113,14 +64,14 @@ enum GameObjectID : UINT {
 	GOID_MONSTER_REDHOUNDDOG = 106,
 	GOID_MONSTER_ICEHOUNDDOG = 107,
 
-	// 건물들
+	// 건물들 (200 ~ 299)
 	GOID_BUILDING_PIGHOUSE = 201,
 	GOID_BUILDING_SPIDER_SMALLEGG = 202,
 	GOID_BUILDING_SPIDER_NORMALEGG = 203,
 	GOID_BUILDING_SPIDER_TALLEGG = 204,
 	GOID_BUILDING_SPIDER_SACEGG = 205,
 
-	// 아이템 (재료류)
+	// 아이템 - 재료 (300 ~ 399)
 	GOID_ITEM_CUT_NORMAL_GRASS = 301,
 	GOID_ITEM_NORMAL_TREE_LOG = 302,
 	GOID_ITEM_NORMAL_TWIGS = 303,
@@ -137,7 +88,7 @@ enum GameObjectID : UINT {
 	GOID_ITEM_COOKED_SMALL_MEAT = 314,
 	GOID_ITEM_COOKED_MEAT = 315,
 
-	// 도구 (장비류)
+	// 도구 - 장비 (400 ~ 499)
 	GOID_TOOL_GOLDEN_SCYTHE = 401,
 	GOID_TOOL_HAM_BAT = 402,
 	GOID_TOOL_PICKAXE = 403,
@@ -149,12 +100,12 @@ enum GameObjectID : UINT {
 	GOID_TOOL_HALBERD = 409,
 	GOID_TOOL_HAMMER = 410,
 
-	// 플레이어 캐릭터
+	// 플레이어 캐릭터 (1000 ~ 1999)
 	GOID_PLAYER_WILSON = 1001,
 	GOID_PLAYER_WILLOW = 1002,
 	GOID_PLAYER_WOLFGANG = 1003,
 
-	// UI 
+	// UI (3000 ~ )
 	GOID_MAIN_BG = 3001,
 	GOID_GAME_LOGO = 3002,
 	GOID_BUTTON1 = 3003,
@@ -184,15 +135,7 @@ enum GameObjectID : UINT {
 	GOID_CRAFT_TOOL_HAMMER = 3027,
 };
 
-// 에디터 팔레트 카테고리 정의 ( 에디터 전용 )
-enum ItemCategory {
-	CATEGORY_NONE = -1,
-	CATEGORY_TILE,
-	CATEGORY_OBJECT
-};
-
-
-// GameObject 방향 정의
+// GameObject 방향 정의 (전역 유지)
 enum Direction {
 	DIR_NONE = 0,
 	DIR_UP,
@@ -200,67 +143,6 @@ enum Direction {
 	DIR_LEFT,
 	DIR_RIGHT,
 	DIR_COUNT
-};
-
-enum PlayerState {
-	IDLE,               // 대기 상태 (애니메이션 없음)
-	WALK,               // 걷기 상태 (이동 중)
-	MOVING_TO_TARGET,   // 클릭한 위치로 이동 중
-	PICKUP,             // 오브젝트를 집는 중
-	CHOP,
-	MINE,               // 곡괭이로 채광 중
-	ATTACK,
-	HIT,
-	COUNT,
-};
-
-// Monster 상태 정의
-enum MonsterState
-{
-	MONSTER_IDLE = 0,
-	MONSTER_WALK,
-	MONSTER_RUN,
-	MONSTER_ATTACK,
-	MONSTER_HIT,
-	MONSTER_DEATH,
-	MONSTER_PATROL,
-	MONSTER_CHASE,
-	MONSTER_STATE_COUNT
-};
-
-// Tree 상태 정의  
-enum TreeState {
-	TREE_IDLE = 0,    // 일반 상태 (서있음)
-	TREE_CHOP,        // 벌목중인 상태
-	TREE_FALL,        // 넘어지는 중인 상태
-	TREE_FALLEN,      // 넘어진 후의 상태
-	TREE_STATE_COUNT
-};
-
-// Rock 상태 정의 (파괴 단계)
-enum RockState {
-	ROCK_INTACT = 0,   // 온전한 상태 (level1)
-	ROCK_CRACKED,      // 금 간 상태 (level2)  
-	ROCK_BROKEN,       // 깨진 상태 (level3)
-	ROCK_DESTROYED,    // 완전히 파괴된 상태
-	ROCK_STATE_COUNT
-};
-
-// Grass 상태 정의
-enum GrassState {
-	GRASS_IDLE = 0,    // 일반 상태
-	GRASS_PICKED,      // 뽑힌 상태
-	GRASS_REGROWING,   // 재성장 중
-	GRASS_STATE_COUNT
-};
-
-// Building 상태 정의 (시간 단계)
-enum BuildingState {
-	BUILDING_NOON = 0,
-	BUILDING_NIGHT,
-	BUILDING_DAMAGED,
-	BUILDING_DESTROYED,
-	BUILDING_STATE_COUNT
 };
 
 enum RenderLayer {
@@ -273,21 +155,6 @@ enum RenderLayer {
 	LAYER_DEBUG_OVERLAY,         // 디버그 오버레이 (최상 위)
 
 	LAYER_COUNT                  // 레이어 개수
-};
-
-enum class ButtonState
-{
-	NORMAL,
-	HOVER,
-	CLICKED,
-	DISABLED
-};
-
-enum class ToolState 
-{
-	TOOL_NORMAL,
-	TOOL_CRACKED,
-	TOOL_BROKEN,
 };
 
 enum Time {

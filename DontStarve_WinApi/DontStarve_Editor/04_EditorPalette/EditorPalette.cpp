@@ -20,22 +20,20 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourc
 	const int padding = 5;
 	int currentY = m_paletteRect.top + padding;
 
+	// 1. 타일 섹션
 	if (showTiles) {
 		for (int i = 0; i < TILE_COUNT; ++i) {
 			TileType type = (TileType)i;
 			if (type == TILE_NONE || type == TILE_COUNT) continue;
 
-			auto type_map_it = m_pResources->GetTileVariants().find(type);
-			if (type_map_it != m_pResources->GetTileVariants().end() && !type_map_it->second.empty()) {
+			auto const& tileVars = m_pResources->GetTileVariants();
+			auto type_map_it = tileVars.find(type);
+			if (type_map_it != tileVars.end() && !type_map_it->second.empty()) {
 				const ResourcePathUtils::TileResourceDef& sampleVariant = type_map_it->second.begin()->second;
 				Gdiplus::Bitmap* iconBitmap = nullptr;
 				Gdiplus::RectF iconSrcRect(0, 0, 0, 0);
 				if (!sampleVariant.imageName.empty()) {
-					std::wstring fullPath = sampleVariant.baseDir;
-					if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-						fullPath += L"\\";
-					}
-					fullPath += sampleVariant.imageName;
+					std::wstring fullPath = ResourcePathUtils::BuildResourcePath(sampleVariant.baseDir, sampleVariant.imageName);
 					std::shared_ptr<Gdiplus::Bitmap> sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
 					if (sharedBitmap) {
 						iconBitmap = sharedBitmap.get();
@@ -49,22 +47,24 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourc
 		}
 	}
 
-	for (int i = 0; i < GOBJ_COUNT; ++i) {
-		GameObjectType type = (GameObjectType)i;
-		if (type == GOBJ_NONE || type == GOBJ_COUNT || type == GOBJ_PLAYER) continue;
+	// 2. 오브젝트 섹션 (내부 ObjectCategory 기반 분류)
+	for (int i = 0; i < (int)ObjectCategory::Count; ++i) {
+		ObjectCategory cat = (ObjectCategory)i;
+		
+		// 해당 카테고리에 속하는 샘플 찾기
+		const ResourcePathUtils::ObjectResourceDef* sampleVariant = nullptr;
+		for (auto const& pair : m_pResources->GetObjectVariants()) {
+			if (EditorResourceManager::GetCategoryFromID(pair.first) == cat) {
+				sampleVariant = &pair.second;
+				break;
+			}
+		}
 
-		auto type_map_it = m_pResources->GetObjectVariants().find(type);
-		if (type_map_it != m_pResources->GetObjectVariants().end() && !type_map_it->second.empty()) {
-			const ResourcePathUtils::ObjectResourceDef& sampleVariant = type_map_it->second.begin()->second;
+		if (sampleVariant) {
 			Gdiplus::Bitmap* iconBitmap = nullptr;
 			Gdiplus::RectF iconSrcRect(0, 0, 0, 0);
-			if (!sampleVariant.imageName.empty()) {
-				// 캐시된 비트맵 로드
-				std::wstring fullPath = sampleVariant.baseDir;
-				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-					fullPath += L"\\";
-				}
-				fullPath += sampleVariant.imageName;
+			if (!sampleVariant->imageName.empty()) {
+				std::wstring fullPath = ResourcePathUtils::BuildResourcePath(sampleVariant->baseDir, sampleVariant->imageName);
 				std::shared_ptr<Gdiplus::Bitmap> sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
 				if (sharedBitmap) {
 					iconBitmap = sharedBitmap.get();
@@ -72,7 +72,7 @@ void EditorPalette::InitPalette(int clientWidth, int clientHeight, EditorResourc
 				}
 			}
 			RECT itemRect = { m_paletteRect.left + padding, currentY, m_paletteRect.left + padding + itemSize, currentY + itemSize };
-			m_paletteItems.push_back({ CATEGORY_OBJECT, (int)type, (UINT)type, itemRect, iconBitmap, iconSrcRect });
+			m_paletteItems.push_back({ CATEGORY_OBJECT, (int)cat, (UINT)cat, itemRect, iconBitmap, iconSrcRect });
 			currentY += itemSize + padding;
 		}
 	}
@@ -133,7 +133,6 @@ void EditorPalette::DrawSubPalette(Gdiplus::Graphics* pGraphics) const {
 		(Gdiplus::REAL)(m_subPalette.rect.right - m_subPalette.rect.left),
 		(Gdiplus::REAL)(m_subPalette.rect.bottom - m_subPalette.rect.top));
 
-	const int subItemSize = 48;
 	for (size_t i = 0; i < m_subPalette.itemRects.size(); ++i) {
 		const RECT& itemRect = m_subPalette.itemRects[i];
 		Gdiplus::Bitmap* itemBitmap = nullptr;
@@ -144,11 +143,7 @@ void EditorPalette::DrawSubPalette(Gdiplus::Graphics* pGraphics) const {
 		if (m_subPalette.category == CATEGORY_TILE) {
 			const ResourcePathUtils::TileResourceDef* tv = m_subPalette.currentTileVariantDefs[i].second;
 			if (tv && !tv->imageName.empty() && m_pResources) {
-				std::wstring fullPath = tv->baseDir;
-				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-					fullPath += L"\\";
-				}
-				fullPath += tv->imageName;
+				std::wstring fullPath = ResourcePathUtils::BuildResourcePath(tv->baseDir, tv->imageName);
 				sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
 				if (sharedBitmap && sharedBitmap->GetLastStatus() == Gdiplus::Ok) {
 					itemBitmap = sharedBitmap.get();
@@ -160,11 +155,7 @@ void EditorPalette::DrawSubPalette(Gdiplus::Graphics* pGraphics) const {
 		else if (m_subPalette.category == CATEGORY_OBJECT) {
 			const ResourcePathUtils::ObjectResourceDef* ov = m_subPalette.currentObjectVariantDefs[i].second;
 			if (ov && !ov->imageName.empty() && m_pResources) {
-				std::wstring fullPath = ov->baseDir;
-				if (!fullPath.empty() && fullPath.back() != L'\\' && fullPath.back() != L'/') {
-					fullPath += L"\\";
-				}
-				fullPath += ov->imageName;
+				std::wstring fullPath = ResourcePathUtils::BuildResourcePath(ov->baseDir, ov->imageName);
 				sharedBitmap = m_pResources->GetCachedBitmap(fullPath);
 				if (sharedBitmap && sharedBitmap->GetLastStatus() == Gdiplus::Ok) {
 					itemBitmap = sharedBitmap.get();
@@ -229,10 +220,9 @@ EditorPalette::SubPaletteClickResult EditorPalette::HandleSubPaletteClick(POINT 
 				return SubPaletteClickResult::ClosedWithSelection;
 			}
 		}
-		return SubPaletteClickResult::NotHandled; // in rect but not on item
+		return SubPaletteClickResult::NotHandled;
 	}
 
-	// 팔레트 밖(맵) 클릭 시 서브팔레트만 닫고, 선택은 유지 → 같은 클릭으로 배치 가능
 	m_subPalette.isOpen = false;
 	return SubPaletteClickResult::ClosedOutside;
 }
@@ -248,8 +238,9 @@ bool EditorPalette::HandleMainPaletteClick(POINT clickPoint, int clientHeight) {
 				m_subPalette.category = CATEGORY_TILE;
 				m_subPalette.targetCategoryId = m_paletteItems[i].typeId;
 				m_subPalette.currentTileVariantDefs.clear();
-				auto type_map_it = m_pResources->GetTileVariants().find((TileType)m_paletteItems[i].typeId);
-				if (type_map_it != m_pResources->GetTileVariants().end()) {
+				auto const& tileVars = m_pResources->GetTileVariants();
+				auto type_map_it = tileVars.find((TileType)m_paletteItems[i].typeId);
+				if (type_map_it != tileVars.end()) {
 					for (auto const& pair : type_map_it->second) {
 						m_subPalette.currentTileVariantDefs.push_back({ pair.first, &(pair.second) });
 					}
@@ -260,9 +251,9 @@ bool EditorPalette::HandleMainPaletteClick(POINT clickPoint, int clientHeight) {
 				m_subPalette.category = CATEGORY_OBJECT;
 				m_subPalette.targetCategoryId = m_paletteItems[i].typeId;
 				m_subPalette.currentObjectVariantDefs.clear();
-				auto type_map_it = m_pResources->GetObjectVariants().find((GameObjectType)m_paletteItems[i].typeId);
-				if (type_map_it != m_pResources->GetObjectVariants().end()) {
-					for (auto const& pair : type_map_it->second) {
+				ObjectCategory targetCat = (ObjectCategory)m_paletteItems[i].typeId;
+				for (auto const& pair : m_pResources->GetObjectVariants()) {
+					if (EditorResourceManager::GetCategoryFromID(pair.first) == targetCat) {
 						m_subPalette.currentObjectVariantDefs.push_back({ pair.first, &(pair.second) });
 					}
 				}

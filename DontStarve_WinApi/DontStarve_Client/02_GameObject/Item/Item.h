@@ -1,30 +1,24 @@
 #pragma once
-#include "../GameObject.h"
+#include "../Entity/Entity.h"
 
-class Transform;
-class SpriteRenderer;
-class ResourceManager;
-
-class Item : public GameObject
+class Item : public Entity
 {
 protected:
-    // Component 캐싱 (최적화)
-    Transform* transform;
-    SpriteRenderer* spriteRenderer;
-    std::wstring m_description;  // 해당 아이템 설명
-
-public:
-    Item(GameObjectType type, GameObjectID id, const std::wstring& name, const std::wstring& desc,
-        const std::wstring& resourcePath, const std::wstring& imagePath,
-        float x = 0.0f, float y = 0.0f, float pivotX = 0.5f, float pivotY = 0.5f,
-        Direction dir = DIR_DOWN, bool isActive = true, bool isInteractive = false);
-    virtual ~Item();
+    std::wstring m_itemName;
+    std::wstring m_description;
     
-    virtual void Init() override;
-    virtual void Update(float deltaTime) override;
-    virtual void Release() override;
-    bool CanInteract() const override { return true; }
+public:
+    Item(GameObjectID id, const std::wstring& name, const std::wstring& desc,
+         const std::wstring& baseDir = L"", const std::wstring& imageName = L"",
+         float x = 0, float y = 0, float pivotX = 0.5f, float pivotY = 0.5f,
+         Direction _dir = DIR_DOWN, bool isActive = true, bool isInteractive = true);
+    virtual ~Item();
 
-    // inline 함수
-    inline const std::wstring& GetDescription() const { return m_description; }
+    virtual void Init() override;
+    virtual void Release() override;
+
+    virtual void Damaged(int damage) override { /* 아이템은 데미지를 입지 않거나 필요 시 구현 */ }
+
+    const std::wstring& GetItemName() const { return m_itemName; }
+    const std::wstring& GetDescription() const { return m_description; }
 };

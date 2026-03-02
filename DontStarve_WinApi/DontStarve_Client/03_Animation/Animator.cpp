@@ -127,12 +127,17 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
         return;
     }
 
-    const AnimationFrame& currentFrame = GetCurrentFrame();
     const SpriteSheet* currentSheet = m_currentClip->GetSpriteSheet();
-    Gdiplus::Bitmap* pBitmap = currentSheet ? currentSheet->GetBitmap() : nullptr;
+    if (!currentSheet) {
+        return;
+    }
+    
+    Gdiplus::Bitmap* pBitmap = currentSheet->GetBitmap();
     if (!pBitmap) {
         return;
     }
+
+    const AnimationFrame& currentFrame = GetCurrentFrame();
 
     float scaledWidth = currentFrame.width * zoomFactor; 
     float scaledHeight = currentFrame.height * zoomFactor;
@@ -144,8 +149,6 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
     Gdiplus::RectF sourceRect(currentFrame.sourceRect.X, currentFrame.sourceRect.Y, 
                              currentFrame.sourceRect.Width, currentFrame.sourceRect.Height); 
 
-    // LEFT 방향은 미리 반전된 비트맵을 사용하므로 RenderManager에서 추가 Transform 불필요
-    // preFlipped 플래그를 전달하여 이중 반전 방지
     RenderManager::GetInstance()->AddDrawCommand(
         pBitmap,
         destRect,
@@ -157,7 +160,7 @@ void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& charact
         currentDir,
         Gdiplus::Color(255, 255, 255, 255),
         false,
-        m_currentClip->IsPreFlipped()  // LEFT 방향일 때 true (미리 반전된 비트맵)
+        m_currentClip->IsPreFlipped()
     );
 }
 

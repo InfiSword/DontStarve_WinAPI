@@ -33,9 +33,7 @@ public:
 	GameObject* CreateGameObject(GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* resourceData = nullptr, bool addToManager = true);
 
 private:
-	// ========================================
 	// 팩토리 맵 패턴: GameObjectID -> 생성 함수 (모든 GameObject와 Item 통합)
-	// ========================================
 	using GameObjectFactoryFunc = std::function<GameObject*(GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data)>;
 	
 	std::map<GameObjectID, GameObjectFactoryFunc> m_gameObjectFactories;

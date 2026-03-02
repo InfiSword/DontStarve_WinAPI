@@ -226,7 +226,7 @@ void ObjectManager::InitializeFactories()
 	// 아이템 (이름/설명만 다른 Item 생성 패턴) - 맵 파일의 피벗값 사용
 	auto itemFactory = [](const wchar_t* name, const wchar_t* desc) {
 		return [name, desc](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-			return new Item(GOBJ_ITEM, id, name, desc, data->baseDir, data->imageName, x, y, data->pivotX, data->pivotY);
+			return new Item(id, name, desc, data->baseDir, data->imageName, x, y, data->pivotX, data->pivotY);
 		};
 	};
 	m_gameObjectFactories[GOID_ITEM_NORMAL_TREE_LOG] = itemFactory(L"LOG", L"A Log.");

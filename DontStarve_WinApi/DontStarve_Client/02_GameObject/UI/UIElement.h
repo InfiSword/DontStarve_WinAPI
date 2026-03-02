@@ -12,7 +12,7 @@ protected:
 	RectTransform* m_rectTransform;  // 자동 생성 및 관리
 
 public:
-	UIElement(GameObjectType type, GameObjectID id, 
+	UIElement(GameObjectID id, 
 		const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", 
 		bool isActive = true, bool isInteractive = false);
 	virtual ~UIElement();

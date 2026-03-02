@@ -10,16 +10,26 @@ class SpriteRenderer;
 // 코루틴 핸들: deltaTime을 받아 실행 중이면 true, 완료되면 false를 반환하는 함수
 using CoroutineHandle = std::function<bool(float)>;
 
+enum GameObjectType
+{
+	GO_TYPE_NONE = 0,
+	GO_TYPE_NATURAL_ENVIRONMENT,
+	GO_TYPE_MONSTER,
+	GO_TYPE_BUILDING,
+	GO_TYPE_ITEM,
+	GO_TYPE_PLAYER,
+	GO_TYPE_UI,
+};
+
 class GameObject : public Object
 {
 protected:
 	GameObjectID m_id;				// 오브젝트 아이디
-	GameObjectType m_type;			// 오브젝트 타입
 
 	std::wstring m_name;					// 해당 게임 오브젝트 이름
 	bool m_isInteractive;			// 상호작용 가능 여부
 	bool m_bReleased;				// Release() 호출 여부 (중복 호출 방지)
-									
+	GameObjectType m_type;					// 게임 오브젝트 타입
     // 컴포넌트 관리					
     std::vector<Component*> m_components;
 
@@ -28,7 +38,7 @@ private:
 
 public:
     
-	GameObject(GameObjectType type, GameObjectID id, 
+	GameObject(GameObjectID id, 
 		const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", 
 		bool isActive = true, bool isInteractive = false);
  
@@ -60,8 +70,8 @@ public:
     }
 
     template <typename T>
-    T* GetComponent() const {
-        // Release()된 GameObject의 컴포넌트에 접근하지 않음 (안전성)
+    T* GetComponent() const 
+	{
         if (m_bReleased) {
             return nullptr;
         }
@@ -75,7 +85,6 @@ public:
         return nullptr;
     }
 
-    /** 동일 타입의 모든 컴포넌트를 반환 (클릭 감지 시 body/attack 콜라이더 등 여러 개 검사용) */
     template <typename T>
     std::vector<T*> GetComponents() const {
         std::vector<T*> result;

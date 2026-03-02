@@ -17,7 +17,6 @@ void ResourceManager::Init()
 	for (size_t i = 0; i < ResourcePathUtils::ObjectResourceCount; ++i) {
 		const auto& entry = ResourcePathUtils::ObjectResourceTable[i];
 		ResourcePathUtils::ObjectResourceDef def;
-		def.type = entry.type;
 		def.id = entry.id;
 		def.baseDir = entry.baseDir;
 		def.imageName = entry.imageName;
@@ -26,7 +25,7 @@ void ResourceManager::Init()
 
 	// GameData/object_resource_overrides.txt 로드 후 id별 pivot/콜라이더 덮어쓰기 (Function.h 공통 파서 사용)
 	ResourcePathUtils::ParseObjectResourceOverridesFile(L"GameData/object_resource_overrides.txt",
-		[this](GameObjectType, GameObjectID id, const ResourcePathUtils::ObjectResourceDef& overrideDef) {
+		[this](GameObjectID id, const ResourcePathUtils::ObjectResourceDef& overrideDef) {
 			auto it = m_objectResources.find(id);
 			if (it != m_objectResources.end()) {
 				it->second.pivotX = overrideDef.pivotX;
@@ -83,7 +82,7 @@ std::shared_ptr<Sprite> ResourceManager::LoadSprite(const std::wstring& fullPath
 		return nullptr;
 	}
 	Gdiplus::RectF src(0, 0, static_cast<float>(bmp->GetWidth()), static_cast<float>(bmp->GetHeight()));
-	std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(bmp, src, 0.5f, 0.5f, fullPath);
+	std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(bmp, src, fullPath);
 	m_spriteCache[fullPath] = sprite;
 	return sprite;
 }

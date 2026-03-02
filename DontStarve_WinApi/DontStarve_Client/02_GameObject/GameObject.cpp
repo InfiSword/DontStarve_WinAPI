@@ -4,10 +4,10 @@
 #include "Component/Sprite/SpriteRenderer.h"
 #include "../01_Manager/TimeManager/TimeManager.h"
 
-GameObject::GameObject(GameObjectType type, GameObjectID id,
+GameObject::GameObject(GameObjectID id,
 	const std::wstring& resourcePath, const std::wstring& imageName,
 	bool isActive, bool isInteractive)
-	: Object(), m_type(type), m_id(id), m_isInteractive(isInteractive), m_bReleased(false)
+	: Object(), m_id(id), m_isInteractive(isInteractive), m_bReleased(false)
 {
 	SetActive(isActive);
 }
