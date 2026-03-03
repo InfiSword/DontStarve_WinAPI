@@ -7,7 +7,7 @@
 GameObject::GameObject(GameObjectID id,
 	const std::wstring& resourcePath, const std::wstring& imageName,
 	bool isActive, bool isInteractive)
-	: Object(), m_id(id), m_isInteractive(isInteractive), m_bReleased(false)
+	: Object(), m_id(id), m_isInteractive(isInteractive), m_bReleased(false), m_type(GameObjectType::GO_TYPE_NONE)
 {
 	SetActive(isActive);
 }
@@ -41,6 +41,7 @@ void GameObject::Update(float deltaTime) {
 			component->Update(deltaTime);
 		}
 	}
+	UpdateCoroutines(deltaTime);
 }
 
 void GameObject::LateUpdate() {
@@ -54,10 +55,6 @@ void GameObject::LateUpdate() {
 			component->LateUpdate();
 		}
 	}
-
-	// 코루틴은 모든 Update(애니메이션 이벤트 등) 후 같은 프레임에 실행하여 렌더에 반영
-	float deltaTime = TimeManager::GetInstance() ? TimeManager::GetInstance()->GetDeltaTime() : 0.0f;
-	UpdateCoroutines(deltaTime);
 }
 
 void GameObject::Release() 

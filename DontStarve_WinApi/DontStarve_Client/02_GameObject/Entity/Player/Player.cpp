@@ -284,7 +284,7 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 
 void Player::Update(float deltaTime)
 {
-	GameObject::Update(deltaTime);
+	Entity::Update(deltaTime);
 
 	HandleMovement();
 
@@ -406,6 +406,7 @@ void Player::TryStartInteraction(float worldX, float worldY)
 
 	// 이동 중 대기 중인 상호작용 초기화
 	m_pendingInteractionTarget = nullptr;
+	m_attackTarget = nullptr;
 
 	// 상호작용 가능 여부 확인
 	bool canInteract = false;
@@ -623,10 +624,10 @@ void Player::ApplyAttackDamage(int damage, bool singleTarget)
 	cameraManager->FindObjectsIntersectingCollider(m_attackCollider, hits);
 
 	for (GameObject* obj : hits) {
-		if (!obj || !obj->IsEnabled()) continue;
-		Entity* attacker = dynamic_cast<Entity*>(obj);
-		if (attacker) {
-			attacker->Damaged(damage);
+		if (!obj || !obj->IsEnabled() || obj == this) continue;
+		Entity* target = dynamic_cast<Entity*>(obj);
+		if (target) {
+			target->Damaged(damage);
 			if (singleTarget) break;
 		}
 	}

@@ -19,6 +19,7 @@ public:
     virtual void Update(float deltaTime) override;
     virtual void Release() override;
 
+	virtual bool OnInteraction(GameObject* obj) override;
     virtual void Damaged(int damage) override;
     virtual void Die() override;
 
@@ -26,6 +27,11 @@ public:
 
 private:
     TreeState m_treeState;
-    float m_fallTimer;
 	int m_hp;
+	int maxHp;
+	float m_baseX, m_baseY;
+	float m_shakeDuration;
+	float m_shakeAmount;
+	float m_shakeSpeed;
+	bool m_isShaking;
 };

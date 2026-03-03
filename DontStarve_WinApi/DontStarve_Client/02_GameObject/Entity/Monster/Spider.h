@@ -38,6 +38,13 @@ public:
 
 	SpiderState GetSpiderState() const { return (SpiderState)m_state; }
 
+	// 디버그 레이아웃 시각화
+	virtual void RenderDebugOverlay() override;
+
+private:
+	void OnAttackHit();
+	void OnAttackEnd();
+
 private:
     static const float ATTACK_RANGE;      // 공격 사거리
     static const float ATTACK_COOLDOWN;   // 공격 쿨타임

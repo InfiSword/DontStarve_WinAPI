@@ -176,7 +176,7 @@ namespace ResourcePathUtils
 		{ GOID_ITEM_BERRY, L"Resource\\Objects\\food", L"Berry.png" },
 		{ GOID_ITEM_WOOD_2, L"Resource\\Objects\\ingredient", L"Wood_2.png" },
 		{ GOID_ITEM_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-0.png" },
-		{ GOID_ITEM_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
+		{ GOID_ITEM_MONSTER_MEAT, L"Resource\\Objects\\food", L"Monster_Meat.png" },
 		{ GOID_ITEM_COOKED_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
 		{ GOID_ITEM_COOKED_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-1.png" },
 		{ GOID_ITEM_COOKED_MEAT, L"Resource\\Objects\\food", L"meat_01-1.png" },

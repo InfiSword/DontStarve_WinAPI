@@ -9,11 +9,11 @@
 Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
 	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
 	, m_treeState(TreeState::IDLE)
-	, m_fallTimer(0.0f)
+	, m_hp(100), m_baseX(0.0f), m_baseY(0.0f),
+	m_shakeDuration(0.5f), m_shakeAmount(14.0f), m_shakeSpeed(40.0f), m_isShaking(false)
 {
-	m_hp = 30; // 기본 체력
 	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
-	SetDropItem(GOID_ITEM_NORMAL_TREE_LOG, 2); // 기본 드롭템
+	SetDropItem(GOID_ITEM_NORMAL_TREE_LOG, 1); // 기본 드롭템
 }
 
 Tree::~Tree() {}
@@ -21,22 +21,17 @@ Tree::~Tree() {}
 void Tree::Init()
 {
 	Entity::Init();
-	m_treeState = TreeState::IDLE;
+
+	if (transform)
+	{
+		m_baseX = transform->GetX();
+		m_baseY = transform->GetY();
+	}
 }
 
 void Tree::Update(float deltaTime)
 {
 	Entity::Update(deltaTime);
-
-	if (m_treeState == TreeState::FALL)
-	{
-		m_fallTimer += deltaTime;
-		if (m_fallTimer >= 1.0f)
-		{
-			m_treeState = TreeState::FALLEN;
-			Die();
-		}
-	}
 }
 
 void Tree::Release()
@@ -44,38 +39,81 @@ void Tree::Release()
 	Entity::Release();
 }
 
+bool Tree::OnInteraction(GameObject* obj)
+{
+	return Entity::OnInteraction(obj);
+}
+
 void Tree::Damaged(int damage)
 {
 	if (m_treeState != TreeState::IDLE) return;
 
 	m_hp -= damage;
-	if (m_hp <= 0)
-	{
-		m_hp = 0;
-		m_treeState = TreeState::FALL;
-		m_fallTimer = 0.0f;
-		
-		// 쓰러지는 효과 (간단히 각도 조절 등 가능)
-		if (transform)
-		{
-			// transform->SetRotation(90.0f); // 나중에 회전 기능 생기면 추가
-		}
+
+	if (m_isShaking && transform) {
+		transform->SetPosition(m_baseX, m_baseY);
 	}
+	else if (transform) {
+		m_baseX = transform->GetX();
+		m_baseY = transform->GetY();
+	}
+
+	// HP 0 이면 쉐이킹 없이 즉시 제거 및 통나무 드롭
+	if (m_hp <= 0) {
+		if (transform) transform->SetPosition(m_baseX, m_baseY);
+		m_isShaking = false;
+		m_isDead = true;
+		Die();
+		return;
+	}
+
+	StopAllCoroutines();
+	m_isShaking = true;
+
+	float baseX = m_baseX;
+	float baseY = m_baseY;
+	float elapsed = 0.0f;
+	float duration = m_shakeDuration;
+	float amount = m_shakeAmount;
+	float speed = m_shakeSpeed;
+	Transform* tr = transform;
+
+	StartCoroutine([=](float dt) mutable -> bool {
+		elapsed += dt;
+		
+		if (elapsed >= duration) {
+			if (tr) tr->SetPosition(baseX, baseY);
+			m_isShaking = false;
+			return false;
+		}
+
+		if (tr) {
+			// 시간에 따라 감쇄하는 쉐이킹 효과
+			float currentAmount = amount * (1.0f - (elapsed / duration));
+			float offsetX = sinf(elapsed * speed) * currentAmount;
+			tr->SetPosition(baseX + offsetX, baseY);
+		}
+		return true;
+	});
 }
 
 void Tree::Die()
 {
+	m_isShaking = false;
+	if (transform)
+		transform->SetPosition(m_baseX, m_baseY);
+
 	ObjectManager* objMgr = ObjectManager::GetInstance();
 	if (objMgr)
 	{
 		GameObjectID dropItemID = GetDropItemID();
 		int count = GetDropItemCount();
-		
+
 		if (dropItemID != GOID_NONE && transform)
 		{
 			float tx = transform->GetX();
 			float ty = transform->GetY();
-			
+
 			for (int i = 0; i < count; ++i)
 			{
 				float angle = (rand() / (float)RAND_MAX) * 6.28f;

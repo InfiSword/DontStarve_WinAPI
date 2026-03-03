@@ -25,6 +25,9 @@ public:
     virtual bool OnInteraction(GameObject* obj) override;
     virtual void Damaged(int damage) override;
 
+	void OnAttackHit();
+	void OnAttackEnd();	
+
 	PigState GetPigState() const { return (PigState)m_state; }
 
 	// 디버그 레이아웃 시각화

@@ -16,7 +16,7 @@
 
 const float Pig::ATTACK_RANGE = 70.0f;
 const float Pig::ATTACK_COOLDOWN = 1.5f;
-static const int PIG_ATTACK_HIT_FRAME = 15;
+static const int PIG_ATTACK_HIT_FRAME = 28;
 static const int PIG_ATTACK_BOX_W = 70, PIG_ATTACK_BOX_H = 50;
 static const int PIG_ATTACK_DOWN[]  = { -35,    0, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
 static const int PIG_ATTACK_UP[]    = { -35,  -50, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
@@ -118,6 +118,18 @@ void Pig::Init()
 				0, 0, 4, 66, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f, false);
 			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_RIGHT, atkSidePath,
 				0, 0, 4, 66, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
+
+			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				AnimationClip* clip = m_animator->GetAnimationClip((int)PigState::ATTACK, (Direction)dir);
+				if (clip) {
+					clip->AddEventFrame(PIG_ATTACK_HIT_FRAME, L"attack_hit");
+					clip->AddEventFrame(65, L"attack_end");
+					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+						if (eventName == L"attack_hit") this->OnAttackHit();
+						else if (eventName == L"attack_end") this->OnAttackEnd();
+						});
+				}
+			}
 
 			m_animator->RegisterAnimation((int)PigState::HIT, DIR_DOWN, base + L"Hit\\Hit_pigman_hit.png",
 				232, 245, 4, 29, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
@@ -236,35 +248,7 @@ void Pig::Update(float deltaTime)
 	}
 
 	if (m_state == (int)PigState::ATTACK)
-	{
-		m_animator->SetState((int)PigState::ATTACK, transform->GetDirection());
-		if (m_attackCollider && transform) {
-			Direction dir = transform->GetDirection();
-			if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
-			else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(PIG_ATTACK_UP[0], PIG_ATTACK_UP[1], PIG_ATTACK_UP[2], PIG_ATTACK_UP[3]);
-			else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(PIG_ATTACK_LEFT[0], PIG_ATTACK_LEFT[1], PIG_ATTACK_LEFT[2], PIG_ATTACK_LEFT[3]);
-			else m_attackCollider->SetObjectCollider(PIG_ATTACK_RIGHT[0], PIG_ATTACK_RIGHT[1], PIG_ATTACK_RIGHT[2], PIG_ATTACK_RIGHT[3]);
-
-			int frameIdx = m_animator->GetCurrentFrameIndex();
-			if (frameIdx == PIG_ATTACK_HIT_FRAME) {
-				m_attackCollider->SetColliderEnabled(true);
-				if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
-					Transform* pt = m_aggroTarget->GetComponent<Transform>();
-					if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
-						Entity* playerEntity = dynamic_cast<Entity*>(m_aggroTarget);
-						if (playerEntity) playerEntity->Damaged(10);
-					}
-				}
-			}
-			else
-				m_attackCollider->SetColliderEnabled(false);
-		}
-		
-		if (m_animator->IsAnimationDone()) {
-			if (m_attackCollider) 
-				m_attackCollider->SetColliderEnabled(false);
-			m_state = (int)PigState::CHASE;
-		}
+	{		
 		return;
 	}
 
@@ -355,6 +339,36 @@ void Pig::Damaged(int damage)
 	}
 }
 
+void Pig::OnAttackHit()
+{
+	if (m_state != (int)PigState::ATTACK || !m_attackCollider || !transform) return;
+
+	Direction dir = transform->GetDirection();
+	if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
+	else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(PIG_ATTACK_UP[0], PIG_ATTACK_UP[1], PIG_ATTACK_UP[2], PIG_ATTACK_UP[3]);
+	else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(PIG_ATTACK_LEFT[0], PIG_ATTACK_LEFT[1], PIG_ATTACK_LEFT[2], PIG_ATTACK_LEFT[3]);
+	else m_attackCollider->SetObjectCollider(PIG_ATTACK_RIGHT[0], PIG_ATTACK_RIGHT[1], PIG_ATTACK_RIGHT[2], PIG_ATTACK_RIGHT[3]);
+
+	m_attackCollider->SetColliderEnabled(true);
+
+	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
+		Transform* pt = m_aggroTarget->GetComponent<Transform>();
+		if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
+			Entity* playerEntity = dynamic_cast<Entity*>(m_aggroTarget);
+			if (playerEntity) playerEntity->Damaged(10);
+		}
+	}
+
+	m_attackCollider->SetColliderEnabled(false);
+}
+
+void Pig::OnAttackEnd()
+{
+	if (m_state != (int)PigState::ATTACK) return;
+	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
+	m_state = (int)PigState::CHASE;
+}
+
 void Pig::RenderDebugOverlay()
 {
 	if (!transform) return;
@@ -362,20 +376,37 @@ void Pig::RenderDebugOverlay()
 	RenderManager* renderManager = RenderManager::GetInstance();
 	if (!cameraManager || !renderManager) return;
 
-	// 행동 반경 원 (보라색)
 	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(transform->GetX(), transform->GetY());
-	float r = GetActionRadius();
-	Gdiplus::RectF circleRect(
-		screenCenter.X - r,
-		screenCenter.Y - r,
-		r * 2.0f,
-		r * 2.0f
-	);
+
+	// 행동 반경 원 (보라색)
+	float rWander = m_wanderRadius;
 	renderManager->AddDrawEllipseCommand(
-		circleRect,
-		Gdiplus::Color(200, 100, 200, 255),
-		2.0f,
-		LAYER_DEBUG_OVERLAY,
-		9998.0f
+		Gdiplus::RectF(screenCenter.X - rWander, screenCenter.Y - rWander, rWander * 2.0f, rWander * 2.0f),
+		Gdiplus::Color(100, 200, 100, 255), // 보라색 대신 연두색 (Wander)
+		1.0f, LAYER_DEBUG_OVERLAY, 9998.0f
+	);
+
+	// 어그로 반경 (노란색)
+	float rAggro = m_aggroRadius;
+	renderManager->AddDrawEllipseCommand(
+		Gdiplus::RectF(screenCenter.X - rAggro, screenCenter.Y - rAggro, rAggro * 2.0f, rAggro * 2.0f),
+		Gdiplus::Color(255, 255, 0),
+		1.0f, LAYER_DEBUG_OVERLAY, 9998.0f
+	);
+
+	// 어그로 해제 반경 (주황색)
+	float rDeaggro = m_deaggroRadius;
+	renderManager->AddDrawEllipseCommand(
+		Gdiplus::RectF(screenCenter.X - rDeaggro, screenCenter.Y - rDeaggro, rDeaggro * 2.0f, rDeaggro * 2.0f),
+		Gdiplus::Color(255, 165, 0),
+		1.0f, LAYER_DEBUG_OVERLAY, 9998.0f
+	);
+
+	// 공격 반경 (빨간색)
+	float rAttack = ATTACK_RANGE;
+	renderManager->AddDrawEllipseCommand(
+		Gdiplus::RectF(screenCenter.X - rAttack, screenCenter.Y - rAttack, rAttack * 2.0f, rAttack * 2.0f),
+		Gdiplus::Color(255, 0, 0),
+		2.0f, LAYER_DEBUG_OVERLAY, 9998.0f
 	);
 }
