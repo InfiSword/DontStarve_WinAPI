@@ -17,7 +17,6 @@
 const float Spider::ATTACK_RANGE = 50.0f;
 const float Spider::ATTACK_COOLDOWN = 1.2f;
 
-// 공격 콜라이더 설정 (거미 크기에 맞게 조정)
 static const int SPIDER_ATTACK_HIT_FRAME = 4;  // 8프레임 중 4프레임에 데미지
 static const int SPIDER_ATTACK_BOX_W = 60, SPIDER_ATTACK_BOX_H = 40;
 static const int SPIDER_ATTACK_DOWN[]  = { -30,   0, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
@@ -26,7 +25,7 @@ static const int SPIDER_ATTACK_LEFT[]  = { -60, -20, SPIDER_ATTACK_BOX_W, SPIDER
 static const int SPIDER_ATTACK_RIGHT[] = {   0, -20, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
 
 Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
 	, m_homeEgg(nullptr)
 	, m_spawnRadius(200.0f)
 	, m_aggroRadius(300.0f)
@@ -89,42 +88,42 @@ void Spider::Init()
 			std::wstring idlePath = base + L"Spider_spider_idle_01.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)SpiderState::IDLE, (Direction)dir, idlePath,
-					0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+					0, 0, 1, 1, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
 			}
 
 			// WALK
 			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_DOWN, base + L"Spider_spider_walk_loop_down.png",
-				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+				0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.02f);
 			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_UP, base + L"Spider_spider_walk_loop_up.png",
-				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+				0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.02f);
 			std::wstring walkSidePath = base + L"Spider_spider_walk_loop_side.png";
 			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_LEFT, walkSidePath,
-				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f, false);
+				0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.02f, false);
 			m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_RIGHT, walkSidePath,
-				0, 0, 6, 6, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+				0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.02f);
 
 			// ATTACK
 			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_DOWN, base + L"Spider_spider_atk_down.png",
-				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+				0, 0, 7, 71, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_UP, base + L"Spider_spider_atk_up.png",
-				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+				0, 0, 7, 71, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			std::wstring attackSidePath = base + L"Spider_spider_atk_side.png";
 			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_LEFT, attackSidePath,
-				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f, false);
+				0, 0, 7, 71, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f, false);
 			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_RIGHT, attackSidePath,
-				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+				0, 0, 7, 71, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 
 			// HIT / DEATH
 			m_animator->RegisterAnimation((int)SpiderState::HIT, DIR_DOWN, base + L"Spider_spider_hit.png",
-				0, 0, 3, 3, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+				0, 0, 7, 34, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			m_animator->RegisterAnimation((int)SpiderState::DEATH, DIR_DOWN, base + L"Spider_spider_death.png",
-				0, 0, 8, 8, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+				0, 0, 7, 56, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 
 			// TAUNT
 			std::wstring tauntPath = base + L"Spider_spider_taunt.png";
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)SpiderState::TAUNT, (Direction)dir, tauntPath,
-					0, 0, 7, 35, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
+					0, 0, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.03f);
 			}
 		}
 		else if (m_id == GOID_MONSTER_WARRIOR_SPIDER) {

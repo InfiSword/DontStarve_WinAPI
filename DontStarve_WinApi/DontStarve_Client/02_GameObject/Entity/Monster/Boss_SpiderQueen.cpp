@@ -12,7 +12,7 @@
 #include "../../Component/Transform/Transform.h"
 
 Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName), m_bossPhase(1), m_specialAttackCooldown(0.0f)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true), m_bossPhase(1), m_specialAttackCooldown(0.0f)
 {
 	m_hp = 1000;
 	m_maxHp = m_hp;

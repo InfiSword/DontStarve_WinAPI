@@ -24,7 +24,7 @@ static const int PIG_ATTACK_LEFT[]  = { -70,  -25, PIG_ATTACK_BOX_W, PIG_ATTACK_
 static const int PIG_ATTACK_RIGHT[] = {   0,  -25, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
 
 Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
 	, m_wanderRadius(200.0f)
 	, m_aggroRadius(350.0f)
 	, m_deaggroRadius(500.0f)

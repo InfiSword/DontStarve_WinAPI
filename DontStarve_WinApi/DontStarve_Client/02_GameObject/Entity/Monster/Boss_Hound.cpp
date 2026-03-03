@@ -9,7 +9,7 @@
 #include "Boss_Hound.h"
 
 Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
 	, m_wanderRadius(300.0f)
 	, m_aggroRadius(400.0f)
 	, m_deaggroRadius(600.0f)

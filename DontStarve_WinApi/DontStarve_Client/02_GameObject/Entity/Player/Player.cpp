@@ -20,10 +20,10 @@ static const float MINE_PIVOT_X = 0.5f;
 static const float MINE_PIVOT_Y = 0.9f;
 
 static const int ATTACK_BOX_W = 80, ATTACK_BOX_H = 120;
-static const int ATTACK_BOX_DOWN[]  = { -40,    0, ATTACK_BOX_W, ATTACK_BOX_H };  // 발 앞
-static const int ATTACK_BOX_UP[]    = { -40,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 머리 쪽
-static const int ATTACK_BOX_LEFT[]  = { -80,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 왼쪽
-static const int ATTACK_BOX_RIGHT[] = {   0,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 오른쪽
+static const int ATTACK_BOX_DOWN[] = { -40,    0, ATTACK_BOX_W, ATTACK_BOX_H };  // 발 앞
+static const int ATTACK_BOX_UP[] = { -40,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 머리 쪽
+static const int ATTACK_BOX_LEFT[] = { -80,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 왼쪽
+static const int ATTACK_BOX_RIGHT[] = { 0,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 오른쪽
 
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Entity(characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
@@ -34,7 +34,7 @@ Player::Player(float x, float y, GameObjectID characterID, const std::wstring& r
 	isMoveToGoal(false)
 {
 	m_hp = 100;
-    m_maxHp= 100;
+	m_maxHp = 100;
 	m_state = (int)PlayerState::IDLE;
 	m_type = GO_TYPE_PLAYER;
 }
@@ -317,7 +317,7 @@ void Player::Update(float deltaTime)
 		// 도착 여부 판정 (인라인화: IsArrivedAtTarget)
 		const float arrivalEpsilon = 1.0f;
 		bool isArrived = (distance < arrivalEpsilon) || (distance <= m_stopThreshold) || (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame);
-		
+
 		if (isArrived) {
 			transform->SetX(m_targetWorldPos.X);
 			transform->SetY(m_targetWorldPos.Y);
@@ -431,10 +431,31 @@ void Player::TryStartInteraction(float worldX, float worldY)
 		case GO_TYPE_ITEM:
 			canInteract = true;
 			break;
+		case GO_TYPE_BUILDING:
+			if (objID == GOID_BUILDING_PIGHOUSE)
+			{
+				if (m_equippedItem)
+				{
+					GameObjectID equippedID = m_equippedItem->GetID();
+					canInteract = (equippedID == GOID_TOOL_HAMMER);
+					m_attackTarget = target;
+				}
+			}
+			else if (objID == GOID_BUILDING_SPIDER_NORMALEGG || objID == GOID_BUILDING_SPIDER_SMALLEGG || objID == GOID_BUILDING_SPIDER_TALLEGG)
+			{
+				if (m_equippedItem)
+				{
+					canInteract = (m_equippedItem && m_equippedItem->CanAttack());
+					m_attackTarget = target;
+				}
+			}
+			break;
 		case GO_TYPE_MONSTER:
 		{
 			// 몬스터 클릭: 장착 도구가 공격 가능할 때만 추격 및 공격
 			canInteract = (m_equippedItem && m_equippedItem->CanAttack());
+			if(canInteract)
+				m_attackTarget = target;
 			break;
 		}
 		default:
@@ -450,17 +471,6 @@ void Player::TryStartInteraction(float worldX, float worldY)
 	Transform* targetTransform = target->GetComponent<Transform>();
 	if (!targetTransform) return;
 
-	// 몬스터: 이동 목표를 몬스터 위치로 두고, 공격 대상을 설정.
-	// Update()에서 목표로 이동하다가 사거리(ATTACK_RANGE) 안에 들어오면 이동 중단 후 ATTACK 상태로 전환.
-	if (target->GetType() == GO_TYPE_MONSTER) {
-		m_pendingInteractionTarget = nullptr;
-		m_attackTarget = target;
-		SetTargetPosition(targetTransform->GetX(), targetTransform->GetY());
-		return;
-	}
-
-	// 그 외(나무, 돌, 아이템 등): 일반 이동 후 상호작용
-	m_attackTarget = nullptr;
 	SetTargetPosition(targetTransform->GetX(), targetTransform->GetY());
 	m_pendingInteractionTarget = target;
 }
@@ -639,12 +649,12 @@ bool Player::OnInteraction(GameObject* obj)
 	switch (objType)
 	{
 	case GO_TYPE_NATURAL_ENVIRONMENT:
-		if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) 
+		if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL)
 		{
 			transform->SetDirection(DIR_DOWN);
 			m_state = PlayerState::CHOP;
 			UpdateAnimatorState();
-			return true;				
+			return true;
 		}
 		if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK)
 		{

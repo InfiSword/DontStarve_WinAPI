@@ -9,7 +9,7 @@ Building::Building(GameObjectID id, float x, float y, float pivotX, float pivotY
     : Entity(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, true, true),
       m_hp(hp), m_maxHp(hp), m_buildingState(BuildingState::NOON)
 {
-
+	m_type = GO_TYPE_BUILDING;
 }
 
 Building::~Building()
@@ -19,7 +19,6 @@ Building::~Building()
 void Building::Init()
 {
     Entity::Init();
-    m_buildingState = BuildingState::NOON;
 }
 
 void Building::LateInit()

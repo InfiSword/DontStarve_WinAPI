@@ -37,9 +37,6 @@ void SpiderEgg::Init()
 {
 	Building::Init();
 
-	OutputDebugStringW(L"SpiderEgg: Init 시작\n");
-	m_buildingState = BuildingState::NOON;
-
 	Transform* transform = GetComponent<Transform>();
 	if (!transform) {
 		OutputDebugStringW(L"SpiderEgg: Transform component not found!\n");
@@ -160,18 +157,7 @@ void SpiderEgg::Release()
 
 bool SpiderEgg::OnInteraction(GameObject* obj)
 {
-	if (!obj) return false;
-
-	Player* pPlayer = dynamic_cast<Player*>(obj);
-	if (!pPlayer) return false;
-
-	// 도구를 장착하고 있는지 확인 (도구가 있어야 피해를 입힐 수 있음)
-	if (pPlayer->GetEquippedItem())
-	{
-		return true;
-	}
-
-	return false;
+	return Entity::OnInteraction(obj);
 }
 
 void SpiderEgg::Damaged(int damage)

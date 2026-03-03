@@ -22,7 +22,7 @@ static const int HOUND_ATTACK_LEFT[]  = { -80, -25, HOUND_ATTACK_BOX_W, HOUND_AT
 static const int HOUND_ATTACK_RIGHT[] = {   0, -25, HOUND_ATTACK_BOX_W, HOUND_ATTACK_BOX_H };
 
 Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
 	, m_wanderRadius(200.0f)
 	, m_aggroRadius(350.0f)
 	, m_deaggroRadius(500.0f)
