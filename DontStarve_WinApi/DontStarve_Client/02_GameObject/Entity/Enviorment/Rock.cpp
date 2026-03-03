@@ -2,6 +2,7 @@
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../Component/Sprite/SpriteRenderer.h"
 #include "../../Component/Transform/Transform.h"
 #include "Rock.h"
 
@@ -9,9 +10,21 @@ Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const 
 	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
 	, m_rockState(RockState::INTACT)
 {
-	m_hp = 40; // 기본 체력
 	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
-	SetDropItem(GOID_ITEM_NORMAL_ROCK, 3); // 기본 드롭템
+	if (id == GOID_NORMAL_ROCK) {
+		m_maxHp = 120;
+		m_hp = 120;
+		SetDropItem(GOID_ITEM_NORMAL_ROCK, 2);
+	}
+	else if (id == GOID_GOLD_ROCK) {
+		m_maxHp = 200;
+		m_hp = 200;
+		SetDropItem(GOID_ITEM_GOLD_ROCK, 1);
+	}
+	else {
+		m_maxHp = 120;
+		m_hp = 120;
+	}
 }
 
 Rock::~Rock() {}
@@ -19,7 +32,30 @@ Rock::~Rock() {}
 void Rock::Init()
 {
 	Entity::Init();
-	m_rockState = RockState::INTACT;
+	const ResourcePathUtils::ObjectResourceDef* objData = ResourceManager::GetInstance()->GetObjectResourceInfo(GetID());
+	if (!objData || objData->imageName.empty()) return;
+
+	const std::wstring& baseDir = objData->baseDir;
+	const std::wstring& imageName = objData->imageName;
+	size_t pos = imageName.find_last_of(L'-');
+	if (pos == std::wstring::npos) return;
+
+	std::wstring prefix = imageName.substr(0, pos + 1);
+	std::wstring fileName0 = prefix + L"0.png";
+	std::wstring fileName1 = prefix + L"1.png";
+	std::wstring fileName2 = prefix + L"2.png";
+
+	ResourceManager* pRM = ResourceManager::GetInstance();
+	std::wstring path0 = ResourcePathUtils::BuildResourcePath(baseDir, fileName0);
+	std::wstring path1 = ResourcePathUtils::BuildResourcePath(baseDir, fileName1);
+	std::wstring path2 = ResourcePathUtils::BuildResourcePath(baseDir, fileName2);
+
+	m_spriteIntact = pRM->LoadSprite(path0);
+	m_spriteCracked = pRM->LoadSprite(path1);
+	m_spriteBroken = pRM->LoadSprite(path2);
+
+	if (spriteRenderer && m_spriteIntact)
+		spriteRenderer->SetSprite(m_spriteIntact);
 }
 
 void Rock::Release()
@@ -27,29 +63,50 @@ void Rock::Release()
 	Entity::Release();
 }
 
+bool Rock::OnInteraction(GameObject* obj)
+{
+	return Entity::OnInteraction(obj);
+}
+
 void Rock::Damaged(int damage)
 {
-	if (m_rockState == RockState::DESTROYED) return;
-
+	if (m_rockState == RockState::DESTROYED || m_isDead) return;
 	m_hp -= damage;
-	if (m_hp <= 0)
-	{
-		m_hp = 0;
+
+	if (m_hp <= 0) {
 		m_rockState = RockState::DESTROYED;
+		m_hp = 0;
+		m_isDead = true;
+
 		Die();
+		return;
 	}
-	else if (m_hp <= 15)
-	{
+
+	int threshold70 = m_maxHp * 70 / 100;
+	int threshold30 = m_maxHp * 30 / 100;
+
+	if (m_hp <= threshold30)
 		m_rockState = RockState::BROKEN;
-	}
-	else if (m_hp <= 30)
-	{
+	else if (m_hp <= threshold70)
 		m_rockState = RockState::CRACKED;
+	else
+		m_rockState = RockState::INTACT;
+
+	if (spriteRenderer) {
+		if (m_rockState == RockState::INTACT && m_spriteIntact)
+			spriteRenderer->SetSprite(m_spriteIntact);
+		else if (m_rockState == RockState::CRACKED && m_spriteCracked)
+			spriteRenderer->SetSprite(m_spriteCracked);
+		else if (m_rockState == RockState::BROKEN && m_spriteBroken)
+			spriteRenderer->SetSprite(m_spriteBroken);
 	}
 }
 
 void Rock::Die()
 {
+	float tx = transform ? transform->GetX() : 0.0f;
+	float ty = transform ? transform->GetY() : 0.0f;
+
 	ObjectManager* objMgr = ObjectManager::GetInstance();
 	if (objMgr)
 	{

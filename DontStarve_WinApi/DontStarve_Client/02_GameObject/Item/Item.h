@@ -17,7 +17,7 @@ public:
     virtual void Init() override;
     virtual void Release() override;
 
-    virtual void Damaged(int damage) override { /* 아이템은 데미지를 입지 않거나 필요 시 구현 */ }
+    virtual void Damaged(int damage) override {  }
 
     const std::wstring& GetItemName() const { return m_itemName; }
     const std::wstring& GetDescription() const { return m_description; }

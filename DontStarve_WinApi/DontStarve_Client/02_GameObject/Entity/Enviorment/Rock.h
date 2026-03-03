@@ -18,6 +18,8 @@ public:
     virtual void Init() override;
     virtual void Release() override;
 
+	virtual bool OnInteraction(GameObject* obj) override;
+
     virtual void Damaged(int damage) override;
     virtual void Die() override;
 
@@ -25,5 +27,7 @@ public:
 
 private:
     RockState m_rockState;
-	int m_hp;
+	std::shared_ptr<Sprite> m_spriteIntact;
+	std::shared_ptr<Sprite> m_spriteCracked;
+	std::shared_ptr<Sprite> m_spriteBroken;
 };

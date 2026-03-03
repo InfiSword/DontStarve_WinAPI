@@ -54,4 +54,5 @@ private:
     bool m_isPlayingGrowth;
     bool m_isPlayingHit;
     float m_spawnRadius;  // 거미 스폰 범위
+    float m_invincibleTimer; // 성장 후 무적 타이머
 };
