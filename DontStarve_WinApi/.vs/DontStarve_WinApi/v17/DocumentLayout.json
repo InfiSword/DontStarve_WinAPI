@@ -3,8 +3,28 @@
   "WorkspaceRootPath": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Spider.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\02_GameObject\\Entity\\Monster\\Spider.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E58209F-9673-4C33-99C0-9C749D951B32}|Header{7E58209F-9673-4C33-99C0-9C749D951B32}|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\SingleTon.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{7E58209F-9673-4C33-99C0-9C749D951B32}|Header{7E58209F-9673-4C33-99C0-9C749D951B32}|solutionrelative:Header\\SingleTon.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -39,24 +59,8 @@
       "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\CameraManager\\CameraManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\01_Manager\\CameraManager\\CameraManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|solutionrelative:DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B1CDF405-860A-4DD0-B604-DE65038176A9}|DontStarve_Client\\DontStarve_Client.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\GameObject.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -89,10 +93,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D658040F-395C-4BD9-A55B-9F28F4D833EE}|DontStarve_Editor\\DontStarve_Editor.vcxproj|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{D658040F-395C-4BD9-A55B-9F28F4D833EE}|DontStarve_Editor\\DontStarve_Editor.vcxproj|solutionrelative:DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{7E58209F-9673-4C33-99C0-9C749D951B32}|Header{7E58209F-9673-4C33-99C0-9C749D951B32}|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\SingleTon.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{7E58209F-9673-4C33-99C0-9C749D951B32}|Header{7E58209F-9673-4C33-99C0-9C749D951B32}|solutionrelative:Header\\SingleTon.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7E58209F-9673-4C33-99C0-9C749D951B32}|Header{7E58209F-9673-4C33-99C0-9C749D951B32}|E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\Extern.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -339,8 +339,8 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "DockedWidth": 205,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -348,64 +348,102 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Player.cpp",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp",
-              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp",
-              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp",
-              "ViewState": "AgIAAJ0BAAAAAAAAAIA2wNgBAAAAAAAAAAAAAA==",
+              "DocumentIndex": 13,
+              "Title": "PigHouse.cpp",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp",
+              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp",
+              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABUAAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-02-25T15:48:57.343Z"
+              "WhenOpened": "2026-03-02T06:40:39.969Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
-              "Title": "EditorColliderEditor.h",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h",
-              "RelativeDocumentMoniker": "DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h",
-              "RelativeToolTip": "DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h",
-              "ViewState": "AgIAAB4AAAAAAAAAAAAAADsAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 12,
+              "Title": "Building.h",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\Building.h",
+              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Building\\Building.h",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\Building.h",
+              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Building\\Building.h",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAwAAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-03-02T09:28:57.309Z"
+              "WhenOpened": "2026-03-02T06:18:27.117Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 7,
+              "Title": "Tool.h",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Item\\Tool\\Tool.h",
+              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Item\\Tool\\Tool.h",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Item\\Tool\\Tool.h",
+              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Item\\Tool\\Tool.h",
+              "ViewState": "AgIAAAYAAAAAAAAAAIA2wBgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-02-25T09:50:09.466Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "GameScene.cpp",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp",
+              "RelativeDocumentMoniker": "DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp",
+              "RelativeToolTip": "DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp",
+              "ViewState": "AgIAAHoAAAAAAAAAAIA2wI0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-02T12:12:22.31Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "Spider.cpp",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Spider.cpp",
               "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Spider.cpp",
               "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Spider.cpp",
               "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Spider.cpp",
-              "ViewState": "AgIAALMAAAAAAAAAAAAAACAAAAAVAAAAAAAAAA==",
+              "ViewState": "AgIAAF0BAAAAAAAAAAAAAIUBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-02-25T18:17:59.436Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "ObjectManager.cpp",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
-              "RelativeDocumentMoniker": "DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
-              "RelativeToolTip": "DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
-              "ViewState": "AgIAAGcAAAAAAAAAAIA2wHIAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 8,
+              "Title": "SpiderEgg.cpp",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\SpiderEgg.cpp",
+              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Building\\SpiderEgg.cpp",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\SpiderEgg.cpp",
+              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Building\\SpiderEgg.cpp",
+              "ViewState": "AgIAAJYAAAAAAAAAAAAAAJ4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-02-25T14:30:02.192Z"
+              "WhenOpened": "2026-02-25T18:19:33.325Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
-              "Title": "MapEditor.cpp",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\00_MainEditor\\MapEditor.cpp",
-              "RelativeDocumentMoniker": "DontStarve_Editor\\00_MainEditor\\MapEditor.cpp",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\00_MainEditor\\MapEditor.cpp",
-              "RelativeToolTip": "DontStarve_Editor\\00_MainEditor\\MapEditor.cpp",
-              "ViewState": "AgIAAA4BAAAAAAAAAAAiwCMBAAAUAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "Pig.h",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h",
+              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h",
+              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-02-25T16:20:40.675Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Building.cpp",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\Building.cpp",
+              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Building\\Building.cpp",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\Building.cpp",
+              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Building\\Building.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-02T09:26:10.431Z"
+              "WhenOpened": "2026-03-02T06:19:16.617Z"
             },
             {
               "$type": "Document",
@@ -422,66 +460,68 @@
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "SpiderEgg.cpp",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\SpiderEgg.cpp",
-              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Building\\SpiderEgg.cpp",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\SpiderEgg.cpp",
-              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Building\\SpiderEgg.cpp",
-              "ViewState": "AgIAAJYAAAAAAAAAAAAAAJ4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-02-25T18:19:33.325Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Building.cpp",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\Building.cpp",
-              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Building\\Building.cpp",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\Building.cpp",
-              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Building\\Building.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-02T06:19:16.617Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "PigHouse.cpp",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp",
-              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp",
-              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Building\\PigHouse.cpp",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAABUAAAATAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-02T06:40:39.969Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "Building.h",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\Building.h",
-              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Building\\Building.h",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Building\\Building.h",
-              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Building\\Building.h",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAwAAAAeAAAAAAAAAA==",
+              "Title": "SingleTon.h",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\SingleTon.h",
+              "RelativeDocumentMoniker": "Header\\SingleTon.h",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\SingleTon.h",
+              "RelativeToolTip": "Header\\SingleTon.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-03-02T06:18:27.117Z"
+              "WhenOpened": "2026-03-02T09:27:49.474Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Tool.h",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Item\\Tool\\Tool.h",
-              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Item\\Tool\\Tool.h",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Item\\Tool\\Tool.h",
-              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Item\\Tool\\Tool.h",
-              "ViewState": "AgIAAAYAAAAAAAAAAIA2wBgAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 22,
+              "Title": "EditorColliderEditor.h",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h",
+              "RelativeDocumentMoniker": "DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h",
+              "RelativeToolTip": "DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.h",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAADsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-02-25T09:50:09.466Z"
+              "WhenOpened": "2026-03-02T09:28:57.309Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 6,
+              "Title": "Player.cpp",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp",
+              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp",
+              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.cpp",
+              "ViewState": "AgIAAJ0BAAAAAAAAAIA2wNgBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-02-25T15:48:57.343Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ObjectManager.cpp",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
+              "RelativeDocumentMoniker": "DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
+              "RelativeToolTip": "DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
+              "ViewState": "AgIAACwAAAAAAAAAAIA2wD8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-02-25T14:30:02.192Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "MapEditor.cpp",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\00_MainEditor\\MapEditor.cpp",
+              "RelativeDocumentMoniker": "DontStarve_Editor\\00_MainEditor\\MapEditor.cpp",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\00_MainEditor\\MapEditor.cpp",
+              "RelativeToolTip": "DontStarve_Editor\\00_MainEditor\\MapEditor.cpp",
+              "ViewState": "AgIAAA4BAAAAAAAAAAAiwCMBAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-02T09:26:10.431Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
               "Title": "CameraManager.cpp",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\CameraManager\\CameraManager.cpp",
               "RelativeDocumentMoniker": "DontStarve_Client\\01_Manager\\CameraManager\\CameraManager.cpp",
@@ -493,7 +533,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 11,
               "Title": "Player.h",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.h",
               "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Entity\\Player\\Player.h",
@@ -505,7 +545,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 10,
               "Title": "Enum.h",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\Enum.h",
               "RelativeDocumentMoniker": "Header\\Enum.h",
@@ -514,30 +554,6 @@
               "ViewState": "AgIAAFwAAAAAAAAAAIA3wGwAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-03-02T05:33:35.971Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "Pig.cpp",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp",
-              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp",
-              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp",
-              "ViewState": "AgIAAFwBAAAAAAAAAAAAAHQBAAADAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-02-25T15:00:58.125Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "Pig.h",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h",
-              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h",
-              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-02-25T16:20:40.675Z"
             },
             {
               "$type": "Document",
@@ -577,19 +593,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "GameScene.cpp",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp",
-              "RelativeDocumentMoniker": "DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp",
-              "RelativeToolTip": "DontStarve_Client\\01_Manager\\SceneManager\\GameScene.cpp",
-              "ViewState": "AgIAAJ0AAAAAAAAAAIA2wK8AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-02T12:12:22.31Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "GameObject.h",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\GameObject.h",
               "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\GameObject.h",
@@ -601,19 +605,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
-              "Title": "SingleTon.h",
-              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\SingleTon.h",
-              "RelativeDocumentMoniker": "Header\\SingleTon.h",
-              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\SingleTon.h",
-              "RelativeToolTip": "Header\\SingleTon.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-03-02T09:27:49.474Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "EditorColliderEditor.cpp",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.cpp",
               "RelativeDocumentMoniker": "DontStarve_Editor\\06_EditorColliderEditor\\EditorColliderEditor.cpp",
@@ -625,7 +617,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "EditorDebugPanel.cpp",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\08_EditorDebugPanel\\EditorDebugPanel.cpp",
               "RelativeDocumentMoniker": "DontStarve_Editor\\08_EditorDebugPanel\\EditorDebugPanel.cpp",
@@ -637,7 +629,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "EditorResourceManager.cpp",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\02_EditorResourceManager\\EditorResourceManager.cpp",
               "RelativeDocumentMoniker": "DontStarve_Editor\\02_EditorResourceManager\\EditorResourceManager.cpp",
@@ -661,7 +653,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "EditorPalette.h",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\04_EditorPalette\\EditorPalette.h",
               "RelativeDocumentMoniker": "DontStarve_Editor\\04_EditorPalette\\EditorPalette.h",
@@ -745,7 +737,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "EditorPalette.cpp",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Editor\\04_EditorPalette\\EditorPalette.cpp",
               "RelativeDocumentMoniker": "DontStarve_Editor\\04_EditorPalette\\EditorPalette.cpp",
@@ -781,7 +773,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "Function.h",
               "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\Header\\Function.h",
               "RelativeDocumentMoniker": "Header\\Function.h",
@@ -1346,8 +1338,8 @@
           ]
         },
         {
-          "DockedWidth": 214,
-          "SelectedChildIndex": -1,
+          "DockedWidth": 195,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -1356,6 +1348,19 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Pig.cpp",
+              "DocumentMoniker": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp",
+              "RelativeDocumentMoniker": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp",
+              "ToolTip": "E:\\Project\\DontStarve_WinAPI\\DontStarve_WinApi\\DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp",
+              "RelativeToolTip": "DontStarve_Client\\02_GameObject\\Entity\\Monster\\Pig.cpp",
+              "ViewState": "AgIAAHcAAAAAAAAAAAA2wA4BAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-02-25T15:00:58.125Z",
+              "EditorCaption": ""
             }
           ]
         }

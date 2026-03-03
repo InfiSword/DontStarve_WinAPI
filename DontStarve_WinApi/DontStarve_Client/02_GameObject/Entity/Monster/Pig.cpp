@@ -154,163 +154,118 @@ void Pig::Update(float deltaTime)
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
+	// 1. 공통 쿨타임 감소
 	if (m_attackCooldownTimer > 0.0f) {
 		m_attackCooldownTimer -= deltaTime;
 	}
 
-	if (m_state == (int)PigState::HIT)
+	// 2. 애니메이션 기반 상태 처리 (HIT, DEATH, ATTACK)
+	if (m_state == (int)PigState::HIT || m_state == (int)PigState::DEATH || m_state == (int)PigState::ATTACK)
 	{
-		m_animator->SetState((int)PigState::HIT, transform->GetDirection());
+		m_animator->SetState(m_state, transform->GetDirection());
+
 		if (m_animator->IsAnimationDone())
 		{
-			if (m_aggroTarget && m_aggroTarget->IsEnabled())
-			{
-				m_state = (int)PigState::CHASE;
-				m_attackCooldownTimer = 0.0f;
+			if (m_state == (int)PigState::DEATH) {
+				ObjectManager::GetInstance()->RemoveGameObject(this);
+				return;
 			}
-			else
-			{
-				m_state = (int)PigState::IDLE;
+
+			if (m_state == (int)PigState::ATTACK) {
+				OnAttackEnd();
+			}
+			else if (m_state == (int)PigState::HIT) {
+				// 맞아서 HIT 상태가 끝난 후, 타겟(나를 때린 놈)이 있으면 추격 시작
+				if (m_aggroTarget && m_aggroTarget->IsEnabled())
+					m_state = (int)PigState::CHASE;
+				else
+					m_state = (int)PigState::IDLE;
 			}
 		}
 		return;
 	}
 
-	if (m_state == (int)PigState::DEATH)
-	{
-		m_animator->SetState((int)PigState::DEATH, transform->GetDirection());
-		
-		if (m_animator->IsAnimationDone())
-		{
-			ObjectManager::GetInstance()->RemoveGameObject(this);
-		}
-		return;
+	// 3. 타겟(나를 때린 플레이어) 정보 계산
+	float distToPlayer = 99999.0f;
+	float dx = 0.0f, dy = 0.0f;
+
+	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
+		dx = m_aggroTarget->GetComponent<Transform>()->GetX() - transform->GetX();
+		dy = m_aggroTarget->GetComponent<Transform>()->GetY() - transform->GetY();
+		distToPlayer = sqrtf(dx * dx + dy * dy);
 	}
 
+	// 4. 메인 상태 머신 (CHASE, IDLE, WALK)
+
+	// [CHASE 상태] - 플레이어에게 맞아서 타겟이 생겼을 때만 진입됨
 	if (m_state == (int)PigState::CHASE)
 	{
-		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
+		// 너무 멀리 도망가면 추격 포기 (어그로 해제)
+		if (!m_aggroTarget || !m_aggroTarget->IsEnabled() || distToPlayer > m_deaggroRadius) {
 			m_aggroTarget = nullptr;
 			m_state = (int)PigState::IDLE;
 			m_idleTimer = 0.0f;
-			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
-			m_attackCooldownTimer = 0.0f;
-			return;
-		}
-		Transform* targetTr = m_aggroTarget->GetComponent<Transform>();
-		if (!targetTr) {
-			m_aggroTarget = nullptr;
-			m_state = (int)PigState::IDLE;
-			return;
-		}
-		float tx = targetTr->GetX();
-		float ty = targetTr->GetY();
-		float cx = transform->GetX();
-		float cy = transform->GetY();
-		float dx = tx - cx;
-		float dy = ty - cy;
-		float distance = sqrtf(dx * dx + dy * dy);
-
-		Direction newDir;
-		if (distance < 0.0001f) 
-			newDir = transform->GetDirection();
-		else if (std::abs(dx) > std::abs(dy)) 
-			newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		else 
-			newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
-
-		if (distance <= ATTACK_RANGE && m_attackCooldownTimer <= 0.0f) {
-			transform->SetDirection(newDir);
-			m_state = (int)PigState::ATTACK;
-			m_animator->SetState((int)PigState::ATTACK, transform->GetDirection());
-			m_attackCooldownTimer = ATTACK_COOLDOWN;
 			return;
 		}
 
-		if (distance <= ATTACK_RANGE && m_attackCooldownTimer > 0.0f) {
-			transform->SetDirection(newDir);
-			m_animator->SetState((int)PigState::IDLE, transform->GetDirection());
-			return;
+		Direction newDir = (std::abs(dx) > std::abs(dy)) ? (dx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (dy > 0.0f ? DIR_DOWN : DIR_UP);
+		transform->SetDirection(newDir);
+
+		if (distToPlayer <= ATTACK_RANGE) {
+			if (m_attackCooldownTimer <= 0.0f) {
+				m_state = (int)PigState::ATTACK;
+				m_animator->SetState((int)PigState::ATTACK, transform->GetDirection());
+				m_attackCooldownTimer = ATTACK_COOLDOWN;
+				return;
+			}
+			else {
+				m_animator->SetState((int)PigState::IDLE, transform->GetDirection());
+				return;
+			}
 		}
 
-		if (transform->GetDirection() != newDir) 
-			transform->SetDirection(newDir);
 		m_animator->SetState((int)PigState::RUN, transform->GetDirection());
-
 		float moveDist = m_runSpeed * deltaTime;
-		float step = (std::min)(moveDist, distance);
-		if (distance > 0.0001f) {
-			float nx = cx + (dx / distance) * step;
-			float ny = cy + (dy / distance) * step;
-			transform->SetPosition(nx, ny);
-		}
-		return;
+		float step = (std::min)(moveDist, distToPlayer);
+		transform->SetPosition(transform->GetX() + (dx / distToPlayer) * step, transform->GetY() + (dy / distToPlayer) * step);
 	}
 
-	if (m_state == (int)PigState::ATTACK)
-	{		
-		return;
-	}
-
-	if (m_state == (int)PigState::IDLE)
+	// [IDLE 상태] - 평화롭게 쉬는 중 (플레이어 감지 로직 삭제)
+	else if (m_state == (int)PigState::IDLE)
 	{
 		m_idleTimer += deltaTime;
-		if (m_idleTimer >= m_idleDuration)
-		{
-			float cx = transform->GetX();
-			float cy = transform->GetY();
+		if (m_idleTimer >= m_idleDuration) {
 			float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
 			float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
-			m_targetX = cx + cosf(angle) * dist;
-			m_targetY = cy + sinf(angle) * dist;
+			m_targetX = transform->GetX() + cosf(angle) * dist;
+			m_targetY = transform->GetY() + sinf(angle) * dist;
 
 			m_state = (int)PigState::WALK;
 			m_idleTimer = 0.0f;
-			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 		}
-		else
-		{
+		else {
 			m_animator->SetState((int)PigState::IDLE, transform->GetDirection());
 		}
-		return;
 	}
 
-	if (m_state == (int)PigState::WALK)
+	// [WALK 상태] - 평화롭게 배회 중 (플레이어 감지 로직 삭제)
+	else if (m_state == (int)PigState::WALK)
 	{
-		float cx = transform->GetX();
-		float cy = transform->GetY();
-		float dx = m_targetX - cx;
-		float dy = m_targetY - cy;
-		float distance = sqrtf(dx * dx + dy * dy);
+		float wdx = m_targetX - transform->GetX();
+		float wdy = m_targetY - transform->GetY();
+		float wdist = sqrtf(wdx * wdx + wdy * wdy);
 
-		Direction newDir;
-		if (distance < 0.0001f)
-			newDir = transform->GetDirection();
-		else if (std::abs(dx) > std::abs(dy))
-			newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		else
-			newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
-		if (transform->GetDirection() != newDir)
-			transform->SetDirection(newDir);
+		Direction wDir = (std::abs(wdx) > std::abs(wdy)) ? (wdx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (wdy > 0.0f ? DIR_DOWN : DIR_UP);
+		transform->SetDirection(wDir);
 		m_animator->SetState((int)PigState::WALK, transform->GetDirection());
 
-		const float arrivalEpsilon = 2.0f;
-		float moveDist = m_walkSpeed * deltaTime;
-		bool arrived = (distance < arrivalEpsilon) || (distance <= moveDist);
-
-		if (arrived)
-		{
+		float moveStep = m_walkSpeed * deltaTime;
+		if (wdist < 2.0f || wdist <= moveStep) {
 			transform->SetPosition(m_targetX, m_targetY);
 			m_state = (int)PigState::IDLE;
-			m_idleTimer = 0.0f;
-			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 		}
-		else
-		{
-			float step = (std::min)(moveDist, distance);
-			float nx = cx + (dx / distance) * step;
-			float ny = cy + (dy / distance) * step;
-			transform->SetPosition(nx, ny);
+		else {
+			transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
 		}
 	}
 }
@@ -329,8 +284,6 @@ void Pig::Damaged(int damage)
 		m_hp = 0;
 		m_state = (int)PigState::DEATH;
 		m_isDead = true;
-		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
-		GameProgressManager::GetInstance()->OnMonsterKilled(GetID(), currentScene);
 	}
 
 	if (!IsDead() && IsEnabled()) {

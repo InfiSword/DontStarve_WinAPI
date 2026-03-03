@@ -176,8 +176,8 @@ void Spider::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::ATTACK, (Direction)dir);
 				if (clip) {
-					clip->AddEventFrame(4, L"attack_hit"); // 전사 거미는 4번 프레임
-					clip->AddEventFrame(7, L"attack_end");
+					clip->AddEventFrame(SPIDER_ATTACK_HIT_FRAME, L"attack_hit"); // 전사 거미는 4번 프레임
+					clip->AddEventFrame(70, L"attack_end");
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"attack_hit") this->OnAttackHit();
 						else if (eventName == L"attack_end") this->OnAttackEnd();
@@ -245,193 +245,108 @@ void Spider::Update(float deltaTime)
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	// 공격 쿨타임 감소
+	// 1. 공통 쿨타임 감소
 	if (m_attackCooldownTimer > 0.0f) {
 		m_attackCooldownTimer -= deltaTime;
 	}
 
-	// HIT 상태
-	if (m_state == (int)SpiderState::HIT)
+	// 2. 애니메이션 기반 상태 처리 (HIT, TAUNT, DEATH, ATTACK)
+	// 이 상태들은 애니메이션이 끝날 때까지 다른 로직이 개입하면 안 됩니다.
+	if (m_state == (int)SpiderState::HIT || m_state == (int)SpiderState::TAUNT ||
+		m_state == (int)SpiderState::DEATH || m_state == (int)SpiderState::ATTACK)
 	{
-		m_animator->SetState((int)SpiderState::HIT, transform->GetDirection());
-		if (m_animator->IsAnimationDone())
-		{
-			if (m_aggroTarget && m_aggroTarget->IsEnabled())
-			{
-				m_state = (int)SpiderState::CHASE;
-				m_attackCooldownTimer = 0.0f;
-			}
-			else
-			{
-				m_state = (int)SpiderState::IDLE;
-			}
-		}
-		return;
-	}
-
-	// TAUNT 상태
-	if (m_state == (int)SpiderState::TAUNT)
-	{
-		m_animator->SetState((int)SpiderState::TAUNT, transform->GetDirection());
-		if (m_animator->IsAnimationDone())
-		{
-			if (m_aggroTarget && m_aggroTarget->IsEnabled())
-			{
-				m_state = (int)SpiderState::CHASE;
-			}
-			else
-			{
-				m_state = (int)SpiderState::IDLE;
-			}
-		}
-		return;
-	}
-
-	// DEATH 상태
-	if (m_state == (int)SpiderState::DEATH)
-	{
-		m_animator->SetState((int)SpiderState::DEATH, transform->GetDirection());
+		m_animator->SetState(m_state, transform->GetDirection());
 
 		if (m_animator->IsAnimationDone())
 		{
-			OutputDebugStringW(L"Spider: Death 애니메이션 종료, 객체 제거 요청\n");
-			ObjectManager::GetInstance()->RemoveGameObject(this);
-		}
-		return;
-	}
+			if (m_state == (int)SpiderState::DEATH) {
+				ObjectManager::GetInstance()->RemoveGameObject(this);
+				return;
+			}
 
-	// 플레이어 찾기 및 어그로 판정
-	GameObject* player = ObjectManager::GetInstance()->GetPlayer();
-	if (player && player->IsEnabled())
-	{
-		Transform* playerTransform = player->GetComponent<Transform>();
-		if (playerTransform)
-		{
-			float dx = playerTransform->GetX() - transform->GetX();
-			float dy = playerTransform->GetY() - transform->GetY();
-			float distToPlayer = sqrtf(dx * dx + dy * dy);
-
-			// 어그로 감지 (원형 범위)
-			if (!m_aggroTarget && distToPlayer <= m_aggroRadius)
-			{
-				m_aggroTarget = player;
-				// 플레이어 발견 시 Taunt 애니메이션 재생
-				m_state = (int)SpiderState::TAUNT;
-
-				// 방향 설정 (플레이어 쪽으로)
-				Direction newDir;
-				if (std::abs(dx) > std::abs(dy))
-					newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
+			if (m_state == (int)SpiderState::ATTACK) {
+				OnAttackEnd(); // 내부에서 m_state를 CHASE로 변경함
+			}
+			else {
+				// HIT나 TAUNT가 끝난 경우 타겟이 있으면 추격, 없으면 대기
+				if (m_aggroTarget && m_aggroTarget->IsEnabled())
+					m_state = (int)SpiderState::CHASE;
 				else
-					newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
-				transform->SetDirection(newDir);
-			}
-
-			// 어그로 해제 (deaggro 범위 벗어남)
-			if (m_aggroTarget && distToPlayer > m_deaggroRadius)
-			{
-				m_aggroTarget = nullptr;
-				m_state = (int)SpiderState::IDLE;
-				m_idleTimer = 0.0f;
-				m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
-				m_attackCooldownTimer = 0.0f;
+					m_state = (int)SpiderState::IDLE;
 			}
 		}
+		return; // 위 상태들일 때는 아래 이동/감지 로직을 수행하지 않음
 	}
 
-	// CHASE 상태
+	// 3. 타겟(플레이어) 정보 미리 계산
+	GameObject* player = ObjectManager::GetInstance()->GetPlayer();
+	float distToPlayer = 99999.0f;
+	float dx = 0.0f, dy = 0.0f;
+
+	if (player && player->IsEnabled()) {
+		dx = player->GetComponent<Transform>()->GetX() - transform->GetX();
+		dy = player->GetComponent<Transform>()->GetY() - transform->GetY();
+		distToPlayer = sqrtf(dx * dx + dy * dy);
+	}
+
+	// 4. 메인 상태 머신 (CHASE, IDLE, WALK)
+
+	// [CHASE 상태]
 	if (m_state == (int)SpiderState::CHASE)
 	{
-		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
+		// 어그로 해제 조건 체크 (멀어지면 다시 IDLE로)
+		if (!m_aggroTarget || !m_aggroTarget->IsEnabled() || distToPlayer > m_deaggroRadius) {
 			m_aggroTarget = nullptr;
 			m_state = (int)SpiderState::IDLE;
 			m_idleTimer = 0.0f;
-			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
-			m_attackCooldownTimer = 0.0f;
 			return;
 		}
 
-		Transform* targetTr = m_aggroTarget->GetComponent<Transform>();
-		if (!targetTr) {
-			m_aggroTarget = nullptr;
-			m_state = (int)SpiderState::IDLE;
-			return;
+		// 방향 설정
+		Direction newDir = (std::abs(dx) > std::abs(dy)) ? (dx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (dy > 0.0f ? DIR_DOWN : DIR_UP);
+		transform->SetDirection(newDir);
+
+		// 공격 가능 여부 체크
+		if (distToPlayer <= ATTACK_RANGE) {
+			if (m_attackCooldownTimer <= 0.0f) {
+				m_state = (int)SpiderState::ATTACK;
+				m_animator->SetState((int)SpiderState::ATTACK, transform->GetDirection());
+				m_attackCooldownTimer = ATTACK_COOLDOWN;
+				return;
+			}
+			else {
+				// 공격 쿨타임 중에는 Pig처럼 IDLE 애니메이션 재생하며 대기
+				m_animator->SetState((int)SpiderState::IDLE, transform->GetDirection());
+				return;
+			}
 		}
 
-		float tx = targetTr->GetX();
-		float ty = targetTr->GetY();
-		float cx = transform->GetX();
-		float cy = transform->GetY();
-		float dx = tx - cx;
-		float dy = ty - cy;
-		float distance = sqrtf(dx * dx + dy * dy);
-
-		Direction newDir;
-		if (distance < 0.0001f)
-			newDir = transform->GetDirection();
-		else if (std::abs(dx) > std::abs(dy))
-			newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		else
-			newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
-
-		// 공격 사거리 내이고 쿨타임 끝남
-		if (distance <= ATTACK_RANGE && m_attackCooldownTimer <= 0.0f) {
-			transform->SetDirection(newDir);
-			m_state = (int)SpiderState::ATTACK;
-			m_animator->SetState((int)SpiderState::ATTACK, transform->GetDirection());
-			m_attackCooldownTimer = ATTACK_COOLDOWN;
-			return;
-		}
-
-		// 공격 사거리 내이지만 쿨타임 중
-		if (distance <= ATTACK_RANGE && m_attackCooldownTimer > 0.0f) {
-			transform->SetDirection(newDir);
-			m_animator->SetState((int)SpiderState::IDLE, transform->GetDirection());
-			return;
-		}
-
-		// 추격
-		if (transform->GetDirection() != newDir)
-			transform->SetDirection(newDir);
+		// 추격 이동
 		m_animator->SetState((int)SpiderState::WALK, transform->GetDirection());
-
 		float moveDist = m_runSpeed * deltaTime;
-		float step = (std::min)(moveDist, distance);
-		if (distance > 0.0001f) {
-			float nx = cx + (dx / distance) * step;
-			float ny = cy + (dy / distance) * step;
-			transform->SetPosition(nx, ny);
+		float step = (std::min)(moveDist, distToPlayer);
+		transform->SetPosition(transform->GetX() + (dx / distToPlayer) * step, transform->GetY() + (dy / distToPlayer) * step);
+	}
+
+	// [IDLE 상태]
+	else if (m_state == (int)SpiderState::IDLE)
+	{
+		// IDLE일 때만 플레이어를 새로 감지함 (TAUNT로 전이)
+		if (distToPlayer <= m_aggroRadius) {
+			m_aggroTarget = player;
+			m_state = (int)SpiderState::TAUNT;
+			return;
 		}
-		return;
-	}
 
-	// ATTACK 상태
-	if (m_state == (int)SpiderState::ATTACK)
-	{
-		m_animator->SetState((int)SpiderState::ATTACK, transform->GetDirection());
-		return;
-	}
-
-	// IDLE 상태 - 거미집 주변 배회
-	if (m_state == (int)SpiderState::IDLE)
-	{
 		m_idleTimer += deltaTime;
-		if (m_idleTimer >= m_idleDuration)
-		{
-			// 거미집 중심으로 무작위 목표 선택
+		if (m_idleTimer >= m_idleDuration) {
+			// 배회 목표 설정 로직 (기존과 동일)
 			float centerX = transform->GetX();
 			float centerY = transform->GetY();
-
-			if (m_homeEgg && m_homeEgg->IsEnabled())
-			{
-				Transform* eggTransform = m_homeEgg->GetComponent<Transform>();
-				if (eggTransform)
-				{
-					centerX = eggTransform->GetX();
-					centerY = eggTransform->GetY();
-				}
+			if (m_homeEgg && m_homeEgg->IsEnabled()) {
+				centerX = m_homeEgg->GetComponent<Transform>()->GetX();
+				centerY = m_homeEgg->GetComponent<Transform>()->GetY();
 			}
-
 			float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
 			float dist = (rand() / (float)RAND_MAX) * m_spawnRadius;
 			m_targetX = centerX + cosf(angle) * dist;
@@ -439,53 +354,37 @@ void Spider::Update(float deltaTime)
 
 			m_state = (int)SpiderState::WALK;
 			m_idleTimer = 0.0f;
-			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 		}
-		else
-		{
+		else {
 			m_animator->SetState((int)SpiderState::IDLE, transform->GetDirection());
 		}
-		return;
 	}
 
-	// WALK 상태 - 목표 지점으로 이동
-	if (m_state == (int)SpiderState::WALK)
+	// [WALK 상태 (배회 중)]
+	else if (m_state == (int)SpiderState::WALK)
 	{
-		float cx = transform->GetX();
-		float cy = transform->GetY();
-		float dx = m_targetX - cx;
-		float dy = m_targetY - cy;
-		float distance = sqrtf(dx * dx + dy * dy);
+		// 배회 중에도 플레이어를 감지하면 TAUNT로 전환
+		if (distToPlayer <= m_aggroRadius) {
+			m_aggroTarget = player;
+			m_state = (int)SpiderState::TAUNT;
+			return;
+		}
 
-		Direction newDir;
-		if (distance < 0.0001f)
-			newDir = transform->GetDirection();
-		else if (std::abs(dx) > std::abs(dy))
-			newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		else
-			newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
+		float wdx = m_targetX - transform->GetX();
+		float wdy = m_targetY - transform->GetY();
+		float wdist = sqrtf(wdx * wdx + wdy * wdy);
 
-		if (transform->GetDirection() != newDir)
-			transform->SetDirection(newDir);
+		Direction wDir = (std::abs(wdx) > std::abs(wdy)) ? (wdx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (wdy > 0.0f ? DIR_DOWN : DIR_UP);
+		transform->SetDirection(wDir);
 		m_animator->SetState((int)SpiderState::WALK, transform->GetDirection());
 
-		const float arrivalEpsilon = 2.0f;
-		float moveDist = m_walkSpeed * deltaTime;
-		bool arrived = (distance < arrivalEpsilon) || (distance <= moveDist);
-
-		if (arrived)
-		{
+		float moveStep = m_walkSpeed * deltaTime;
+		if (wdist < 2.0f || wdist <= moveStep) {
 			transform->SetPosition(m_targetX, m_targetY);
 			m_state = (int)SpiderState::IDLE;
-			m_idleTimer = 0.0f;
-			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 		}
-		else
-		{
-			float step = (std::min)(moveDist, distance);
-			float nx = cx + (dx / distance) * step;
-			float ny = cy + (dy / distance) * step;
-			transform->SetPosition(nx, ny);
+		else {
+			transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
 		}
 	}
 }
@@ -499,21 +398,12 @@ void Spider::Damaged(int damage)
 {
 	m_hp -= damage;
 
-	if (m_state == (int)SpiderState::HIT)
-	{
-		m_animator->Stop();
-		m_animator->Play();
-	}
-
 	m_state = (int)SpiderState::HIT;
 
 	if (m_hp <= 0) {
 		m_hp = 0;
 		m_state = (int)SpiderState::DEATH;
 		m_isDead = true;
-
-		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
-		GameProgressManager::GetInstance()->OnMonsterKilled(GetID(), currentScene);
 	}
 
 	if (!IsDead() && IsEnabled()) {
