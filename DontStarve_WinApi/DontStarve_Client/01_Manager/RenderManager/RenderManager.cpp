@@ -21,6 +21,9 @@ RenderManager::~RenderManager()
 
 void RenderManager::Init()
 {
+	for (int i = 0; i < LAYER_COUNT; ++i) {
+		m_layerCommands[i].reserve(64);
+	}
 }
 
 void RenderManager::LateInit()
@@ -37,7 +40,7 @@ void RenderManager::LateUpdate()
 
 void RenderManager::Release()
 {
-	m_drawCommands.clear();
+	Clear();
 }
 
 void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped)
@@ -56,7 +59,7 @@ void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::Rect
 	cmd.hasTint = hasTint;
 	cmd.preFlipped = preFlipped;
 
-	m_drawCommands.push_back(cmd);
+	m_layerCommands[layer].push_back(cmd);
 }
 
 void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey)
@@ -71,7 +74,7 @@ void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFon
 	cmd.layer = layer;
 	cmd.sortKey = sortKey;
 
-	m_drawCommands.push_back(cmd);
+	m_layerCommands[layer].push_back(cmd);
 }
 
 void RenderManager::AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey)
@@ -84,7 +87,7 @@ void RenderManager::AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Co
 	cmd.layer = layer;
 	cmd.sortKey = sortKey;
 
-	m_drawCommands.push_back(cmd);
+	m_layerCommands[layer].push_back(cmd);
 }
 
 void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float sortKey)
@@ -96,7 +99,7 @@ void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gd
 	cmd.layer = layer;
 	cmd.sortKey = sortKey;
 
-	m_drawCommands.push_back(cmd);
+	m_layerCommands[layer].push_back(cmd);
 }
 
 void RenderManager::AddDrawEllipseCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey)
@@ -109,10 +112,12 @@ void RenderManager::AddDrawEllipseCommand(const Gdiplus::RectF& rect, const Gdip
 	cmd.layer = layer;
 	cmd.sortKey = sortKey;
 
-	m_drawCommands.push_back(cmd);
+	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::RenderUIImageWithPivot(Gdiplus::Bitmap* bitmap, float x, float y, float width, float height, float pivotX, float pivotY, RenderLayer layer, float sortKey, const Gdiplus::Color& tintColor, bool hasTint)
+void RenderManager::RenderUIImageWithPivot(Gdiplus::Bitmap* bitmap, float x, float y, 
+	float width, float height, float pivotX, float pivotY, RenderLayer layer, 
+	float sortKey, const Gdiplus::Color& tintColor, bool hasTint)
 {
 	if (!bitmap) return;
 
@@ -140,6 +145,7 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 {
 	if (!pObject || !pObject->IsEnabled()) return;
 
+	CameraManager* pCam = CameraManager::GetInstance();
 	Transform* transform = pObject->GetComponent<Transform>();
 	RectTransform* rectTransform = pObject->GetComponent<RectTransform>();
 	
@@ -149,7 +155,8 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 	ComponentElement::Image* image = pObject->GetComponent<ComponentElement::Image>();
 	Animator* anim = pObject->GetComponent<Animator>();
 
-	if (anim != nullptr) {
+	if (anim != nullptr)
+	{
 		if (!transform) return;
 		if (spriteRenderer && !spriteRenderer->IsEnabled()) return;
 
@@ -229,63 +236,73 @@ void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float
 
 void RenderManager::Clear()
 {
-	m_drawCommands.clear();
+	for (int i = 0; i < LAYER_COUNT; ++i) {
+		m_layerCommands[i].clear();
+	}
 }
 
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 {
-	if (!pGraphics || m_drawCommands.empty()) return;
+	if (!pGraphics) return;
 
-	std::sort(m_drawCommands.begin(), m_drawCommands.end(), CompareDrawCommands);
-
-	for (const auto& cmd : m_drawCommands) {
-		switch (cmd.type) {
-		case DRAW_COMMAND_IMAGE:
-			if (cmd.pBitmap) {
-				if (cmd.hasTint) {
-					Gdiplus::ImageAttributes attr;
-					float r = cmd.tintColor.GetR() / 255.0f;
-					float g = cmd.tintColor.GetG() / 255.0f;
-					float b = cmd.tintColor.GetB() / 255.0f;
-					float a = cmd.tintColor.GetA() / 255.0f;
-					Gdiplus::ColorMatrix matrix = { r,0,0,0,0, 0,g,0,0,0, 0,0,b,0,0, 0,0,0,a,0, 0,0,0,0,1 };
-					attr.SetColorMatrix(&matrix);
-					pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y, cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit, &attr);
+	for (int i = 0; i < LAYER_COUNT; ++i) {
+		if (m_layerCommands[i].empty()) continue;
+		std::sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), CompareDrawCommands);
+		for (const auto& cmd : m_layerCommands[i]) {
+			switch (cmd.type) {
+			case DRAW_COMMAND_IMAGE:
+				if (cmd.pBitmap) {
+					if (cmd.hasTint) {
+						Gdiplus::ImageAttributes attr;
+						float r = cmd.tintColor.GetR() / 255.0f;
+						float g = cmd.tintColor.GetG() / 255.0f;
+						float b = cmd.tintColor.GetB() / 255.0f;
+						float a = cmd.tintColor.GetA() / 255.0f;
+						Gdiplus::ColorMatrix matrix = 
+						{
+						  r,0,0,0,0,
+						  0,g,0,0,0,
+						  0,0,b,0,0,
+						  0,0,0,a,0,
+					      0,0,0,0,1 
+						};
+						attr.SetColorMatrix(&matrix);
+						pGraphics->DrawImage(cmd.pBitmap,
+							cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
+							cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit, &attr);
+					}
+					else {
+						pGraphics->DrawImage(cmd.pBitmap, 
+							cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y, 
+							cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
+					}
 				}
-				else {
-					pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y, cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
+				break;
+			case DRAW_COMMAND_TEXT:
+				if (cmd.textPtr) {
+					pGraphics->DrawString(cmd.textPtr->c_str(), -1, cmd.pFont, cmd.destRect, cmd.pStringFormat, cmd.pBrush);
 				}
-			}
-			break;
-		case DRAW_COMMAND_TEXT:
-			if (cmd.textPtr) {
-				pGraphics->DrawString(cmd.textPtr->c_str(), -1, cmd.pFont, cmd.destRect, cmd.pStringFormat, cmd.pBrush);
-			}
-			break;
-		case DRAW_COMMAND_RECTANGLE:
+				break;
+			case DRAW_COMMAND_RECTANGLE:
 			{
 				Gdiplus::Pen pen(cmd.color, cmd.thickness);
 				pGraphics->DrawRectangle(&pen, cmd.destRect);
 			}
 			break;
-		case DRAW_COMMAND_FILL_RECTANGLE:
+			case DRAW_COMMAND_FILL_RECTANGLE:
 			{
 				Gdiplus::SolidBrush brush(cmd.color);
 				pGraphics->FillRectangle(&brush, cmd.destRect);
 			}
 			break;
-		case DRAW_COMMAND_ELLIPSE:
+			case DRAW_COMMAND_ELLIPSE:
 			{
 				Gdiplus::Pen pen(cmd.color, cmd.thickness);
 				pGraphics->DrawEllipse(&pen, cmd.destRect);
 			}
 			break;
+			}
 		}
+		m_layerCommands[i].clear();
 	}
-	m_drawCommands.clear();
-}
-
-void RenderManager::ApplyDirectionFlip(Gdiplus::Graphics* pGraphics, const DrawCommand& command, float scaledWidth, float scaledHeight)
-{
-	// 현재는 Draw() 단에서 처리하거나 Animator에서 처리함. 필요 시 구현.
 }

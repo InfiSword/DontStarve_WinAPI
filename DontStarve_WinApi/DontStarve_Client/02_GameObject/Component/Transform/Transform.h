@@ -21,23 +21,17 @@ public:
 	// 위치 Getter/Setter
 	float GetX() const { return m_x; }
 	float GetY() const { return m_y; }
-	void SetX(float x) { m_x = x; }
-	void SetY(float y) { m_y = y; }
 	void SetPosition(float x, float y) { m_x = x; m_y = y; }
 
 	// 스케일 Getter/Setter
 	float GetScaleX() const { return m_scaleX; }
 	float GetScaleY() const { return m_scaleY; }
-	void SetScaleX(float scaleX) { m_scaleX = scaleX; }
-	void SetScaleY(float scaleY) { m_scaleY = scaleY; }
 	void SetScale(float scaleX, float scaleY) { m_scaleX = scaleX; m_scaleY = scaleY; }
 	void SetScale(float scale) { m_scaleX = scale; m_scaleY = scale; }
 
 	// 피벗 Getter/Setter
 	float GetPivotX() const { return m_pivotX; }
 	float GetPivotY() const { return m_pivotY; }
-	void SetPivotX(float pivotX) { m_pivotX = pivotX; }
-	void SetPivotY(float pivotY) { m_pivotY = pivotY; }
 	void SetPivot(float pivotX, float pivotY) { m_pivotX = pivotX; m_pivotY = pivotY; }
 
 	// 방향 Getter/Setter

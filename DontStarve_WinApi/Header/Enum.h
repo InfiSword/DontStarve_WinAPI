@@ -36,9 +36,9 @@ enum SceneType
 	SCENE_NONE = 0,
 	SCENE_TITLE,               // 타이틀 씬
 	SCENE_CHARACTER_SELECT,    // 캐릭터 선택 씬
-	SCENE_GAME_FARMING_AREA,        // 1번째: 농장 지역
-	SCENE_GAME_HOUND_FOREST,        // 2번째: 하운드 숲
-	SCENE_GAME_SPIDER_QUEEN_HOUSE,  // 3번째: 거미여왕 집
+	SCENE_GAME_FARMING_AREA,        
+	SCENE_GAME_HOUND_FOREST,        
+	SCENE_GAME_SPIDER_QUEEN_HOUSE,  
 	SCENE_COUNT
 };
 
@@ -153,18 +153,19 @@ enum RenderLayer {
 	LAYER_DEBUG_OVERLAY,         // 디버그 오버레이 (UI 아래, 월드 위)
 	LAYER_UI_BACKGROUND,         // UI 배경
 	LAYER_UI_FOREGROUND,         // UI 요소들, 텍스트
-
 	LAYER_COUNT                  // 레이어 개수
 };
 
-enum Time {
+enum Time 
+{
 	NOON = 0,
 	NIGHT,
 	TIME_COUNT
 };
 
 // 렌더링 명령 종류
-enum DrawCommandType {
+enum DrawCommandType 
+{
 	DRAW_COMMAND_IMAGE,
 	DRAW_COMMAND_TEXT,
 	DRAW_COMMAND_RECTANGLE,

@@ -319,8 +319,7 @@ void Player::Update(float deltaTime)
 		bool isArrived = (distance < arrivalEpsilon) || (distance <= m_stopThreshold) || (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame);
 
 		if (isArrived) {
-			transform->SetX(m_targetWorldPos.X);
-			transform->SetY(m_targetWorldPos.Y);
+			transform->SetPosition(m_targetWorldPos.X, m_targetWorldPos.Y);
 			isMoveToGoal = false;
 
 			// 공격 대상(몬스터)으로 이동한 경우: 사거리 안이면 방향 맞추고 ATTACK, 밖이면 몬스터 현재 위치로 다시 이동
@@ -369,8 +368,7 @@ void Player::Update(float deltaTime)
 		}
 		else {
 			float moveDist = (std::min)(moveSpeedThisFrame, distance);
-			transform->SetX(transform->GetX() + (dx / distance) * moveDist);
-			transform->SetY(transform->GetY() + (dy / distance) * moveDist);
+			transform->SetPosition(transform->GetX() + (dx / distance) * moveDist, transform->GetY() + (dy / distance) * moveDist);
 
 			// 이동 중에는 기본적으로 WALK 애니메이션을 사용하지만,
 			// 이미 PICKUP/CHOP 등 상호작용 애니메이션이 진행 중이면 덮어쓰지 않는다.

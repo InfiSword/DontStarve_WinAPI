@@ -3,6 +3,8 @@
 #include "../Component.h"
 #include "Sprite.h"
 
+class Transform;
+
 // 월드 오브젝트의 이미지와 레이어를 관리하는 컴포넌트
 class SpriteRenderer : public Component
 {
@@ -10,7 +12,7 @@ protected:
 	std::shared_ptr<Sprite> m_sprite;		// 렌더링할 스프라이트
 	RenderLayer m_layer;				// 렌더 레이어
 	float m_sortKey;					// 정렬 키 (기본값은 Transform에서 계산)
-
+	Transform* m_pCachedTransform;
 public:
 	SpriteRenderer(GameObject* owner, RenderLayer layer = LAYER_WORLD_OBJECT);
 	virtual ~SpriteRenderer();
@@ -22,6 +24,8 @@ public:
 	Gdiplus::Bitmap* GetSprite() const { return m_sprite ? m_sprite->bitmap.get() : nullptr; }
 	void SetSprite(const std::shared_ptr<Sprite>& sprite) { m_sprite = sprite; }
 	std::shared_ptr<Sprite> GetSpriteHandle() const { return m_sprite; }
+
+	Transform* GetTransform() const { return m_pCachedTransform; }
 
 	// 레이어 Getter/Setter
 	RenderLayer GetLayer() const { return m_layer; }

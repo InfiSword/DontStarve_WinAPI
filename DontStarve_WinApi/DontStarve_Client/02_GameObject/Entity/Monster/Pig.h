@@ -39,8 +39,6 @@ private:
     static const float ATTACK_COOLDOWN;
 
     float m_wanderRadius;
-    float m_aggroRadius;
-    float m_deaggroRadius;
     float m_walkSpeed;
     float m_runSpeed;
 

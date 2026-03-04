@@ -41,8 +41,6 @@ Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, co
 	, m_aggroTarget(nullptr)
 	, m_attackCollider(nullptr)
 {
-	m_hp = 80;
-	m_maxHp = m_hp;
 	m_type = GO_TYPE_MONSTER;
 }
 
@@ -80,7 +78,13 @@ void Spider::Init()
 	if (m_animator) {
 		ResourceManager* pRM = ResourceManager::GetInstance();
 
-		if (m_id == GOID_MONSTER_SPIDER) {
+		if (m_id == GOID_MONSTER_SPIDER)
+		{
+			m_hp = 80;
+			m_maxHp = m_hp;
+			m_walkSpeed = 60.0f;
+			m_runSpeed = 150.0f;
+
 			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_SPIDER);
 			if (!objData) return;
 			std::wstring base = objData->baseDir + L"\\";
@@ -140,6 +144,11 @@ void Spider::Init()
 			}
 		}
 		else if (m_id == GOID_MONSTER_WARRIOR_SPIDER) {
+			m_hp = 200;
+			m_maxHp = m_hp;
+			m_walkSpeed = 80.0f;
+			m_runSpeed = 180.0f;
+
 			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_WARRIOR_SPIDER);
 			if (!objData) return;
 			std::wstring base = objData->baseDir + L"\\";
@@ -245,13 +254,12 @@ void Spider::Update(float deltaTime)
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	// 1. 공통 쿨타임 감소
+	// 공격 쿨타임 감소
 	if (m_attackCooldownTimer > 0.0f) {
 		m_attackCooldownTimer -= deltaTime;
 	}
 
-	// 2. 애니메이션 기반 상태 처리 (HIT, TAUNT, DEATH, ATTACK)
-	// 이 상태들은 애니메이션이 끝날 때까지 다른 로직이 개입하면 안 됩니다.
+	// 애니메이션 기반 상태 처리 (HIT, TAUNT, DEATH, ATTACK)
 	if (m_state == (int)SpiderState::HIT || m_state == (int)SpiderState::TAUNT ||
 		m_state == (int)SpiderState::DEATH || m_state == (int)SpiderState::ATTACK)
 	{
@@ -289,9 +297,7 @@ void Spider::Update(float deltaTime)
 		distToPlayer = sqrtf(dx * dx + dy * dy);
 	}
 
-	// 4. 메인 상태 머신 (CHASE, IDLE, WALK)
-
-	// [CHASE 상태]
+	// 메인 상태 머신 (CHASE, IDLE, WALK)
 	if (m_state == (int)SpiderState::CHASE)
 	{
 		// 어그로 해제 조건 체크 (멀어지면 다시 IDLE로)
@@ -328,7 +334,6 @@ void Spider::Update(float deltaTime)
 		transform->SetPosition(transform->GetX() + (dx / distToPlayer) * step, transform->GetY() + (dy / distToPlayer) * step);
 	}
 
-	// [IDLE 상태]
 	else if (m_state == (int)SpiderState::IDLE)
 	{
 		// IDLE일 때만 플레이어를 새로 감지함 (TAUNT로 전이)
@@ -360,7 +365,6 @@ void Spider::Update(float deltaTime)
 		}
 	}
 
-	// [WALK 상태 (배회 중)]
 	else if (m_state == (int)SpiderState::WALK)
 	{
 		// 배회 중에도 플레이어를 감지하면 TAUNT로 전환
