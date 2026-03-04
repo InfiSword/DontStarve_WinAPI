@@ -349,7 +349,7 @@ void Pig::RenderDebugOverlay()
 		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
 		Gdiplus::PointF bottomRight = cameraManager->WorldToScreen((float)worldRect.right, (float)worldRect.bottom);
 
-		renderManager->AddDrawCommand(
+		renderManager->AddDrawRectCommand(
 			Gdiplus::RectF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y),
 			Gdiplus::Color(255, 0, 0),
 			2.0f, LAYER_DEBUG_OVERLAY, 9999.0f

@@ -69,7 +69,7 @@ void UIImage::Render()
 	Gdiplus::Color tintColor = m_image->GetTintColor();
 	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
 
-    RenderManager::GetInstance()->RenderUIImageWithPivot(
+    RenderManager::GetInstance()->AddUIImageCommand(
         bitmap,
         x,
         y,

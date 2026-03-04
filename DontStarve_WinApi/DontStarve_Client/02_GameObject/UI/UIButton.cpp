@@ -91,7 +91,7 @@ void UIButton::Render()
 	Gdiplus::Color tintColor = m_image->GetTintColor();
 	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
 
-	RenderManager::GetInstance()->RenderUIImageWithPivot(
+	RenderManager::GetInstance()->AddUIImageCommand(
 		bitmap, rt->GetX(), rt->GetY(), w, h,
 		rt->GetPivotX(), rt->GetPivotY(),
 		m_image->GetLayer(), m_image->GetSortKey(),
@@ -108,7 +108,7 @@ void UIButton::RenderDisabled()
 	float h = rt->GetHeight() * rt->GetScaleY();
 	Gdiplus::Color tintColor = m_image->GetTintColor();
 	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
-	RenderManager::GetInstance()->RenderUIImageWithPivot(
+	RenderManager::GetInstance()->AddUIImageCommand(
 		bitmap, rt->GetX(), rt->GetY(), w, h,
 		rt->GetPivotX(), rt->GetPivotY(),
 		m_image->GetLayer(), m_image->GetSortKey(),

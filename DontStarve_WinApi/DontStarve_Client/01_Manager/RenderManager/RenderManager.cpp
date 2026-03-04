@@ -77,7 +77,7 @@ void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFon
 	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::AddDrawCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey)
+void RenderManager::AddDrawRectCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey)
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_RECTANGLE;
@@ -115,7 +115,7 @@ void RenderManager::AddDrawEllipseCommand(const Gdiplus::RectF& rect, const Gdip
 	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::RenderUIImageWithPivot(Gdiplus::Bitmap* bitmap, float x, float y, 
+void RenderManager::AddUIImageCommand(Gdiplus::Bitmap* bitmap, float x, float y, 
 	float width, float height, float pivotX, float pivotY, RenderLayer layer, 
 	float sortKey, const Gdiplus::Color& tintColor, bool hasTint)
 {

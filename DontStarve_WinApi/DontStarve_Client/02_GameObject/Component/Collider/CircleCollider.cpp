@@ -127,5 +127,5 @@ void CircleCollider::RenderGizmo()
 	renderManager->AddFillRectangleCommand(gizmoRect, bgColor, LAYER_DEBUG_OVERLAY, 9998.0f);
 
 	// 외곽선 (원을 사각형으로 근사)
-	renderManager->AddDrawCommand(gizmoRect, gizmoColor, 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
+	renderManager->AddDrawRectCommand(gizmoRect, gizmoColor, 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
 }

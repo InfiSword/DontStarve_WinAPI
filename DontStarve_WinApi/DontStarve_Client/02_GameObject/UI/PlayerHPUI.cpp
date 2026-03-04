@@ -200,7 +200,7 @@ void PlayerHPUI::Render()
 	// 1) HP 아이콘
 	if (m_hpIconSprite && m_hpIconSprite->bitmap) {
 		Gdiplus::Bitmap* bmp = m_hpIconSprite->bitmap.get();
-		pRM->RenderUIImageWithPivot(
+		pRM->AddUIImageCommand(
 			bmp,
 			iconCenterX, iconCenterY,
 			ICON_SIZE, ICON_SIZE,
