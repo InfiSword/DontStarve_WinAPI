@@ -22,43 +22,32 @@ static const int HOUND_ATTACK_LEFT[]  = { -80, -25, HOUND_ATTACK_BOX_W, HOUND_AT
 static const int HOUND_ATTACK_RIGHT[] = {   0, -25, HOUND_ATTACK_BOX_W, HOUND_ATTACK_BOX_H };
 
 Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
 	, m_wanderRadius(200.0f)
 	, m_aggroRadius(350.0f)
 	, m_deaggroRadius(500.0f)
-	, m_walkSpeed(80.0f)
-	, m_runSpeed(200.0f)
-	, m_attackCooldownTimer(0.0f)
 	, m_idleTimer(0.0f)
 	, m_idleDuration(2.0f)
-	, m_targetX(x)
-	, m_targetY(y)
-	, m_aggroTarget(nullptr)
 	, m_attackCollider(nullptr)
 {
 	m_hp = 90;
 	m_maxHp = m_hp;
 	m_type = GO_TYPE_MONSTER;
+
+	m_walkSpeed = 80.0f;
+	m_runSpeed = 200.0f;
 }
 
 Hound::~Hound() {}
 
 void Hound::Init()
 {
-	Entity::Init();
+	Monster::Init();
 	
-	m_state = (int)HoundState::IDLE;
+	ChangeState((int)HoundState::IDLE);
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 	m_attackCooldownTimer = 0.0f;
-
-	if (!this->transform) {
-		this->transform = GetComponent<Transform>();
-		if (!this->transform) {
-			OutputDebugStringW(L"Hound: Transform component not found!\n");
-			return;
-		}
-	}
 
 	if (this->transform) {
 		m_targetX = this->transform->GetX();
@@ -149,30 +138,23 @@ void Hound::Init()
 	}
 }
 
-void Hound::Update(float deltaTime)
+void Hound::UpdateAI(float deltaTime)
 {
-	Entity::Update(deltaTime);
-
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	if (m_attackCooldownTimer > 0.0f) {
-		m_attackCooldownTimer -= deltaTime;
-	}
-
 	if (m_state == (int)HoundState::HIT)
 	{
-		m_animator->SetState((int)HoundState::HIT, transform->GetDirection());
 		if (m_animator->IsAnimationDone())
 		{
 			if (m_aggroTarget && m_aggroTarget->IsEnabled())
 			{
-				m_state = (int)HoundState::CHASE;
+				ChangeState((int)HoundState::CHASE);
 				m_attackCooldownTimer = 0.0f;
 			}
 			else
 			{
-				m_state = (int)HoundState::IDLE;
+				ChangeState((int)HoundState::IDLE);
 			}
 		}
 		return;
@@ -180,10 +162,9 @@ void Hound::Update(float deltaTime)
 
 	if (m_state == (int)HoundState::HOWL)
 	{
-		m_animator->SetState((int)HoundState::HOWL, transform->GetDirection());
 		if (m_animator->IsAnimationDone())
 		{
-			m_state = (int)HoundState::CHASE;
+			ChangeState((int)HoundState::CHASE);
 		}
 		return;
 	}
@@ -199,84 +180,47 @@ void Hound::Update(float deltaTime)
 		return;
 	}
 
-	GameObject* player = ObjectManager::GetInstance()->GetPlayer();
-	if (player && player->IsEnabled())
+	// 어그로 체크 및 해제 (Monster 부모 클래스의 m_distToPlayer 활용)
+	if (!m_aggroTarget && m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius))
 	{
-		Transform* playerTransform = player->GetComponent<Transform>();
-		if (playerTransform)
-		{
-			float dx = playerTransform->GetX() - transform->GetX();
-			float dy = playerTransform->GetY() - transform->GetY();
-			float distToPlayer = sqrtf(dx * dx + dy * dy);
+		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		ChangeState((int)HoundState::HOWL);
 
-			if (!m_aggroTarget && distToPlayer <= m_aggroRadius)
-			{
-				m_aggroTarget = player;
-				m_state = (int)HoundState::HOWL;
+		Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
+		transform->SetDirection(newDir);
+	}
 
-				Direction newDir;
-				if (std::abs(dx) > std::abs(dy))
-					newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-				else
-					newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
-				transform->SetDirection(newDir);
-			}
-
-			if (m_aggroTarget && distToPlayer > m_deaggroRadius)
-			{
-				m_aggroTarget = nullptr;
-				m_state = (int)HoundState::IDLE;
-				m_idleTimer = 0.0f;
-				m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
-				m_attackCooldownTimer = 0.0f;
-			}
-		}
+	if (m_aggroTarget && m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius))
+	{
+		m_aggroTarget = nullptr;
+		ChangeState((int)HoundState::IDLE);
+		m_idleTimer = 0.0f;
+		m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
+		m_attackCooldownTimer = 0.0f;
 	}
 
 	if (m_state == (int)HoundState::CHASE)
 	{
 		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
 			m_aggroTarget = nullptr;
-			m_state = (int)HoundState::IDLE;
+			ChangeState((int)HoundState::IDLE);
 			m_idleTimer = 0.0f;
 			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 			m_attackCooldownTimer = 0.0f;
 			return;
 		}
 
-		Transform* targetTr = m_aggroTarget->GetComponent<Transform>();
-		if (!targetTr) {
-			m_aggroTarget = nullptr;
-			m_state = (int)HoundState::IDLE;
+		Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
+
+		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE) && m_attackCooldownTimer <= 0.0f) {
+			transform->SetDirection(newDir);
+			ChangeState((int)HoundState::ATTACK_PRE);
 			return;
 		}
 
-		float tx = targetTr->GetX();
-		float ty = targetTr->GetY();
-		float cx = transform->GetX();
-		float cy = transform->GetY();
-		float dx = tx - cx;
-		float dy = ty - cy;
-		float distance = sqrtf(dx * dx + dy * dy);
-
-		Direction newDir;
-		if (distance < 0.0001f) 
-			newDir = transform->GetDirection();
-		else if (std::abs(dx) > std::abs(dy)) 
-			newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		else 
-			newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
-
-		if (distance <= ATTACK_RANGE && m_attackCooldownTimer <= 0.0f) {
+		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE) && m_attackCooldownTimer > 0.0f) {
 			transform->SetDirection(newDir);
-			m_state = (int)HoundState::ATTACK_PRE;
-			m_animator->SetState((int)HoundState::ATTACK_PRE, transform->GetDirection());
-			return;
-		}
-
-		if (distance <= ATTACK_RANGE && m_attackCooldownTimer > 0.0f) {
-			transform->SetDirection(newDir);
-			m_animator->SetState((int)HoundState::IDLE, transform->GetDirection());
+			ChangeState((int)HoundState::IDLE);
 			return;
 		}
 
@@ -285,12 +229,8 @@ void Hound::Update(float deltaTime)
 		m_animator->SetState((int)HoundState::RUN, transform->GetDirection());
 
 		float moveDist = m_runSpeed * deltaTime;
-		float step = (std::min)(moveDist, distance);
-		if (distance > 0.0001f) {
-			float nx = cx + (dx / distance) * step;
-			float ny = cy + (dy / distance) * step;
-			transform->SetPosition(nx, ny);
-		}
+		float step = (std::min)(moveDist, m_distToPlayer);
+		transform->SetPosition(transform->GetX() + m_dirToPlayer.X * step, transform->GetY() + m_dirToPlayer.Y * step);
 		return;
 	}
 
@@ -322,8 +262,7 @@ void Hound::Update(float deltaTime)
 				if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
 					Transform* pt = m_aggroTarget->GetComponent<Transform>();
 					if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
-						Entity* playerEntity = dynamic_cast<Entity*>(m_aggroTarget);
-						if (playerEntity) playerEntity->Damaged(20);
+						m_aggroTarget->Damaged(20);
 					}
 				}
 			}
@@ -344,13 +283,10 @@ void Hound::Update(float deltaTime)
 		m_idleTimer += deltaTime;
 		if (m_idleTimer >= m_idleDuration)
 		{
-			float centerX = transform->GetX();
-			float centerY = transform->GetY();
-
 			float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
 			float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
-			m_targetX = centerX + cosf(angle) * dist;
-			m_targetY = centerY + sinf(angle) * dist;
+			m_targetX = transform->GetX() + cosf(angle) * dist;
+			m_targetY = transform->GetY() + sinf(angle) * dist;
 
 			m_state = (int)HoundState::RUN;
 			m_idleTimer = 0.0f;
@@ -365,29 +301,18 @@ void Hound::Update(float deltaTime)
 
 	if (m_state == (int)HoundState::RUN)
 	{
-		float cx = transform->GetX();
-		float cy = transform->GetY();
-		float dx = m_targetX - cx;
-		float dy = m_targetY - cy;
-		float distance = sqrtf(dx * dx + dy * dy);
+		float wdx = m_targetX - transform->GetX();
+		float wdy = m_targetY - transform->GetY();
+		float wdist = sqrtf(wdx * wdx + wdy * wdy);
 
-		Direction newDir;
-		if (distance < 0.0001f)
-			newDir = transform->GetDirection();
-		else if (std::abs(dx) > std::abs(dy))
-			newDir = (dx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		else
-			newDir = (dy > 0.0f) ? DIR_DOWN : DIR_UP;
+		Direction newDir = (std::abs(wdx) > std::abs(wdy)) ? (wdx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (wdy > 0.0f ? DIR_DOWN : DIR_UP);
 		
 		if (transform->GetDirection() != newDir)
 			transform->SetDirection(newDir);
 		m_animator->SetState((int)HoundState::RUN, transform->GetDirection());
 
-		const float arrivalEpsilon = 2.0f;
 		float moveDist = m_walkSpeed * deltaTime;
-		bool arrived = (distance < arrivalEpsilon) || (distance <= moveDist);
-
-		if (arrived)
+		if (wdist < 2.0f || wdist <= moveDist)
 		{
 			transform->SetPosition(m_targetX, m_targetY);
 			m_state = (int)HoundState::IDLE;
@@ -396,10 +321,8 @@ void Hound::Update(float deltaTime)
 		}
 		else
 		{
-			float step = (std::min)(moveDist, distance);
-			float nx = cx + (dx / distance) * step;
-			float ny = cy + (dy / distance) * step;
-			transform->SetPosition(nx, ny);
+			float step = (std::min)(moveDist, wdist);
+			transform->SetPosition(transform->GetX() + (wdx / wdist) * step, transform->GetY() + (wdy / wdist) * step);
 		}
 	}
 }
@@ -411,16 +334,8 @@ bool Hound::OnInteraction(GameObject* obj)
 
 void Hound::Damaged(int damage)
 {
-	m_hp -= damage;
-	m_state = (int)HoundState::HIT;
-
-	if (m_hp <= 0) {
-		m_hp = 0;
-		m_state = (int)HoundState::DEATH;
-		m_isDead = true;
-		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
-		GameProgressManager::GetInstance()->OnMonsterKilled(GetID(), currentScene);
-	}
+	Entity::Damaged(damage);
+	ChangeState((int)HoundState::HIT);
 
 	if (!IsDead() && IsEnabled()) {
 		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();

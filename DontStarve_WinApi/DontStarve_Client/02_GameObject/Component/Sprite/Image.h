@@ -4,6 +4,7 @@
 #include "Sprite.h"
 
 class GameObject;
+class RectTransform;	
 
 namespace ComponentElement 
 {

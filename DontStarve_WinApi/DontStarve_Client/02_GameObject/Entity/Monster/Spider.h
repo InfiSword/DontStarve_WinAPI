@@ -1,5 +1,5 @@
 #pragma once
-#include "../Entity.h"
+#include "Monster.h"
 
 class ResourceManager;
 class BoxCollider;
@@ -16,14 +16,14 @@ enum class SpiderState {
 	COUNT
 };
 
-class Spider : public Entity
+class Spider : public Monster
 {
 public:
     Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"");
     virtual ~Spider();
 
     virtual void Init() override;
-    virtual void Update(float deltaTime) override;
+    virtual void UpdateAI(float deltaTime) override;
     virtual bool OnInteraction(GameObject* obj) override;    
     virtual void Damaged(int damage) override;
 
@@ -54,13 +54,7 @@ private:
     float m_spawnRadius;                 // 거미집 주변 배회 반경
     float m_aggroRadius;                 // 어그로 감지 범위
     float m_deaggroRadius;               // 어그로 해제 범위
-    float m_walkSpeed;                   // 배회 속도
-    float m_runSpeed;                    // 추격 속도
-    float m_attackCooldownTimer;         // 공격 쿨타임 타이머
     float m_idleTimer;                   // IDLE 경과 시간
     float m_idleDuration;                // IDLE 유지 시간
-    float m_targetX;                     // 이동 목표 X
-    float m_targetY;                     // 이동 목표 Y
-    GameObject* m_aggroTarget;           // 추격 대상
     BoxCollider* m_attackCollider;       // 공격 판정용
 };

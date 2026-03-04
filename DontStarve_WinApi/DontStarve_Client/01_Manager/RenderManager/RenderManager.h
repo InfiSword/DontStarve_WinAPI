@@ -36,12 +36,14 @@ public:
 private:
 	std::vector<DrawCommand> m_layerCommands[LAYER_COUNT];
 
-	// 정렬에서 레이어를 우선 비교하고 그 다음 sortKey 비교
+	// 캐싱된 GDI+ 객체 (성능 최적화)
+	Gdiplus::Pen* m_pCachedPen = nullptr;
+	Gdiplus::SolidBrush* m_pCachedBrush = nullptr;
+	Gdiplus::ImageAttributes* m_pCachedAttr = nullptr;
+
+	// 레이어별로 이미 분할되어 있으므로 sortKey만 비교하여 정렬 비용 감소
 	static bool CompareDrawCommands(const DrawCommand& a, const DrawCommand& b)
 	{
-		if (a.layer != b.layer) {
-			return a.layer < b.layer;
-		}
 		return a.sortKey < b.sortKey;
 	}
 };

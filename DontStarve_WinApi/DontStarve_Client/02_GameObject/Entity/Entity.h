@@ -34,16 +34,17 @@ public:
     virtual void Release() override;
 
     // 데미지 처리
-    virtual void Damaged(int damage) = 0;
+    virtual void Damaged(int damage) override;
 
     // 죽음 처리
     virtual void Die() {}
 
-    // 상태 관련 Getter
+    // 상태 관련 Getter 및 Setter
     bool IsDead() const { return m_isDead; }
     int GetHp() const { return m_hp; }
     int GetMaxHp() const { return m_maxHp; }
     int GetState() const { return m_state; }
+    virtual void ChangeState(int newState);
 
     // 드롭 아이템 관련 가상 함수들
     virtual GameObjectID GetDropItemID() const;

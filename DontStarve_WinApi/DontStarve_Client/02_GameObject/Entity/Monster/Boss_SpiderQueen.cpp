@@ -22,33 +22,29 @@ static const int PIG_ATTACK_LEFT[] = { -70,  -25, BOSS_SPIDERQUEEN_ATTACK_BOX_W,
 static const int PIG_ATTACK_RIGHT[] = { 0,  -25, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
 
 Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
 	, m_bossPhase(1)
 	, m_specialAttackCooldown(0.0f)
-	, m_walkSpeed(50.0f), 
-	m_attackCooldownTimer(0.0f), 
-	m_idleTimer(0.0f), 
-	m_idleDuration(2.0f), 
-	m_targetX(x), 
-	m_targetY(y), 
-	m_aggroTarget(nullptr), 
-	m_attackCollider(nullptr)
+	, m_idleTimer(0.0f)
+	, m_idleDuration(2.0f)
+	, m_attackCollider(nullptr)
 {
 	m_hp = 1000;
 	m_maxHp = m_hp;
 	m_type = GO_TYPE_MONSTER;
+
+	m_walkSpeed = 50.0f;
 }
 
 Boss_SpiderQueen::~Boss_SpiderQueen() {}
 
 void Boss_SpiderQueen::Init()
 {
-	Entity::Init();
+	Monster::Init();
 
-	m_state = (int)SpiderQueenState::IDLE;
+	ChangeState((int)SpiderQueenState::IDLE);
 	m_bossPhase = 1;
 	m_specialAttackCooldown = 0.0f;
-
 
 	if (!m_animator)
 	{
@@ -115,23 +111,14 @@ void Boss_SpiderQueen::Init()
 	m_animator->SetState(m_state, this->transform->GetDirection());
 }
 
-void Boss_SpiderQueen::Update(float deltaTime)
+void Boss_SpiderQueen::UpdateAI(float deltaTime)
 {
-	Entity::Update(deltaTime);
-
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	// 1. 공통 쿨타임 감소
-	if (m_attackCooldownTimer > 0.0f) {
-		m_attackCooldownTimer -= deltaTime;
-	}
-
-	// 2. 애니메이션 기반 상태 처리 (HIT, DEATH, ATTACK)
+	// 애니메이션 기반 상태 처리 (HIT, DEATH, ATTACK)
 	if (m_state == (int)SpiderQueenState::HIT || m_state == (int)SpiderQueenState::DEATH || m_state == (int)SpiderQueenState::ATTACK)
 	{
-		m_animator->SetState(m_state, transform->GetDirection());
-
 		if (m_animator->IsAnimationDone())
 		{
 			if (m_state == (int)SpiderQueenState::DEATH) {
@@ -143,58 +130,34 @@ void Boss_SpiderQueen::Update(float deltaTime)
 				OnAttackEnd();
 			}
 			else if (m_state == (int)SpiderQueenState::HIT) {
-				// 맞아서 HIT 상태가 끝난 후, 타겟(나를 때린 놈)이 있으면 추격 시작
 				if (m_aggroTarget && m_aggroTarget->IsEnabled())
-					m_state = (int)SpiderQueenState::CHASE;
+					ChangeState((int)SpiderQueenState::CHASE);
 				else
-					m_state = (int)SpiderQueenState::IDLE;
+					ChangeState((int)SpiderQueenState::IDLE);
 			}
 		}
 		return;
 	}
 
-	// 3. 타겟(나를 때린 플레이어) 정보 계산
-	float distToPlayer = 99999.0f;
-	float dx = 0.0f, dy = 0.0f;
-
-	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
-		dx = m_aggroTarget->GetComponent<Transform>()->GetX() - transform->GetX();
-		dy = m_aggroTarget->GetComponent<Transform>()->GetY() - transform->GetY();
-		distToPlayer = sqrtf(dx * dx + dy * dy);
-	}
-
-	// 4. 메인 상태 머신 (CHASE, IDLE, WALK)
-
-	// [CHASE 상태] - 플레이어에게 맞아서 타겟이 생겼을 때만 진입됨
+	// 메인 상태 머신 (CHASE, IDLE)
 	if (m_state == (int)SpiderQueenState::CHASE)
 	{
 		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
 			m_aggroTarget = nullptr;
-			m_state = (int)SpiderQueenState::IDLE;
+			ChangeState((int)SpiderQueenState::IDLE);
 			m_idleTimer = 0.0f;
 			return;
 		}
 
-		Direction newDir = (std::abs(dx) > std::abs(dy)) ? (dx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (dy > 0.0f ? DIR_DOWN : DIR_UP);
-		transform->SetDirection(newDir);
-
-		if (distToPlayer <= ATTACK_RANGE) {
+		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE)) {
 			if (m_attackCooldownTimer <= 0.0f) {
-				m_state = (int)SpiderQueenState::ATTACK;
-				m_animator->SetState((int)SpiderQueenState::ATTACK, transform->GetDirection());
+				ChangeState((int)SpiderQueenState::ATTACK);
 				m_attackCooldownTimer = ATTACK_COOLDOWN;
-				return;
 			}
 			else {
-				m_animator->SetState((int)SpiderQueenState::IDLE, transform->GetDirection());
-				return;
+				ChangeState((int)SpiderQueenState::IDLE);
 			}
 		}
-
-		m_animator->SetState((int)SpiderQueenState::CHASE, transform->GetDirection());
-		float moveDist = m_walkSpeed * deltaTime;
-		float step = (std::min)(moveDist, distToPlayer);
-		transform->SetPosition(transform->GetX() + (dx / distToPlayer) * step, transform->GetY() + (dy / distToPlayer) * step);
 	}
 
 	else if (m_state == (int)SpiderQueenState::IDLE)
@@ -202,25 +165,31 @@ void Boss_SpiderQueen::Update(float deltaTime)
 		m_idleTimer += deltaTime;
 		if (m_idleTimer >= m_idleDuration) 
 		{
-
-			m_state = (int)SpiderQueenState::CHASE;
+			ChangeState((int)SpiderQueenState::CHASE);
 			m_idleTimer = 0.0f;
 		}
-		else {
-			m_animator->SetState((int)SpiderQueenState::IDLE, transform->GetDirection());
-		}
 	}
+}
 
+void Boss_SpiderQueen::UpdateMovement(float deltaTime)
+{
+	if (!IsEnabled() || !transform || !m_animator) return;
+	if (m_state != (int)SpiderQueenState::CHASE) return;
+
+	Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
+	transform->SetDirection(newDir);
+	m_animator->SetState((int)SpiderQueenState::CHASE, transform->GetDirection());
+
+	float moveDist = m_walkSpeed * deltaTime;
+	transform->SetPosition(transform->GetX() + m_dirToPlayer.X * moveDist, transform->GetY() + m_dirToPlayer.Y * moveDist);
 }
 
 void Boss_SpiderQueen::OnAttackHit() {
-	// 공격이 적중하는 프레임에 호출되는 콜백
-	// 이곳에서 플레이어와의 충돌 판정 및 데미지 처리를 수행
 }
 
 void Boss_SpiderQueen::OnAttackEnd() {
-	// 공격 애니메이션이 끝나는 프레임에 호출되는 콜백
-	// 이곳에서 공격이 끝난 후의 상태 전환이나 쿨다운 초기화 등을 수행
+	if (m_state != (int)SpiderQueenState::ATTACK) return;
+	ChangeState((int)SpiderQueenState::CHASE);
 }	
 
 bool Boss_SpiderQueen::OnInteraction(GameObject* obj)
@@ -230,8 +199,8 @@ bool Boss_SpiderQueen::OnInteraction(GameObject* obj)
 
 void Boss_SpiderQueen::Damaged(int damage)
 {
-	m_hp -= damage;
-	m_state = (int)SpiderQueenState::HIT;
+	Entity::Damaged(damage);
+	ChangeState((int)SpiderQueenState::HIT);
 
 	if (m_hp <= m_maxHp * 0.5f && m_bossPhase == 1) {
 		m_bossPhase = 2;
@@ -240,10 +209,15 @@ void Boss_SpiderQueen::Damaged(int damage)
 
 	if (m_hp <= 0) {
 		m_hp = 0;
-		m_state = (int)SpiderQueenState::DEATH;
+		ChangeState((int)SpiderQueenState::DEATH);
 		m_isDead = true;
 		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
 		GameProgressManager::GetInstance()->OnMonsterKilled(GetID(), currentScene);
 		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다!\n");
+	}
+
+	if (!IsDead() && IsEnabled()) {
+		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		m_attackCooldownTimer = 0.0f;
 	}
 }

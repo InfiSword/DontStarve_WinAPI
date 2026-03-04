@@ -6,7 +6,7 @@
 #include "../../../02_GameObject/Component/Transform/Transform.h"
 
 SpriteRenderer::SpriteRenderer(GameObject* owner, RenderLayer layer)
-	: Component(owner), m_sprite(nullptr), m_layer(layer), m_sortKey(0.0f), m_pCachedTransform(nullptr)
+	: Component(owner), m_sprite(nullptr), m_layer(layer), m_sortKey(0.0f)
 {
 }
 
@@ -17,7 +17,7 @@ SpriteRenderer::~SpriteRenderer()
 
 void SpriteRenderer::Init()
 {
-	m_pCachedTransform = m_owner->GetComponent<Transform>();
+
 }
 
 void SpriteRenderer::Release()
