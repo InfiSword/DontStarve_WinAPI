@@ -300,7 +300,7 @@ struct DrawCommand {
 
 	Gdiplus::Color color = Gdiplus::Color(0, 0, 0, 0);
 	float thickness = 0.0f;
-	Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);  // 색상 틴트 (기본값: 흰색, 덮어쓰기 방식 - Unity Sprite 스타일)
+	Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);  // 색상 틴트
 	bool hasTint = false;  // 틴트 적용 여부
 	bool preFlipped = false;  // 비전이 미리 반전되어 있는지 여부 (이중 반전 방지용)
 };

@@ -1,4 +1,5 @@
 #include "99_Default/pch.h"
+#include "../../Component/Transform/Transform.h"
 #include "Boss_SpiderQueen.h"
 #include "../Player/Player.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
@@ -9,110 +10,214 @@
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../../../03_Animation/SpriteSheet.h"
-#include "../../Component/Transform/Transform.h"
+#include "../../Component/Collider/BoxCollider.h"
+
+const float Boss_SpiderQueen::ATTACK_RANGE = 70.0f;
+const float Boss_SpiderQueen::ATTACK_COOLDOWN = 1.5f;
+static const int PIG_ATTACK_HIT_FRAME = 28;
+static const int BOSS_SPIDERQUEEN_ATTACK_BOX_W = 70, BOSS_SPIDERQUEEN_ATTACK_BOX_H = 50;
+static const int PIG_ATTACK_DOWN[] = { -35,    0, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
+static const int PIG_ATTACK_UP[] = { -35,  -50, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
+static const int PIG_ATTACK_LEFT[] = { -70,  -25, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
+static const int PIG_ATTACK_RIGHT[] = { 0,  -25, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
 
 Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true), m_bossPhase(1), m_specialAttackCooldown(0.0f)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
+	, m_bossPhase(1)
+	, m_specialAttackCooldown(0.0f)
+	, m_idleTimer(0.0f)
+	, m_idleDuration(2.0f)
+	, m_attackCollider(nullptr)
 {
 	m_hp = 1000;
 	m_maxHp = m_hp;
 	m_type = GO_TYPE_MONSTER;
+
+	m_walkSpeed = 50.0f;
 }
 
 Boss_SpiderQueen::~Boss_SpiderQueen() {}
 
 void Boss_SpiderQueen::Init()
 {
-	Entity::Init();
-	
-	m_state = (int)SpiderQueenState::IDLE;
+	Monster::Init();
+
+	ChangeState((int)SpiderQueenState::IDLE);
 	m_bossPhase = 1;
 	m_specialAttackCooldown = 0.0f;
-	
-	if (!transform) {
-		this->transform = GetComponent<Transform>();
-		if (!this->transform) {
-			OutputDebugStringW(L"Boss_SpiderQueen: Transform component not found!\n");
-			return;
-		}
-	}
-	
-	OutputDebugStringW((L"Boss_SpiderQueen: 보스 초기화 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 
-	if (!m_animator) {
+	if (!m_animator)
+	{
 		m_animator = AddComponent<Animator>();
 	}
-	if (m_animator) {
-		ResourceManager* pRM = ResourceManager::GetInstance();
-		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_QUEEN_SPIDER);
-		if (objData) {
-			std::wstring base = objData->baseDir + L"\\";
-			float px = transform->GetPivotX();
-			float py = transform->GetPivotY();
-			
-			std::wstring idlePath = base + L"Queen_spider_queen_idle_side.png";
-			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)SpiderQueenState::IDLE, (Direction)dir, idlePath,
-					0, 0, 10, 61, px, py, true, 0.03f);
-			}
 
-			std::wstring walkPath = base + L"Walk_spider_queen_walk_loop_side.png";
-			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)SpiderQueenState::WALK, (Direction)dir, walkPath,
-					0, 0, 10, 61, px, py, true, 0.03f);
-			}
+	ResourceManager* pRM = ResourceManager::GetInstance();
+	const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_QUEEN_SPIDER);
+	if (objData) {
+		std::wstring base = objData->baseDir + L"\\";
+		float px = transform->GetPivotX();
+		float py = transform->GetPivotY();
 
-			std::wstring attackPath = base + L"Queen_spider_queen_atk_side.png";
-			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)SpiderQueenState::ATTACK, (Direction)dir, attackPath,
-					0, 0, 10, 61, px, py, false, 0.03f);
-			}
+		std::wstring idlePath = base + L"Queen_spider_queen_idle_side.png";
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::IDLE, (Direction)dir, idlePath,
+				0, 0, 4, 50, px, py, true, 0.02f);
+		}
 
-			m_animator->RegisterAnimation((int)SpiderQueenState::HIT, DIR_DOWN, base + L"Queen_spider_queen_hit_side.png",
-				0, 0, 5, 25, px, py, false, 0.03f);
-			m_animator->RegisterAnimation((int)SpiderQueenState::HIT, DIR_UP, base + L"Queen_spider_queen_hit_side.png",
-				0, 0, 5, 25, px, py, false, 0.03f);
-			m_animator->RegisterAnimation((int)SpiderQueenState::HIT, DIR_LEFT, base + L"Queen_spider_queen_hit_side.png",
-				0, 0, 5, 25, px, py, false, 0.03f);
-			m_animator->RegisterAnimation((int)SpiderQueenState::HIT, DIR_RIGHT, base + L"Queen_spider_queen_hit_side.png",
-				0, 0, 5, 25, px, py, false, 0.03f);
+		std::wstring walkPath = base + L"Walk_spider_queen_walk_loop_side.png";
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::CHASE, (Direction)dir, walkPath,
+				0, 0, 7, 65, px, py, true, 0.02f);
+		}
 
-			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)SpiderQueenState::DEATH, (Direction)dir, base + L"Queen_spider_queen_death.png",
-					0, 0, 10, 85, px, py, false, 0.03f);
-			}
+		std::wstring attackPath = base + L"Queen_spider_queen_atk_side.png";
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::ATTACK, (Direction)dir, attackPath,
+				0, 0, 7, 53, px, py, false, 0.02f);
+		}
 
-			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-				m_animator->RegisterAnimation((int)SpiderQueenState::TAUNT, (Direction)dir, base + L"Queen_spider_queen_taunt.png",
-					0, 0, 10, 61, px, py, false, 0.03f);
+		m_animator->RegisterAnimation((int)SpiderQueenState::HIT, DIR_DOWN, base + L"Queen_spider_queen_hit_side.png",
+			0, 0, 7, 29, px, py, false, 0.02f);
+		m_animator->RegisterAnimation((int)SpiderQueenState::HIT, DIR_UP, base + L"Queen_spider_queen_hit_side.png",
+			0, 0, 7, 29, px, py, false, 0.02f);
+		m_animator->RegisterAnimation((int)SpiderQueenState::HIT, DIR_LEFT, base + L"Queen_spider_queen_hit_side.png",
+			0, 0, 7, 29, px, py, false, 0.02f);
+		m_animator->RegisterAnimation((int)SpiderQueenState::HIT, DIR_RIGHT, base + L"Queen_spider_queen_hit_side.png",
+			0, 0, 7, 29, px, py, false, 0.02f);
+
+		for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::ATTACK, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(PIG_ATTACK_HIT_FRAME, L"attack_hit");
+				clip->AddEventFrame(65, L"attack_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"attack_hit") this->OnAttackHit();
+					else if (eventName == L"attack_end") this->OnAttackEnd();
+					});
 			}
 		}
 
-		m_animator->SetState(m_state, this->transform->GetDirection());
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::DEATH, (Direction)dir, base + L"Queen_spider_queen_death.png",
+				0, 0, 7, 45, px, py, false, 0.03f);
+		}
+
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::TAUNT, (Direction)dir, base + L"Queen_spider_queen_taunt.png",
+				0, 0, 7, 50, px, py, false, 0.03f);
+		}
+	}
+
+	m_animator->SetState(m_state, this->transform->GetDirection());
+}
+
+void Boss_SpiderQueen::UpdateAI(float deltaTime)
+{
+	if (!IsEnabled() || !transform || !m_animator)
+		return;
+
+	// 애니메이션 기반 상태 처리 (HIT, DEATH, ATTACK)
+	if (m_state == (int)SpiderQueenState::HIT || m_state == (int)SpiderQueenState::DEATH || m_state == (int)SpiderQueenState::ATTACK)
+	{
+		if (m_animator->IsAnimationDone())
+		{
+			if (m_state == (int)SpiderQueenState::DEATH) {
+				ObjectManager::GetInstance()->RemoveGameObject(this);
+				return;
+			}
+
+			if (m_state == (int)SpiderQueenState::ATTACK) {
+				OnAttackEnd();
+			}
+			else if (m_state == (int)SpiderQueenState::HIT) {
+				if (m_aggroTarget && m_aggroTarget->IsEnabled())
+					ChangeState((int)SpiderQueenState::CHASE);
+				else
+					ChangeState((int)SpiderQueenState::IDLE);
+			}
+		}
+		return;
+	}
+
+	// 메인 상태 머신 (CHASE, IDLE)
+	if (m_state == (int)SpiderQueenState::CHASE)
+	{
+		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
+			m_aggroTarget = nullptr;
+			ChangeState((int)SpiderQueenState::IDLE);
+			m_idleTimer = 0.0f;
+			return;
+		}
+
+		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE)) {
+			if (m_attackCooldownTimer <= 0.0f) {
+				ChangeState((int)SpiderQueenState::ATTACK);
+				m_attackCooldownTimer = ATTACK_COOLDOWN;
+			}
+			else {
+				ChangeState((int)SpiderQueenState::IDLE);
+			}
+		}
+	}
+
+	else if (m_state == (int)SpiderQueenState::IDLE)
+	{
+		m_idleTimer += deltaTime;
+		if (m_idleTimer >= m_idleDuration) 
+		{
+			ChangeState((int)SpiderQueenState::CHASE);
+			m_idleTimer = 0.0f;
+		}
 	}
 }
 
+void Boss_SpiderQueen::UpdateMovement(float deltaTime)
+{
+	if (!IsEnabled() || !transform || !m_animator) return;
+	if (m_state != (int)SpiderQueenState::CHASE) return;
+
+	Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
+	transform->SetDirection(newDir);
+	m_animator->SetState((int)SpiderQueenState::CHASE, transform->GetDirection());
+
+	float moveDist = m_walkSpeed * deltaTime;
+	transform->SetPosition(transform->GetX() + m_dirToPlayer.X * moveDist, transform->GetY() + m_dirToPlayer.Y * moveDist);
+}
+
+void Boss_SpiderQueen::OnAttackHit() {
+}
+
+void Boss_SpiderQueen::OnAttackEnd() {
+	if (m_state != (int)SpiderQueenState::ATTACK) return;
+	ChangeState((int)SpiderQueenState::CHASE);
+}	
+
 bool Boss_SpiderQueen::OnInteraction(GameObject* obj)
 {
-    return Entity::OnInteraction(obj);
+	return Entity::OnInteraction(obj);
 }
 
 void Boss_SpiderQueen::Damaged(int damage)
 {
-	m_hp -= damage;
-	m_state = (int)SpiderQueenState::HIT;
-	
+	Entity::Damaged(damage);
+	ChangeState((int)SpiderQueenState::HIT);
+
 	if (m_hp <= m_maxHp * 0.5f && m_bossPhase == 1) {
 		m_bossPhase = 2;
 		OutputDebugStringW(L"Boss_SpiderQueen: 보스 페이즈가 2단계로 전환!\n");
 	}
-	
+
 	if (m_hp <= 0) {
 		m_hp = 0;
-		m_state = (int)SpiderQueenState::DEATH;
+		ChangeState((int)SpiderQueenState::DEATH);
 		m_isDead = true;
 		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
 		GameProgressManager::GetInstance()->OnMonsterKilled(GetID(), currentScene);
 		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다!\n");
+	}
+
+	if (!IsDead() && IsEnabled()) {
+		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		m_attackCooldownTimer = 0.0f;
 	}
 }

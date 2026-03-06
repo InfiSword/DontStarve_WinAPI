@@ -14,8 +14,8 @@ Animator::~Animator() {
     m_currentClip = nullptr; 
 }
 
-void Animator::Init() {
-    Component::Init();
+void Animator::Init() 
+{
 }
 
 void Animator::RegisterAnimation(int state, Direction dir, 

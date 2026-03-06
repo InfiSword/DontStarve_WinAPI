@@ -35,7 +35,7 @@ Player::Player(float x, float y, GameObjectID characterID, const std::wstring& r
 {
 	m_hp = 100;
 	m_maxHp = 100;
-	m_state = (int)PlayerState::IDLE;
+	ChangeState((int)PlayerState::IDLE);
 	m_type = GO_TYPE_PLAYER;
 }
 
@@ -232,12 +232,7 @@ void Player::ToggleEquipItem(int slotIndex)
 
 void Player::Damaged(int damage)
 {
-	if (damage <= 0) return;
-	m_hp = (std::max)(0, m_hp - damage);
-	if (m_hp <= 0) {
-		m_isDead = true;
-		Die();
-	}
+	Entity::Damaged(damage);
 }
 
 void Player::Heal(int amount)
@@ -257,7 +252,7 @@ void Player::UpdateAnimatorState() {
 void Player::SetTargetPosition(float worldX, float worldY) {
 
 	m_targetWorldPos = Gdiplus::PointF(worldX, worldY);
-	m_state = PlayerState::WALK;
+	ChangeState((int)PlayerState::WALK);
 	isMoveToGoal = true;
 
 	float dx = worldX - transform->GetX();
@@ -307,8 +302,7 @@ void Player::Update(float deltaTime)
 					isMoveToGoal = false;
 					Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
 					transform->SetDirection(faceDir);
-					m_state = PlayerState::ATTACK;
-					UpdateAnimatorState();
+					ChangeState((int)PlayerState::ATTACK);
 					return;
 				}
 			}
@@ -319,8 +313,7 @@ void Player::Update(float deltaTime)
 		bool isArrived = (distance < arrivalEpsilon) || (distance <= m_stopThreshold) || (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame);
 
 		if (isArrived) {
-			transform->SetX(m_targetWorldPos.X);
-			transform->SetY(m_targetWorldPos.Y);
+			transform->SetPosition(m_targetWorldPos.X, m_targetWorldPos.Y);
 			isMoveToGoal = false;
 
 			// 공격 대상(몬스터)으로 이동한 경우: 사거리 안이면 방향 맞추고 ATTACK, 밖이면 몬스터 현재 위치로 다시 이동
@@ -333,8 +326,7 @@ void Player::Update(float deltaTime)
 					if (distToTarget <= m_attackRange) {
 						Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
 						transform->SetDirection(faceDir);
-						m_state = (int)PlayerState::ATTACK;
-						UpdateAnimatorState();
+						ChangeState((int)PlayerState::ATTACK);
 						return;
 					}
 					// 몬스터가 움직여서 사거리 밖이면, 현재 몬스터 위치로 다시 이동
@@ -356,28 +348,24 @@ void Player::Update(float deltaTime)
 				transform->SetDirection(dir);
 				// OnInteraction의 반환값을 확인하여 실패 시 IDLE 상태로 전환
 				if (!OnInteraction(m_activeInteractionTarget)) {
-					m_state = (int)PlayerState::IDLE;
-					UpdateAnimatorState();
+					ChangeState((int)PlayerState::IDLE);
 				}
 			}
 			else {
 				// 대기 중인 상호작용이 없거나 유효하지 않으면 IDLE 상태로 전환
 				m_pendingInteractionTarget = nullptr;
-				m_state = (int)PlayerState::IDLE;
-				UpdateAnimatorState();
+				ChangeState((int)PlayerState::IDLE);
 			}
 		}
 		else {
 			float moveDist = (std::min)(moveSpeedThisFrame, distance);
-			transform->SetX(transform->GetX() + (dx / distance) * moveDist);
-			transform->SetY(transform->GetY() + (dy / distance) * moveDist);
+			transform->SetPosition(transform->GetX() + (dx / distance) * moveDist, transform->GetY() + (dy / distance) * moveDist);
 
 			// 이동 중에는 기본적으로 WALK 애니메이션을 사용하지만,
 			// 이미 PICKUP/CHOP 등 상호작용 애니메이션이 진행 중이면 덮어쓰지 않는다.
-			if (m_state == PlayerState::IDLE || m_state == PlayerState::WALK)
+			if (m_state == (int)PlayerState::IDLE || m_state == (int)PlayerState::WALK)
 			{
-				m_state = PlayerState::WALK;
-				UpdateAnimatorState();
+				ChangeState((int)PlayerState::WALK);
 			}
 		}
 	}
@@ -399,9 +387,8 @@ void Player::TryStartInteraction(float worldX, float worldY)
 		// 다른 대상이나 빈 공간 클릭 → 현재 상호작용 중단
 		m_activeInteractionTarget = nullptr;
 		m_pendingInteractionTarget = nullptr;
-		m_state = PlayerState::IDLE;
+		ChangeState((int)PlayerState::IDLE);
 		transform->SetPivot(0.5f, transform->GetPivotY());
-		UpdateAnimatorState();
 	}
 
 	// 이동 중 대기 중인 상호작용 초기화
@@ -534,13 +521,12 @@ void Player::FinalizePickup()
 
 void Player::OnPickupEnd()
 {
-	if (m_state != PlayerState::PICKUP) return;
+	if (m_state != (int)PlayerState::PICKUP) return;
 	// PICKUP 종료 처리: 아이템 획득 및 상태 전환
 	FinalizePickup();
 	// 상태를 IDLE로 변경하고 애니메이션 업데이트
-	m_state = PlayerState::IDLE;
 	transform->SetDirection(DIR_DOWN);
-	UpdateAnimatorState();
+	ChangeState((int)PlayerState::IDLE);
 }
 
 void Player::OnChopHit()
@@ -550,24 +536,22 @@ void Player::OnChopHit()
 	GameObjectID objID = m_activeInteractionTarget->GetID();
 	if (objID != GOID_NORMAL_TREE_SHORT && objID != GOID_NORMAL_TREE_NORMAL && objID != GOID_NORMAL_TREE_TALL)
 		return;
-	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
-	if (!entity) return;
 
-	entity->Damaged(m_damage);
-	if (entity->IsDead()) m_activeInteractionTarget = nullptr;
+	m_activeInteractionTarget->Damaged(m_damage);
+	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
+	if (entity && entity->IsDead()) m_activeInteractionTarget = nullptr;
 }
 
 void Player::OnChopEnd()
 {
-	if (m_state != PlayerState::CHOP) return;
+	if (m_state != (int)PlayerState::CHOP) return;
 
 	transform->SetPivot(0.5f, transform->GetPivotY());
 	transform->SetDirection(DIR_DOWN);
-	m_state = PlayerState::IDLE;
 	m_activeInteractionTarget = nullptr;
 	m_pendingInteractionTarget = nullptr;
 
-	UpdateAnimatorState();
+	ChangeState((int)PlayerState::IDLE);
 }
 
 void Player::OnMineHit()
@@ -577,24 +561,22 @@ void Player::OnMineHit()
 	GameObjectID objID = m_activeInteractionTarget->GetID();
 	if (objID != GOID_NORMAL_ROCK && objID != GOID_GOLD_ROCK)
 		return;
-	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
-	if (!entity) return;
 
-	entity->Damaged(m_damage);
-	if (entity->IsDead()) m_activeInteractionTarget = nullptr;
+	m_activeInteractionTarget->Damaged(m_damage);
+	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
+	if (entity && entity->IsDead()) m_activeInteractionTarget = nullptr;
 }
 
 void Player::OnMineEnd()
 {
-	if (m_state != PlayerState::MINE) return;
+	if (m_state != (int)PlayerState::MINE) return;
 
 	transform->SetPivot(0.5f, transform->GetPivotY());
 	transform->SetDirection(DIR_DOWN);
-	m_state = PlayerState::IDLE;
 	m_activeInteractionTarget = nullptr;
 	m_pendingInteractionTarget = nullptr;
 
-	UpdateAnimatorState();
+	ChangeState((int)PlayerState::IDLE);
 }
 
 void Player::OnAttackHit()
@@ -625,21 +607,18 @@ void Player::ApplyAttackDamage(int damage, bool singleTarget)
 
 	for (GameObject* obj : hits) {
 		if (!obj || !obj->IsEnabled() || obj == this) continue;
-		Entity* target = dynamic_cast<Entity*>(obj);
-		if (target) {
-			target->Damaged(damage);
-			if (singleTarget) break;
-		}
+		
+		obj->Damaged(damage);
+		if (singleTarget) break;
 	}
 }
 
 void Player::OnAttackEnd()
 {
-	if (m_state != PlayerState::ATTACK) return;
+	if (m_state != (int)PlayerState::ATTACK) return;
 	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
-	m_state = PlayerState::IDLE;
 	m_attackTarget = nullptr;
-	UpdateAnimatorState();
+	ChangeState((int)PlayerState::IDLE);
 }
 
 bool Player::OnInteraction(GameObject* obj)
@@ -653,32 +632,27 @@ bool Player::OnInteraction(GameObject* obj)
 		if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL)
 		{
 			transform->SetDirection(DIR_DOWN);
-			m_state = PlayerState::CHOP;
-			UpdateAnimatorState();
+			ChangeState((int)PlayerState::CHOP);
 			return true;
 		}
 		if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK)
 		{
 			transform->SetDirection(DIR_DOWN);
-			m_state = PlayerState::MINE;
-			UpdateAnimatorState();
+			ChangeState((int)PlayerState::MINE);
 			return true;
 		}
 		{
 			// PICKUP 상태 설정 (애니메이션 이벤트에서 종료 처리)
-			m_state = PlayerState::PICKUP;
-			UpdateAnimatorState();
+			ChangeState((int)PlayerState::PICKUP);
 			return true;
 		}
 	case GO_TYPE_ITEM:
 		// PICKUP 상태 설정 (애니메이션 이벤트에서 종료 처리)
-		m_state = PlayerState::PICKUP;
-		UpdateAnimatorState();
+		ChangeState((int)PlayerState::PICKUP);
 		return true;
 	default:
 		// 알 수 없는 타입의 경우 IDLE 상태로 전환
-		m_state = PlayerState::IDLE;
-		UpdateAnimatorState();
+		ChangeState((int)PlayerState::IDLE);
 		return false;
 	}
 
@@ -730,9 +704,8 @@ void Player::HandleMovement()
 	// Space: 현재 방향으로 공격 (CHOP/MINE/PICKUP/ATTACK 중이 아닐 때만, 장착 도구가 공격 가능할 때만)
 	if (inputManager->IsKeyPressed(VK_SPACE)) {
 		if (m_equippedItem && m_equippedItem->CanAttack()) {
-			if (m_state != PlayerState::CHOP && m_state != PlayerState::MINE && m_state != PlayerState::PICKUP && m_state != PlayerState::ATTACK) {
-				m_state = PlayerState::ATTACK;
-				UpdateAnimatorState();
+			if (m_state != (int)PlayerState::CHOP && m_state != (int)PlayerState::MINE && m_state != (int)PlayerState::PICKUP && m_state != (int)PlayerState::ATTACK) {
+				ChangeState((int)PlayerState::ATTACK);
 			}
 		}
 	}

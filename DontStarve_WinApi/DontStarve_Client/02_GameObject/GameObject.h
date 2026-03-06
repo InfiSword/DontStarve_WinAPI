@@ -56,6 +56,7 @@ public:
 
 	// 상호작용 관련
 	virtual bool OnInteraction(GameObject* obj);
+	virtual void Damaged(int damage) {}
 	virtual bool CanInteract() const { return m_isInteractive; }
 
 	// 디버그/시각화 오버레이 

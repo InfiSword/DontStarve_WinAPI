@@ -24,43 +24,31 @@ static const int PIG_ATTACK_LEFT[]  = { -70,  -25, PIG_ATTACK_BOX_W, PIG_ATTACK_
 static const int PIG_ATTACK_RIGHT[] = {   0,  -25, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
 
 Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
 	, m_wanderRadius(200.0f)
-	, m_aggroRadius(350.0f)
-	, m_deaggroRadius(500.0f)
-	, m_walkSpeed(80.0f)
-	, m_runSpeed(200.0f)
-	, m_attackCooldownTimer(0.0f)
 	, m_idleTimer(0.0f)
 	, m_idleDuration(2.0f)
-	, m_targetX(x)
-	, m_targetY(y)
-	, m_aggroTarget(nullptr)
 	, m_attackCollider(nullptr)
 {
 	m_hp = 100;
 	m_maxHp = m_hp;
 	m_type = GO_TYPE_MONSTER;
+
+	m_walkSpeed = 80.0f;
+	m_runSpeed = 200.0f;
 }
 
 Pig::~Pig() {}
 
 void Pig::Init()
 {
-	Entity::Init();
+	Monster::Init();
 
-	m_state = (int)PigState::IDLE;
+	ChangeState((int)PigState::IDLE);
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 	m_attackCooldownTimer = 0.0f;
 	
-	if (!this->transform) {
-		this->transform = GetComponent<Transform>();
-		if (!this->transform) {
-			OutputDebugStringW(L"Pig: Transform component not found!\n");
-			return;
-		}
-	}
 	if (this->transform) {
 		m_targetX = this->transform->GetX();
 		m_targetY = this->transform->GetY();
@@ -147,23 +135,14 @@ void Pig::Init()
 	}
 }
 
-void Pig::Update(float deltaTime)
+void Pig::UpdateAI(float deltaTime)
 {
-	Entity::Update(deltaTime);
-
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	// 1. 공통 쿨타임 감소
-	if (m_attackCooldownTimer > 0.0f) {
-		m_attackCooldownTimer -= deltaTime;
-	}
-
-	// 2. 애니메이션 기반 상태 처리 (HIT, DEATH, ATTACK)
+	// --- 1. 애니메이션 기반 상태 처리 (HIT, DEATH, ATTACK) ---
 	if (m_state == (int)PigState::HIT || m_state == (int)PigState::DEATH || m_state == (int)PigState::ATTACK)
 	{
-		m_animator->SetState(m_state, transform->GetDirection());
-
 		if (m_animator->IsAnimationDone())
 		{
 			if (m_state == (int)PigState::DEATH) {
@@ -175,62 +154,36 @@ void Pig::Update(float deltaTime)
 				OnAttackEnd();
 			}
 			else if (m_state == (int)PigState::HIT) {
-				// 맞아서 HIT 상태가 끝난 후, 타겟(나를 때린 놈)이 있으면 추격 시작
 				if (m_aggroTarget && m_aggroTarget->IsEnabled())
-					m_state = (int)PigState::CHASE;
+					ChangeState((int)PigState::CHASE);
 				else
-					m_state = (int)PigState::IDLE;
+					ChangeState((int)PigState::IDLE);
 			}
 		}
 		return;
 	}
 
-	// 3. 타겟(나를 때린 플레이어) 정보 계산
-	float distToPlayer = 99999.0f;
-	float dx = 0.0f, dy = 0.0f;
-
-	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
-		dx = m_aggroTarget->GetComponent<Transform>()->GetX() - transform->GetX();
-		dy = m_aggroTarget->GetComponent<Transform>()->GetY() - transform->GetY();
-		distToPlayer = sqrtf(dx * dx + dy * dy);
-	}
-
-	// 4. 메인 상태 머신 (CHASE, IDLE, WALK)
-
-	// [CHASE 상태] - 플레이어에게 맞아서 타겟이 생겼을 때만 진입됨
+	// --- 2. 메인 상태 머신 (상태 결정만 수행) ---
 	if (m_state == (int)PigState::CHASE)
 	{
-		// 너무 멀리 도망가면 추격 포기 (어그로 해제)
-		if (!m_aggroTarget || !m_aggroTarget->IsEnabled() || distToPlayer > m_deaggroRadius) {
+		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
 			m_aggroTarget = nullptr;
-			m_state = (int)PigState::IDLE;
+			ChangeState((int)PigState::IDLE);
 			m_idleTimer = 0.0f;
 			return;
 		}
 
-		Direction newDir = (std::abs(dx) > std::abs(dy)) ? (dx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (dy > 0.0f ? DIR_DOWN : DIR_UP);
-		transform->SetDirection(newDir);
-
-		if (distToPlayer <= ATTACK_RANGE) {
+		// 공격 사거리 체크 (제곱 거리 사용)
+		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE)) {
 			if (m_attackCooldownTimer <= 0.0f) {
-				m_state = (int)PigState::ATTACK;
-				m_animator->SetState((int)PigState::ATTACK, transform->GetDirection());
+				ChangeState((int)PigState::ATTACK);
 				m_attackCooldownTimer = ATTACK_COOLDOWN;
-				return;
 			}
 			else {
-				m_animator->SetState((int)PigState::IDLE, transform->GetDirection());
-				return;
+				ChangeState((int)PigState::IDLE);
 			}
 		}
-
-		m_animator->SetState((int)PigState::RUN, transform->GetDirection());
-		float moveDist = m_runSpeed * deltaTime;
-		float step = (std::min)(moveDist, distToPlayer);
-		transform->SetPosition(transform->GetX() + (dx / distToPlayer) * step, transform->GetY() + (dy / distToPlayer) * step);
 	}
-
-	// [IDLE 상태] - 평화롭게 쉬는 중 (플레이어 감지 로직 삭제)
 	else if (m_state == (int)PigState::IDLE)
 	{
 		m_idleTimer += deltaTime;
@@ -240,33 +193,51 @@ void Pig::Update(float deltaTime)
 			m_targetX = transform->GetX() + cosf(angle) * dist;
 			m_targetY = transform->GetY() + sinf(angle) * dist;
 
-			m_state = (int)PigState::WALK;
+			ChangeState((int)PigState::WALK);
 			m_idleTimer = 0.0f;
 		}
-		else {
-			m_animator->SetState((int)PigState::IDLE, transform->GetDirection());
-		}
 	}
+}
 
-	// [WALK 상태] - 평화롭게 배회 중 (플레이어 감지 로직 삭제)
+void Pig::UpdateMovement(float deltaTime)
+{
+	if (!IsEnabled() || !transform || !m_animator) return;
+
+	// 애니메이션 재생 중(공격, 히트 등)일 때는 이동하지 않음
+	if (m_state == (int)PigState::ATTACK || m_state == (int)PigState::HIT || m_state == (int)PigState::DEATH)
+		return;
+
+	if (m_state == (int)PigState::CHASE)
+	{
+		Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
+		transform->SetDirection(newDir);
+		m_animator->SetState((int)PigState::RUN, transform->GetDirection());
+
+		float moveDist = m_runSpeed * deltaTime;
+		transform->SetPosition(transform->GetX() + m_dirToPlayer.X * moveDist, transform->GetY() + m_dirToPlayer.Y * moveDist);
+	}
 	else if (m_state == (int)PigState::WALK)
 	{
 		float wdx = m_targetX - transform->GetX();
 		float wdy = m_targetY - transform->GetY();
-		float wdist = sqrtf(wdx * wdx + wdy * wdy);
+		float wdistSq = wdx * wdx + wdy * wdy;
 
+		if (wdistSq < 4.0f) { // 2.0f * 2.0f
+			ChangeState((int)PigState::IDLE);
+			return;
+		}
+
+		float wdist = sqrtf(wdistSq);
 		Direction wDir = (std::abs(wdx) > std::abs(wdy)) ? (wdx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (wdy > 0.0f ? DIR_DOWN : DIR_UP);
 		transform->SetDirection(wDir);
 		m_animator->SetState((int)PigState::WALK, transform->GetDirection());
 
 		float moveStep = m_walkSpeed * deltaTime;
-		if (wdist < 2.0f || wdist <= moveStep) {
-			transform->SetPosition(m_targetX, m_targetY);
-			m_state = (int)PigState::IDLE;
-		}
-		else {
-			transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
-		}
+		transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
+	}
+	else if (m_state == (int)PigState::IDLE)
+	{
+		m_animator->SetState((int)PigState::IDLE, transform->GetDirection());
 	}
 }
 
@@ -277,14 +248,8 @@ bool Pig::OnInteraction(GameObject* obj)
 
 void Pig::Damaged(int damage)
 {
-	m_hp -= damage;
-	m_state = (int)PigState::HIT;
-
-	if (m_hp <= 0) {
-		m_hp = 0;
-		m_state = (int)PigState::DEATH;
-		m_isDead = true;
-	}
+	Entity::Damaged(damage);
+	ChangeState((int)PigState::HIT);
 
 	if (!IsDead() && IsEnabled()) {
 		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
@@ -307,8 +272,7 @@ void Pig::OnAttackHit()
 	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
 		Transform* pt = m_aggroTarget->GetComponent<Transform>();
 		if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
-			Entity* playerEntity = dynamic_cast<Entity*>(m_aggroTarget);
-			if (playerEntity) playerEntity->Damaged(10);
+			m_aggroTarget->Damaged(10);
 		}
 	}
 
@@ -319,7 +283,7 @@ void Pig::OnAttackEnd()
 {
 	if (m_state != (int)PigState::ATTACK) return;
 	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
-	m_state = (int)PigState::CHASE;
+	ChangeState((int)PigState::CHASE);
 }
 
 void Pig::RenderDebugOverlay()
@@ -331,35 +295,28 @@ void Pig::RenderDebugOverlay()
 
 	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(transform->GetX(), transform->GetY());
 
-	// 행동 반경 원 (보라색)
 	float rWander = m_wanderRadius;
 	renderManager->AddDrawEllipseCommand(
 		Gdiplus::RectF(screenCenter.X - rWander, screenCenter.Y - rWander, rWander * 2.0f, rWander * 2.0f),
-		Gdiplus::Color(100, 200, 100, 255), // 보라색 대신 연두색 (Wander)
+		Gdiplus::Color(100, 200, 100, 255),
 		1.0f, LAYER_DEBUG_OVERLAY, 9998.0f
 	);
 
-	// 어그로 반경 (노란색)
-	float rAggro = m_aggroRadius;
-	renderManager->AddDrawEllipseCommand(
-		Gdiplus::RectF(screenCenter.X - rAggro, screenCenter.Y - rAggro, rAggro * 2.0f, rAggro * 2.0f),
-		Gdiplus::Color(255, 255, 0),
-		1.0f, LAYER_DEBUG_OVERLAY, 9998.0f
-	);
+	if (m_state == (int)PigState::ATTACK && m_attackCollider) {
+		Direction dir = transform->GetDirection();
+		if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
+		else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(PIG_ATTACK_UP[0], PIG_ATTACK_UP[1], PIG_ATTACK_UP[2], PIG_ATTACK_UP[3]);
+		else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(PIG_ATTACK_LEFT[0], PIG_ATTACK_LEFT[1], PIG_ATTACK_LEFT[2], PIG_ATTACK_LEFT[3]);
+		else m_attackCollider->SetObjectCollider(PIG_ATTACK_RIGHT[0], PIG_ATTACK_RIGHT[1], PIG_ATTACK_RIGHT[2], PIG_ATTACK_RIGHT[3]);
 
-	// 어그로 해제 반경 (주황색)
-	float rDeaggro = m_deaggroRadius;
-	renderManager->AddDrawEllipseCommand(
-		Gdiplus::RectF(screenCenter.X - rDeaggro, screenCenter.Y - rDeaggro, rDeaggro * 2.0f, rDeaggro * 2.0f),
-		Gdiplus::Color(255, 165, 0),
-		1.0f, LAYER_DEBUG_OVERLAY, 9998.0f
-	);
+		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
+		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
+		Gdiplus::PointF bottomRight = cameraManager->WorldToScreen((float)worldRect.right, (float)worldRect.bottom);
 
-	// 공격 반경 (빨간색)
-	float rAttack = ATTACK_RANGE;
-	renderManager->AddDrawEllipseCommand(
-		Gdiplus::RectF(screenCenter.X - rAttack, screenCenter.Y - rAttack, rAttack * 2.0f, rAttack * 2.0f),
-		Gdiplus::Color(255, 0, 0),
-		2.0f, LAYER_DEBUG_OVERLAY, 9998.0f
-	);
+		renderManager->AddDrawRectCommand(
+			Gdiplus::RectF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y),
+			Gdiplus::Color(255, 0, 0),
+			2.0f, LAYER_DEBUG_OVERLAY, 9999.0f
+		);
+	}
 }

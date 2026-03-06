@@ -74,6 +74,28 @@ bool Entity::OnInteraction(GameObject* obj)
 	return GameObject::OnInteraction(obj);
 }
 
+void Entity::ChangeState(int newState)
+{
+	if (m_state == newState) return;
+
+	m_state = newState;
+	if (m_animator && transform) {
+		m_animator->SetState(m_state, transform->GetDirection());
+	}
+}
+
+void Entity::Damaged(int damage)
+{
+	if (m_isDead || damage <= 0) return;
+
+	m_hp -= damage;
+	if (m_hp <= 0) {
+		m_hp = 0;
+		m_isDead = true;
+		Die();
+	}
+}
+
 
 void Entity::Update(float deltaTime)
 {

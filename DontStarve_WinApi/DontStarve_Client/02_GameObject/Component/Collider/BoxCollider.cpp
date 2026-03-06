@@ -123,5 +123,5 @@ void BoxCollider::RenderGizmo()
 	renderManager->AddFillRectangleCommand(gizmoRect, bgColor, LAYER_DEBUG_OVERLAY, 9998.0f);
 
 	// 외곽선 그리기
-	renderManager->AddDrawCommand(gizmoRect, gizmoColor, 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
+	renderManager->AddDrawRectCommand(gizmoRect, gizmoColor, 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
 }

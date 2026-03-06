@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Enum.h>  // RenderLayer, Direction 등 정의 (Object.h보다 먼저 포함)
 #include "../Object.h"
 
 class GameObject;

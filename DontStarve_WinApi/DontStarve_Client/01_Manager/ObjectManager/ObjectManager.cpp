@@ -60,7 +60,12 @@ void ObjectManager::LateInit()
 
 void ObjectManager::Update(float deltaTime)
 {
-	ForEachEnabledObject([deltaTime](GameObject* obj) { obj->Update(deltaTime); });
+	for (GameObject* obj : m_gameObjects) {
+		if (obj && obj->IsEnabled()) 
+		{
+			obj->Update(deltaTime);
+		}
+	}
 }
 
 void ObjectManager::LateUpdate()

@@ -21,11 +21,29 @@ SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivo
 	, m_isPlayingHit(false)
 	, m_spawnRadius(200.0f)
 	, m_invincibleTimer(0.0f)
+	, m_amountOfSpidersToSpawn(0)
 {
-	if (id == GOID_BUILDING_SPIDER_SACEGG) m_eggStage = EggStage::Sac;
-	else if (id == GOID_BUILDING_SPIDER_SMALLEGG) m_eggStage = EggStage::Small;
-	else if (id == GOID_BUILDING_SPIDER_NORMALEGG) m_eggStage = EggStage::Medium;
-	else if (id == GOID_BUILDING_SPIDER_TALLEGG) m_eggStage = EggStage::Large;
+	switch (id)
+	{
+	case GOID_BUILDING_SPIDER_SACEGG:
+		m_eggStage = EggStage::Sac;
+		m_amountOfSpidersToSpawn = 0; // Sac 단계에서는 바로 거미 스폰하지 않음
+		break;
+	case GOID_BUILDING_SPIDER_SMALLEGG:
+		m_eggStage = EggStage::Small;
+		m_amountOfSpidersToSpawn = 1;
+		break;
+	case GOID_BUILDING_SPIDER_NORMALEGG:
+		m_eggStage = EggStage::Medium;
+		m_amountOfSpidersToSpawn = 2;
+		break;
+	case GOID_BUILDING_SPIDER_TALLEGG:
+		m_eggStage = EggStage::Large;
+		m_amountOfSpidersToSpawn = 3;
+		break;
+	default:
+		break;
+	}
 	OutputDebugStringW(L"SpiderEgg: 생성자 호출\n");
 }
 
@@ -39,15 +57,7 @@ void SpiderEgg::Init()
 	Building::Init();
 
 	Transform* transform = GetComponent<Transform>();
-	if (!transform) {
-		OutputDebugStringW(L"SpiderEgg: Transform component not found!\n");
-		return;
-	}
-
-	if (!m_animator) {
-		m_animator = AddComponent<Animator>();
-	}
-	if (!m_animator || !transform) return;
+	m_animator = AddComponent<Animator>();
 
 	ResourceManager* pRM = ResourceManager::GetInstance();
 	const ResourcePathUtils::ObjectResourceDef* data = pRM->GetObjectResourceInfo(m_id);
@@ -135,7 +145,7 @@ void SpiderEgg::Update(float deltaTime)
 		if (m_eggStage == EggStage::Sac) m_eggStage = EggStage::Small;
 		else if (m_eggStage == EggStage::Small) m_eggStage = EggStage::Medium;
 		else if (m_eggStage == EggStage::Medium) m_eggStage = EggStage::Large;
-		
+
 		m_isPlayingGrowth = false;
 		m_invincibleTimer = 1.0f; // 성장 완료 후 1초간 무적
 
@@ -234,16 +244,25 @@ void SpiderEgg::SpawnSpiders()
 	float eggX = eggTransform->GetX();
 	float eggY = eggTransform->GetY();
 
-	// 거미집 단계에 따라 스폰 수 결정
-	int spawnCount = 0;
-	if (m_eggStage == EggStage::Small) spawnCount = 1;
-	else if (m_eggStage == EggStage::Medium) spawnCount = 2;
-	else if (m_eggStage == EggStage::Large) spawnCount = 3;
-
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!objectManager) return;
 
-	for (int i = 0; i < spawnCount; ++i)
+	// 단계별 스폰 구성 결정 (무작위성을 위해 일반 거미가 나올 인덱스 선정)
+	int normalSpiderIdx = -1;
+	if (m_eggStage == EggStage::Small)
+	{
+		normalSpiderIdx = 0; // 1마리 중 0번이 일반 거미
+	}
+	else if (m_eggStage == EggStage::Medium)
+	{
+		normalSpiderIdx = rand() % 2; // 2마리 중 한 마리가 일반 거미
+	}
+	else if (m_eggStage == EggStage::Large)
+	{
+		normalSpiderIdx = rand() % 3; 
+	}
+
+	for (int i = 0; i < m_amountOfSpidersToSpawn; ++i)
 	{
 		// 거미집 주변 무작위 위치 계산
 		float angle = (rand() / (float)RAND_MAX) * 6.283185307f;  // 0 ~ 2*PI
@@ -251,11 +270,8 @@ void SpiderEgg::SpawnSpiders()
 		float spawnX = eggX + cosf(angle) * distance;
 		float spawnY = eggY + sinf(angle) * distance;
 
-		// 거미 생성 (Large 단계면 전사 거미 스폰 확률 추가)
-		GameObjectID spiderID = GOID_MONSTER_SPIDER;
-		if (m_eggStage == EggStage::Large && (rand() % 2 == 0)) {
-			spiderID = GOID_MONSTER_WARRIOR_SPIDER;
-		}
+		// 거미 종류 결정
+		GameObjectID spiderID = (i == normalSpiderIdx) ? GOID_MONSTER_SPIDER : GOID_MONSTER_WARRIOR_SPIDER;
 
 		GameObject* spiderObj = objectManager->CreateGameObject(spiderID, spawnX, spawnY, nullptr, true);
 		if (spiderObj)
@@ -266,38 +282,43 @@ void SpiderEgg::SpawnSpiders()
 				// 거미에게 소속 거미집 설정
 				spider->SetHomeEgg(this, m_spawnRadius);
 
-				// 플레이어 발견 시 타겟팅 (Egg가 공격받았을 때 나오는 거미는 플레이어를 즉시 타겟팅)
+				// 플레이어 발견 시 타겟팅
 				GameObject* player = objectManager->GetPlayer();
 				if (player) {
 					spider->SetAggroTarget(player);
 				}
 
-				OutputDebugStringW((L"SpiderEgg: 거미 스폰 성공 - 위치: (" +
-					std::to_wstring(spawnX) + L", " + std::to_wstring(spawnY) + L")\n").c_str());
+				OutputDebugStringW((L"SpiderEgg: 거미 스폰 성공 - ID: " + std::to_wstring(spiderID) +
+					L", 위치: (" + std::to_wstring(spawnX) + L", " + std::to_wstring(spawnY) + L")\n").c_str());
 			}
 		}
 	}
 
-	OutputDebugStringW((L"SpiderEgg: 거미 " + std::to_wstring(spawnCount) + L"마리 스폰 완료\n").c_str());
+	OutputDebugStringW((L"SpiderEgg: 거미 " + std::to_wstring(m_amountOfSpidersToSpawn) + L"마리 스폰 완료\n").c_str());
 }
 
 void SpiderEgg::Grow()
 {
-	if (!m_animator) return;
 	Transform* transform = GetComponent<Transform>();
 	spriteRenderer->SetActive(true);
+	m_isPlayingGrowth = true;
 
-	if (m_eggStage == EggStage::Sac) {
-		m_isPlayingGrowth = true;
+	switch (m_eggStage)
+	{
+	case EggStage::Sac:
+		m_eggStage = EggStage::Small;
 		m_animator->SetState(EGG_STATE_GROW_SAC_TO_SMALL, transform->GetDirection());
-	}
-	else if (m_eggStage == EggStage::Small) {
-		m_isPlayingGrowth = true;
+		break;
+	case EggStage::Small:
+		m_eggStage = EggStage::Medium;
 		m_animator->SetState(EGG_STATE_GROW_SMALL_TO_MEDIUM, transform->GetDirection());
-	}
-	else if (m_eggStage == EggStage::Medium) {
-		m_isPlayingGrowth = true;
+		break;
+	case EggStage::Medium:
+		m_eggStage = EggStage::Large;
 		m_animator->SetState(EGG_STATE_GROW_MEDIUM_TO_LARGE, transform->GetDirection());
+		break;
+	default:
+		break;
 	}
 }
 

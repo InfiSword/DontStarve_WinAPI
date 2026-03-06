@@ -3,6 +3,8 @@
 #include "../Component.h"
 #include "Sprite.h"
 
+class Transform;
+
 // 월드 오브젝트의 이미지와 레이어를 관리하는 컴포넌트
 class SpriteRenderer : public Component
 {
