@@ -9,7 +9,7 @@
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
 Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
-	const std::wstring& baseDir, const std::wstring& imageName, bool isActive, bool isInteractive)
+	const std::wstring& baseDir, const std::wstring& imageName, bool isActive, bool isInteractive, ColliderType colliderType)
 	:GameObject(id, L"", imageName, isActive, isInteractive),
 	m_dropItemID(GOID_NONE),
 	m_dropItemCount(0),
@@ -17,7 +17,9 @@ Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Di
 	m_hp(100),
 	m_maxHp(100),
 	m_state(0),
-	m_animator(nullptr)
+	m_animator(nullptr),
+	m_entityCollider(nullptr),
+	m_colliderType(colliderType)
 {
 	// Transform 컴포넌트 추가
 	Transform* transform = AddComponent<Transform>();
@@ -51,6 +53,16 @@ void Entity::Init()
 	// Transform 컴포넌트 캐싱
 	this->transform = GetComponent<Transform>();
 	this->spriteRenderer = GetComponent<SpriteRenderer>();
+
+	// 콜라이더 타입에 따라 생성 및 캐싱
+	if (m_colliderType == COLLIDER_BOX)
+	{
+		m_entityCollider = GetComponent<BoxCollider>();
+	}
+	else if (m_colliderType == COLLIDER_CIRCLE)
+	{
+		m_entityCollider = GetComponent<CircleCollider>();
+	}
 }
 
 GameObjectID Entity::GetDropItemID() const
@@ -108,6 +120,34 @@ void Entity::Release()
 	m_animator = nullptr;
 	transform = nullptr;
 	spriteRenderer = nullptr;
+	m_entityCollider = nullptr;
 
 	GameObject::Release();
 }
+
+void Entity::ClampPositionToMapBounds()
+{
+	if (!transform) return;
+
+	float x = transform->GetX();
+	float y = transform->GetY();
+
+	// 콜라이더 크기를 사용하여 경계 계산 (또는 기본값 사용)
+	float boundHalfWidth = 40.0f;   // 기본값
+	float boundHalfHeight = 40.0f;  // 기본값
+
+	// 맵 경계 계산 (타일 기반, Define.h의 상수 사용)
+	float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - boundHalfWidth;
+	float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - boundHalfHeight;
+	float mapMinX = boundHalfWidth;
+	float mapMinY = boundHalfHeight;
+
+	// 경계 내로 위치 제한
+	if (x < mapMinX) x = mapMinX;
+	if (x > mapMaxX) x = mapMaxX;
+	if (y < mapMinY) y = mapMinY;
+	if (y > mapMaxY) y = mapMaxY;
+
+	transform->SetPosition(x, y);
+}
+

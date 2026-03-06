@@ -3,8 +3,6 @@
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
-#include "../../../01_Manager/SceneManager/SceneManager.h"
-#include "../../../01_Manager/SceneManager/GameScene.h"
 #include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
@@ -25,15 +23,10 @@ static const int SPIDER_ATTACK_UP[] = { -30, -40, SPIDER_ATTACK_BOX_W, SPIDER_AT
 static const int SPIDER_ATTACK_LEFT[] = { -60, -20, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
 static const int SPIDER_ATTACK_RIGHT[] = { 0, -20, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
 
-Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
+Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
 	, m_homeEgg(nullptr)
 	, m_spawnRadius(200.0f)
-	, m_aggroRadius(300.0f)
-	, m_deaggroRadius(400.0f)
-	, m_idleTimer(0.0f)
-	, m_idleDuration(2.0f)
-	, m_attackCollider(nullptr)
 {
 	m_type = GO_TYPE_MONSTER;
 	
@@ -198,6 +191,7 @@ void Spider::Init()
 		m_animator->SetState(m_state, this->transform->GetDirection());
 	}
 
+	// 공격 판정용 콜라이더 (ObjectManager에서 설정된 몸통 콜라이더는 그대로 사용)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
 		m_attackCollider->SetObjectCollider(SPIDER_ATTACK_DOWN[0], SPIDER_ATTACK_DOWN[1], SPIDER_ATTACK_DOWN[2], SPIDER_ATTACK_DOWN[3]);
@@ -266,7 +260,7 @@ void Spider::UpdateAI(float deltaTime)
 	// 메인 상태 머신 (CHASE, IDLE, WALK)
 	if (m_state == (int)SpiderState::CHASE)
 	{
-		if (!m_aggroTarget || !m_aggroTarget->IsEnabled() || m_distToPlayer > m_deaggroRadius) {
+		if (!m_aggroTarget || !m_aggroTarget->IsEnabled() || sqrtf(m_distToPlayerSq) > m_deaggroRadius) {
 			m_aggroTarget = nullptr;
 			m_state = (int)SpiderState::IDLE;
 			m_idleTimer = 0.0f;
@@ -289,14 +283,15 @@ void Spider::UpdateAI(float deltaTime)
 		}
 
 		m_animator->SetState((int)SpiderState::WALK, transform->GetDirection());
+		float distToPlayer = sqrtf(m_distToPlayerSq);
 		float moveDist = m_runSpeed * deltaTime;
-		float step = (std::min)(moveDist, m_distToPlayer);
+		float step = (std::min)(moveDist, distToPlayer);
 		transform->SetPosition(transform->GetX() + m_dirToPlayer.X * step, transform->GetY() + m_dirToPlayer.Y * step);
 	}
 
 	else if (m_state == (int)SpiderState::IDLE)
 	{
-		if (m_distToPlayer <= m_aggroRadius) {
+		if (m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius)) {
 			m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
 			m_state = (int)SpiderState::TAUNT;
 			return;
@@ -315,6 +310,18 @@ void Spider::UpdateAI(float deltaTime)
 			m_targetX = centerX + cosf(angle) * dist;
 			m_targetY = centerY + sinf(angle) * dist;
 
+			// 목표 위치가 맵 경계를 벗어나지 않도록 제한
+			const float BUFFER = 50.0f;
+			const float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - BUFFER;
+			const float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - BUFFER;
+			const float mapMinX = BUFFER;
+			const float mapMinY = BUFFER;
+
+			if (m_targetX < mapMinX) m_targetX = mapMinX;
+			if (m_targetX > mapMaxX) m_targetX = mapMaxX;
+			if (m_targetY < mapMinY) m_targetY = mapMinY;
+			if (m_targetY > mapMaxY) m_targetY = mapMaxY;
+
 			m_state = (int)SpiderState::WALK;
 			m_idleTimer = 0.0f;
 		}
@@ -325,7 +332,7 @@ void Spider::UpdateAI(float deltaTime)
 
 	else if (m_state == (int)SpiderState::WALK)
 	{
-		if (m_distToPlayer <= m_aggroRadius) {
+		if (m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius)) {
 			m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
 			m_state = (int)SpiderState::TAUNT;
 			return;
@@ -347,6 +354,11 @@ void Spider::UpdateAI(float deltaTime)
 		else {
 			transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
 		}
+	}
+
+	// 매 프레임 위치 경계 체크 (CHASE, WALK 상태에서 맵 밖으로 나가지 않도록)
+	if (m_state == (int)SpiderState::CHASE || m_state == (int)SpiderState::WALK) {
+		ClampPositionToMapBounds();
 	}
 }
 

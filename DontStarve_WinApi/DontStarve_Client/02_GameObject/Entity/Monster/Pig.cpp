@@ -23,12 +23,8 @@ static const int PIG_ATTACK_UP[]    = { -35,  -50, PIG_ATTACK_BOX_W, PIG_ATTACK_
 static const int PIG_ATTACK_LEFT[]  = { -70,  -25, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
 static const int PIG_ATTACK_RIGHT[] = {   0,  -25, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
 
-Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
-	, m_wanderRadius(200.0f)
-	, m_idleTimer(0.0f)
-	, m_idleDuration(2.0f)
-	, m_attackCollider(nullptr)
+Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
 {
 	m_hp = 100;
 	m_maxHp = m_hp;
@@ -128,6 +124,7 @@ void Pig::Init()
 		m_animator->SetState(m_state, this->transform->GetDirection());
 	}
 
+	// 공격 판정용 콜라이더 (ObjectManager에서 설정된 몸통 콜라이더는 그대로 사용)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
 		m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
@@ -193,6 +190,18 @@ void Pig::UpdateAI(float deltaTime)
 			m_targetX = transform->GetX() + cosf(angle) * dist;
 			m_targetY = transform->GetY() + sinf(angle) * dist;
 
+			// 목표 위치가 맵 경계를 벗어나지 않도록 제한
+			const float BUFFER = 50.0f;  // 경계에서 50픽셀 떨어지게
+			const float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - BUFFER;
+			const float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - BUFFER;
+			const float mapMinX = BUFFER;
+			const float mapMinY = BUFFER;
+
+			if (m_targetX < mapMinX) m_targetX = mapMinX;
+			if (m_targetX > mapMaxX) m_targetX = mapMaxX;
+			if (m_targetY < mapMinY) m_targetY = mapMinY;
+			if (m_targetY > mapMaxY) m_targetY = mapMaxY;
+
 			ChangeState((int)PigState::WALK);
 			m_idleTimer = 0.0f;
 		}
@@ -238,6 +247,11 @@ void Pig::UpdateMovement(float deltaTime)
 	else if (m_state == (int)PigState::IDLE)
 	{
 		m_animator->SetState((int)PigState::IDLE, transform->GetDirection());
+	}
+
+	// 매 프레임 위치 경계 체크 (CHASE, WALK 상태에서 맵 밖으로 나가지 않도록)
+	if (m_state == (int)PigState::CHASE || m_state == (int)PigState::WALK) {
+		ClampPositionToMapBounds();
 	}
 }
 

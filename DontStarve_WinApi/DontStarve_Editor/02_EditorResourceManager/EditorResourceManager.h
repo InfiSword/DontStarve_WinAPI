@@ -10,6 +10,7 @@ enum class ObjectCategory {
 	Monster,
 	Building,
 	Item,
+	Player,
 	Count
 };
 

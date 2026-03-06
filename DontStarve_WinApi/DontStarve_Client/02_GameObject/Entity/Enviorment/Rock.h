@@ -12,7 +12,7 @@ enum class RockState {
 class Rock : public Entity
 {
 public:
-    Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"");
+    Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Rock();
 
     virtual void Init() override;

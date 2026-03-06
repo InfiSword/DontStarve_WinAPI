@@ -42,8 +42,7 @@ bool EditorMapFileIO::SaveMap(MapEditor* pMain, const WCHAR* filename) {
 	}
 	outFile << L"\n# OBJECTS\n";
 	for (const auto& obj : pMain->m_gameObjects) {
-		// 저장 시에는 GOBJ_NONE 또는 상징적인 값을 넣거나 ID만 사용 (Function.h 파서 호환)
-		outFile << L"GOBJ_UNUSED," << EnumTables::GetEnumName(obj.id) << L","
+		outFile << EnumTables::GetEnumName(obj.id) << L","
 			<< obj.x << L"," << obj.y << L"\n";
 	}
 	outFile << L"\n# WALKABLE_AREAS\n";

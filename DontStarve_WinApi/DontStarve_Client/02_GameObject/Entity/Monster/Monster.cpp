@@ -2,14 +2,17 @@
 #include "Monster.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../02_GameObject/Component/Transform/Transform.h"
+#include "../../../02_GameObject/Component/Collider/BoxCollider.h"
 #include "../../../02_GameObject/Entity/Player/Player.h"
 
 Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, 
-                 const std::wstring& baseDir, const std::wstring& imageName)
-    : Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true),
+                 const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+    : Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true, colliderType),
       m_aggroTarget(nullptr), m_attackCooldownTimer(0.0f), m_walkSpeed(0.0f), m_runSpeed(0.0f),
-      m_targetX(x), m_targetY(y), m_distToPlayerSq(1e10f), m_dirToPlayer({0, 0}),
-      m_aiTickTimer(0.0f)
+      m_targetX(x), m_targetY(y), m_distToPlayerSq(1e10f), m_dirToPlayer(0.0f, 0.0f),
+      m_aiTickTimer(0.0f), m_attackCollider(nullptr),
+      m_wanderRadius(200.0f), m_aggroRadius(300.0f), m_deaggroRadius(500.0f),
+      m_idleTimer(0.0f), m_idleDuration(2.0f)
 {
     // AI 연산 부하 분산을 위해 개체별로 0.1s ~ 0.2s 사이의 고유 틱 간격 부여
     m_aiTickInterval = 0.1f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 0.1f));
@@ -64,3 +67,4 @@ void Monster::Update(float deltaTime)
     UpdateMovement(deltaTime); // 부드러운 이동
     Entity::Update(deltaTime); // 애니메이션 업데이트
 }
+

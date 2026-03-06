@@ -13,6 +13,7 @@ ObjectCategory EditorResourceManager::GetCategoryFromID(GameObjectID id)
 	if (id >= 100 && id < 200) return ObjectCategory::Monster;
 	if (id >= 200 && id < 300) return ObjectCategory::Building;
 	if (id >= 300 && id < 500) return ObjectCategory::Item;
+	if (id >= 1000 && id < 2000) return ObjectCategory::Player;
 	return ObjectCategory::Count;
 }
 
@@ -31,8 +32,8 @@ void EditorResourceManager::LoadResources()
 	// 오브젝트 리소스 로드 (flat map 구조)
 	for (size_t i = 0; i < ResourcePathUtils::ObjectResourceCount; ++i) {
 		const auto& def = ResourcePathUtils::ObjectResourceTable[i];
-		// 플레이어(1000대)는 팔레트에서 제외하기 위해 필터링하거나 로드 시 체크 가능
-		if (def.id >= 1000 && def.id < 2000) continue; 
+		// Wilson 플레이어만 포함하고 나머지 플레이어는 제외
+		if (def.id >= 1000 && def.id < 2000 && def.id != GOID_PLAYER_WILSON) continue; 
 
 		m_objectVariants[def.id] = ResourcePathUtils::ObjectResourceDef(def.id, 0, 0, def.baseDir, def.imageName, 0.5f, 1.0f);
 	}
@@ -219,8 +220,8 @@ bool EditorResourceManager::SaveObjectResourceOverride(GameObjectID id, const Re
 				lines.push_back(line);
 				if (line.empty() || line[0] == L'#') continue;
 				std::wistringstream iss(line);
-				std::wstring unused_typeName, idName;
-				if (iss >> unused_typeName >> idName) {
+				std::wstring idName;
+				if (iss >> idName) {
 					GameObjectID i = EnumTables::GetGameObjectID(idName.c_str());
 					if (i != GOID_NONE)
 						overrideLines[i] = line;
@@ -230,7 +231,7 @@ bool EditorResourceManager::SaveObjectResourceOverride(GameObjectID id, const Re
 	}
 
 	std::wostringstream oss;
-	oss << L"GOBJ_UNUSED " << EnumTables::GetEnumName(id)
+	oss << EnumTables::GetEnumName(id)
 		<< L" " << def.pivotX << L" " << def.pivotY
 		<< L" " << (def.hasCollider ? 1 : 0) << L" " << (int)def.colliderType
 		<< L" " << def.colliderOffsetX << L" " << def.colliderOffsetY
@@ -243,7 +244,7 @@ bool EditorResourceManager::SaveObjectResourceOverride(GameObjectID id, const Re
 	std::wofstream ofs(path);
 	if (!ofs.is_open()) return false;
 	ofs << L"# object_resource_overrides.txt - pivot and collider from Object Editor\n";
-	ofs << L"# UnusedName IDName pivotX pivotY hasCollider colliderType offsetX offsetY width height centerX centerY radius\n";
+	ofs << L"# IDName pivotX pivotY hasCollider colliderType offsetX offsetY width height centerX centerY radius\n";
 	for (const auto& kv : overrideLines)
 		ofs << kv.second << L"\n";
 	return true;
@@ -258,11 +259,11 @@ bool EditorResourceManager::SaveAllObjectResourceOverrides()
 	std::wofstream ofs(path);
 	if (!ofs.is_open()) return false;
 	ofs << L"# object_resource_overrides.txt - pivot and collider from Object Editor\n";
-	ofs << L"# UnusedName IDName pivotX pivotY hasCollider colliderType offsetX offsetY width height centerX centerY radius\n";
+	ofs << L"# IDName pivotX pivotY hasCollider colliderType offsetX offsetY width height centerX centerY radius\n";
 	for (const auto& pair : m_objectVariants) {
 		GameObjectID id = pair.first;
 		const ResourcePathUtils::ObjectResourceDef& def = pair.second;
-		ofs << L"GOBJ_UNUSED " << EnumTables::GetEnumName(id)
+		ofs << EnumTables::GetEnumName(id)
 			<< L" " << def.pivotX << L" " << def.pivotY
 			<< L" " << (def.hasCollider ? 1 : 0) << L" " << (int)def.colliderType
 			<< L" " << def.colliderOffsetX << L" " << def.colliderOffsetY

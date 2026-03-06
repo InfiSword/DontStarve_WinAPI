@@ -6,8 +6,8 @@
 #include "../../Component/Transform/Transform.h"
 #include "Tree.h"
 
-Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
+Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true, colliderType)
 	, m_treeState(TreeState::IDLE)
 	, m_hp(100), m_baseX(0.0f), m_baseY(0.0f),
 	m_shakeDuration(0.5f), m_shakeAmount(14.0f), m_shakeSpeed(40.0f), m_isShaking(false)

@@ -140,7 +140,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="01_Manager\AnimationManager\AnimationManager.h" />
     <ClInclude Include="01_Manager\GameProgressManager\GameProgressManager.h" />
     <ClInclude Include="01_Manager\InventoryManager\InventoryManager.h" />
     <ClInclude Include="01_Manager\ResourceManager\ResourceManager.h" />
@@ -149,7 +148,6 @@
     <ClInclude Include="01_Manager\SceneManager\GameScene.h" />
     <ClInclude Include="01_Manager\SceneManager\SceneManager.h" />
     <ClInclude Include="01_Manager\SceneManager\TitleScene.h" />
-    <ClInclude Include="01_Manager\StageManager\StageManager.h" />
     <ClInclude Include="02_GameObject\Building\Building.h" />
     <ClInclude Include="02_GameObject\Component\Button\Button.h" />
     <ClInclude Include="02_GameObject\Component\Component.h" />
@@ -163,6 +161,7 @@
     <ClInclude Include="02_GameObject\Component\Transform\RectTransform.h" />
     <ClInclude Include="02_GameObject\Component\Transform\Transform.h" />
     <ClInclude Include="02_GameObject\Entity\Entity.h" />
+    <ClInclude Include="02_GameObject\Entity\Monster\Monster.h" />
     <ClInclude Include="02_GameObject\Item\Item.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Rock.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Tree.h" />
@@ -233,6 +232,7 @@
     <ClCompile Include="02_GameObject\Component\Transform\RectTransform.cpp" />
     <ClCompile Include="02_GameObject\Component\Transform\Transform.cpp" />
     <ClCompile Include="02_GameObject\Entity\Entity.cpp" />
+    <ClCompile Include="02_GameObject\Entity\Monster\Monster.cpp" />
     <ClCompile Include="02_GameObject\Item\Item.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Rock.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Tree.cpp" />

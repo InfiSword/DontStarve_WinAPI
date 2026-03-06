@@ -21,14 +21,8 @@ static const int HOUND_ATTACK_UP[]    = { -40, -50, HOUND_ATTACK_BOX_W, HOUND_AT
 static const int HOUND_ATTACK_LEFT[]  = { -80, -25, HOUND_ATTACK_BOX_W, HOUND_ATTACK_BOX_H };
 static const int HOUND_ATTACK_RIGHT[] = {   0, -25, HOUND_ATTACK_BOX_W, HOUND_ATTACK_BOX_H };
 
-Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
-	, m_wanderRadius(200.0f)
-	, m_aggroRadius(350.0f)
-	, m_deaggroRadius(500.0f)
-	, m_idleTimer(0.0f)
-	, m_idleDuration(2.0f)
-	, m_attackCollider(nullptr)
+Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
 {
 	m_hp = 90;
 	m_maxHp = m_hp;
@@ -36,6 +30,9 @@ Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, cons
 
 	m_walkSpeed = 80.0f;
 	m_runSpeed = 200.0f;
+	
+	// Hound는 더 넓은 어그로 범위
+	m_aggroRadius = 350.0f;
 }
 
 Hound::~Hound() {}
@@ -112,6 +109,19 @@ void Hound::Init()
 			m_animator->RegisterAnimation((int)HoundState::ATTACK, DIR_RIGHT, atkSidePath,
 				0, 0, 8, 8, px, py, false, 0.03f);
 
+			// 애니메이션 이벤트 등록 
+			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::ATTACK, (Direction)dir);
+				if (clip) {
+					clip->AddEventFrame(HOUND_ATTACK_HIT_FRAME, L"attack_hit");
+					clip->AddEventFrame(7, L"attack_end");
+					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+						if (eventName == L"attack_hit") this->OnAttackHit();
+						else if (eventName == L"attack_end") this->OnAttackEnd();
+					});
+				}
+			}
+
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)HoundState::HIT, (Direction)dir, base + prefix + L"_hound_hit_side.png",
 					0, 0, 4, 4, px, py, false, 0.03f);
@@ -131,6 +141,7 @@ void Hound::Init()
 		m_animator->SetState(m_state, this->transform->GetDirection());
 	}
 
+	// 공격 판정용 콜라이더 (ObjectManager에서 설정된 몸통 콜라이더는 그대로 사용)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
 		m_attackCollider->SetObjectCollider(HOUND_ATTACK_DOWN[0], HOUND_ATTACK_DOWN[1], HOUND_ATTACK_DOWN[2], HOUND_ATTACK_DOWN[3]);
@@ -228,8 +239,9 @@ void Hound::UpdateAI(float deltaTime)
 			transform->SetDirection(newDir);
 		m_animator->SetState((int)HoundState::RUN, transform->GetDirection());
 
+		float distToPlayer = sqrtf(m_distToPlayerSq);
 		float moveDist = m_runSpeed * deltaTime;
-		float step = (std::min)(moveDist, m_distToPlayer);
+		float step = (std::min)(moveDist, distToPlayer);
 		transform->SetPosition(transform->GetX() + m_dirToPlayer.X * step, transform->GetY() + m_dirToPlayer.Y * step);
 		return;
 	}
@@ -249,32 +261,6 @@ void Hound::UpdateAI(float deltaTime)
 	if (m_state == (int)HoundState::ATTACK)
 	{
 		m_animator->SetState((int)HoundState::ATTACK, transform->GetDirection());
-		if (m_attackCollider && transform) {
-			Direction dir = transform->GetDirection();
-			if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(HOUND_ATTACK_DOWN[0], HOUND_ATTACK_DOWN[1], HOUND_ATTACK_DOWN[2], HOUND_ATTACK_DOWN[3]);
-			else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(HOUND_ATTACK_UP[0], HOUND_ATTACK_UP[1], HOUND_ATTACK_UP[2], HOUND_ATTACK_UP[3]);
-			else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(HOUND_ATTACK_LEFT[0], HOUND_ATTACK_LEFT[1], HOUND_ATTACK_LEFT[2], HOUND_ATTACK_LEFT[3]);
-			else m_attackCollider->SetObjectCollider(HOUND_ATTACK_RIGHT[0], HOUND_ATTACK_RIGHT[1], HOUND_ATTACK_RIGHT[2], HOUND_ATTACK_RIGHT[3]);
-
-			int frameIdx = m_animator->GetCurrentFrameIndex();
-			if (frameIdx == HOUND_ATTACK_HIT_FRAME) {
-				m_attackCollider->SetColliderEnabled(true);
-				if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
-					Transform* pt = m_aggroTarget->GetComponent<Transform>();
-					if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
-						m_aggroTarget->Damaged(20);
-					}
-				}
-			}
-			else
-				m_attackCollider->SetColliderEnabled(false);
-		}
-		
-		if (m_animator->IsAnimationDone()) {
-			if (m_attackCollider) 
-				m_attackCollider->SetColliderEnabled(false);
-			m_state = (int)HoundState::CHASE;
-		}
 		return;
 	}
 
@@ -287,6 +273,18 @@ void Hound::UpdateAI(float deltaTime)
 			float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
 			m_targetX = transform->GetX() + cosf(angle) * dist;
 			m_targetY = transform->GetY() + sinf(angle) * dist;
+
+			// 목표 위치가 맵 경계를 벗어나지 않도록 제한
+			const float BUFFER = 50.0f;
+			const float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - BUFFER;
+			const float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - BUFFER;
+			const float mapMinX = BUFFER;
+			const float mapMinY = BUFFER;
+
+			if (m_targetX < mapMinX) m_targetX = mapMinX;
+			if (m_targetX > mapMaxX) m_targetX = mapMaxX;
+			if (m_targetY < mapMinY) m_targetY = mapMinY;
+			if (m_targetY > mapMaxY) m_targetY = mapMaxY;
 
 			m_state = (int)HoundState::RUN;
 			m_idleTimer = 0.0f;
@@ -325,6 +323,11 @@ void Hound::UpdateAI(float deltaTime)
 			transform->SetPosition(transform->GetX() + (wdx / wdist) * step, transform->GetY() + (wdy / wdist) * step);
 		}
 	}
+
+	// 매 프레임 위치 경계 체크 (CHASE, RUN 상태에서 맵 밖으로 나가지 않도록)
+	if (m_state == (int)HoundState::CHASE || m_state == (int)HoundState::RUN) {
+		ClampPositionToMapBounds();
+	}
 }
 
 bool Hound::OnInteraction(GameObject* obj)
@@ -341,4 +344,33 @@ void Hound::Damaged(int damage)
 		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
 		m_attackCooldownTimer = 0.0f;
 	}
+}
+
+void Hound::OnAttackHit()
+{
+	if (m_state != (int)HoundState::ATTACK || !m_attackCollider || !transform) return;
+
+	Direction dir = transform->GetDirection();
+	if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(HOUND_ATTACK_DOWN[0], HOUND_ATTACK_DOWN[1], HOUND_ATTACK_DOWN[2], HOUND_ATTACK_DOWN[3]);
+	else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(HOUND_ATTACK_UP[0], HOUND_ATTACK_UP[1], HOUND_ATTACK_UP[2], HOUND_ATTACK_UP[3]);
+	else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(HOUND_ATTACK_LEFT[0], HOUND_ATTACK_LEFT[1], HOUND_ATTACK_LEFT[2], HOUND_ATTACK_LEFT[3]);
+	else m_attackCollider->SetObjectCollider(HOUND_ATTACK_RIGHT[0], HOUND_ATTACK_RIGHT[1], HOUND_ATTACK_RIGHT[2], HOUND_ATTACK_RIGHT[3]);
+
+	m_attackCollider->SetColliderEnabled(true);
+
+	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
+		Transform* pt = m_aggroTarget->GetComponent<Transform>();
+		if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
+			m_aggroTarget->Damaged(20);
+		}
+	}
+
+	m_attackCollider->SetColliderEnabled(false);
+}
+
+void Hound::OnAttackEnd()
+{
+	if (m_state != (int)HoundState::ATTACK) return;
+	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
+	ChangeState((int)HoundState::CHASE);
 }

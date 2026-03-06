@@ -6,8 +6,8 @@
 #include "../../Component/Transform/Transform.h"
 #include "Rock.h"
 
-Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
+Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true, colliderType)
 	, m_rockState(RockState::INTACT)
 {
 	m_type = GO_TYPE_NATURAL_ENVIRONMENT;

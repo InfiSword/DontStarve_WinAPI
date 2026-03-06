@@ -40,26 +40,17 @@ void GameScene::Init()
 	// UI 매니저는 씬마다 초기화 필요 (UI 리스트 클리어)
 	UIManager::GetInstance()->Init();
 	
-	// InputManager는 이미 메인 루프에서 초기화됨 (중복 초기화 불필요)
-	// InputManager::GetInstance()->Init();
-	
 	// ObjectManager 초기화 (게임 오브젝트 관리)
 	ObjectManager::GetInstance()->Init();
 	
 	// CameraManager 초기화 (카메라 위치 등)
 	CameraManager::GetInstance()->Init();
 	
-	// RenderManager는 이미 MainGame::Init()에서 초기화됨 (중복 초기화 불필요)
-	// RenderManager::GetInstance()->Init();
-	
 	// InventoryManager 초기화
 	InventoryManager::GetInstance()->Init();
 
 	// ColliderManager 초기화 (콜라이더 목록 등, 씬별로 정리 후 사용)
 	ColliderManager::GetInstance()->Init();
-	
-	// ResourceManager는 이미 MainGame::Init()에서 초기화됨 (중복 초기화 불필요)
-	// ResourceManager::GetInstance()->Init();
 
 	// 크래프팅 UI 생성
 	m_craftingUI = new CraftingUI();

@@ -3,8 +3,8 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "Sapling.h"
 
-Sapling::Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true)
+Sapling::Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName, ColliderType colliderType)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true, colliderType)
 {
 	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
 	SetDropItem(GOID_ITEM_NORMAL_TWIGS, 1);

@@ -20,12 +20,15 @@ protected:
     Animator* m_animator;            // 애니메이션을 위한 Animator 컴포넌트
     Transform* transform;            // Transform 컴포넌트 캐시
     SpriteRenderer* spriteRenderer;  // SpriteRenderer 컴포넌트 캐시
+    Collider* m_entityCollider;      // 몸통 콜라이더
+    ColliderType m_colliderType;     // 콜라이더 타입
 
 public:
     Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
            const std::wstring& baseDir = L"",
            const std::wstring& imageName = L"",
-           bool isActive = true, bool isInteractive = false);
+           bool isActive = true, bool isInteractive = false,
+           ColliderType colliderType = COLLIDER_BOX);
     virtual ~Entity();
 
     // 초기화
@@ -54,4 +57,11 @@ public:
 
     // Animator 접근자
     Animator* GetAnimator() const { return m_animator; }
+    
+    // 콜라이더 접근자
+    Collider* GetEntityCollider() const { return m_entityCollider; }
+    void SetEntityCollider(Collider* collider) { m_entityCollider = collider; }
+
+    // 맵 경계 체크 및 반환
+    void ClampPositionToMapBounds();
 };

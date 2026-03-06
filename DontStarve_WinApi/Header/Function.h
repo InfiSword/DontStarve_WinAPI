@@ -228,14 +228,13 @@ namespace ResourcePathUtils
 				}
 				currentTileRow++;
 			}
-			// 오브젝트 파싱 (형식: Type(Unused),ID,x,y 4필드만. 리소스/피벗/콜라이더는 생성 시 ResourceManager에서 조회)
+			// 오브젝트 파싱 (형식: ID,x,y 3필드만. 리소스/피벗/콜라이더는 생성 시 ResourceManager에서 조회)
 			else if (section == OBJECTS) {
 				if (line.find(L"0,0,0,0,0") != std::wstring::npos) continue;
 				
 				std::wstringstream ss(line);
-				std::wstring unused_type, id, x, y;
-				if (std::getline(ss, unused_type, L',') &&
-					std::getline(ss, id, L',') &&
+				std::wstring id, x, y;
+				if (std::getline(ss, id, L',') &&
 					std::getline(ss, x, L',') &&
 					std::getline(ss, y, L',')) {
 					
@@ -287,12 +286,12 @@ namespace ResourcePathUtils
 		while (std::getline(ifs, line)) {
 			if (line.empty() || line[0] == L'#') continue;
 			std::wstringstream iss(line);
-			std::wstring unused_typeName, idName;
+			std::wstring idName;
 			float pivotX = 0.5f, pivotY = 1.0f;
 			int hasColliderInt = 0, colliderTypeInt = 0;
 			int offsetX = 0, offsetY = 0, width = 0, height = 0;
 			float centerX = 0, centerY = 0, radius = 0;
-			if (!(iss >> unused_typeName >> idName >> pivotX >> pivotY >> hasColliderInt >> colliderTypeInt
+			if (!(iss >> idName >> pivotX >> pivotY >> hasColliderInt >> colliderTypeInt
 				>> offsetX >> offsetY >> width >> height >> centerX >> centerY >> radius)) continue;
 			GameObjectID id = EnumTables::GetGameObjectID(idName.c_str());
 			if (id == GOID_NONE) continue;

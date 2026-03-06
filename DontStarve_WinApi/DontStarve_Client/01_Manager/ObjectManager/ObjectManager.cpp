@@ -186,40 +186,50 @@ void ObjectManager::InitializeFactories()
 
 	// 나무 (동일 람다) - 맵 파일의 피벗값 사용
 	registerIds({ GOID_NORMAL_TREE_SHORT, GOID_NORMAL_TREE_NORMAL, GOID_NORMAL_TREE_TALL }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Tree(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Tree(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	});
 
 	// 돌 (동일 람다) - 맵 파일의 피벗값 사용
 	registerIds({ GOID_NORMAL_ROCK, GOID_GOLD_ROCK }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Rock(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Rock(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	});
 
 	// 환경 오브젝트 (클래스별 1개씩) - 맵 파일의 피벗값 사용
 	m_gameObjectFactories[GOID_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Grass(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Grass(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	};
 	m_gameObjectFactories[GOID_NORMAL_SAPLING] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Sapling(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Sapling(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	};
 	m_gameObjectFactories[GOID_BERRY_TREE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new BerryBush(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new BerryBush(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	};
 
 	// 몬스터 - 맵 파일의 피벗값 사용
 	m_gameObjectFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Pig(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Pig(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	};
 	registerIds({ GOID_MONSTER_SPIDER, GOID_MONSTER_WARRIOR_SPIDER }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Spider(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Spider(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	});
 	m_gameObjectFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	};
 	m_gameObjectFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Hound(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Hound(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	};
 	registerIds({ GOID_MONSTER_REDHOUNDDOG, GOID_MONSTER_ICEHOUNDDOG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-		return new Boss_Hound(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Boss_Hound(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 	});
 
 	// 건물 - 맵 파일의 피벗값 사용
@@ -301,12 +311,11 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 		// 생성된 게임오브젝트를 오브ject매니저에 추가 (GameObject 생명주기 관리)
 		if (newObj) {
 			if (addToManager) {
-				AddGameObject(newObj);
-				newObj->Init();
 
-				// 맵 데이터의 콜라이더 정보를 컴포넌트로 첨부 (월드 배치 오브젝트만)
+				// 오브젝트 데이터의 콜라이더 정보를 컴포넌트로 첨부 (월드 배치 오브젝트만)
 				if (data->hasCollider) {
-					if (data->colliderType == COLLIDER_BOX) {
+					if (data->colliderType == COLLIDER_BOX)
+					{
 						BoxCollider* col = newObj->AddComponent<BoxCollider>();
 						col->SetObjectCollider(
 							data->colliderOffsetX,
@@ -315,14 +324,18 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 							data->colliderHeight
 						);
 					}
-					else if (data->colliderType == COLLIDER_CIRCLE) {
-						newObj->AddComponent<CircleCollider>(
+					else if (data->colliderType == COLLIDER_CIRCLE) 
+					{
+						CircleCollider* col = newObj->AddComponent<CircleCollider>();
+						col->SetObjectCollider(
 							data->colliderCenterX,
 							data->colliderCenterY,
 							data->colliderRadius
 						);
 					}
 				}
+				AddGameObject(newObj);
+				newObj->Init();
 			}
 		}
 		else {

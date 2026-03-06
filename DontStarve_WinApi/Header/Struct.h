@@ -154,7 +154,7 @@ namespace ResourcePathUtils
 
 	// 오브젝트 리소스 정적 테이블
 	static constexpr ObjectDefEntry ObjectResourceTable[] = {
-		{ GOID_PLAYER_WILSON, L"Resource\\Objects\\Player\\Wilson", L"" },
+		{ GOID_PLAYER_WILSON, L"Resource\\Objects\\Player\\Wilson", L"Wilson_Image.png" },
 		{ GOID_PLAYER_WILLOW, L"Resource\\Objects\\Player\\Willow", L"" },
 		{ GOID_PLAYER_WOLFGANG, L"Resource\\Objects\\Player\\Wolfgang", L"" },
 		{ GOID_NORMAL_TREE_SHORT, L"Resource\\Objects\\Tree1\\Short", L"evergreen_evergreen_short_idle_short_01.png" },

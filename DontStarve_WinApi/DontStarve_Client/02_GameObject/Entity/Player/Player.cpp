@@ -181,7 +181,7 @@ void Player::Init()
 		}
 	}
 
-	// 공격 판정용 콜라이더 (기본 비활성, ATTACK 6프레임 시에만 활성)
+	// 공격 판정용 콜라이더 (기본 비활성, ATTACK 상태 16프레임 시에만 활성)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
 		m_attackCollider->SetObjectCollider(-40, 0, 80, 60);
@@ -314,6 +314,7 @@ void Player::Update(float deltaTime)
 
 		if (isArrived) {
 			transform->SetPosition(m_targetWorldPos.X, m_targetWorldPos.Y);
+			ClampPositionToMapBounds();  // 맵 경계 체크
 			isMoveToGoal = false;
 
 			// 공격 대상(몬스터)으로 이동한 경우: 사거리 안이면 방향 맞추고 ATTACK, 밖이면 몬스터 현재 위치로 다시 이동
@@ -360,6 +361,7 @@ void Player::Update(float deltaTime)
 		else {
 			float moveDist = (std::min)(moveSpeedThisFrame, distance);
 			transform->SetPosition(transform->GetX() + (dx / distance) * moveDist, transform->GetY() + (dy / distance) * moveDist);
+			ClampPositionToMapBounds();  // 맵 경계 체크
 
 			// 이동 중에는 기본적으로 WALK 애니메이션을 사용하지만,
 			// 이미 PICKUP/CHOP 등 상호작용 애니메이션이 진행 중이면 덮어쓰지 않는다.

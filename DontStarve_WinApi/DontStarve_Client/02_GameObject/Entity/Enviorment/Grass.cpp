@@ -3,8 +3,8 @@
 #include "../../Component/Sprite/SpriteRenderer.h"
 #include "Grass.h"
 
-Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true)
+Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true, colliderType)
 	, m_grassState(GrassState::IDLE)
 	, m_regrowTimer(0.0f)
 {

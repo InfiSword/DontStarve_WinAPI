@@ -21,8 +21,8 @@ static const int PIG_ATTACK_UP[] = { -35,  -50, BOSS_SPIDERQUEEN_ATTACK_BOX_W, B
 static const int PIG_ATTACK_LEFT[] = { -70,  -25, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
 static const int PIG_ATTACK_RIGHT[] = { 0,  -25, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
 
-Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
+Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
 	, m_bossPhase(1)
 	, m_specialAttackCooldown(0.0f)
 	, m_idleTimer(0.0f)

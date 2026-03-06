@@ -1,6 +1,7 @@
 #include "99_Default/pch.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -11,8 +12,8 @@
 const float Boss_Hound::ATTACK_RANGE = 100.0f;
 const float Boss_Hound::ATTACK_COOLDOWN = 2.0f;
 
-Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName)
+Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
 	, m_wanderRadius(300.0f)
 	, m_aggroRadius(400.0f)
 	, m_deaggroRadius(600.0f)

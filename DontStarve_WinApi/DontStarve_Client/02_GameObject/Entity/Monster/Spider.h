@@ -19,7 +19,7 @@ enum class SpiderState {
 class Spider : public Monster
 {
 public:
-    Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"");
+    Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Spider();
 
     virtual void Init() override;
@@ -41,9 +41,9 @@ public:
 	// 디버그 레이아웃 시각화
 	virtual void RenderDebugOverlay() override;
 
-private:
-	void OnAttackHit();
-	void OnAttackEnd();
+protected:
+	virtual void OnAttackHit() override;
+	virtual void OnAttackEnd() override;
 
 private:
     static const float ATTACK_RANGE;      // 공격 사거리
@@ -52,9 +52,4 @@ private:
 private:
     SpiderEgg* m_homeEgg;                // 소속 거미집
     float m_spawnRadius;                 // 거미집 주변 배회 반경
-    float m_aggroRadius;                 // 어그로 감지 범위
-    float m_deaggroRadius;               // 어그로 해제 범위
-    float m_idleTimer;                   // IDLE 경과 시간
-    float m_idleDuration;                // IDLE 유지 시간
-    BoxCollider* m_attackCollider;       // 공격 판정용
 };

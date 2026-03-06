@@ -1,6 +1,8 @@
 #pragma once
 #include "../Entity.h"
 
+class BoxCollider;
+
 class Monster : public Entity
 {
 protected:
@@ -20,9 +22,21 @@ protected:
     float m_aiTickTimer;
     float m_aiTickInterval;
 
+    // 공격 콜라이더 (모든 몬스터 공통)
+    BoxCollider* m_attackCollider;
+
+    // 배회 및 어그로 관련 (공통)
+    float m_wanderRadius;
+    float m_aggroRadius;
+    float m_deaggroRadius;
+
+    // IDLE 상태 관련 (공통)
+    float m_idleTimer;
+    float m_idleDuration;
+
 public:
     Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, 
-            const std::wstring& baseDir = L"", const std::wstring& imageName = L"");
+            const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Monster();
 
     virtual void Init() override;
@@ -31,6 +45,10 @@ public:
     // 자식 클래스에서 구현할 로직들
     virtual void UpdateAI(float deltaTime) = 0;       // 상태 결정 (0.1~0.2초마다 실행)
     virtual void UpdateMovement(float deltaTime) {}   // 실제 이동 (매 프레임 실행)
+
+    // 공통 공격 처리 메서드 (자식 클래스에서 오버라이드 가능)
+    virtual void OnAttackHit() {}
+    virtual void OnAttackEnd() {}
 
     // 편의 기능 (제곱 거리 비교)
     bool IsInAggroRangeSq(float range) const { return m_distToPlayerSq <= (range * range); }

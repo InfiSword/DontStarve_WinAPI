@@ -18,7 +18,7 @@ enum class HoundState {
 class Hound : public Monster
 {
 public:
-    Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"");
+    Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Hound();
 
     virtual void Init() override;
@@ -28,16 +28,11 @@ public:
 
 	HoundState GetHoundState() const { return (HoundState)m_state; }
 
+protected:
+    virtual void OnAttackHit() override;
+    virtual void OnAttackEnd() override;
+
 private:
     static const float ATTACK_RANGE;
     static const float ATTACK_COOLDOWN;
-
-    float m_wanderRadius;
-    float m_aggroRadius;
-    float m_deaggroRadius;
-
-    float m_idleTimer;
-    float m_idleDuration;
-
-    BoxCollider* m_attackCollider;
 };
