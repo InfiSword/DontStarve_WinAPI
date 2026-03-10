@@ -4,6 +4,7 @@
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../01_Manager/UIManager/UIManager.h"
 #include "../../../02_GameObject/UI/Inventory.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
@@ -308,7 +309,7 @@ void Player::Update(float deltaTime)
 			}
 		}
 
-		// 도착 여부 판정 (인라인화: IsArrivedAtTarget)
+		// 도착 여부 판별 (인라인화: IsArrivedAtTarget)
 		const float arrivalEpsilon = 1.0f;
 		bool isArrived = (distance < arrivalEpsilon) || (distance <= m_stopThreshold) || (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame);
 
@@ -714,24 +715,30 @@ void Player::HandleMovement()
 
 	if (inputManager->IsLButtonClicked()) {
 		POINT mousePos = inputManager->GetMousePos();
-		if (m_inventory->ContainsScreenPoint(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y)))
+		float sx = static_cast<float>(mousePos.x);
+		float sy = static_cast<float>(mousePos.y);
+		if (UIManager::GetInstance()->IsScreenPointBlockedByUI(sx, sy))
 			return;
 
-		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld((float)mousePos.x, (float)mousePos.y);
+		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(sx, sy);
 		TryStartInteraction(worldPos.X, worldPos.Y);
 	}
 	else if (inputManager->IsRButtonClicked()) {
 		m_pendingInteractionTarget = nullptr;
 		POINT mousePos = inputManager->GetMousePos();
-		if (m_inventory->HandleRightClick(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y), this))
+		float sx = static_cast<float>(mousePos.x);
+		float sy = static_cast<float>(mousePos.y);
+		if (UIManager::GetInstance()->IsScreenPointBlockedByUI(sx, sy)) {
+			// 인벤토리 우클릭 처리는 Inventory에 위임
+			m_inventory->HandleRightClick(sx, sy, this);
 			return;
+		}
 
-		// 공격 중 우클릭 시: 공격을 즉시 캔슬하고 해당 위치로 이동
 		if (m_state == PlayerState::ATTACK) {
 			OnAttackEnd();
 		}
 
-		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld((float)mousePos.x, (float)mousePos.y);
+		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(sx, sy);
 		HandleRightClick(worldPos.X, worldPos.Y);
 	}
 }

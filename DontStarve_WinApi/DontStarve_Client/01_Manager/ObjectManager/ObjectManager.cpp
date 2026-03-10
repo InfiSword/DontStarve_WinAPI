@@ -307,8 +307,7 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 	auto it = m_gameObjectFactories.find(id);
 	if (it != m_gameObjectFactories.end()) {
 		GameObject* newObj = it->second(id, x, y, data);
-		
-		// 생성된 게임오브젝트를 오브ject매니저에 추가 (GameObject 생명주기 관리)
+
 		if (newObj) {
 			if (addToManager) {
 

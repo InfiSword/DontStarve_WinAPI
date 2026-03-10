@@ -1,11 +1,12 @@
 #include "99_Default/pch.h"
 #include "UIManager.h"
+#include "../RenderManager/RenderManager.h"
+#include "../InputManager/InputManager.h"
 #include "../../02_GameObject/UI/UIElement.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
 #include "../../02_GameObject/UI/UIText.h"
-#include "../RenderManager/RenderManager.h"
-#include "../InputManager/InputManager.h"
+#include "../../02_GameObject/Component/Transform/RectTransform.h"
 
 UIManager::UIManager() : m_isUIVisible(true)
 {
@@ -160,4 +161,34 @@ UIText* UIManager::FindUIText(GameObjectID id)
 void UIManager::SetUIVisibility(bool visible)
 {
 	m_isUIVisible = visible;
+}
+
+bool UIManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
+{
+	// 직접 등록된 블록 영역 검사 (인벤토리 등 자체 영역)
+	for (const auto& rect : m_blockRegions) {
+		if (rect.Contains(screenX, screenY))
+			return true;
+	}
+
+	// 활성화된 UIElement의 RectTransform 바운딩 박스 검사
+	for (const auto* element : m_uiElements) {
+		if (!element || !element->IsEnabled()) continue;
+		RectTransform* rt = element->GetRectTransform();
+		if (!rt) continue;
+		Gdiplus::RectF bounds = rt->GetScreenBoundingBox();
+		if (bounds.Width > 0.0f && bounds.Height > 0.0f && bounds.Contains(screenX, screenY))
+			return true;
+	}
+	return false;
+}
+
+void UIManager::RegisterBlockRegion(const Gdiplus::RectF& rect)
+{
+	m_blockRegions.push_back(rect);
+}
+
+void UIManager::ClearBlockRegions()
+{
+	m_blockRegions.clear();
 }

@@ -14,6 +14,8 @@ class CraftingUI : public UIElement
 private:
 	// UI 요소들
 	UIImage* m_craftBar;                              // 크래프팅 바 배경
+	UIImage* m_toolPanelBg;                           // 도구 팔레트 배경
+	UIImage* m_ingredientPanelBg;                     // 재료 표시 배경
 	UIButton* m_craftIcon;                            // 크래프팅 아이콘 버튼 (도구 목록 토글)
 	UIButton* m_menuCreateIcon;                       // 메뉴바: Create 아이콘
 	UIButton* m_menuEditIcon;                         // 메뉴바: Edit 아이콘
@@ -42,27 +44,23 @@ private:
 	float m_iconSize;
 	float m_toolButtonSize;
 	float m_toolButtonSpacing;
-	float m_toolPanelOffsetX;
-	float m_toolButtonStartY;
-	int m_columnsPerRow;
+	int   m_columnsPerRow;
 	float m_craftButtonWidth;
 	float m_craftButtonHeight;
 	float m_ingredientImageSize;
-	float m_ingredientTextHeight;
 	float m_ingredientSpacing;
-	float m_ingredientStartY;
-	float m_ingredientToolGap;                        // 도구 패널과 재료 행 간격
-	float m_toolPanelBottomY;                         // 도구 버튼 영역 하단 Y
-	float m_ingredientPanelCenterX;                   // 재료/도구 패널 가로 중앙 X
+	float m_ingredientStartY;                         // 재료 행 중심 Y (계산됨)
+	float m_ingredientPanelCenterX;                   // 재료/도구 패널 가로 중앙 X (계산됨)
+	float m_ingredientPanelOffsetX;                   // 재료 패널 전체 X 추가 오프셋
+	float m_ingredientPanelOffsetY;                   // 재료 패널 전체 Y 추가 오프셋 (양수=아래)
 	float m_menuIconX;                                // 메뉴바 아이콘 고정 X
 	float m_menuIconStartY;                           // 메뉴바 맨 위 아이콘 Y
-	float m_menuIconSpacing;                          // 메뉴바 아이콘 세로 간격 (아래로 한 칸마다)
-	float m_menuIconY0;                               // 계산됨: 1번째 Y
-	float m_menuIconY1;                               // 계산됨: 2번째 Y
-	float m_menuIconY2;                               // 계산됨: 3번째 Y
-	float m_menuIconY3;                               // 계산됨: 4번째 Y
-	float m_menuIconY4;                               // 계산됨: 5번째 Y
-
+	float m_menuIconSpacing;                          // 메뉴바 아이콘 세로 간격
+	float m_menuIconY[5];                             // 계산됨: 메뉴바 아이콘 Y 위치 [0]=맨위 ~ [4]=맨아래
+	float m_paletteBgOffsetX;                         // 팔레트 BG X 추가 오프셋 (버튼 그리드와 정렬)
+	float m_paletteBgOffsetY;                         // 팔레트 BG Y 추가 오프셋 (버튼 그리드와 정렬)
+	float m_toolButtonOffsetX;                        // 도구 버튼 그리드 X 추가 오프셋 (BG와 정렬)
+	
 public:
 	CraftingUI();
 	virtual ~CraftingUI();
@@ -96,12 +94,16 @@ public:
 private:
 	// UI 요소 생성 헬퍼 함수들
 	void CreateCraftBar();
+	void CreatePanelBackgrounds();                    // 도구/재료 패널 배경 생성
 	void CreateMenuBarIcons();
 	void CreateToolButtons();
 	void CreateCreateItemButtons();
 	void CreateCookItemButtons();
 	void CreateCraftButton();
 	void CreateIngredientDisplay();
+
+	void SetToolPanelBgVisible(bool visible);
+	void SetIngredientPanelBgVisible(bool visible);
 
 	// 재료 이미지 경로 가져오기
 	std::wstring GetIngredientImagePath(GameObjectID ingredientID);

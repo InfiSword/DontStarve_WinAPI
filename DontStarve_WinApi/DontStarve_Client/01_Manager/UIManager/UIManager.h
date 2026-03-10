@@ -37,7 +37,15 @@ public:
 	void SetUIVisibility(bool visible);
 	bool IsUIVisible() const { return m_isUIVisible; }
 
+	// 해당 스크린 좌표가 활성화된 UI 위에 있으면 true (클릭 차단 판정)
+	bool IsScreenPointBlockedByUI(float screenX, float screenY) const;
+
+	// UI 블록에서 제외할 영역 등록/해제 (인벤토리 등 자체 처리하는 UI)
+	void RegisterBlockRegion(const Gdiplus::RectF& rect);
+	void ClearBlockRegions();
+
 private:
 	std::vector<UIElement*> m_uiElements;
+	std::vector<Gdiplus::RectF> m_blockRegions;
 	bool m_isUIVisible;
-}; 
+};
