@@ -1,13 +1,19 @@
 #pragma once
-#include "../Entity.h"
+#include "../Combatant.h"
 
-class BoxCollider;
-
-class Monster : public Entity
+class Monster : public Combatant
 {
+public:
+    // 어그로 타입 정의
+    enum class AggroType
+    {
+        ON_RANGE,               // 일정 범위 내 진입 시 추격 (거미, 하운드)
+        ALWAYS,                 // 항상 추격 (보스, 특수 몬스터)
+        ON_HIT_THEN_RANGE       // 처음 공격받으면 이후부터 범위 체크 시작 (피그)
+    };
+
 protected:
     // 공통 AI 관련 변수
-    GameObject* m_aggroTarget;
     float m_attackCooldownTimer;
     float m_walkSpeed;
     float m_runSpeed;
@@ -22,9 +28,6 @@ protected:
     float m_aiTickTimer;
     float m_aiTickInterval;
 
-    // 공격 콜라이더 (모든 몬스터 공통)
-    BoxCollider* m_attackCollider;
-
     // 배회 및 어그로 관련 (공통)
     float m_wanderRadius;
     float m_aggroRadius;
@@ -34,22 +37,27 @@ protected:
     float m_idleTimer;
     float m_idleDuration;
 
+    // 어그로 설정
+    AggroType m_aggroType;
+    bool m_hasBeenHit;  // ON_HIT_THEN_RANGE 타입에서 피격 여부 추적
+
 public:
-    Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, 
+    Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
             const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Monster();
 
     virtual void Init() override;
     virtual void Update(float deltaTime) override;
+    virtual void Damaged(int damage) override;
 
-    // 자식 클래스에서 구현할 로직들
-    virtual void UpdateAI(float deltaTime) = 0;       // 상태 결정 (0.1~0.2초마다 실행)
-    virtual void UpdateMovement(float deltaTime) {}   // 실제 이동 (매 프레임 실행)
+    // 어그로 설정 함수
+    void SetupAggro(AggroType type, float aggroRadius = 300.0f, float deaggroRadius = 500.0f);
 
-    // 공통 공격 처리 메서드 (자식 클래스에서 오버라이드 가능)
-    virtual void OnAttackHit() {}
-    virtual void OnAttackEnd() {}
+    // SetupAttackBox, UpdateAttackBoxByDirection, ProcessAttackHit는 Combatant에서 상속
 
-    // 편의 기능 (제곱 거리 비교)
-    bool IsInAggroRangeSq(float range) const { return m_distToPlayerSq <= (range * range); }
+protected:
+    // AI 및 이동 (각 몬스터가 override)
+    virtual void UpdateAI(float deltaTime);
+    virtual void UpdateMovement(float deltaTime);
+    virtual void OnAttackHit();
 };

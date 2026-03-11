@@ -12,17 +12,9 @@
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../../Component/Collider/BoxCollider.h"
 
-const float Boss_SpiderQueen::ATTACK_RANGE = 70.0f;
-const float Boss_SpiderQueen::ATTACK_COOLDOWN = 1.5f;
-static const int PIG_ATTACK_HIT_FRAME = 28;
-static const int BOSS_SPIDERQUEEN_ATTACK_BOX_W = 70, BOSS_SPIDERQUEEN_ATTACK_BOX_H = 50;
-static const int PIG_ATTACK_DOWN[] = { -35,    0, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
-static const int PIG_ATTACK_UP[] = { -35,  -50, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
-static const int PIG_ATTACK_LEFT[] = { -70,  -25, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
-static const int PIG_ATTACK_RIGHT[] = { 0,  -25, BOSS_SPIDERQUEEN_ATTACK_BOX_W, BOSS_SPIDERQUEEN_ATTACK_BOX_H };
-
-Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
+Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+                                   const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 	, m_bossPhase(1)
 	, m_specialAttackCooldown(0.0f)
 	, m_idleTimer(0.0f)
@@ -34,6 +26,14 @@ Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivo
 	m_type = GO_TYPE_MONSTER;
 
 	m_walkSpeed = 50.0f;
+	
+	// 공격 관련 설정
+	m_attackRange = 70.0f;
+	m_attackCooldown = 1.5f;
+	m_attackHitFrame = 28;
+	m_damage = 25;
+	m_attackBoxWidth = 70;
+	m_attackBoxHeight = 50;
 }
 
 Boss_SpiderQueen::~Boss_SpiderQueen() {}
@@ -41,6 +41,9 @@ Boss_SpiderQueen::~Boss_SpiderQueen() {}
 void Boss_SpiderQueen::Init()
 {
 	Monster::Init();
+
+	// 보스는 항상 플레이어를 추격하는 타입
+	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
 
 	ChangeState((int)SpiderQueenState::IDLE);
 	m_bossPhase = 1;
@@ -88,7 +91,7 @@ void Boss_SpiderQueen::Init()
 		for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::ATTACK, (Direction)dir);
 			if (clip) {
-				clip->AddEventFrame(PIG_ATTACK_HIT_FRAME, L"attack_hit");
+				clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
 				clip->AddEventFrame(65, L"attack_end");
 				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 					if (eventName == L"attack_hit") this->OnAttackHit();
@@ -130,7 +133,7 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 				OnAttackEnd();
 			}
 			else if (m_state == (int)SpiderQueenState::HIT) {
-				if (m_aggroTarget && m_aggroTarget->IsEnabled())
+				if (m_attackTarget && m_attackTarget->IsEnabled())
 					ChangeState((int)SpiderQueenState::CHASE);
 				else
 					ChangeState((int)SpiderQueenState::IDLE);
@@ -142,17 +145,17 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 	// 메인 상태 머신 (CHASE, IDLE)
 	if (m_state == (int)SpiderQueenState::CHASE)
 	{
-		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
-			m_aggroTarget = nullptr;
+		if (!m_attackTarget || !m_attackTarget->IsEnabled()) {
+			m_attackTarget = nullptr;
 			ChangeState((int)SpiderQueenState::IDLE);
 			m_idleTimer = 0.0f;
 			return;
 		}
 
-		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE)) {
+		if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
 			if (m_attackCooldownTimer <= 0.0f) {
 				ChangeState((int)SpiderQueenState::ATTACK);
-				m_attackCooldownTimer = ATTACK_COOLDOWN;
+				m_attackCooldownTimer = m_attackCooldown;
 			}
 			else {
 				ChangeState((int)SpiderQueenState::IDLE);
@@ -185,6 +188,10 @@ void Boss_SpiderQueen::UpdateMovement(float deltaTime)
 }
 
 void Boss_SpiderQueen::OnAttackHit() {
+	if (m_state != (int)SpiderQueenState::ATTACK) return;
+
+	// Monster 기본 클래스의 공격 처리 사용
+	ProcessAttackHit(m_damage);
 }
 
 void Boss_SpiderQueen::OnAttackEnd() {
@@ -213,11 +220,12 @@ void Boss_SpiderQueen::Damaged(int damage)
 		m_isDead = true;
 		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
 		GameProgressManager::GetInstance()->OnMonsterKilled(GetID(), currentScene);
-		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다!\n");
+		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다\n");
 	}
 
 	if (!IsDead() && IsEnabled()) {
-		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 		m_attackCooldownTimer = 0.0f;
 	}
 }
+

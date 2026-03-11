@@ -65,6 +65,7 @@
     <ClCompile Include="02_GameObject\Item\Tool\Torch\Torch.cpp" />
     <ClCompile Include="02_GameObject\Item\Tool\Weapon\Weapon.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Monster.cpp" />
+    <ClCompile Include="02_GameObject\Entity\Combatant.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -87,14 +88,12 @@
     <ClInclude Include="03_Animation\SpriteSheet.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Rock.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Tree.h" />
-    <ClInclude Include="01_Manager\AnimationManager\AnimationManager.h" />
     <ClInclude Include="02_GameObject\Item\Ingredient.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Grass.h" />
     <ClInclude Include="01_Manager\RenderManager\RenderManager.h" />
     <ClInclude Include="02_GameObject\Building\PigHouse.h" />
     <ClInclude Include="02_GameObject\Item\Item.h" />
     <ClInclude Include="02_GameObject\UI\Inventory.h" />
-    <ClInclude Include="01_Manager\StageManager\StageManager.h" />
     <ClInclude Include="02_GameObject\Building\Building.h" />
     <ClInclude Include="02_GameObject\Entity\Entity.h" />
     <ClInclude Include="01_Manager\GameProgressManager\GameProgressManager.h" />
@@ -138,6 +137,7 @@
     <ClInclude Include="02_GameObject\Item\Tool\Torch\Torch.h" />
     <ClInclude Include="02_GameObject\Item\Tool\Weapon\Weapon.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Monster.h" />
+    <ClInclude Include="02_GameObject\Entity\Combatant.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

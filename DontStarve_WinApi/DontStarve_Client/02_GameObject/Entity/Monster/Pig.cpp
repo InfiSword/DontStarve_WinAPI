@@ -14,17 +14,9 @@
 #include "../../Component/Collider/BoxCollider.h"
 #include "Pig.h"
 
-const float Pig::ATTACK_RANGE = 70.0f;
-const float Pig::ATTACK_COOLDOWN = 1.5f;
-static const int PIG_ATTACK_HIT_FRAME = 28;
-static const int PIG_ATTACK_BOX_W = 70, PIG_ATTACK_BOX_H = 50;
-static const int PIG_ATTACK_DOWN[]  = { -35,    0, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
-static const int PIG_ATTACK_UP[]    = { -35,  -50, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
-static const int PIG_ATTACK_LEFT[]  = { -70,  -25, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
-static const int PIG_ATTACK_RIGHT[] = {   0,  -25, PIG_ATTACK_BOX_W, PIG_ATTACK_BOX_H };
-
-Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
+Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+         const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 {
 	m_hp = 100;
 	m_maxHp = m_hp;
@@ -32,6 +24,14 @@ Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, const st
 
 	m_walkSpeed = 80.0f;
 	m_runSpeed = 200.0f;
+	
+	// 공격 관련 설정
+	m_attackRange = 70.0f;
+	m_attackCooldown = 1.5f;
+	m_attackHitFrame = 28;
+	m_damage = 18;
+	m_attackBoxWidth = 70;
+	m_attackBoxHeight = 50;
 }
 
 Pig::~Pig() {}
@@ -39,6 +39,13 @@ Pig::~Pig() {}
 void Pig::Init()
 {
 	Monster::Init();
+
+	// 어그로 처음 공격받으면 이후부터 범위 체크를 시작하는 타입
+	// 처음에는 평화로운데 한 번 공격받으면 적대적으로 경계 상태가 됨
+	SetupAggro(AggroType::ON_HIT_THEN_RANGE, 250.0f, 600.0f);
+
+	// 공격 박스 설정 (방향별 오프셋 자동 계산)
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
 
 	ChangeState((int)PigState::IDLE);
 	m_idleTimer = 0.0f;
@@ -50,7 +57,7 @@ void Pig::Init()
 		m_targetY = this->transform->GetY();
 	}
 	
-	OutputDebugStringW((L"Pig: Init 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Pig: Init 완료 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 
 	if (!m_animator) {
 		m_animator = AddComponent<Animator>();
@@ -96,7 +103,7 @@ void Pig::Init()
 			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_DOWN, baseAttack + L"down_pigman_atk_down.png",
 				0, 0, 4, 66, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
 			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_UP, baseAttack + L"up_pigman_atk_up.png",
-				0, 0, 4, 66, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
+				0, 0, 4, 66, this->transform->GetPivotY(), this->transform->GetPivotY(), false, 0.02f);
 			std::wstring atkSidePath = baseAttack + L"side_pigman_atk_side.png";
 			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_LEFT, atkSidePath,
 				0, 0, 4, 66, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f, false);
@@ -106,7 +113,7 @@ void Pig::Init()
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)PigState::ATTACK, (Direction)dir);
 				if (clip) {
-					clip->AddEventFrame(PIG_ATTACK_HIT_FRAME, L"attack_hit");
+					clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
 					clip->AddEventFrame(65, L"attack_end");
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"attack_hit") this->OnAttackHit();
@@ -117,17 +124,21 @@ void Pig::Init()
 
 			m_animator->RegisterAnimation((int)PigState::HIT, DIR_DOWN, base + L"Hit\\Hit_pigman_hit.png",
 				232, 245, 4, 29, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
-			m_animator->RegisterAnimation((int)PigState::DEATH, DIR_DOWN, base + L"Death\\Death_pigman_death.png",
-				227, 243, 4, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
+			
+			// Death 애니메이션을 모든 방향에 등록
+			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				m_animator->RegisterAnimation((int)PigState::DEATH, (Direction)dir, base + L"Death\\Death_pigman_death.png",
+					227, 243, 4, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
+			}
 		}
 
 		m_animator->SetState(m_state, this->transform->GetDirection());
 	}
 
-	// 공격 판정용 콜라이더 (ObjectManager에서 설정된 몸통 콜라이더는 그대로 사용)
+	// 怨듦꺽 ?먯젙??肄쒕씪?대뜑 (ObjectManager?먯꽌 ?ㅼ젙??紐명넻 肄쒕씪?대뜑??洹몃?濣??ъ슜)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
-		m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
+		UpdateAttackBoxByDirection(DIR_DOWN);
 		m_attackCollider->SetColliderEnabled(false);
 	}
 }
@@ -151,10 +162,17 @@ void Pig::UpdateAI(float deltaTime)
 				OnAttackEnd();
 			}
 			else if (m_state == (int)PigState::HIT) {
-				if (m_aggroTarget && m_aggroTarget->IsEnabled())
+				if (m_attackTarget && m_attackTarget->IsEnabled())
 					ChangeState((int)PigState::CHASE);
 				else
 					ChangeState((int)PigState::IDLE);
+			}
+		}
+		else if (m_state == (int)PigState::DEATH) {
+			// DEATH 상태에서는 애니메이션이 끝날 때까지 대기
+			// 애니메이터 상태를 다시 한번 확실히 설정
+			if (m_animator) {
+				m_animator->SetState((int)PigState::DEATH, transform->GetDirection());
 			}
 		}
 		return;
@@ -163,18 +181,18 @@ void Pig::UpdateAI(float deltaTime)
 	// --- 2. 메인 상태 머신 (상태 결정만 수행) ---
 	if (m_state == (int)PigState::CHASE)
 	{
-		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
-			m_aggroTarget = nullptr;
+		if (!m_attackTarget || !m_attackTarget->IsEnabled()) {
+			m_attackTarget = nullptr;
 			ChangeState((int)PigState::IDLE);
 			m_idleTimer = 0.0f;
 			return;
 		}
 
 		// 공격 사거리 체크 (제곱 거리 사용)
-		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE)) {
+		if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
 			if (m_attackCooldownTimer <= 0.0f) {
 				ChangeState((int)PigState::ATTACK);
-				m_attackCooldownTimer = ATTACK_COOLDOWN;
+				m_attackCooldownTimer = m_attackCooldown;
 			}
 			else {
 				ChangeState((int)PigState::IDLE);
@@ -212,7 +230,7 @@ void Pig::UpdateMovement(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
 
-	// 애니메이션 재생 중(공격, 히트 등)일 때는 이동하지 않음
+	// 애니메이션 재생 중(공격, 히트 상태)는 이동하지 않음
 	if (m_state == (int)PigState::ATTACK || m_state == (int)PigState::HIT || m_state == (int)PigState::DEATH)
 		return;
 
@@ -249,7 +267,7 @@ void Pig::UpdateMovement(float deltaTime)
 		m_animator->SetState((int)PigState::IDLE, transform->GetDirection());
 	}
 
-	// 매 프레임 위치 경계 체크 (CHASE, WALK 상태에서 맵 밖으로 나가지 않도록)
+	// 맵 경계 위치 경계 체크 (CHASE, WALK 상태에서 맵 밖으로 나가지 않도록)
 	if (m_state == (int)PigState::CHASE || m_state == (int)PigState::WALK) {
 		ClampPositionToMapBounds();
 	}
@@ -266,31 +284,17 @@ void Pig::Damaged(int damage)
 	ChangeState((int)PigState::HIT);
 
 	if (!IsDead() && IsEnabled()) {
-		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 		m_attackCooldownTimer = 0.0f;
 	}
 }
 
 void Pig::OnAttackHit()
 {
-	if (m_state != (int)PigState::ATTACK || !m_attackCollider || !transform) return;
-
-	Direction dir = transform->GetDirection();
-	if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
-	else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(PIG_ATTACK_UP[0], PIG_ATTACK_UP[1], PIG_ATTACK_UP[2], PIG_ATTACK_UP[3]);
-	else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(PIG_ATTACK_LEFT[0], PIG_ATTACK_LEFT[1], PIG_ATTACK_LEFT[2], PIG_ATTACK_LEFT[3]);
-	else m_attackCollider->SetObjectCollider(PIG_ATTACK_RIGHT[0], PIG_ATTACK_RIGHT[1], PIG_ATTACK_RIGHT[2], PIG_ATTACK_RIGHT[3]);
-
-	m_attackCollider->SetColliderEnabled(true);
-
-	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
-		Transform* pt = m_aggroTarget->GetComponent<Transform>();
-		if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
-			m_aggroTarget->Damaged(10);
-		}
-	}
-
-	m_attackCollider->SetColliderEnabled(false);
+	if (m_state != (int)PigState::ATTACK) return;
+	
+	// Monster 기본 클래스의 공격 처리 사용
+	ProcessAttackHit(m_damage);
 }
 
 void Pig::OnAttackEnd()
@@ -317,11 +321,7 @@ void Pig::RenderDebugOverlay()
 	);
 
 	if (m_state == (int)PigState::ATTACK && m_attackCollider) {
-		Direction dir = transform->GetDirection();
-		if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(PIG_ATTACK_DOWN[0], PIG_ATTACK_DOWN[1], PIG_ATTACK_DOWN[2], PIG_ATTACK_DOWN[3]);
-		else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(PIG_ATTACK_UP[0], PIG_ATTACK_UP[1], PIG_ATTACK_UP[2], PIG_ATTACK_UP[3]);
-		else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(PIG_ATTACK_LEFT[0], PIG_ATTACK_LEFT[1], PIG_ATTACK_LEFT[2], PIG_ATTACK_LEFT[3]);
-		else m_attackCollider->SetObjectCollider(PIG_ATTACK_RIGHT[0], PIG_ATTACK_RIGHT[1], PIG_ATTACK_RIGHT[2], PIG_ATTACK_RIGHT[3]);
+		UpdateAttackBoxByDirection(transform->GetDirection());
 
 		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
 		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
@@ -334,3 +334,15 @@ void Pig::RenderDebugOverlay()
 		);
 	}
 }
+
+void Pig::Die()
+{
+	// Change to death state and set animator
+	ChangeState((int)PigState::DEATH);
+	
+	// 명시적으로 애니메이터 상태 설정
+	if (m_animator && transform) {
+		m_animator->SetState((int)PigState::DEATH, transform->GetDirection());
+	}
+}
+

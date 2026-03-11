@@ -58,6 +58,7 @@ public:
 
 	const POINT& GetRawMousePos() const { return m_rawMousePos; }
 	bool IsPlacingMode() const { return m_isPlacingMode; }
+	bool IsErasingMode() const { return m_isErasingMode; }
 	bool IsDraggingCamera() const { return m_isDraggingCamera; }
 	const ResourcePathUtils::ObjectResourceDef* GetSelectedObjectPtr() const { return m_selectedObjectPtr; }
 	Gdiplus::Bitmap* GetTileLayerBitmap() const;
@@ -72,7 +73,7 @@ private:
 	EditorScreenSwitch m_requestedSwitch = EditorScreenSwitch::None;
 	Gdiplus::Graphics* m_pGraphics = nullptr;
 	Gdiplus::Bitmap* m_pDoubleBufferBitmap = nullptr;
-
+	
 	int m_mapWidth = MAP_WIDTH;
 	int m_mapHeight = MAP_HEIGHT;
 	int m_idcMapWidth = 1000;   // 맵 크기 다이얼로그 Width Edit 컨트롤 ID
@@ -86,6 +87,7 @@ private:
 
 	bool m_isPlacingMode = false;
 	bool m_is3x3Mode = false;
+	bool m_isErasingMode = false;
 	POINT m_rawMousePos = { 0, 0 };
 	Gdiplus::PointF m_snappedPreviewPos;
 
@@ -123,6 +125,7 @@ private:
 	void DrawPreview(Gdiplus::Graphics* pGraphics);
 	void DrawPlayerSpawn(Gdiplus::Graphics* pGraphics);
 	void HandlePlacingModeClick(POINT clickPoint, HWND hWnd);
+	void HandleErasingModeClick(POINT clickPoint, HWND hWnd);
 	void HandleObjectSelectionClick(POINT clickPoint, HWND hWnd);
 	void DeselectObject(HWND hWnd);
 	void ExitAllEditModes();

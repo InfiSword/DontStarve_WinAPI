@@ -60,6 +60,11 @@ public:
 	bool ContainsScreenPoint(float screenX, float screenY) const;
 	bool HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player);
 
+	// 상태 저장/복원용 메서드
+	void ClearAllItems();
+	bool AddItemByID(GameObjectID itemID, UINT count = 1);
+	std::vector<std::pair<GameObjectID, UINT>> GetAllItemsSnapshot() const;
+
 private:
 	int  FindFirstEmptySlot() const;
 	int  FindExistingStack(UINT itemId) const;

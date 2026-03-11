@@ -114,7 +114,6 @@ namespace EnumTables {
 
 // ====================== 리소스 경로 관련 구조체 =======================
 
-// 리소스 경로 관련 구조체
 namespace ResourcePathUtils
 {	
 	// 타일 리소스 정적 테이블 엔트리 (컴파일 타임 상수)
@@ -206,14 +205,12 @@ namespace ResourcePathUtils
 
 	static constexpr size_t ObjectResourceCount = sizeof(ObjectResourceTable) / sizeof(ObjectDefEntry);
 
-	// ====================== 동적 리소스 관리용 구조체 =======================
-	
 	// 타일 리소스 정의 구조체 (런타임 사용, std::wstring 사용)
 	struct TileResourceDef {
 		TileType type;
 		TileID id;
-		std::wstring baseDir;    // 상대경로 (../Resource/ 기준 디렉토리)
-		std::wstring imageName;  // 파일명만 (baseDir과 결합하여 사용)
+		std::wstring baseDir;
+		std::wstring imageName;
 
 		TileResourceDef()
 			: type(TILE_NONE), id(TILEID_NONE)
@@ -227,15 +224,13 @@ namespace ResourcePathUtils
 	// 오브젝트 리소스 정의 구조체
 	struct ObjectResourceDef {
 		GameObjectID id;
-		std::wstring baseDir;    // 상대경로 (../Resource/ 기준 디렉토리)
-		std::wstring imageName;  // 파일명만 (baseDir과 결합하여 사용)
+		std::wstring baseDir;
+		std::wstring imageName;
 		float pivotX;
 		float pivotY;
 		
-		// 게임 오브젝트 데이터용 필드
-		float x = 0, y = 0;  // 위치
+		float x = 0, y = 0;
 		
-		// 콜라이더 정보
 		bool hasCollider = false;
 		ColliderType colliderType = COLLIDER_BOX;
 		int colliderOffsetX = 0;
@@ -264,24 +259,90 @@ namespace ResourcePathUtils
 			colliderCenterX(colliderCenterX_val), colliderCenterY(colliderCenterY_val), colliderRadius(colliderRadius_val)
 		{}
 	};
-
 }
-enum ItemCategory {
-	CATEGORY_NONE = 0,
-	CATEGORY_TILE = 1,
-	CATEGORY_OBJECT = 2
-};
+
+// ====================== 도구 스탯 데이터 테이블 =======================
+
+namespace ToolDataUtils
+{
+	// 도구 스탯 엔트리 구조체
+	struct ToolStatsEntry {
+		GameObjectID toolID;
+		int damage;
+		float attackRange;
+	};
+
+	// 도구 스탯 정적 테이블
+	static constexpr ToolStatsEntry ToolStatsTable[] = {
+		{ GOID_TOOL_GOLDEN_SCYTHE,  25,    120.0f },
+		{ GOID_TOOL_HAM_BAT,        40,    100.0f },
+		{ GOID_TOOL_PICKAXE,        15,    80.0f  },
+		{ GOID_TOOL_RED_AXE,        20,    100.0f },
+		{ GOID_TOOL_SPEAR,          30,    150.0f },
+		{ GOID_TOOL_SWAP_AXE,       25,    100.0f },
+		{ GOID_TOOL_SWAP_SPEAR,     45,    160.0f },
+		{ GOID_TOOL_TORCH,          10,    90.0f  },
+		{ GOID_TOOL_HALBERD,        50,    140.0f },
+		{ GOID_TOOL_HAMMER,         15,    85.0f  }
+	};
+
+	static constexpr size_t ToolStatsCount = sizeof(ToolStatsTable) / sizeof(ToolStatsEntry);
+}
+
+// ====================== 아이템 디스플레이 이름 테이블 =======================
+
+namespace ItemDisplayUtils
+{
+	// 아이템 디스플레이 이름 엔트리 구조체
+	struct ItemDisplayEntry {
+		GameObjectID itemID;
+		const wchar_t* displayName;
+	};
+
+	// 아이템 디스플레이 이름 정적 테이블
+	static constexpr ItemDisplayEntry ItemDisplayTable[] = {
+		{ GOID_ITEM_NORMAL_TWIGS,        L"나뭇가지" },
+		{ GOID_ITEM_NORMAL_TREE_LOG,     L"통나무" },
+		{ GOID_ITEM_NORMAL_ROCK,         L"돌" },
+		{ GOID_ITEM_CUT_NORMAL_GRASS,    L"풀" },
+		{ GOID_ITEM_GOLD_ROCK,           L"금" },
+		{ GOID_ITEM_CUT_NORMAL_STONE,    L"석재" },
+		{ GOID_ITEM_ROPE,                L"밧줄" },
+		{ GOID_ITEM_WOOD_2,              L"나무판자" },
+		{ GOID_ITEM_MEAT,                L"고기" },
+		{ GOID_ITEM_SMALL_MEAT,          L"작은 고기" },
+		{ GOID_ITEM_MONSTER_MEAT,        L"몬스터 고기" },
+		{ GOID_ITEM_COOKED_MEAT,         L"구운 고기" },
+		{ GOID_ITEM_COOKED_SMALL_MEAT,   L"구운 작은 고기" },
+		{ GOID_ITEM_COOKED_MONSTER_MEAT, L"구운 몬스터 고기" },
+		{ GOID_TOOL_GOLDEN_SCYTHE,       L"황금 낫" },
+		{ GOID_TOOL_HAM_BAT,             L"햄 방망이" },
+		{ GOID_TOOL_PICKAXE,             L"곡괭이" },
+		{ GOID_TOOL_RED_AXE,             L"빨간 도끼" },
+		{ GOID_TOOL_SPEAR,               L"창" },
+		{ GOID_TOOL_SWAP_AXE,            L"도끼" },
+		{ GOID_TOOL_SWAP_SPEAR,          L"번개 창" },
+		{ GOID_TOOL_TORCH,               L"횃불" },
+		{ GOID_TOOL_HALBERD,             L"미늘창" },
+		{ GOID_TOOL_HAMMER,              L"망치" }
+	};
+
+	static constexpr size_t ItemDisplayCount = sizeof(ItemDisplayTable) / sizeof(ItemDisplayEntry);
+}
+ 
+// ====================== 팔레트 아이템 구조체 =======================
 
 struct PaletteItem 
 {
-	UINT resourceId;			       // 리소스 ID (TileID 또는 GameObjectID)
-	ItemCategory category;             // 아이템 카테고리 
+	UINT resourceId;
+	ItemCategory category;
 	RECT displayRect;
-	Gdiplus::Bitmap* hBitmap;  // 아이콘 표시용 비트맵
+	Gdiplus::Bitmap* hBitmap;
 	Gdiplus::RectF iconSourceRect;
 };
 
-// 화면에 그릴 정보를 담는 렌더 명령 데이터
+// ====================== 렌더 명령 구조체 =======================
+
 struct DrawCommand {
 	DrawCommandType type = DRAW_COMMAND_IMAGE;
 	Gdiplus::Bitmap* pBitmap = nullptr;
@@ -293,17 +354,19 @@ struct DrawCommand {
 	float sortKey = 0.0f;
 	Direction direction = DIR_DOWN;
 
-	const std::wstring* textPtr = nullptr;  // TEXT 타입일 때 사용 (소유하지 않음, 같은 프레임 Flush에서만 참조)
+	const std::wstring* textPtr = nullptr;
 	Gdiplus::Font* pFont = nullptr;
 	Gdiplus::Brush* pBrush = nullptr;
 	Gdiplus::StringFormat* pStringFormat = nullptr;
 
 	Gdiplus::Color color = Gdiplus::Color(0, 0, 0, 0);
 	float thickness = 0.0f;
-	Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);  // 색상 틴트
-	bool hasTint = false;  // 틴트 적용 여부
-	bool preFlipped = false;  // 비전이 미리 반전되어 있는지 여부 (이중 반전 방지용)
+	Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);
+	bool hasTint = false;
+	bool preFlipped = false;
 };
+
+// ====================== 플레이어 스폰 데이터 구조체 =======================
 
 struct PlayerSpawnData {
 	float x, y;
@@ -312,18 +375,19 @@ struct PlayerSpawnData {
 	PlayerSpawnData(float _x, float _y) : x(_x), y(_y) {}
 };
 
-// 맵 전체 데이터를 담는 구조체
+// ====================== 맵 데이터 구조체 =======================
+
 struct MapData {
-	std::wstring mapName;        // 맵 이름 (예: "Stage1", "Forest")
-	std::wstring mapFilePath;    // .dsm 파일 경로
+	std::wstring mapName;
+	std::wstring mapFilePath;
 
 	int mapWidth;
 	int mapHeight;
-	PlayerSpawnData playerSpawn; // 플레이어 스폰 시작 위치
+	PlayerSpawnData playerSpawn;
 
-	ResourcePathUtils::TileResourceDef tiles[MAP_WIDTH][MAP_HEIGHT];        // 타일 데이터
-	std::vector<ResourcePathUtils::ObjectResourceDef> gameObjects;      // 게임 오브젝트 리스트
-	bool walkableAreas[MAP_WIDTH][MAP_HEIGHT];    // 이동 가능 영역
+	ResourcePathUtils::TileResourceDef tiles[MAP_WIDTH][MAP_HEIGHT];
+	std::vector<ResourcePathUtils::ObjectResourceDef> gameObjects;
+	bool walkableAreas[MAP_WIDTH][MAP_HEIGHT];
 
 	MapData()
 		: mapName(L""), mapFilePath(L""), mapWidth(MAP_WIDTH), mapHeight(MAP_HEIGHT)
@@ -345,6 +409,8 @@ struct MapData {
 			}
 	}
 };
+
+// ====================== 애니메이션 프레임 구조체 =======================
 
 struct AnimationFrame {
 	Gdiplus::RectF sourceRect;

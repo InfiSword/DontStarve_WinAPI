@@ -11,13 +11,13 @@ enum class ToolState
 class Tool : public Item 
 {
 protected: 
-	float m_damage;
+	int m_damage;
 	float m_attackRange;
 	bool  m_canAttack;
 	ToolState m_toolState;
 
 public:
-    Tool(GameObjectID id, const std::wstring& name, const std::wstring& desc, const std::wstring& baseDir, const std::wstring& imageName);
+    Tool(GameObjectID id, const std::wstring& name, const std::wstring& desc, const std::wstring& baseDir, const std::wstring& imageName, int damage, float attackRange);
     virtual ~Tool();
 
 	float GetDamage()      const { return m_damage; }

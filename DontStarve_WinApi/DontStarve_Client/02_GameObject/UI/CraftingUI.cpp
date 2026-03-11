@@ -1,20 +1,22 @@
 #include "99_Default/pch.h"
 #include "CraftingUI.h"
 #include "CraftingRecipe.h"
-#include "UIImage.h"
-#include "UIButton.h"
-#include "UIText.h"
 #include "../../01_Manager/UIManager/UIManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../01_Manager/InventoryManager/InventoryManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../01_Manager/GameProgressManager/GameProgressManager.h"
 #include "../Entity/Player/Player.h"
+#include "UIImage.h"
+#include "UIButton.h"
+#include "UIText.h"
 #include "../Component/Transform/RectTransform.h"
 #include "../Component/Sprite/Image.h"
+#include "../../01_Manager/SceneManager/SceneManager.h"
 
-CraftingUI::CraftingUI()
+MenuUI::MenuUI()
 	: UIElement(GOID_CRAFT_BAR, L"", L"", true, false),
-	m_craftBar(nullptr),
+	m_menuBar(nullptr),
 	m_toolPanelBg(nullptr),
 	m_ingredientPanelBg(nullptr),
 	m_craftIcon(nullptr),
@@ -24,11 +26,19 @@ CraftingUI::CraftingUI()
 	m_menuCookIcon(nullptr),
 	m_craftButton(nullptr),
 	m_craftButtonText(nullptr),
+	m_craftingItemNameText(nullptr),
+	m_bossOverlay(nullptr),
+	m_houndBossPanel(nullptr),
+	m_spiderQueenBossPanel(nullptr),
+	m_bossChallengeButton(nullptr),
+	m_bossChallengeButtonText(nullptr),
+	m_isBossPanelVisible(false),
+	m_selectedBossID(GOID_NONE),
 	m_isToolListVisible(false),
 	m_isCreateListVisible(false),
 	m_isCookListVisible(false),
 	m_selectedToolID(GOID_NONE),
-	// UI 레이아웃 상수 초기화
+
 	m_craftBarWidth(125.0f),
 	m_craftBarHeight(400.0f),
 	m_iconSize(64.0f),
@@ -37,12 +47,12 @@ CraftingUI::CraftingUI()
 	m_columnsPerRow(3),
 	m_craftButtonWidth(120.0f),
 	m_craftButtonHeight(40.0f),
-	m_ingredientImageSize(74.0f),
-	m_ingredientSpacing(58.0f),
+	m_ingredientImageSize(60.0f),      // 74.0f에서 60.0f로 감소
+	m_ingredientSpacing(50.0f),        // 58.0f에서 50.0f로 감소
 	m_ingredientStartY(0.0f),
 	m_ingredientPanelCenterX(0.0f),
-	m_ingredientPanelOffsetX(45.0f),   
-	m_ingredientPanelOffsetY(20.0f),  
+	m_ingredientPanelOffsetX(45.0f),
+	m_ingredientPanelOffsetY(20.0f),
 	m_menuIconX(40.0f),
 	m_menuIconStartY(140.0f),
 	m_menuIconSpacing(72.0f),
@@ -58,24 +68,24 @@ CraftingUI::CraftingUI()
 			m_availableTools.push_back(id);
 	}
 	m_availableCreateItems = { GOID_ITEM_CUT_NORMAL_STONE, GOID_ITEM_ROPE, GOID_ITEM_WOOD_2 };
-	m_availableCookItems   = { GOID_ITEM_COOKED_MONSTER_MEAT, GOID_ITEM_COOKED_SMALL_MEAT, GOID_ITEM_COOKED_MEAT };
+	m_availableCookItems = { GOID_ITEM_COOKED_MONSTER_MEAT, GOID_ITEM_COOKED_SMALL_MEAT, GOID_ITEM_COOKED_MEAT };
 
 	// 파생 레이아웃 계산
 	const float toolPanelOffsetX = m_craftBarWidth;
 
 	// 팔레트 BG 하단 Y 계산 (CreatePanelBackgrounds와 동일한 수식)
-	const int   maxItemCount     = static_cast<int>((std::max)({
+	const int   maxItemCount = static_cast<int>((std::max)({
 		m_availableTools.size(), m_availableCreateItems.size(), m_availableCookItems.size() }));
-	const int   maxRows          = (maxItemCount + m_columnsPerRow - 1) / m_columnsPerRow;
-	const float palettePadding   = 48.0f;
-	const float toolPanelH       = maxRows * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
+	const int   maxRows = (maxItemCount + m_columnsPerRow - 1) / m_columnsPerRow;
+	const float palettePadding = 48.0f;
+	const float toolPanelH = maxRows * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
 	const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
-	const float toolPanelCY      = toolButtonStartY + toolPanelH * 0.5f - palettePadding;
+	const float toolPanelCY = toolButtonStartY + toolPanelH * 0.5f - palettePadding;
 	// 팔레트 BG 하단 = 중심Y + 높이/2  (앵커 기준 오프셋)
 	const float paletteBgBottomY = toolPanelCY + m_paletteBgOffsetY + toolPanelH * 0.5f;
 
 	// 재료 패널 Y: 팔레트 BG 하단 기준 + 재료 이미지 반높이 + 추가 오프셋
-	m_ingredientStartY       = paletteBgBottomY + m_ingredientImageSize * 0.5f + m_ingredientPanelOffsetY;
+	m_ingredientStartY = paletteBgBottomY + m_ingredientImageSize * 0.5f + m_ingredientPanelOffsetY;
 	m_ingredientPanelCenterX = toolPanelOffsetX + (m_columnsPerRow * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing) * 0.5f + m_ingredientPanelOffsetX;
 
 	// 메뉴바 아이콘 Y 배열 계산 ([0]=맨위 ~ [4]=맨아래)
@@ -83,30 +93,30 @@ CraftingUI::CraftingUI()
 		m_menuIconY[i] = m_menuIconStartY - i * m_menuIconSpacing;
 }
 
-CraftingUI::~CraftingUI()
+MenuUI::~MenuUI()
 {
 	Release();
 }
 
-void CraftingUI::Init()
+void MenuUI::Init()
 {
 	InitializeCraftingUI();
 }
 
-void CraftingUI::Update(float deltaTime)
+void MenuUI::Update(float deltaTime)
 {
 	GameObject::Update(deltaTime);
 }
 
-void CraftingUI::Release()
+void MenuUI::Release()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 
 	// 생성한 UI 요소들을 UIManager에서 제거
-	if (m_craftBar) {
-		uiManager->RemoveUIImage(m_craftBar);
-		delete m_craftBar;
-		m_craftBar = nullptr;
+	if (m_menuBar) {
+		uiManager->RemoveUIImage(m_menuBar);
+		delete m_menuBar;
+		m_menuBar = nullptr;
 	}
 
 	if (m_toolPanelBg) {
@@ -119,6 +129,37 @@ void CraftingUI::Release()
 		uiManager->RemoveUIImage(m_ingredientPanelBg);
 		delete m_ingredientPanelBg;
 		m_ingredientPanelBg = nullptr;
+	}
+
+	// 보스 UI 요소 제거
+	if (m_bossOverlay) {
+		uiManager->RemoveUIImage(m_bossOverlay);
+		delete m_bossOverlay;
+		m_bossOverlay = nullptr;
+	}
+
+	if (m_houndBossPanel) {
+		uiManager->RemoveUIButton(m_houndBossPanel);
+		delete m_houndBossPanel;
+		m_houndBossPanel = nullptr;
+	}
+
+	if (m_spiderQueenBossPanel) {
+		uiManager->RemoveUIButton(m_spiderQueenBossPanel);
+		delete m_spiderQueenBossPanel;
+		m_spiderQueenBossPanel = nullptr;
+	}
+
+	if (m_bossChallengeButton) {
+		uiManager->RemoveUIButton(m_bossChallengeButton);
+		delete m_bossChallengeButton;
+		m_bossChallengeButton = nullptr;
+	}
+
+	if (m_bossChallengeButtonText) {
+		uiManager->RemoveUIText(m_bossChallengeButtonText);
+		delete m_bossChallengeButtonText;
+		m_bossChallengeButtonText = nullptr;
 	}
 
 	if (m_craftIcon) {
@@ -154,9 +195,9 @@ void CraftingUI::Release()
 		m_craftButton = nullptr;
 	}
 	if (m_craftButtonText) {
-		uiManager->RemoveUIText(m_craftButtonText);
-		delete m_craftButtonText;
-		m_craftButtonText = nullptr;
+	 uiManager->RemoveUIText(m_craftButtonText);
+	 delete m_craftButtonText;
+	 m_craftButtonText = nullptr;
 	}
 
 	for (auto* button : m_toolButtons) {
@@ -175,8 +216,8 @@ void CraftingUI::Release()
 	m_createItemButtons.clear();
 	for (auto* button : m_cookItemButtons) {
 		if (button) {
-		 uiManager->RemoveUIButton(button);
-		 delete button;
+			uiManager->RemoveUIButton(button);
+			delete button;
 		}
 	}
 	m_cookItemButtons.clear();
@@ -192,15 +233,21 @@ void CraftingUI::Release()
 	for (auto* text : m_ingredientTexts) {
 		if (text) {
 			uiManager->RemoveUIText(text);
-		 delete text;
+			delete text;
 		}
 	}
 	m_ingredientTexts.clear();
 
+	if (m_craftingItemNameText) {
+		uiManager->RemoveUIText(m_craftingItemNameText);
+		delete m_craftingItemNameText;
+		m_craftingItemNameText = nullptr;
+	}
+
 	UIElement::Release();
 }
 
-void CraftingUI::InitializeCraftingUI()
+void MenuUI::InitializeCraftingUI()
 {
 	CreateCraftBar();
 	CreatePanelBackgrounds();
@@ -210,14 +257,15 @@ void CraftingUI::InitializeCraftingUI()
 	CreateCookItemButtons();
 	CreateCraftButton();
 	CreateIngredientDisplay();
+	CreateBossUI();
 }
 
-void CraftingUI::CreateCraftBar()
+void MenuUI::CreateCraftBar()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 	if (!uiManager) return;
 
-	m_craftBar = new UIImage(
+	m_menuBar = new UIImage(
 		GOID_CRAFT_BAR,
 		m_craftBarWidth,
 		m_craftBarHeight,
@@ -228,10 +276,10 @@ void CraftingUI::CreateCraftBar()
 		0.0f, 0.5f,
 		50.0f, 0.0f
 	);
-	uiManager->AddUIImage(m_craftBar);
+	uiManager->AddUIImage(m_menuBar);
 }
 
-void CraftingUI::CreatePanelBackgrounds()
+void MenuUI::CreatePanelBackgrounds()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 	if (!uiManager) return;
@@ -247,7 +295,7 @@ void CraftingUI::CreatePanelBackgrounds()
 
 	const float palettePadding = 48.0f;
 	const float toolPanelW = m_columnsPerRow * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
-	const float toolPanelH = maxRows        * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
+	const float toolPanelH = maxRows * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
 	const float toolPanelCX = toolPanelOffsetX + toolPanelW * 0.5f - palettePadding;
 	const float toolPanelCY = toolButtonStartY + toolPanelH * 0.5f - palettePadding;
 
@@ -265,12 +313,12 @@ void CraftingUI::CreatePanelBackgrounds()
 	m_toolPanelBg->SetActive(false);
 	uiManager->AddUIImage(m_toolPanelBg);
 
-	const float ingPadding   = 16.0f;
+	const float ingPadding = 16.0f;
 	const float craftButtonY = m_ingredientStartY + m_ingredientImageSize * 0.5f + 28.0f + m_craftButtonHeight * 0.5f;
-	const float ingTop       = m_ingredientStartY  - m_ingredientImageSize * 0.5f - ingPadding;
-	const float ingBot       = craftButtonY         + m_craftButtonHeight  * 0.5f + ingPadding;
-	const float ingPanelH    = ingBot - ingTop;
-	const float ingPanelW    = 2.0f * m_ingredientImageSize + m_ingredientSpacing + ingPadding * 2.0f;
+	const float ingTop = m_ingredientStartY - m_ingredientImageSize * 0.5f - ingPadding;
+	const float ingBot = craftButtonY + m_craftButtonHeight * 0.5f + ingPadding;
+	const float ingPanelH = ingBot - ingTop;
+	const float ingPanelW = 2.0f * m_ingredientImageSize + m_ingredientSpacing + ingPadding * 2.0f + 50;
 
 	m_ingredientPanelBg = new UIImage(
 		static_cast<GameObjectID>(GOID_CRAFT_BAR + 501),
@@ -287,22 +335,22 @@ void CraftingUI::CreatePanelBackgrounds()
 	uiManager->AddUIImage(m_ingredientPanelBg);
 }
 
-void CraftingUI::CreateMenuBarIcons()
+void MenuUI::CreateMenuBarIcons()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 	if (!uiManager || !resourceManager) return;
 
 	std::shared_ptr<Sprite> craftIconNormal = resourceManager->LoadSprite(L"Resource/UI/CraftIcon.png");
-	std::shared_ptr<Sprite> craftIconHover  = resourceManager->LoadSprite(L"Resource/UI/CraftIcon.png");
-	std::shared_ptr<Sprite> createNormal    = resourceManager->LoadSprite(L"Resource/UI/CreateIcon.png");
-	std::shared_ptr<Sprite> createHover     = resourceManager->LoadSprite(L"Resource/UI/CreateIcon.png");
-	std::shared_ptr<Sprite> editNormal      = resourceManager->LoadSprite(L"Resource/UI/EditIcon.png");
-	std::shared_ptr<Sprite> editHover       = resourceManager->LoadSprite(L"Resource/UI/EditIcon.png");
-	std::shared_ptr<Sprite> battleNormal    = resourceManager->LoadSprite(L"Resource/UI/BattleIcon.png");
-	std::shared_ptr<Sprite> battleHover     = resourceManager->LoadSprite(L"Resource/UI/BattleIcon.png");
-	std::shared_ptr<Sprite> cookNormal      = resourceManager->LoadSprite(L"Resource/UI/CookIcon.png");
-	std::shared_ptr<Sprite> cookHover       = resourceManager->LoadSprite(L"Resource/UI/CookIcon.png");
+	std::shared_ptr<Sprite> craftIconHover = resourceManager->LoadSprite(L"Resource/UI/CraftIcon.png");
+	std::shared_ptr<Sprite> createNormal = resourceManager->LoadSprite(L"Resource/UI/CreateIcon.png");
+	std::shared_ptr<Sprite> createHover = resourceManager->LoadSprite(L"Resource/UI/CreateIcon.png");
+	std::shared_ptr<Sprite> editNormal = resourceManager->LoadSprite(L"Resource/UI/EditIcon.png");
+	std::shared_ptr<Sprite> editHover = resourceManager->LoadSprite(L"Resource/UI/EditIcon.png");
+	std::shared_ptr<Sprite> battleNormal = resourceManager->LoadSprite(L"Resource/UI/BattleIcon.png");
+	std::shared_ptr<Sprite> battleHover = resourceManager->LoadSprite(L"Resource/UI/BattleIcon.png");
+	std::shared_ptr<Sprite> cookNormal = resourceManager->LoadSprite(L"Resource/UI/CookIcon.png");
+	std::shared_ptr<Sprite> cookHover = resourceManager->LoadSprite(L"Resource/UI/CookIcon.png");
 
 	// m_menuIconY[0]=맨위(Edit) ~ m_menuIconY[4]=맨아래(Craft)
 	m_craftIcon = new UIButton(GOID_CRAFT_ICON, m_iconSize, m_iconSize,
@@ -320,13 +368,13 @@ void CraftingUI::CreateMenuBarIcons()
 		m_iconSize, m_iconSize, cookNormal, cookHover,
 		0.0f, 0.5f, 0.0f, 0.5f, m_menuIconX, m_menuIconY[2]);
 	m_menuCookIcon->SetOnClickCallback([this]() { ToggleCookList(); });
-	uiManager->AddUIButton(m_menuCookIcon);
+ uiManager->AddUIButton(m_menuCookIcon);
 
 	m_menuBattleIcon = new UIButton(static_cast<GameObjectID>(GOID_CRAFT_BAR + 12),
 		m_iconSize, m_iconSize, battleNormal, battleHover,
 		0.0f, 0.5f, 0.0f, 0.5f, m_menuIconX, m_menuIconY[1]);
-	m_menuBattleIcon->SetOnClickCallback([]() {});
-	uiManager->AddUIButton(m_menuBattleIcon);
+	m_menuBattleIcon->SetOnClickCallback([this]() { ToggleBossPanel(); });
+ uiManager->AddUIButton(m_menuBattleIcon);
 
 	m_menuEditIcon = new UIButton(static_cast<GameObjectID>(GOID_CRAFT_BAR + 11),
 		m_iconSize, m_iconSize, editNormal, editHover,
@@ -335,50 +383,35 @@ void CraftingUI::CreateMenuBarIcons()
 	uiManager->AddUIButton(m_menuEditIcon);
 }
 
-void CraftingUI::CreateToolButtons()
+void MenuUI::CreateToolButtons()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 	if (!uiManager || !resourceManager) return;
 
-	struct ToolButtonInfo {
-		GameObjectID toolID;
-		GameObjectID buttonID;
-		const wchar_t* imagePath;
-	};
-	static constexpr ToolButtonInfo toolInfoTable[] = {
-		{ GOID_TOOL_GOLDEN_SCYTHE, GOID_CRAFT_TOOL_GOLDEN_SCYTHE, L"Resource/Objects/Tools/Golden_Scythe_02.png" },
-		{ GOID_TOOL_HAM_BAT,       GOID_CRAFT_TOOL_HAM_BAT,       L"Resource/Objects/Tools/hamBat_01.png" },
-		{ GOID_TOOL_PICKAXE,       GOID_CRAFT_TOOL_PICKAXE,       L"Resource/Objects/Tools/pickaxe-0.png" },
-		{ GOID_TOOL_RED_AXE,       GOID_CRAFT_TOOL_RED_AXE,       L"Resource/Objects/Tools/Red_Axe_02.png" },
-		{ GOID_TOOL_SPEAR,         GOID_CRAFT_TOOL_SPEAR,         L"Resource/Objects/Tools/spear_03.png" },
-		{ GOID_TOOL_SWAP_AXE,      GOID_CRAFT_TOOL_SWAP_AXE,      L"Resource/Objects/Tools/swap_axe-0.png" },
-		{ GOID_TOOL_SWAP_SPEAR,    GOID_CRAFT_TOOL_SWAP_SPEAR,    L"Resource/Objects/Tools/swap_spear_wathgrithr_lightning-5.png" },
-		{ GOID_TOOL_TORCH,         GOID_CRAFT_TOOL_TORCH,         L"Resource/Objects/Tools/torch.png" },
-		{ GOID_TOOL_HALBERD,       GOID_CRAFT_TOOL_HALBERD,       L"Resource/Objects/Tools/halberd.png" },
-		{ GOID_TOOL_HAMMER,        GOID_CRAFT_TOOL_HAMMER,        L"Resource/Objects/Tools/hammer.png" },
-	};
-	static constexpr size_t toolInfoCount = sizeof(toolInfoTable) / sizeof(ToolButtonInfo);
-
 	const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
-	const float startX           = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
+	const float startX = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
 
 	for (size_t i = 0; i < m_availableTools.size(); ++i) {
 		GameObjectID toolID = m_availableTools[i];
-		const ToolButtonInfo* info = nullptr;
-		for (size_t j = 0; j < toolInfoCount; ++j) {
-			if (toolInfoTable[j].toolID == toolID) { info = &toolInfoTable[j]; break; }
+
+		std::wstring imagePath = ResourceUtils::GetResourceImagePath(toolID);
+		if (imagePath.empty()) {
+			std::wstring debugMsg = L"CraftingUI: 도구 버튼 이미지 경로 없음 - ID: " + std::to_wstring(toolID) + L"\n";
+			OutputDebugStringW(debugMsg.c_str());
+			continue;
 		}
-		if (!info) continue;
 
 		int row = static_cast<int>(i / m_columnsPerRow);
 		int col = static_cast<int>(i % m_columnsPerRow);
 		float xPos = startX + col * (m_toolButtonSize + m_toolButtonSpacing);
 		float yPos = toolButtonStartY + row * (m_toolButtonSize + m_toolButtonSpacing);
 
-		UIButton* toolButton = new UIButton(info->buttonID, m_toolButtonSize, m_toolButtonSize,
-			resourceManager->LoadSprite(info->imagePath),
-			resourceManager->LoadSprite(info->imagePath),
+		GameObjectID buttonID = static_cast<GameObjectID>(GOID_CRAFT_TOOL_GOLDEN_SCYTHE + i);
+
+		UIButton* toolButton = new UIButton(buttonID, m_toolButtonSize, m_toolButtonSize,
+			resourceManager->LoadSprite(imagePath),
+			resourceManager->LoadSprite(imagePath),
 			0.0f, 0.5f, 0.0f, 0.5f, xPos, yPos);
 		toolButton->SetActive(false);
 		toolButton->SetOnClickCallback([this, toolID]() { SelectTool(toolID); });
@@ -389,20 +422,25 @@ void CraftingUI::CreateToolButtons()
 	}
 }
 
-void CraftingUI::CreateCreateItemButtons()
+void MenuUI::CreateCreateItemButtons()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 	if (!uiManager || !resourceManager) return;
 
 	const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
-	const float startX           = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
-	const int   createCount      = static_cast<int>(m_availableCreateItems.size());
+	const float startX = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
+	const int   createCount = static_cast<int>(m_availableCreateItems.size());
 
 	for (int i = 0; i < createCount; ++i) {
 		GameObjectID itemID = m_availableCreateItems[i];
-		std::wstring imagePath = GetIngredientImagePath(itemID);
-		if (imagePath.empty()) continue;
+		std::wstring imagePath = ResourceUtils::GetResourceImagePath(itemID);
+		if (imagePath.empty()) {
+			std::wstring debugMsg = L"CraftingUI: Create 버튼 이미지 경로 없음 - ID: " + std::to_wstring(itemID) + L"\n";
+			OutputDebugStringW(debugMsg.c_str());
+			continue;
+		}
+
 
 		float xPos = startX + (i % m_columnsPerRow) * (m_toolButtonSize + m_toolButtonSpacing);
 		float yPos = toolButtonStartY;
@@ -415,26 +453,33 @@ void CraftingUI::CreateCreateItemButtons()
 		btn->SetActive(false);
 		btn->SetOnClickCallback([this, itemID]() { SelectTool(itemID); });
 		if (const ComponentElement::Image* img = btn->GetImageComponent())
-		 img->SetDisplaySizeProportional(m_toolButtonSize);
+			img->SetDisplaySizeProportional(m_toolButtonSize);
 		m_createItemButtons.push_back(btn);
 		uiManager->AddUIButton(btn);
 	}
 }
 
-void CraftingUI::CreateCookItemButtons()
+void MenuUI::CreateCookItemButtons()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 	if (!uiManager || !resourceManager) return;
 
 	const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
-	const float startX           = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
-	const int   cookCount        = static_cast<int>(m_availableCookItems.size());
+	const float startX = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
+	const int   cookCount = static_cast<int>(m_availableCookItems.size());
 
 	for (int i = 0; i < cookCount; ++i) {
 		GameObjectID itemID = m_availableCookItems[i];
-		std::wstring imagePath = GetIngredientImagePath(itemID);
-		if (imagePath.empty()) continue;
+		std::wstring imagePath = ResourceUtils::GetResourceImagePath(itemID);
+		if (imagePath.empty()) {
+			std::wstring debugMsg = L"CraftingUI: Cook 버튼 이미지 경로 없음 - ID: " + std::to_wstring(itemID) + L"\n";
+			OutputDebugStringW(debugMsg.c_str());
+			continue;
+		}
+
+		std::wstring debugMsg = L"CraftingUI: Cook 버튼 생성 [" + std::to_wstring(i) + L"] - " + imagePath + L"\n";
+		OutputDebugStringW(debugMsg.c_str());
 
 		float xPos = startX + (i % m_columnsPerRow) * (m_toolButtonSize + m_toolButtonSpacing);
 		float yPos = toolButtonStartY;
@@ -453,7 +498,7 @@ void CraftingUI::CreateCookItemButtons()
 	}
 }
 
-void CraftingUI::CreateCraftButton()
+void MenuUI::CreateCraftButton()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
@@ -511,13 +556,28 @@ void CraftingUI::CreateCraftButton()
 	uiManager->AddUIText(m_craftButtonText);
 }
 
-void CraftingUI::CreateIngredientDisplay()
+void MenuUI::CreateIngredientDisplay()
 {
 	UIManager* uiManager = UIManager::GetInstance();
 	if (!uiManager) return;
 
-	const float textHeight    = 28.0f;
+	const float textHeight = 28.0f;
 	const int   maxIngredients = 2;
+
+	// 제작 아이템 이름 텍스트 생성 (재료 이미지 위쪽에 배치)
+	float itemNameY = m_ingredientStartY - m_ingredientImageSize * 0.5f;
+	m_craftingItemNameText = new UIText(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 400),
+		250.0f, 30.0f, L"",
+		Gdiplus::Color(255, 255, 255), LAYER_UI_FOREGROUND, 0.25f,
+		L"맑은 고딕", 18.0f,
+		Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
+		0.0f, 0.5f,
+		0.0f, 0.5f,
+		m_ingredientPanelCenterX, itemNameY);
+	m_craftingItemNameText->SetActive(false);
+	uiManager->AddUIText(m_craftingItemNameText);
+
 	for (int i = 0; i < maxIngredients; ++i) {
 		float xPos = m_ingredientPanelCenterX + (i - 0.5f) * (m_ingredientImageSize + m_ingredientSpacing);
 		float yPos = m_ingredientStartY;
@@ -535,8 +595,8 @@ void CraftingUI::CreateIngredientDisplay()
 		UIText* ingredientText = new UIText(
 			static_cast<GameObjectID>(GOID_CRAFT_BAR + 200 + i),
 			180.0f, textHeight, L"",
-			Gdiplus::Color(0, 0, 0), LAYER_UI_FOREGROUND, 0.25f,
-			L"맑은 고딕", 15.0f,
+			Gdiplus::Color(255, 255, 255), LAYER_UI_FOREGROUND, 0.25f,
+			L"맑은 고딕", 13.0f,
 			Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
 			0.0f, 0.5f, 0.0f, 0.5f, xPos, textY);
 		ingredientText->SetActive(false);
@@ -545,80 +605,137 @@ void CraftingUI::CreateIngredientDisplay()
 	}
 }
 
-void CraftingUI::ToggleToolList()
+void MenuUI::ClearAllPanels()
 {
-	m_isToolListVisible   = !m_isToolListVisible;
+	// 모든 패널 상태 플래그 초기화
+	m_isToolListVisible = false;
 	m_isCreateListVisible = false;
-	m_isCookListVisible   = false;
+	m_isCookListVisible = false;
+	m_isBossPanelVisible = false;
+	m_isBossPanelVisible = false;
 
-	for (auto* button : m_createItemButtons) { if (button) button->SetActive(false); }
-	for (auto* button : m_cookItemButtons)   { if (button) button->SetActive(false); }
-	for (auto* button : m_toolButtons)       { if (button) button->SetActive(m_isToolListVisible); }
-
-	SetToolPanelBgVisible(m_isToolListVisible);
-
-	if (!m_isToolListVisible) {
-		m_selectedToolID = GOID_NONE;
-		UpdateIngredientDisplay();
-		SetIngredientPanelBgVisible(false);
+	// 모든 버튼 숨김
+	for (auto* button : m_toolButtons) {
+		if (button) button->SetActive(false);
 	}
+	for (auto* button : m_createItemButtons) {
+		if (button) button->SetActive(false);
+	}
+	for (auto* button : m_cookItemButtons) {
+		if (button) button->SetActive(false);
+	}
+
+	m_bossOverlay->SetActive(false);
+	m_houndBossPanel->SetActive(false);
+	m_spiderQueenBossPanel->SetActive(false);
+
+	m_bossChallengeButton->SetActive(false);
+	m_bossChallengeButtonText->SetActive(false);
+
+	// 패널 배경 숨김
+	m_toolPanelBg->SetActive(false);
+	m_ingredientPanelBg->SetActive(false);
+
+	// 제작 버튼 숨김
+	m_craftButton->SetActive(false);
+	m_craftButtonText->SetActive(false);
+
+	// 재료 UI 완전히 숨김
+	m_craftingItemNameText->SetActive(false);
+
+	for (auto* image : m_ingredientImages) {
+		if (image) image->SetActive(false);
+	}
+	for (auto* text : m_ingredientTexts) {
+		if (text) text->SetActive(false);
+	}
+
+	// 선택 초기화
+	m_selectedToolID = GOID_NONE;
+	m_selectedBossID = GOID_NONE;
 }
 
-void CraftingUI::ToggleCreateList()
+void MenuUI::ToggleToolList()
 {
-	m_isCreateListVisible = !m_isCreateListVisible;
-	m_isToolListVisible   = false;
-	m_isCookListVisible   = false;
+	// 원하는 동작: 현재 상태를 반전시키되, "열기" 동작을 수행할 때만 다른 패널을 닫음
+	bool newState = !m_isToolListVisible;
+	ClearAllPanels();
 
-	for (auto* button : m_toolButtons)        { if (button) button->SetActive(false); }
-	for (auto* button : m_createItemButtons)  { if (button) button->SetActive(m_isCreateListVisible); }
-	for (auto* button : m_cookItemButtons)    { if (button) button->SetActive(false); }
+	m_isToolListVisible = newState;
 
-	SetToolPanelBgVisible(m_isCreateListVisible);
-
-	if (!m_isCreateListVisible) {
-		m_selectedToolID = GOID_NONE;
-		UpdateIngredientDisplay();
-		SetIngredientPanelBgVisible(false);
+	for (auto* button : m_toolButtons) {
+		if (button) button->SetActive(m_isToolListVisible);
 	}
+
+	if (m_toolPanelBg) m_toolPanelBg->SetActive(m_isToolListVisible);
 }
 
-void CraftingUI::ToggleCookList()
+void MenuUI::ToggleCreateList()
 {
-	m_isCookListVisible   = !m_isCookListVisible;
-	m_isToolListVisible   = false;
-	m_isCreateListVisible = false;
+	bool newState = !m_isCreateListVisible;
 
-	for (auto* button : m_toolButtons)       { if (button) button->SetActive(false); }
-	for (auto* button : m_createItemButtons) { if (button) button->SetActive(false); }
-	for (auto* button : m_cookItemButtons)   { if (button) button->SetActive(m_isCookListVisible); }
+	ClearAllPanels();
+	m_isCreateListVisible = newState;
 
-	SetToolPanelBgVisible(m_isCookListVisible);
-
-	if (!m_isCookListVisible) {
-		m_selectedToolID = GOID_NONE;
-		UpdateIngredientDisplay();
-		SetIngredientPanelBgVisible(false);
+	for (auto* button : m_createItemButtons) {
+		if (button) button->SetActive(m_isCreateListVisible);
 	}
+
+	if (m_toolPanelBg) m_toolPanelBg->SetActive(m_isCreateListVisible);
 }
 
-void CraftingUI::SelectTool(GameObjectID toolID)
+void MenuUI::ToggleCookList()
 {
+	bool newState = !m_isCookListVisible;
+	ClearAllPanels();
+
+	m_isCookListVisible = newState;
+
+	for (auto* button : m_cookItemButtons) {
+		if (button) button->SetActive(m_isCookListVisible);
+	}
+
+	if (m_toolPanelBg) m_toolPanelBg->SetActive(m_isCookListVisible);
+}
+
+void MenuUI::ToggleBossPanel()
+{
+	bool newState = !m_isBossPanelVisible;
+
+	ClearAllPanels();
+	m_isBossPanelVisible = newState;
+
+	if (m_bossOverlay) m_bossOverlay->SetActive(m_isBossPanelVisible);
+	if (m_houndBossPanel) m_houndBossPanel->SetActive(m_isBossPanelVisible);
+	if (m_spiderQueenBossPanel) m_spiderQueenBossPanel->SetActive(m_isBossPanelVisible);
+
+	if (m_bossChallengeButton) m_bossChallengeButton->SetActive(m_isBossPanelVisible);
+	if (m_bossChallengeButtonText) m_bossChallengeButtonText->SetActive(m_isBossPanelVisible);
+
+	if (m_isBossPanelVisible) {
+		UpdateBossPanelHighlight();
+	}
+
+}
+
+void MenuUI::SelectTool(GameObjectID toolID)
+{
+
 	if (toolID == m_selectedToolID) {
 		m_selectedToolID = GOID_NONE;
 		UpdateIngredientDisplay();
-		SetIngredientPanelBgVisible(false);
+		if (m_ingredientPanelBg) m_ingredientPanelBg->SetActive(false);
 		return;
 	}
 	m_selectedToolID = toolID;
 	UpdateIngredientDisplay();
-	SetIngredientPanelBgVisible(true);
+	if (m_ingredientPanelBg) m_ingredientPanelBg->SetActive(true);
 
 	if (m_craftButton)     m_craftButton->SetActive(true);
 	if (m_craftButtonText) m_craftButtonText->SetActive(true);
 }
 
-void CraftingUI::UpdateIngredientDisplay()
+void MenuUI::UpdateIngredientDisplay()
 {
 	if (m_selectedToolID == GOID_NONE) {
 		for (auto* image : m_ingredientImages) {
@@ -627,9 +744,17 @@ void CraftingUI::UpdateIngredientDisplay()
 		for (auto* text : m_ingredientTexts) {
 			if (text) text->SetActive(false);
 		}
+		if (m_craftingItemNameText) m_craftingItemNameText->SetActive(false);
 		if (m_craftButton) m_craftButton->SetActive(false);
 		if (m_craftButtonText) m_craftButtonText->SetActive(false);
 		return;
+	}
+
+	// 제작 아이템 이름 표시
+	if (m_craftingItemNameText) {
+		std::wstring itemName = ResourceUtils::GetResourceDisplayName(m_selectedToolID);
+		m_craftingItemNameText->SetText(itemName);
+		m_craftingItemNameText->SetActive(true);
 	}
 
 	// InventoryManager에서 레시피 가져오기
@@ -638,36 +763,45 @@ void CraftingUI::UpdateIngredientDisplay()
 
 	const std::map<UINT, UINT>* recipe = inventoryManager->GetCraftingRecipe(m_selectedToolID);
 	if (!recipe || recipe->empty()) {
+		OutputDebugStringW(L"CraftingUI: 레시피를 찾을 수 없습니다.\n");
 		return;
 	}
 	int ingredientIndex = 0;
 
 	// 재료 정보 표시
-for (const auto& ingredient : *recipe) {
-		if (ingredientIndex >= 2) break; // 최대 2개만 표시
+	for (const auto& ingredient : *recipe) {
+		if (ingredientIndex >= 2) break;
 
 		GameObjectID ingredientID = static_cast<GameObjectID>(ingredient.first);
 		UINT count = ingredient.second;
 
-		// 재료 이미지 업데이트 (로드 후 목표 크기로 스케일 적용)
+		// 재료 이미지 업데이트
 		if (ingredientIndex < static_cast<int>(m_ingredientImages.size())) {
 			UIImage* image = m_ingredientImages[ingredientIndex];
 			if (image) {
-				std::wstring imagePath = GetIngredientImagePath(ingredientID);
+				std::wstring imagePath = ResourceUtils::GetResourceImagePath(ingredientID);
 				if (!imagePath.empty()) {
 					image->LoadSprite(imagePath);
-					if (const ComponentElement::Image* img = image->GetImageComponent())
+					if (const ComponentElement::Image* img = image->GetImageComponent()) {
 						img->SetDisplaySizeProportional(m_ingredientImageSize);
+					}
 					image->SetActive(true);
+
+					std::wstring debugMsg = L"CraftingUI: 재료 이미지 로드 [" + std::to_wstring(ingredientIndex) + L"] - " + imagePath + L"\n";
+					OutputDebugStringW(debugMsg.c_str());
+				}
+				else {
+					std::wstring debugMsg = L"CraftingUI: 재료 이미지 경로 없음 - ID: " + std::to_wstring(ingredientID) + L"\n";
+					OutputDebugStringW(debugMsg.c_str());
 				}
 			}
 		}
 
-		// 재료 텍스트 업데이트 (수량 x 이름)
+		// 재료 텍스트 업데이트
 		if (ingredientIndex < static_cast<int>(m_ingredientTexts.size())) {
 			UIText* text = m_ingredientTexts[ingredientIndex];
 			if (text) {
-				std::wstring textStr = std::to_wstring(count) + L" x " + GetIngredientDisplayName(ingredientID);
+				std::wstring textStr = std::to_wstring(count) + L" x " + ResourceUtils::GetResourceDisplayName(ingredientID);
 				text->SetText(textStr);
 				text->SetActive(true);
 			}
@@ -691,57 +825,307 @@ for (const auto& ingredient : *recipe) {
 	}
 }
 
-bool CraftingUI::TryCraftSelectedTool(Player* player)
+bool MenuUI::TryCraftSelectedTool(Player* player)
 {
-	if (m_selectedToolID == GOID_NONE || !player) {
+	if (m_selectedToolID == GOID_NONE) {
+		OutputDebugStringW(L"CraftingUI: 선택된 도구/아이템이 없습니다.\n");
+		return false;
+	}
+
+	if (!player) {
+		OutputDebugStringW(L"CraftingUI: 플레이어가 없습니다.\n");
 		return false;
 	}
 
 	InventoryManager* inventoryManager = InventoryManager::GetInstance();
 	if (!inventoryManager) {
+		OutputDebugStringW(L"CraftingUI: InventoryManager를 찾을 수 없습니다.\n");
 		return false;
 	}
 
-	return inventoryManager->TryCraftItem(player, m_selectedToolID);
+	// InventoryManager를 통해 제작 시도
+	bool craftSuccess = inventoryManager->TryCraftItem(player, m_selectedToolID);
+
+	if (craftSuccess) {
+		std::wstring itemName = ResourceUtils::GetResourceDisplayName(m_selectedToolID);
+		std::wstring msg = L"CraftingUI: " + itemName + L" 제작 성공!\n";
+		OutputDebugStringW(msg.c_str());
+
+		// 재료 표시 업데이트
+		UpdateIngredientDisplay();
+	}
+	else {
+		std::wstring itemName = ResourceUtils::GetResourceDisplayName(m_selectedToolID);
+		std::wstring msg = L"CraftingUI: " + itemName + L" 제작 실패 (재료 부족)\n";
+		OutputDebugStringW(msg.c_str());
+	}
+
+	return craftSuccess;
 }
 
-std::wstring CraftingUI::GetIngredientImagePath(GameObjectID ingredientID)
+void MenuUI::CreateBossUI()
 {
-	// ObjectResourceTable에서 재료 이미지 경로 찾기
-	for (size_t i = 0; i < ResourcePathUtils::ObjectResourceCount; ++i) {
-		const auto& entry = ResourcePathUtils::ObjectResourceTable[i];
-		if (entry.id == ingredientID) {
-			return ResourcePathUtils::BuildResourcePath(entry.baseDir, entry.imageName);
+	UIManager* uiManager = UIManager::GetInstance();
+	ResourceManager* resourceManager = ResourceManager::GetInstance();
+	if (!uiManager || !resourceManager) return;
+
+	OutputDebugStringW(L"CraftingUI: CreateBossUI 시작\n");
+
+	const float screenCenterX = 0.0f;
+	const float screenCenterY = 0.0f;
+
+	// 1. 반투명 검은색 오버레이 (전체 화면)
+	m_bossOverlay = new UIImage(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 600),
+		1920.0f, 1080.0f,
+		LAYER_UI_BACKGROUND,
+		L"Resource/UI/frontscreen.png",
+		-0.1f,
+		0.5f, 0.5f,
+		0.5f, 0.5f,
+		screenCenterX, screenCenterY
+	);
+	m_bossOverlay->SetActive(false);
+	m_bossOverlay->SetTintColor(0, 0, 0, 180);
+	uiManager->AddUIImage(m_bossOverlay);
+	OutputDebugStringW(L"CraftingUI: 보스 오버레이 생성 완료\n");
+
+	const float panelWidth = 300.0f;
+	const float panelHeight = 400.0f;
+	const float panelSpacing = 100.0f;
+
+	// 하운드 보스 패널 (왼쪽)
+	const float houndPanelX = screenCenterX - panelWidth * 0.5f - panelSpacing * 0.5f;
+	const float panelY = screenCenterY;
+
+	std::shared_ptr<Sprite> houndPanelNormal = resourceManager->LoadSprite(L"Resource/UI/BossBattleHound.png");
+	std::shared_ptr<Sprite> houndPanelHover = resourceManager->LoadSprite(L"Resource/UI/BossBattleHound.png");
+
+	if (!houndPanelNormal || !houndPanelNormal->bitmap) {
+		OutputDebugStringW(L"CraftingUI: 하운드 패널 이미지 로드 실패 - Resource/UI/BossBattleHound.png\n");
+	}
+	else {
+		OutputDebugStringW(L"CraftingUI: 하운드 패널 이미지 로드 성공\n");
+	}
+
+	m_houndBossPanel = new UIButton(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 601),
+		panelWidth, panelHeight,
+		houndPanelNormal, houndPanelHover,
+		0.5f, 0.5f,
+		0.5f, 0.5f,
+		houndPanelX, panelY
+	);
+	m_houndBossPanel->SetActive(false);
+	m_houndBossPanel->SetOnClickCallback([this]() { SelectBoss(GOID_MONSTER_HOUNDDOG); });
+	uiManager->AddUIButton(m_houndBossPanel);
+
+	if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_houndBossPanel->GetImageComponent())) {
+		img->SetTintColor(200, 200, 200, 255);
+	}
+
+	// 스파이더 퀸 보스 패널 (오른쪽)
+	const float spiderPanelX = screenCenterX + panelWidth * 0.5f + panelSpacing * 0.5f;
+
+	std::shared_ptr<Sprite> spiderPanelNormal = resourceManager->LoadSprite(L"Resource/UI/BossBattleSpiderQueen.png");
+	std::shared_ptr<Sprite> spiderPanelHover = resourceManager->LoadSprite(L"Resource/UI/BossBattleSpiderQueen.png");
+
+	if (!spiderPanelNormal || !spiderPanelNormal->bitmap) {
+		OutputDebugStringW(L"CraftingUI: 스파이더 퀸 패널 이미지 로드 실패 - Resource/UI/BossBattleSpiderQueen.png\n");
+	}
+	else {
+		OutputDebugStringW(L"CraftingUI: 스파이더 퀸 패널 이미지 로드 성공\n");
+	}
+
+	m_spiderQueenBossPanel = new UIButton(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 602),
+		panelWidth, panelHeight,
+		spiderPanelNormal, spiderPanelHover,
+		0.5f, 0.5f,
+		0.5f, 0.5f,
+		spiderPanelX, panelY
+	);
+	m_spiderQueenBossPanel->SetActive(false);
+	m_spiderQueenBossPanel->SetOnClickCallback([this]() {
+		SelectBoss(GOID_MONSTER_QUEEN_SPIDER);
+		});
+
+	uiManager->AddUIButton(m_spiderQueenBossPanel);
+
+	if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_spiderQueenBossPanel->GetImageComponent())) {
+		img->SetTintColor(150, 150, 150, 255);
+	}
+
+	// 3. 보스 도전 버튼
+	const float buttonWidth = 200.0f;
+	const float buttonHeight = 60.0f;
+	const float buttonY = panelY + panelHeight * 0.5f + 80.0f;
+
+	std::shared_ptr<Sprite> buttonNormal = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
+	std::shared_ptr<Sprite> buttonHover = resourceManager->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
+
+	m_bossChallengeButton = new UIButton(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 603),
+		buttonWidth, buttonHeight,
+		buttonNormal, buttonHover,
+		0.5f, 0.5f,
+		0.5f, 0.5f,
+		screenCenterX, buttonY
+	);
+	m_bossChallengeButton->SetActive(false);
+	m_bossChallengeButton->SetOnClickCallback([this]() { TryChallengeBoss(); });
+	uiManager->AddUIButton(m_bossChallengeButton);
+
+	m_bossChallengeButtonText = new UIText(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 604),
+		buttonWidth, buttonHeight,
+		L"보스 도전",
+		Gdiplus::Color::Black,
+		LAYER_UI_FOREGROUND,
+		0.2f,
+		L"맑은 고딕",
+		18.0f,
+		Gdiplus::StringAlignmentCenter,
+		Gdiplus::StringAlignmentCenter,
+		0.5f, 0.5f,
+		0.5f, 0.5f,
+		screenCenterX, buttonY
+	);
+	m_bossChallengeButtonText->SetActive(false);
+	uiManager->AddUIText(m_bossChallengeButtonText);
+
+	// 초기 하이라이트 상태 업데이트
+	UpdateBossPanelHighlight();
+
+	OutputDebugStringW(L"CraftingUI: CreateBossUI 완료\n");
+}
+
+void MenuUI::SelectBoss(GameObjectID bossID)
+{
+	// 스파이더 퀸은 하운드 클리어 후에만 선택 가능
+	if (bossID == GOID_MONSTER_QUEEN_SPIDER && !IsHoundBossCleared()) {
+		OutputDebugStringW(L"CraftingUI: 스파이더 퀸은 하운드 보스를 클리어해야 도전할 수 있습니다.\n");
+		// 선택하지 않고 리턴 (클릭 무시)
+		return;
+	}
+
+	m_selectedBossID = bossID;
+	UpdateBossPanelHighlight();
+
+	std::wstring msg = L"CraftingUI: 보스 선택 - ID: " + std::to_wstring(bossID) + L"\n";
+	OutputDebugStringW(msg.c_str());
+}
+
+void MenuUI::TryChallengeBoss()
+{
+	if (m_selectedBossID == GOID_NONE) {
+		// 보스가 선택되지 않았을 때 기본 보스 선택
+		if (!IsHoundBossCleared()) {
+			m_selectedBossID = GOID_MONSTER_HOUNDDOG;
+		}
+		else {
+			m_selectedBossID = GOID_MONSTER_QUEEN_SPIDER;
 		}
 	}
-	return L"";
-}
 
-std::wstring CraftingUI::GetIngredientDisplayName(GameObjectID ingredientID)
-{
-	switch (ingredientID) {
-	case GOID_ITEM_NORMAL_TWIGS:       return L"나뭇가지";
-	case GOID_ITEM_NORMAL_TREE_LOG:     return L"통나무";
-	case GOID_ITEM_NORMAL_ROCK:        return L"돌";
-	case GOID_ITEM_GOLD_ROCK:          return L"금";
-	case GOID_ITEM_CUT_NORMAL_GRASS:   return L"풀";
-	case GOID_ITEM_CUT_NORMAL_STONE:   return L"석재";
-	case GOID_ITEM_BERRY:             return L"열매";
-	case GOID_ITEM_MEAT:               return L"고기";
-	case GOID_ITEM_SMALL_MEAT:         return L"작은 고기";
-	case GOID_ITEM_MONSTER_MEAT:       return L"몬스터 고기";
-	case GOID_ITEM_ROPE:               return L"밧줄";
-	case GOID_ITEM_WOOD_2:            return L"나무판자";
-	default:                           return L"재료 " + std::to_wstring(ingredientID);
+	// 스파이더 퀸 도전 전 하운드 클리어 확인
+	if (m_selectedBossID == GOID_MONSTER_QUEEN_SPIDER && !IsHoundBossCleared()) {
+		OutputDebugStringW(L"CraftingUI: 스파이더 퀸에 도전하려면 먼저 하운드 보스를 클리어해야 합니다.\n");
+		return;
 	}
+
+	// 보스 씬으로 전환 요청
+	std::wstring msg = L"CraftingUI: 보스 도전 시도 - BossID: " + std::to_wstring(m_selectedBossID) + L"\n";
+	OutputDebugStringW(msg.c_str());
+
+	// 현재 플레이어의 캐릭터 ID를 전달
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	Player* player = objectManager ? objectManager->GetPlayer() : nullptr;
+	GameObjectID selectedChar = player ? player->GetID() : GOID_NONE;
+
+	if (m_selectedBossID == GOID_MONSTER_HOUNDDOG) {
+		// 하우드 보스 맵 로드
+		SceneManager::GetInstance()->LoadGameScene(L"GameData/01_BossHound.dsm", selectedChar);
+		OutputDebugStringW(L"CraftingUI: 하운드 숲으로 이동 요청 전송\n");
+	} else if (m_selectedBossID == GOID_MONSTER_QUEEN_SPIDER) {
+		// 스파이더 퀸 보스 맵 로드
+		SceneManager::GetInstance()->LoadGameScene(L"GameData/02_BossSpiderQueen.dsm", selectedChar);
+		OutputDebugStringW(L"CraftingUI: 스파이더 퀸의 집으로 이동 요청 전송\n");
+	}
+
+	// 전환 요청 후 UI 닫기
+	ClearAllPanels();
 }
 
-void CraftingUI::SetToolPanelBgVisible(bool visible)
+bool MenuUI::IsHoundBossCleared() const
 {
-	if (m_toolPanelBg) m_toolPanelBg->SetActive(visible);
+	GameProgressManager* progressManager = GameProgressManager::GetInstance();
+	if (!progressManager) return false;
+	return progressManager->IsSceneCleared(SCENE_GAME_HOUND_FOREST);
 }
 
-void CraftingUI::SetIngredientPanelBgVisible(bool visible)
+bool MenuUI::IsSpiderQueenBossCleared() const
 {
-	if (m_ingredientPanelBg) m_ingredientPanelBg->SetActive(visible);
+	GameProgressManager* progressManager = GameProgressManager::GetInstance();
+	if (!progressManager) return false;
+	return progressManager->IsSceneCleared(SCENE_GAME_SPIDER_QUEEN_HOUSE);
+}
+
+void MenuUI::UpdateBossPanelHighlight()
+{
+	if (!m_houndBossPanel || !m_spiderQueenBossPanel) return;
+
+	// 하운드 보스 패널 효과
+	if (m_selectedBossID == GOID_MONSTER_HOUNDDOG)
+	{
+		// 선택됨: 빨간색 틴트 + 크기 확대
+		if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_houndBossPanel->GetImageComponent())) {
+			img->SetTintColor(255, 180, 180, 255);
+		}
+		if (RectTransform* rectTransform = m_houndBossPanel->GetRectTransform()) {
+			rectTransform->SetScale(1.1f, 1.1f);
+		}
+	}
+	else
+	{
+
+		if (RectTransform* rectTransform = m_houndBossPanel->GetRectTransform()) {
+			rectTransform->SetScale(1.0f, 1.0f);
+		}
+	}
+
+	// 스파이더 퀸 보스 패널 효과
+	bool isSpiderQueenLocked = !IsHoundBossCleared();
+
+	// 잠금 상태에 따라 버튼 비활성화 여부 결정
+	if (isSpiderQueenLocked) {
+		// 잠금 상태: 버튼 기능 비활성화
+		m_spiderQueenBossPanel->SetDisabled(true);
+	}
+	else {
+		// 해금 상태: 버튼 기능 활성화
+		m_spiderQueenBossPanel->SetDisabled(false);
+	}
+
+	if (m_selectedBossID == GOID_MONSTER_QUEEN_SPIDER && !isSpiderQueenLocked) {
+		// 선택됨 (해금된 상태): 빨간색 틴트 + 크기 확대
+		if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_spiderQueenBossPanel->GetImageComponent())) {
+			img->SetTintColor(255, 180, 180, 255);
+		}
+		if (RectTransform* rectTransform = m_spiderQueenBossPanel->GetRectTransform()) {
+			rectTransform->SetScale(1.1f, 1.1f);
+		}
+	}
+	else {
+		if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_spiderQueenBossPanel->GetImageComponent())) {
+			if (isSpiderQueenLocked) {
+				// 잠금 상태: 매우 어둡게 (60% 밝기)
+				img->SetTintColor(120, 120, 120, 255);
+			}
+		}
+		// 원래 크기로 복원
+		if (RectTransform* rectTransform = m_spiderQueenBossPanel->GetRectTransform()) {
+			rectTransform->SetScale(1.0f, 1.0f);
+		}
+	}
 }

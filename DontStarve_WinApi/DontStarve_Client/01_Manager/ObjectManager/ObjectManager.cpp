@@ -213,23 +213,23 @@ void ObjectManager::InitializeFactories()
 	// 몬스터 - 맵 파일의 피벗값 사용
 	m_gameObjectFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Pig(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
+		return new Pig(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 	};
 	registerIds({ GOID_MONSTER_SPIDER, GOID_MONSTER_WARRIOR_SPIDER }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Spider(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
+		return new Spider(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 	});
 	m_gameObjectFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
+		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 	};
 	m_gameObjectFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Hound(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
+		return new Hound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 	};
 	registerIds({ GOID_MONSTER_REDHOUNDDOG, GOID_MONSTER_ICEHOUNDDOG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Boss_Hound(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
+		return new Boss_Hound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 	});
 
 	// 건물 - 맵 파일의 피벗값 사용
@@ -282,7 +282,10 @@ void ObjectManager::InitializeFactories()
 
 	auto toolFactory = [GetToolDef](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ToolDef def = GetToolDef(id);
-		return new Tool(id, def.name, def.desc, data->baseDir, data->imageName);
+		const ToolDataUtils::ToolStatsEntry* stats = ToolDataUtils::GetToolStats(id);
+		int damage = stats->damage;
+		float attackRange = stats->attackRange;
+		return new Tool(id, def.name, def.desc, data->baseDir, data->imageName, damage, attackRange);
 	};
 
 	registerIds({

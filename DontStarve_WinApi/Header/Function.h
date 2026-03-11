@@ -64,6 +64,62 @@ namespace EnumTables {
 	}
 }
 
+// ====================== 도구 스탯 유틸리티 함수 =======================
+
+namespace ToolDataUtils
+{
+	// 도구 ID로 스탯 정보 조회
+	inline const ToolDataUtils::ToolStatsEntry* GetToolStats(GameObjectID toolID) {
+		for (size_t i = 0; i < ToolDataUtils::ToolStatsCount; ++i) {
+			if (ToolDataUtils::ToolStatsTable[i].toolID == toolID) {
+				return &ToolDataUtils::ToolStatsTable[i];
+			}
+		}
+		return nullptr;
+	}
+}
+
+// ====================== 아이템 디스플레이 이름 유틸리티 함수 =======================
+
+namespace ItemDisplayUtils
+{
+	// 아이템 ID로 디스플레이 이름 조회
+	inline const wchar_t* GetItemDisplayName(GameObjectID itemID) {
+		for (size_t i = 0; i < ItemDisplayUtils::ItemDisplayCount; ++i) {
+			if (ItemDisplayUtils::ItemDisplayTable[i].itemID == itemID) {
+				return ItemDisplayUtils::ItemDisplayTable[i].displayName;
+			}
+		}
+		return L"알 수 없는 아이템";
+	}
+}
+
+// ====================== 리소스 경로 및 디스플레이 이름 유틸리티 =======================
+
+namespace ResourceUtils
+{
+	// GameObjectID로 리소스 이미지 경로 가져오기 (ObjectResourceTable 기반)
+	inline std::wstring GetResourceImagePath(GameObjectID itemID) {
+		using namespace ResourcePathUtils;
+		
+		for (size_t i = 0; i < ObjectResourceCount; ++i) {
+			if (ObjectResourceTable[i].id == itemID) {
+				std::wstring path = ObjectResourceTable[i].baseDir;
+				path += L"/";
+				path += ObjectResourceTable[i].imageName;
+				return path;
+			}
+		}
+		return L"";
+	}
+
+	// GameObjectID로 디스플레이 이름 가져오기 (ItemDisplayTable 기반)
+	inline std::wstring GetResourceDisplayName(GameObjectID itemID) {
+		using namespace ItemDisplayUtils;
+		return GetItemDisplayName(itemID);
+	}
+}
+
 // 유틸리티 함수들
 namespace Utils
 {

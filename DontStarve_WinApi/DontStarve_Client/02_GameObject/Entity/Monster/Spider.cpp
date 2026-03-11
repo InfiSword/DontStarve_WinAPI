@@ -13,18 +13,9 @@
 #include "../../Building/SpiderEgg.h"
 #include "Spider.h"
 
-const float Spider::ATTACK_RANGE = 50.0f;
-const float Spider::ATTACK_COOLDOWN = 1.2f;
-
-static const int SPIDER_ATTACK_HIT_FRAME = 45; 
-static const int SPIDER_ATTACK_BOX_W = 60, SPIDER_ATTACK_BOX_H = 40;
-static const int SPIDER_ATTACK_DOWN[] = { -30,   0, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
-static const int SPIDER_ATTACK_UP[] = { -30, -40, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
-static const int SPIDER_ATTACK_LEFT[] = { -60, -20, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
-static const int SPIDER_ATTACK_RIGHT[] = { 0, -20, SPIDER_ATTACK_BOX_W, SPIDER_ATTACK_BOX_H };
-
-Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
+Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+               const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 	, m_homeEgg(nullptr)
 	, m_spawnRadius(200.0f)
 {
@@ -32,6 +23,14 @@ Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, co
 	
 	m_walkSpeed = 60.0f;
 	m_runSpeed = 150.0f;
+	
+	// 공격 관련 설정
+	m_attackRange = 50.0f;
+	m_attackCooldown = 1.2f;
+	m_attackHitFrame = 45;
+	m_damage = 15;
+	m_attackBoxWidth = 60;
+	m_attackBoxHeight = 40;
 }
 
 Spider::~Spider() {}
@@ -39,6 +38,12 @@ Spider::~Spider() {}
 void Spider::Init()
 {
 	Monster::Init();
+
+	// 거리 일정 범위 진입 시 추격하는 타입
+	SetupAggro(AggroType::ON_RANGE, 300.0f, 500.0f);
+
+	// 공격 박스 설정 (방향별 오프셋 자동 계산)
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
 
 	ChangeState((int)SpiderState::IDLE);
 	m_idleTimer = 0.0f;
@@ -50,7 +55,7 @@ void Spider::Init()
 		m_targetY = this->transform->GetY();
 	}
 
-	OutputDebugStringW((L"Spider: Init 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Spider: Init 완료 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 
 	if (!m_animator) {
 		m_animator = AddComponent<Animator>();
@@ -100,14 +105,12 @@ void Spider::Init()
 
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::ATTACK, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(SPIDER_ATTACK_HIT_FRAME, L"attack_hit");
-					clip->AddEventFrame(70, L"attack_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"attack_hit") this->OnAttackHit();
-						else if (eventName == L"attack_end") this->OnAttackEnd();
-						});
-				}
+				clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
+				clip->AddEventFrame(70, L"attack_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"attack_hit") this->OnAttackHit();
+					else if (eventName == L"attack_end") this->OnAttackEnd();
+					});
 			}
 
 			// HIT / DEATH
@@ -164,14 +167,12 @@ void Spider::Init()
 
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::ATTACK, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(SPIDER_ATTACK_HIT_FRAME, L"attack_hit");
-					clip->AddEventFrame(70, L"attack_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"attack_hit") this->OnAttackHit();
-						else if (eventName == L"attack_end") this->OnAttackEnd();
-						});
-				}
+				clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
+				clip->AddEventFrame(70, L"attack_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"attack_hit") this->OnAttackHit();
+					else if (eventName == L"attack_end") this->OnAttackEnd();
+					});
 			}
 
 			// HIT / DEATH
@@ -191,10 +192,10 @@ void Spider::Init()
 		m_animator->SetState(m_state, this->transform->GetDirection());
 	}
 
-	// 공격 판정용 콜라이더 (ObjectManager에서 설정된 몸통 콜라이더는 그대로 사용)
+	// 공격 전용 콜라이더 (ObjectManager에서 설정한 몸통 콜라이더는 그대로 사용)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
-		m_attackCollider->SetObjectCollider(SPIDER_ATTACK_DOWN[0], SPIDER_ATTACK_DOWN[1], SPIDER_ATTACK_DOWN[2], SPIDER_ATTACK_DOWN[3]);
+		UpdateAttackBoxByDirection(DIR_DOWN);
 		m_attackCollider->SetColliderEnabled(false);
 	}
 }
@@ -209,7 +210,7 @@ void Spider::SetAggroTarget(GameObject* target)
 {
 	if (target && target->IsEnabled())
 	{
-		m_aggroTarget = target;
+		m_attackTarget = target;
 		ChangeState((int)SpiderState::TAUNT);
 
 		Transform* targetTr = target->GetComponent<Transform>();
@@ -231,7 +232,6 @@ void Spider::UpdateAI(float deltaTime)
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	// 애니메이션 기반 상태 처리 (HIT, TAUNT, DEATH, ATTACK)
 	if (m_state == (int)SpiderState::HIT || m_state == (int)SpiderState::TAUNT ||
 		m_state == (int)SpiderState::DEATH || m_state == (int)SpiderState::ATTACK)
 	{
@@ -248,7 +248,7 @@ void Spider::UpdateAI(float deltaTime)
 				OnAttackEnd(); 
 			}
 			else {
-				if (m_aggroTarget && m_aggroTarget->IsEnabled())
+				if (m_attackTarget && m_attackTarget->IsEnabled())
 					ChangeState((int)SpiderState::CHASE);
 				else
 					ChangeState((int)SpiderState::IDLE);
@@ -257,11 +257,9 @@ void Spider::UpdateAI(float deltaTime)
 		return; 
 	}
 
-	// 메인 상태 머신 (CHASE, IDLE, WALK)
 	if (m_state == (int)SpiderState::CHASE)
 	{
-		if (!m_aggroTarget || !m_aggroTarget->IsEnabled() || sqrtf(m_distToPlayerSq) > m_deaggroRadius) {
-			m_aggroTarget = nullptr;
+		if (!m_attackTarget || !m_attackTarget->IsEnabled()) {
 			m_state = (int)SpiderState::IDLE;
 			m_idleTimer = 0.0f;
 			return;
@@ -270,10 +268,10 @@ void Spider::UpdateAI(float deltaTime)
 		Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
 		transform->SetDirection(newDir);
 
-		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE)) {
+		if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
 			if (m_attackCooldownTimer <= 0.0f) {
 				ChangeState((int)SpiderState::ATTACK);
-				m_attackCooldownTimer = ATTACK_COOLDOWN;
+				m_attackCooldownTimer = m_attackCooldown;
 				return;
 			}
 			else {
@@ -291,8 +289,7 @@ void Spider::UpdateAI(float deltaTime)
 
 	else if (m_state == (int)SpiderState::IDLE)
 	{
-		if (m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius)) {
-			m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		if (m_attackTarget && m_attackTarget->IsEnabled()) {
 			m_state = (int)SpiderState::TAUNT;
 			return;
 		}
@@ -310,7 +307,6 @@ void Spider::UpdateAI(float deltaTime)
 			m_targetX = centerX + cosf(angle) * dist;
 			m_targetY = centerY + sinf(angle) * dist;
 
-			// 목표 위치가 맵 경계를 벗어나지 않도록 제한
 			const float BUFFER = 50.0f;
 			const float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - BUFFER;
 			const float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - BUFFER;
@@ -333,7 +329,7 @@ void Spider::UpdateAI(float deltaTime)
 	else if (m_state == (int)SpiderState::WALK)
 	{
 		if (m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius)) {
-			m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+			m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 			m_state = (int)SpiderState::TAUNT;
 			return;
 		}
@@ -356,7 +352,6 @@ void Spider::UpdateAI(float deltaTime)
 		}
 	}
 
-	// 매 프레임 위치 경계 체크 (CHASE, WALK 상태에서 맵 밖으로 나가지 않도록)
 	if (m_state == (int)SpiderState::CHASE || m_state == (int)SpiderState::WALK) {
 		ClampPositionToMapBounds();
 	}
@@ -373,7 +368,7 @@ void Spider::Damaged(int damage)
 	ChangeState((int)SpiderState::HIT);
 
 	if (!IsDead() && IsEnabled()) {
-		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 		m_attackCooldownTimer = 0.0f;
 	}
 }
@@ -409,11 +404,7 @@ void Spider::RenderDebugOverlay()
 	);
 
 	if (m_state == (int)SpiderState::ATTACK && m_attackCollider) {
-		Direction dir = transform->GetDirection();
-		if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_DOWN[0], SPIDER_ATTACK_DOWN[1], SPIDER_ATTACK_DOWN[2], SPIDER_ATTACK_DOWN[3]);
-		else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_UP[0], SPIDER_ATTACK_UP[1], SPIDER_ATTACK_UP[2], SPIDER_ATTACK_UP[3]);
-		else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_LEFT[0], SPIDER_ATTACK_LEFT[1], SPIDER_ATTACK_LEFT[2], SPIDER_ATTACK_LEFT[3]);
-		else m_attackCollider->SetObjectCollider(SPIDER_ATTACK_RIGHT[0], SPIDER_ATTACK_RIGHT[1], SPIDER_ATTACK_RIGHT[2], SPIDER_ATTACK_RIGHT[3]);
+		UpdateAttackBoxByDirection(transform->GetDirection());
 
 		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
 		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
@@ -429,24 +420,10 @@ void Spider::RenderDebugOverlay()
 
 void Spider::OnAttackHit()
 {
-	if (m_state != (int)SpiderState::ATTACK || !m_attackCollider || !transform) return;
-
-	Direction dir = transform->GetDirection();
-	if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_DOWN[0], SPIDER_ATTACK_DOWN[1], SPIDER_ATTACK_DOWN[2], SPIDER_ATTACK_DOWN[3]);
-	else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_UP[0], SPIDER_ATTACK_UP[1], SPIDER_ATTACK_UP[2], SPIDER_ATTACK_UP[3]);
-	else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(SPIDER_ATTACK_LEFT[0], SPIDER_ATTACK_LEFT[1], SPIDER_ATTACK_LEFT[2], SPIDER_ATTACK_LEFT[3]);
-	else m_attackCollider->SetObjectCollider(SPIDER_ATTACK_RIGHT[0], SPIDER_ATTACK_RIGHT[1], SPIDER_ATTACK_RIGHT[2], SPIDER_ATTACK_RIGHT[3]);
-
-	m_attackCollider->SetColliderEnabled(true);
-
-	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
-		Transform* pt = m_aggroTarget->GetComponent<Transform>();
-		if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
-			m_aggroTarget->Damaged(8);
-		}
-	}
-
-	m_attackCollider->SetColliderEnabled(false);
+	if (m_state != (int)SpiderState::ATTACK) return;
+	
+	// Monster 기본 클래스의 공격 처리 사용
+	ProcessAttackHit(m_damage);
 }
 
 void Spider::OnAttackEnd()
@@ -455,3 +432,10 @@ void Spider::OnAttackEnd()
 	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
 	ChangeState((int)SpiderState::CHASE);
 }
+
+void Spider::Die()
+{
+    ChangeState((int)SpiderState::DEATH);
+}
+
+

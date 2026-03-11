@@ -3,7 +3,7 @@
 
 class GameObject;
 class Player;
-class CraftingUI;
+class MenuUI;
 class PlayerHPUI;
 
 class GameScene : public BaseScene
@@ -64,7 +64,7 @@ private:
 	GameObjectID m_selectedCharacterID;
 
 	// 크래프팅 UI
-	CraftingUI* m_craftingUI;
+	MenuUI* m_craftingUI;
 
 	// 플레이어 HP UI (우측 상단 게이지 + Game Over 패널)
 	PlayerHPUI* m_playerHPUI;

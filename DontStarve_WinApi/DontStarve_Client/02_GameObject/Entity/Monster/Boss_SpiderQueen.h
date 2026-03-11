@@ -20,7 +20,8 @@ class BoxCollider;
 class Boss_SpiderQueen : public Monster
 {
 public:
-    Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
+    Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+                     const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Boss_SpiderQueen();
 
     virtual void Init() override;
@@ -30,15 +31,13 @@ public:
 
     virtual void Damaged(int damage) override;
 
-private:
-	void OnAttackHit();
-	void OnAttackEnd();
+protected:
+	virtual void OnAttackHit() override;
+	virtual void OnAttackEnd() override;
 
+private:
     int m_bossPhase;
     float m_specialAttackCooldown;
-
-	static const float ATTACK_RANGE;
-	static const float ATTACK_COOLDOWN;
 
 	float m_idleTimer;
 	float m_idleDuration;

@@ -1,8 +1,6 @@
 #pragma once
 #include "Monster.h"
 
-class BoxCollider;
-
 enum class BossHoundState {
 	IDLE,
 	RUN,
@@ -15,27 +13,20 @@ enum class BossHoundState {
 class Boss_Hound : public Monster
 {
 public:
-    Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
-    virtual ~Boss_Hound();
+	Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+			 const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
+	virtual ~Boss_Hound();
 
-    virtual void Init() override;
-    virtual void UpdateAI(float deltaTime) override;
-    virtual void UpdateMovement(float deltaTime) override;
-    virtual bool OnInteraction(GameObject* obj) override;
-    virtual void Damaged(int damage) override;
+	virtual void Init() override;
+	virtual void UpdateAI(float deltaTime) override;
+	virtual void UpdateMovement(float deltaTime) override;
+	virtual void Damaged(int damage) override;
+	virtual bool OnInteraction(GameObject* obj) override;
 
-	BossHoundState GetBossHoundState() const { return (BossHoundState)m_state; }
+protected:
+	virtual void OnAttackHit() override;
+	virtual void OnAttackEnd() override;
+	virtual void Die() override; // ensure death state set when HP<=0
 
-private:
-    static const float ATTACK_RANGE;
-    static const float ATTACK_COOLDOWN;
-
-    float m_wanderRadius;
-    float m_aggroRadius;
-    float m_deaggroRadius;
-
-    float m_idleTimer;
-    float m_idleDuration;
-
-    BoxCollider* m_attackCollider;
+	// No additional members needed - all are inherited from Monster and Combatant
 };

@@ -1,12 +1,21 @@
 #pragma once
-#include "../Entity/Entity.h"
+#include "../GameObject.h"
 
-class Item : public Entity
+class Transform;
+class SpriteRenderer;
+class Collider;
+
+class Item : public GameObject
 {
 protected:
     std::wstring m_itemName;
     std::wstring m_description;
     
+    // Entity에서 가져온 필수 컴포넌트들
+    Transform* m_transform;
+    SpriteRenderer* m_spriteRenderer;
+    Collider* m_collider;
+
 public:
     Item(GameObjectID id, const std::wstring& name, const std::wstring& desc,
          const std::wstring& baseDir = L"", const std::wstring& imageName = L"",
@@ -17,8 +26,14 @@ public:
     virtual void Init() override;
     virtual void Release() override;
 
-    virtual void Damaged(int damage) override {  }
+    // Item은 데미지를 받지 않으므로 빈 구현
+    virtual void Damaged(int damage) override { }
 
     const std::wstring& GetItemName() const { return m_itemName; }
     const std::wstring& GetDescription() const { return m_description; }
+    
+    // Transform 접근자 (Entity와 동일한 인터페이스 유지)
+    Transform* GetTransform() const { return m_transform; }
+    SpriteRenderer* GetSpriteRenderer() const { return m_spriteRenderer; }
+    Collider* GetCollider() const { return m_collider; }
 };

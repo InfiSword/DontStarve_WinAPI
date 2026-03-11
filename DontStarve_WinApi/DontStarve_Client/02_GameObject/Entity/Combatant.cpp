@@ -1,0 +1,155 @@
+#include "99_Default/pch.h"
+#include "Combatant.h"
+#include "../../01_Manager/CameraManager/CameraManager.h"
+#include "../Component/Transform/Transform.h"
+#include "../Component/Collider/BoxCollider.h"
+
+Combatant::Combatant(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+                     const std::wstring& baseDir, const std::wstring& imageName,
+                     bool isActive, bool isInteractive, ColliderType colliderType)
+    : Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, isActive, isInteractive, colliderType)
+    , m_damage(0)
+    , m_attackRange(0.0f)
+    , m_attackCooldown(0.0f)
+    , m_attackHitFrame(0)
+    , m_attackBoxWidth(0)
+    , m_attackBoxHeight(0)
+    , m_attackCollider(nullptr)
+    , m_attackTarget(nullptr)
+{
+}
+
+Combatant::~Combatant()
+{
+    Release();
+}
+
+void Combatant::Init()
+{
+    Entity::Init();
+    
+    // 공격 콜라이더 생성
+    m_attackCollider = AddComponent<BoxCollider>();
+    if (m_attackCollider) {
+        m_attackCollider->SetObjectCollider(0, 0, 80, 80);
+        m_attackCollider->SetColliderEnabled(false);
+    }
+}
+
+void Combatant::Release()
+{
+    m_attackCollider = nullptr;
+    m_attackTarget = nullptr;
+    Entity::Release();
+}
+
+void Combatant::SetupAttackBox(int width, int height, int offsetX, int offsetY)
+{
+    // 기본 공격 박스 크기로 각 방향별 오프셋 자동 계산
+    
+    // DOWN: 캐릭터 앞쪽 (Y축 양의 방향)
+    m_attackBoxDown.offsetX = -width / 2 + offsetX;
+    m_attackBoxDown.offsetY = 0 + offsetY;
+    m_attackBoxDown.width = width;
+    m_attackBoxDown.height = height;
+
+    // UP: 캐릭터 뒤쪽 (Y축 음의 방향)
+    m_attackBoxUp.offsetX = -width / 2 + offsetX;
+    m_attackBoxUp.offsetY = -height + offsetY;
+    m_attackBoxUp.width = width;
+    m_attackBoxUp.height = height;
+
+    // LEFT: 캐릭터 왼쪽 (X축 음의 방향)
+    m_attackBoxLeft.offsetX = -width + offsetX;
+    m_attackBoxLeft.offsetY = -height / 2 + offsetY;
+    m_attackBoxLeft.width = width;
+    m_attackBoxLeft.height = height;
+
+    // RIGHT: 캐릭터 오른쪽 (X축 양의 방향)
+    m_attackBoxRight.offsetX = 0 + offsetX;
+    m_attackBoxRight.offsetY = -height / 2 + offsetY;
+    m_attackBoxRight.width = width;
+    m_attackBoxRight.height = height;
+}
+
+void Combatant::SetAllAttackBoxes(int width, int height,
+                                   int downOffsetX, int downOffsetY,
+                                   int upOffsetX, int upOffsetY,
+                                   int leftOffsetX, int leftOffsetY,
+                                   int rightOffsetX, int rightOffsetY)
+{
+    m_attackBoxDown = AttackBox(downOffsetX, downOffsetY, width, height);
+    m_attackBoxUp = AttackBox(upOffsetX, upOffsetY, width, height);
+    m_attackBoxLeft = AttackBox(leftOffsetX, leftOffsetY, width, height);
+    m_attackBoxRight = AttackBox(rightOffsetX, rightOffsetY, width, height);
+}
+
+void Combatant::UpdateAttackBoxByDirection(Direction dir)
+{
+    if (!m_attackCollider) return;
+
+    const AttackBox* box = nullptr;
+    
+    switch (dir)
+    {
+    case DIR_DOWN:
+        box = &m_attackBoxDown;
+        break;
+    case DIR_UP:
+        box = &m_attackBoxUp;
+        break;
+    case DIR_LEFT:
+        box = &m_attackBoxLeft;
+        break;
+    case DIR_RIGHT:
+        box = &m_attackBoxRight;
+        break;
+    default:
+        return;
+    }
+    
+    if (box && box->width > 0 && box->height > 0)
+    {
+        m_attackCollider->SetObjectCollider(box->offsetX, box->offsetY, box->width, box->height);
+    }
+}
+
+void Combatant::ProcessAttackHit(int damage)
+{
+    if (!m_attackCollider || !transform) return;
+
+    // 현재 방향에 맞게 공격 박스 업데이트
+    UpdateAttackBoxByDirection(transform->GetDirection());
+    
+    // 콜라이더 활성화
+    m_attackCollider->SetColliderEnabled(true);
+
+    // 데미지 적용
+    ApplyAttackDamageToTarget(damage);
+
+    // 콜라이더 비활성화
+    m_attackCollider->SetColliderEnabled(false);
+}
+
+void Combatant::ApplyAttackDamageToTarget(int damage)
+{
+    CameraManager* cameraManager = CameraManager::GetInstance();
+    if (!cameraManager || !m_attackCollider) return;
+
+    std::vector<GameObject*> hits;
+    cameraManager->FindObjectsIntersectingCollider(m_attackCollider, hits);
+
+    for (GameObject* obj : hits) {
+        if (!obj || !obj->IsEnabled() || obj == this) continue;
+        
+        obj->Damaged(damage);
+        break; // 첫 번째 대상만
+    }
+}
+
+void Combatant::OnAttackEnd()
+{
+    if (m_attackCollider) 
+        m_attackCollider->SetColliderEnabled(false);
+    m_attackTarget = nullptr;
+}

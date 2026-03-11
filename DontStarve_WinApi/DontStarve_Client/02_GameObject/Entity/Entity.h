@@ -20,6 +20,7 @@ protected:
     Animator* m_animator;            // 애니메이션을 위한 Animator 컴포넌트
     Transform* transform;            // Transform 컴포넌트 캐시
     SpriteRenderer* spriteRenderer;  // SpriteRenderer 컴포넌트 캐시
+
     Collider* m_entityCollider;      // 몸통 콜라이더
     ColliderType m_colliderType;     // 콜라이더 타입
 

@@ -179,3 +179,10 @@ enum ColliderType {
 	COLLIDER_CIRCLE,       // 원형 콜라이더
 	COLLIDER_COUNT
 };
+
+// 아이템 카테고리 정의
+enum ItemCategory {
+	CATEGORY_NONE = 0,
+	CATEGORY_TILE = 1,
+	CATEGORY_OBJECT = 2
+};

@@ -7,19 +7,12 @@
 #include "../Player/Player.h"
 #include "../../../03_Animation/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
+#include "../../Component/Collider/BoxCollider.h"
 #include "Boss_Hound.h"
 
-const float Boss_Hound::ATTACK_RANGE = 100.0f;
-const float Boss_Hound::ATTACK_COOLDOWN = 2.0f;
-
-Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
-	, m_wanderRadius(300.0f)
-	, m_aggroRadius(400.0f)
-	, m_deaggroRadius(600.0f)
-	, m_idleTimer(0.0f)
-	, m_idleDuration(2.0f)
-	, m_attackCollider(nullptr)
+Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+                       const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 {
 	m_hp = 300;
 	m_maxHp = m_hp;
@@ -27,6 +20,21 @@ Boss_Hound::Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pi
 
 	m_walkSpeed = 100.0f;
 	m_runSpeed = 250.0f;
+	
+	// 공격 관련 설정
+	m_attackRange = 100.0f;
+	m_attackCooldown = 2.0f;
+	m_attackHitFrame = 4;
+	m_damage = 30;
+	m_attackBoxWidth = 100;
+	m_attackBoxHeight = 60;
+
+	// Initialize inherited members from Monster class
+	m_wanderRadius = 300.0f;
+	m_aggroRadius = 400.0f;
+	m_deaggroRadius = 600.0f;
+	m_idleTimer = 0.0f;
+	m_idleDuration = 2.0f;
 }
 
 Boss_Hound::~Boss_Hound() {}
@@ -35,6 +43,9 @@ void Boss_Hound::Init()
 {
 	Monster::Init();
 	
+	// 보스는 항상 플레이어를 추격하는 타입
+	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
+
 	ChangeState((int)BossHoundState::IDLE);
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
@@ -72,25 +83,15 @@ void Boss_Hound::UpdateAI(float deltaTime)
 		return;
 	}
 
-	// 어그로 체크
-	if (!m_aggroTarget && m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius))
-	{
-		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
-		ChangeState((int)BossHoundState::RUN);
-	}
-
-	if (m_aggroTarget && m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius))
-	{
-		m_aggroTarget = nullptr;
-		ChangeState((int)BossHoundState::IDLE);
-	}
+	// Monster::Update에서 어그로를 자동으로 처리함(ALWAYS 타입)
+	// 어그로가 켜져있을 때 항상 추격함
 
 	if (m_state == (int)BossHoundState::RUN)
 	{
-		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE)) {
+		if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
 			if (m_attackCooldownTimer <= 0.0f) {
 				ChangeState((int)BossHoundState::ATTACK);
-				m_attackCooldownTimer = ATTACK_COOLDOWN;
+				m_attackCooldownTimer = m_attackCooldown;
 			}
 			else {
 				ChangeState((int)BossHoundState::IDLE);
@@ -126,3 +127,24 @@ void Boss_Hound::Damaged(int damage)
 	Entity::Damaged(damage);
 	ChangeState((int)BossHoundState::HIT);
 }
+
+void Boss_Hound::OnAttackHit()
+{
+	if (m_state != (int)BossHoundState::ATTACK) return;
+	
+	// Monster 기본 클래스의 공격 처리 사용
+	ProcessAttackHit(m_damage);
+}
+
+void Boss_Hound::OnAttackEnd()
+{
+	if (m_state != (int)BossHoundState::ATTACK) return;
+	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
+	ChangeState((int)BossHoundState::RUN);
+}
+
+void Boss_Hound::Die()
+{
+    ChangeState((int)BossHoundState::DEATH);
+}
+

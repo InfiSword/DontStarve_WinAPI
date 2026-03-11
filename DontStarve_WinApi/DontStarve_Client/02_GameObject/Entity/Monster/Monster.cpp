@@ -5,14 +5,15 @@
 #include "../../../02_GameObject/Component/Collider/BoxCollider.h"
 #include "../../../02_GameObject/Entity/Player/Player.h"
 
-Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, 
+Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
                  const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-    : Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true, colliderType),
-      m_aggroTarget(nullptr), m_attackCooldownTimer(0.0f), m_walkSpeed(0.0f), m_runSpeed(0.0f),
+    : Combatant(id, x, y, pivotX, pivotY, dir, baseDir, imageName, true, true, colliderType),
+      m_attackCooldownTimer(0.0f), m_walkSpeed(0.0f), m_runSpeed(0.0f),
       m_targetX(x), m_targetY(y), m_distToPlayerSq(1e10f), m_dirToPlayer(0.0f, 0.0f),
-      m_aiTickTimer(0.0f), m_attackCollider(nullptr),
+      m_aiTickTimer(0.0f),
       m_wanderRadius(200.0f), m_aggroRadius(300.0f), m_deaggroRadius(500.0f),
-      m_idleTimer(0.0f), m_idleDuration(2.0f)
+      m_idleTimer(0.0f), m_idleDuration(2.0f),
+      m_aggroType(AggroType::ON_RANGE), m_hasBeenHit(false)
 {
     // AI 연산 부하 분산을 위해 개체별로 0.1s ~ 0.2s 사이의 고유 틱 간격 부여
     m_aiTickInterval = 0.1f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 0.1f));
@@ -24,12 +25,44 @@ Monster::~Monster()
 
 void Monster::Init()
 {
-    Entity::Init();
+    Combatant::Init();
+}
+
+void Monster::SetupAggro(AggroType type, float aggroRadius, float deaggroRadius)
+{
+    m_aggroType = type;
+    m_aggroRadius = aggroRadius;
+    m_deaggroRadius = deaggroRadius;
+    m_hasBeenHit = false;
+
+    // ALWAYS 타입인 경우 즉시 플레이어를 타겟으로 설정
+    if (m_aggroType == AggroType::ALWAYS)
+    {
+        m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
+    }
+}
+
+void Monster::Damaged(int damage)
+{
+    Entity::Damaged(damage);
+    
+    // ON_HIT_THEN_RANGE 타입: 피격 시 어그로 활성화
+    if (m_aggroType == AggroType::ON_HIT_THEN_RANGE && !m_hasBeenHit)
+    {
+        m_hasBeenHit = true;
+        m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
+    }
 }
 
 void Monster::Update(float deltaTime)
 {
-    if (m_isDead) return;
+    // Death 상태일 때는 애니메이션만 업데이트하고 AI/이동 로직은 건너뜀
+    if (m_isDead)
+    {
+        Entity::Update(deltaTime); // 애니메이션 업데이트
+        UpdateAI(deltaTime);       // 서브클래스에서 DEATH 완료 후 제거 등의 처리를 수행할 수 있도록 호출
+        return;
+    }
 
     // --- 1. [매 프레임] 플레이어와의 정보 계산 (제곱 거리 사용) ---
     Player* player = ObjectManager::GetInstance()->GetPlayer();
@@ -52,6 +85,47 @@ void Monster::Update(float deltaTime)
         }
     }
 
+    // --- 1.5 [어그로 타입별 자동 어그로 체크] ---
+    if (!m_attackTarget || !m_attackTarget->IsEnabled())
+    {
+        switch (m_aggroType)
+        {
+        case AggroType::ON_RANGE:
+            // 범위 내 진입 시 어그로 획득
+            if (m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius))
+            {
+                m_attackTarget = player;
+            }
+            break;
+
+        case AggroType::ALWAYS:
+            // 항상 플레이어 추격
+            m_attackTarget = player;
+            break;
+
+        case AggroType::ON_HIT_THEN_RANGE:
+            // 한 번 맞은 적이 있다면 범위 체크 시작
+            if (m_hasBeenHit && m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius))
+            {
+                m_attackTarget = player;
+            }
+            break;
+        }
+    }
+    else
+    {
+        // 어그로 타겟이 있을 때 deaggro 체크 (ALWAYS 타입은 제외)
+        if (m_aggroType != AggroType::ALWAYS)
+        {
+            if (m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius))
+            {
+                m_attackTarget = nullptr;
+                // ON_HIT_THEN_RANGE 타입은 어그로 해제 시 피격 상태 초기화하지 않음
+                // (한 번 적대적이 되면 계속 범위 체크를 유지)
+            }
+        }
+    }
+
     // --- 2. [AI Tick] 일정 간격으로만 AI 상태 결정 수행 ---
     m_aiTickTimer += deltaTime;
     if (m_aiTickTimer >= m_aiTickInterval)
@@ -66,5 +140,20 @@ void Monster::Update(float deltaTime)
 
     UpdateMovement(deltaTime); // 부드러운 이동
     Entity::Update(deltaTime); // 애니메이션 업데이트
+}
+
+void Monster::UpdateAI(float deltaTime)
+{
+    // Default implementation - child classes should override
+}
+
+void Monster::UpdateMovement(float deltaTime)
+{
+    // Default implementation - child classes should override
+}
+
+void Monster::OnAttackHit()
+{
+    // Default implementation - child classes should override
 }
 

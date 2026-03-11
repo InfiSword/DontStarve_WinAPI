@@ -15,23 +15,20 @@
 #include "../../../01_Manager/ColliderManager/ColliderManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 
+// 정적 멤버 변수 정의
+PlayerStateSnapshot Player::s_savedState;
+bool Player::s_hasSavedState = false;
+
 static const float CHOP_PIVOT_X = 0.3f;
 static const float CHOP_PIVOT_Y = 0.9f;
 static const float MINE_PIVOT_X = 0.5f;
 static const float MINE_PIVOT_Y = 0.9f;
 
-static const int ATTACK_BOX_W = 80, ATTACK_BOX_H = 120;
-static const int ATTACK_BOX_DOWN[] = { -40,    0, ATTACK_BOX_W, ATTACK_BOX_H };  // 발 앞
-static const int ATTACK_BOX_UP[] = { -40,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 머리 쪽
-static const int ATTACK_BOX_LEFT[] = { -80,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 왼쪽
-static const int ATTACK_BOX_RIGHT[] = { 0,  -60, ATTACK_BOX_W, ATTACK_BOX_H };  // 오른쪽
-
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Entity(characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
+	: Combatant(characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
 	m_playerSpeed(300.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr),
 	m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr),
-	m_attackTarget(nullptr), m_attackCollider(nullptr),
 	isMoveToGoal(false)
 {
 	m_hp = 100;
@@ -44,7 +41,16 @@ Player::~Player() { Release(); }
 
 void Player::Init()
 {
-	Entity::Init();
+	Combatant::Init();
+	
+	// Player 전용 공격 박스 설정 (80x120, 방향별 오프셋)
+	SetAllAttackBoxes(
+		80, 120,      // width, height
+		-40, 0,       // down
+		-40, -60,     // up
+		-80, -60,     // left
+		0, -60        // right
+	);
 
 	// Animator 생성 후 애니메이션 등록 (AnimationDefinition 클래스 제거)
 	if (!m_animator) {
@@ -182,12 +188,7 @@ void Player::Init()
 		}
 	}
 
-	// 공격 판정용 콜라이더 (기본 비활성, ATTACK 상태 16프레임 시에만 활성)
-	m_attackCollider = AddComponent<BoxCollider>();
-	if (m_attackCollider) {
-		m_attackCollider->SetObjectCollider(-40, 0, 80, 60);
-		m_attackCollider->SetColliderEnabled(false);
-	}
+	// 공격 콜라이더는 Combatant::Init()에서 이미 생성됨
 
 	if (!m_inventory) {
 		m_inventory = new Inventory(this);
@@ -240,6 +241,43 @@ void Player::Heal(int amount)
 {
 	if (amount <= 0) return;
 	m_hp = (std::min)(m_maxHp, m_hp + amount);
+}
+
+PlayerStateSnapshot Player::SaveState() const
+{
+	PlayerStateSnapshot snapshot;
+	snapshot.hp = m_hp;
+	snapshot.equippedSlotIndex = m_equippedSlotIndex;
+	
+	if (m_inventory) {
+		snapshot.inventoryItems = m_inventory->GetAllItemsSnapshot();
+	}
+	
+	return snapshot;
+}
+
+void Player::RestoreState(const PlayerStateSnapshot& snapshot)
+{
+	// HP 복원
+	int currentHp = m_hp;
+	if (snapshot.hp > currentHp) {
+		Heal(snapshot.hp - currentHp);
+	} else if (snapshot.hp < currentHp) {
+		Damaged(currentHp - snapshot.hp);
+	}
+	
+	// 인벤토리 복원
+	if (m_inventory) {
+		m_inventory->ClearAllItems();
+		for (const auto& item : snapshot.inventoryItems) {
+			m_inventory->AddItemByID(item.first, item.second);
+		}
+	}
+	
+	// 장착 슬롯 복원
+	if (snapshot.equippedSlotIndex >= 0) {
+		ToggleEquipItem(snapshot.equippedSlotIndex);
+	}
 }
 
 void Player::UpdateAnimatorState() {
@@ -586,41 +624,14 @@ void Player::OnAttackHit()
 {
 	if (m_state != PlayerState::ATTACK || !m_attackCollider || !transform) return;
 
-	// 히트 프레임에서만: 방향별 공격 박스 설정 후 켜고, 판별 후 끔
-	Direction dir = transform->GetDirection();
-	if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(ATTACK_BOX_DOWN[0], ATTACK_BOX_DOWN[1], ATTACK_BOX_DOWN[2], ATTACK_BOX_DOWN[3]);
-	else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(ATTACK_BOX_UP[0], ATTACK_BOX_UP[1], ATTACK_BOX_UP[2], ATTACK_BOX_UP[3]);
-	else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(ATTACK_BOX_LEFT[0], ATTACK_BOX_LEFT[1], ATTACK_BOX_LEFT[2], ATTACK_BOX_LEFT[3]);
-	else m_attackCollider->SetObjectCollider(ATTACK_BOX_RIGHT[0], ATTACK_BOX_RIGHT[1], ATTACK_BOX_RIGHT[2], ATTACK_BOX_RIGHT[3]);
-
-	m_attackCollider->SetColliderEnabled(true);
-
-	ApplyAttackDamage(m_damage);
-
-	m_attackCollider->SetColliderEnabled(false);
-}
-
-void Player::ApplyAttackDamage(int damage, bool singleTarget)
-{
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	if (!cameraManager || !m_attackCollider) return;
-
-	std::vector<GameObject*> hits;
-	cameraManager->FindObjectsIntersectingCollider(m_attackCollider, hits);
-
-	for (GameObject* obj : hits) {
-		if (!obj || !obj->IsEnabled() || obj == this) continue;
-		
-		obj->Damaged(damage);
-		if (singleTarget) break;
-	}
+	// Combatant의 공통 공격 처리 사용
+	ProcessAttackHit(m_damage);
 }
 
 void Player::OnAttackEnd()
 {
 	if (m_state != (int)PlayerState::ATTACK) return;
-	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
-	m_attackTarget = nullptr;
+	Combatant::OnAttackEnd();
 	ChangeState((int)PlayerState::IDLE);
 }
 
@@ -682,7 +693,7 @@ void Player::Release() {
 	m_activeInteractionTarget = nullptr;
 
 	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
-	Entity::Release();
+	Combatant::Release();
 }
 
 void Player::HandleRightClick(float worldX, float worldY)
@@ -728,9 +739,14 @@ void Player::HandleMovement()
 		POINT mousePos = inputManager->GetMousePos();
 		float sx = static_cast<float>(mousePos.x);
 		float sy = static_cast<float>(mousePos.y);
+		
+		// 인벤토리 우클릭 처리 - 처리되면 더 이상 진행하지 않음
+		if (m_inventory && m_inventory->HandleRightClick(sx, sy, this)) {
+			return;
+		}
+		
+		// UI 영역 블로킹 체크 (인벤토리 외 다른 UI)
 		if (UIManager::GetInstance()->IsScreenPointBlockedByUI(sx, sy)) {
-			// 인벤토리 우클릭 처리는 Inventory에 위임
-			m_inventory->HandleRightClick(sx, sy, this);
 			return;
 		}
 

@@ -11,6 +11,7 @@
 #include "../InventoryManager/InventoryManager.h"
 #include "../ColliderManager/ColliderManager.h"
 #include "../ResourceManager/ResourceManager.h"
+#include "../../02_GameObject/Entity/Player/Player.h"
 
 SceneManager::SceneManager()
 	: m_currentScene(nullptr)
@@ -114,7 +115,9 @@ void SceneManager::LoadAllMapData()
 	// 게임 시작 시 모든 맵 파일 로드 (GameData 폴더의 .dsm 파일들)
 	// 주의: CharacterSelectScene에서 사용하는 경로와 일치해야 함!
 	std::vector<std::wstring> mapFiles = {
-		L"GameData/00_map.dsm"
+		L"GameData/00_map.dsm",
+		L"GameData/01_BossHound.dsm",
+		L"GameData/02_BossSpiderQueen.dsm",
 		// 향후 추가 맵 파일들을 여기에 등록 (예: L"GameData/01_map.dsm")
 	};
 
@@ -212,6 +215,16 @@ void SceneManager::DoLoadCharacterSelectScene()
 void SceneManager::DoLoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID)
 {
 	OutputDebugStringW(L"SceneManager: 게임 씬 로드 시작\n");
+
+	// 현재 플레이어 상태 저장 (씬 전환 전)
+	ObjectManager* objMgr = ObjectManager::GetInstance();
+	Player* currentPlayer = objMgr ? objMgr->GetPlayer() : nullptr;
+	if (currentPlayer) {
+		Player::s_savedState = currentPlayer->SaveState();
+		Player::s_hasSavedState = true;
+		OutputDebugStringW(L"SceneManager: 플레이어 상태 저장 완료\n");
+	}
+
 	ReleaseCurrentScene();
 
 	GameScene* gameScene = new GameScene();
@@ -223,6 +236,15 @@ void SceneManager::DoLoadGameScene(const std::wstring& mapFileName, GameObjectID
 		m_currentMapData = &it->second;
 		// GameScene은 포인터만 받음 (복사/파싱 없음, 즉시 사용)
 		gameScene->Init(m_currentMapData);
+
+		// 새로 생성된 플레이어에게 저장된 상태 복원
+		if (Player::s_hasSavedState) {
+			Player* newPlayer = ObjectManager::GetInstance()->GetPlayer();
+			if (newPlayer) {
+				newPlayer->RestoreState(Player::s_savedState);
+				OutputDebugStringW(L"SceneManager: 플레이어 상태 복원 완료\n");
+			}
+		}
 	}
 	else {
 		OutputDebugStringW((L"SceneManager: 맵 데이터를 찾을 수 없음 - " + mapFileName + L"\n").c_str());

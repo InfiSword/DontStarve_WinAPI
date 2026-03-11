@@ -19,7 +19,8 @@ enum class SpiderState {
 class Spider : public Monster
 {
 public:
-    Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
+    Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+           const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Spider();
 
     virtual void Init() override;
@@ -32,9 +33,6 @@ public:
 
     // SpiderEgg 설정 (거미집 주변을 배회하도록)
     void SetHomeEgg(SpiderEgg* egg, float spawnRadius);
-    
-    float GetAggroRadius() const { return m_aggroRadius; }
-    float GetDeaggroRadius() const { return m_deaggroRadius; }
 
 	SpiderState GetSpiderState() const { return (SpiderState)m_state; }
 
@@ -44,10 +42,7 @@ public:
 protected:
 	virtual void OnAttackHit() override;
 	virtual void OnAttackEnd() override;
-
-private:
-    static const float ATTACK_RANGE;      // 공격 사거리
-    static const float ATTACK_COOLDOWN;   // 공격 쿨타임
+	virtual void Die() override; // ensure death state set when HP<=0
 
 private:
     SpiderEgg* m_homeEgg;                // 소속 거미집

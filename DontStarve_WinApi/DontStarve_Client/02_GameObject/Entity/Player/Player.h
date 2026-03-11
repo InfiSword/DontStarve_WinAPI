@@ -1,10 +1,9 @@
 #pragma once
-#include "../Entity.h"
+#include "../Combatant.h"
 #include "../../Item/Tool/Tool.h"
 
 class Inventory;
 class ResourceManager;
-class BoxCollider;
 
 enum PlayerState {
 	IDLE,               // 대기 상태
@@ -18,7 +17,17 @@ enum PlayerState {
 	COUNT,
 };
 
-class Player : public Entity
+// 플레이어 상태 스냅샷 (씬 전환 시 저장/복원용)
+struct PlayerStateSnapshot
+{
+	int hp;
+	int equippedSlotIndex;
+	std::vector<std::pair<GameObjectID, UINT>> inventoryItems;
+
+	PlayerStateSnapshot() : hp(100), equippedSlotIndex(-1) {}
+};
+
+class Player : public Combatant
 {
 public:
 	Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
@@ -49,6 +58,14 @@ public:
 
 	void Heal(int amount);
 
+	// 상태 저장/복원 (씬 전환용)
+	PlayerStateSnapshot SaveState() const;
+	void RestoreState(const PlayerStateSnapshot& snapshot);
+	
+	// 정적 저장소 (씬 전환 시 임시 저장용)
+	static PlayerStateSnapshot s_savedState;
+	static bool s_hasSavedState;
+
 private:
 	// singleTarget=true: 첫 번째 몬스터만 피해, false: 콜라이더와 겹치는 모든 몬스터 피해
 	void ApplyAttackDamage(int damage, bool singleTarget = true);
@@ -63,21 +80,19 @@ private:
 	void OnMineHit();
 	void OnMineEnd();
 	void OnAttackHit();
-	void OnAttackEnd();
+	virtual void OnAttackEnd() override;
 
 	Inventory* m_inventory;
 	GameObject* m_pendingInteractionTarget;  // 이동 후 상호작용할 대상
 	GameObject* m_activeInteractionTarget;   // 현재 상호작용 중인 대상 (FinalizePickup용)
 	
-	GameObject* m_attackTarget;               // 공격할 몬스터 (클릭 시 설정, 사거리 도달 시 ATTACK)
-	BoxCollider* m_attackCollider;            // 공격 판정용 (ATTACK 상태 16프레임 시만 활성)
+	// m_attackTarget, m_attackCollider는 Combatant에서 상속
 
 	bool isMoveToGoal;
 	float m_playerSpeed;
 	Gdiplus::PointF m_targetWorldPos;
 	float m_stopThreshold;
-	float m_attackRange;
-	int m_damage;
+	// m_attackRange, m_damage는 Combatant에서 상속
 
 	int m_equippedSlotIndex;
 	Tool* m_equippedItem;

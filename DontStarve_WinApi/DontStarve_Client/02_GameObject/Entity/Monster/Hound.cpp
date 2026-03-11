@@ -11,18 +11,9 @@
 #include "../../Component/Collider/BoxCollider.h"
 #include "Hound.h"
 
-const float Hound::ATTACK_RANGE = 70.0f;
-const float Hound::ATTACK_COOLDOWN = 1.2f;
-
-static const int HOUND_ATTACK_HIT_FRAME = 4;
-static const int HOUND_ATTACK_BOX_W = 80, HOUND_ATTACK_BOX_H = 50;
-static const int HOUND_ATTACK_DOWN[]  = { -40,   0, HOUND_ATTACK_BOX_W, HOUND_ATTACK_BOX_H };
-static const int HOUND_ATTACK_UP[]    = { -40, -50, HOUND_ATTACK_BOX_W, HOUND_ATTACK_BOX_H };
-static const int HOUND_ATTACK_LEFT[]  = { -80, -25, HOUND_ATTACK_BOX_W, HOUND_ATTACK_BOX_H };
-static const int HOUND_ATTACK_RIGHT[] = {   0, -25, HOUND_ATTACK_BOX_W, HOUND_ATTACK_BOX_H };
-
-Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Monster(id, x, y, pivotX, pivotY, baseDir, imageName, colliderType)
+Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+             const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 {
 	m_hp = 90;
 	m_maxHp = m_hp;
@@ -31,8 +22,13 @@ Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, cons
 	m_walkSpeed = 80.0f;
 	m_runSpeed = 200.0f;
 	
-	// Hound는 더 넓은 어그로 범위
-	m_aggroRadius = 350.0f;
+	// 공격 관련 설정
+	m_attackRange = 70.0f;
+	m_attackCooldown = 1.2f;
+	m_attackHitFrame = 4;
+	m_damage = 20;
+	m_attackBoxWidth = 80;
+	m_attackBoxHeight = 50;
 }
 
 Hound::~Hound() {}
@@ -41,6 +37,12 @@ void Hound::Init()
 {
 	Monster::Init();
 	
+	// 하운드는 항상 플레이어를 추격하는 타입(공격적인 몬스터)
+	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
+
+	// 공격 박스 설정 (방향별 오프셋 자동 계산)
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
+
 	ChangeState((int)HoundState::IDLE);
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
@@ -51,7 +53,7 @@ void Hound::Init()
 		m_targetY = this->transform->GetY();
 	}
 	
-	OutputDebugStringW((L"Hound: Init 성공 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
+	OutputDebugStringW((L"Hound: Init 완료 - ID: " + std::to_wstring(m_id) + L"\n").c_str());
 
 	if (!m_animator) {
 		m_animator = AddComponent<Animator>();
@@ -109,11 +111,11 @@ void Hound::Init()
 			m_animator->RegisterAnimation((int)HoundState::ATTACK, DIR_RIGHT, atkSidePath,
 				0, 0, 8, 8, px, py, false, 0.03f);
 
-			// 애니메이션 이벤트 등록 
+			// 애니메이션 이벤트 등록
 			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::ATTACK, (Direction)dir);
 				if (clip) {
-					clip->AddEventFrame(HOUND_ATTACK_HIT_FRAME, L"attack_hit");
+					clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
 					clip->AddEventFrame(7, L"attack_end");
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"attack_hit") this->OnAttackHit();
@@ -141,10 +143,10 @@ void Hound::Init()
 		m_animator->SetState(m_state, this->transform->GetDirection());
 	}
 
-	// 공격 판정용 콜라이더 (ObjectManager에서 설정된 몸통 콜라이더는 그대로 사용)
+	// 공격 전용 콜라이더 (ObjectManager에서 설정한 몸통 콜라이더는 그대로 사용)
 	m_attackCollider = AddComponent<BoxCollider>();
 	if (m_attackCollider) {
-		m_attackCollider->SetObjectCollider(HOUND_ATTACK_DOWN[0], HOUND_ATTACK_DOWN[1], HOUND_ATTACK_DOWN[2], HOUND_ATTACK_DOWN[3]);
+		UpdateAttackBoxByDirection(DIR_DOWN);
 		m_attackCollider->SetColliderEnabled(false);
 	}
 }
@@ -158,7 +160,7 @@ void Hound::UpdateAI(float deltaTime)
 	{
 		if (m_animator->IsAnimationDone())
 		{
-			if (m_aggroTarget && m_aggroTarget->IsEnabled())
+			if (m_attackTarget && m_attackTarget->IsEnabled())
 			{
 				ChangeState((int)HoundState::CHASE);
 				m_attackCooldownTimer = 0.0f;
@@ -191,45 +193,18 @@ void Hound::UpdateAI(float deltaTime)
 		return;
 	}
 
-	// 어그로 체크 및 해제 (Monster 부모 클래스의 m_distToPlayer 활용)
-	if (!m_aggroTarget && m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius))
-	{
-		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
-		ChangeState((int)HoundState::HOWL);
-
-		Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
-		transform->SetDirection(newDir);
-	}
-
-	if (m_aggroTarget && m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius))
-	{
-		m_aggroTarget = nullptr;
-		ChangeState((int)HoundState::IDLE);
-		m_idleTimer = 0.0f;
-		m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
-		m_attackCooldownTimer = 0.0f;
-	}
-
+	// ALWAYS 타입이므로 어그로 해제 체크 불필요
 	if (m_state == (int)HoundState::CHASE)
 	{
-		if (!m_aggroTarget || !m_aggroTarget->IsEnabled()) {
-			m_aggroTarget = nullptr;
-			ChangeState((int)HoundState::IDLE);
-			m_idleTimer = 0.0f;
-			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
-			m_attackCooldownTimer = 0.0f;
-			return;
-		}
-
 		Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
 
-		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE) && m_attackCooldownTimer <= 0.0f) {
+		if (m_distToPlayerSq <= (m_attackRange * m_attackRange) && m_attackCooldownTimer <= 0.0f) {
 			transform->SetDirection(newDir);
 			ChangeState((int)HoundState::ATTACK_PRE);
 			return;
 		}
 
-		if (m_distToPlayerSq <= (ATTACK_RANGE * ATTACK_RANGE) && m_attackCooldownTimer > 0.0f) {
+		if (m_distToPlayerSq <= (m_attackRange * m_attackRange) && m_attackCooldownTimer > 0.0f) {
 			transform->SetDirection(newDir);
 			ChangeState((int)HoundState::IDLE);
 			return;
@@ -253,7 +228,7 @@ void Hound::UpdateAI(float deltaTime)
 		{
 			m_state = (int)HoundState::ATTACK;
 			m_animator->SetState((int)HoundState::ATTACK, transform->GetDirection());
-			m_attackCooldownTimer = ATTACK_COOLDOWN;
+			m_attackCooldownTimer = m_attackCooldown;
 		}
 		return;
 	}
@@ -266,29 +241,14 @@ void Hound::UpdateAI(float deltaTime)
 
 	if (m_state == (int)HoundState::IDLE)
 	{
-		m_idleTimer += deltaTime;
-		if (m_idleTimer >= m_idleDuration)
+		// ALWAYS 타입이므로 배회하지 않고 바로 추격
+		// 어그로가 켜져있으면 HOWL -> CHASE로 전환
+		if (m_attackTarget && m_attackTarget->IsEnabled())
 		{
-			float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
-			float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
-			m_targetX = transform->GetX() + cosf(angle) * dist;
-			m_targetY = transform->GetY() + sinf(angle) * dist;
-
-			// 목표 위치가 맵 경계를 벗어나지 않도록 제한
-			const float BUFFER = 50.0f;
-			const float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - BUFFER;
-			const float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - BUFFER;
-			const float mapMinX = BUFFER;
-			const float mapMinY = BUFFER;
-
-			if (m_targetX < mapMinX) m_targetX = mapMinX;
-			if (m_targetX > mapMaxX) m_targetX = mapMaxX;
-			if (m_targetY < mapMinY) m_targetY = mapMinY;
-			if (m_targetY > mapMaxY) m_targetY = mapMaxY;
-
-			m_state = (int)HoundState::RUN;
-			m_idleTimer = 0.0f;
-			m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
+			ChangeState((int)HoundState::HOWL);
+			
+			Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
+			transform->SetDirection(newDir);
 		}
 		else
 		{
@@ -324,15 +284,10 @@ void Hound::UpdateAI(float deltaTime)
 		}
 	}
 
-	// 매 프레임 위치 경계 체크 (CHASE, RUN 상태에서 맵 밖으로 나가지 않도록)
-	if (m_state == (int)HoundState::CHASE || m_state == (int)HoundState::RUN) {
+	// 맵 경계 위치 경계 체크 (CHASE 상태에서 맵 밖으로 나가지 않도록)
+	if (m_state == (int)HoundState::CHASE) {
 		ClampPositionToMapBounds();
 	}
-}
-
-bool Hound::OnInteraction(GameObject* obj)
-{
-	return Entity::OnInteraction(obj);
 }
 
 void Hound::Damaged(int damage)
@@ -341,31 +296,17 @@ void Hound::Damaged(int damage)
 	ChangeState((int)HoundState::HIT);
 
 	if (!IsDead() && IsEnabled()) {
-		m_aggroTarget = ObjectManager::GetInstance()->GetPlayer();
+		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 		m_attackCooldownTimer = 0.0f;
 	}
 }
 
 void Hound::OnAttackHit()
 {
-	if (m_state != (int)HoundState::ATTACK || !m_attackCollider || !transform) return;
-
-	Direction dir = transform->GetDirection();
-	if (dir == DIR_DOWN) m_attackCollider->SetObjectCollider(HOUND_ATTACK_DOWN[0], HOUND_ATTACK_DOWN[1], HOUND_ATTACK_DOWN[2], HOUND_ATTACK_DOWN[3]);
-	else if (dir == DIR_UP) m_attackCollider->SetObjectCollider(HOUND_ATTACK_UP[0], HOUND_ATTACK_UP[1], HOUND_ATTACK_UP[2], HOUND_ATTACK_UP[3]);
-	else if (dir == DIR_LEFT) m_attackCollider->SetObjectCollider(HOUND_ATTACK_LEFT[0], HOUND_ATTACK_LEFT[1], HOUND_ATTACK_LEFT[2], HOUND_ATTACK_LEFT[3]);
-	else m_attackCollider->SetObjectCollider(HOUND_ATTACK_RIGHT[0], HOUND_ATTACK_RIGHT[1], HOUND_ATTACK_RIGHT[2], HOUND_ATTACK_RIGHT[3]);
-
-	m_attackCollider->SetColliderEnabled(true);
-
-	if (m_aggroTarget && m_aggroTarget->IsEnabled()) {
-		Transform* pt = m_aggroTarget->GetComponent<Transform>();
-		if (pt && m_attackCollider->ContainsPoint(pt->GetX(), pt->GetY())) {
-			m_aggroTarget->Damaged(20);
-		}
-	}
-
-	m_attackCollider->SetColliderEnabled(false);
+	if (m_state != (int)HoundState::ATTACK) return;
+	
+	// Monster 기본 클래스의 공격 처리 사용
+	ProcessAttackHit(m_damage);
 }
 
 void Hound::OnAttackEnd()
@@ -374,3 +315,16 @@ void Hound::OnAttackEnd()
 	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
 	ChangeState((int)HoundState::CHASE);
 }
+
+void Hound::Die()
+{
+    ChangeState((int)HoundState::DEATH);
+    // Monster::Update will call Entity::Update to advance the death animation
+}
+
+bool Hound::OnInteraction(GameObject* obj)
+{
+	return Entity::OnInteraction(obj);
+}
+
+

@@ -161,6 +161,7 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 
 	const POINT& rawMousePos = m_pMain->GetRawMousePos();
 	bool isPlacingMode = m_pMain->IsPlacingMode();
+	bool isErasingMode = m_pMain->IsErasingMode();
 	bool isDraggingCamera = m_pMain->IsDraggingCamera();
 	const ResourcePathUtils::ObjectResourceDef* selectedObjectPtr = m_pMain->GetSelectedObjectPtr();
 	float currentFPS = m_pMain->GetCurrentFPS();
@@ -198,6 +199,7 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 		}
 		ss << L"\n";
 
+		ss << L"Tile Erasing Mode: " << (isErasingMode ? L"ON" : L"OFF") << L"\n";
 		ss << L"Pivot Edit Mode: " << (m_pPivotEditor && m_pPivotEditor->IsPivotEditMode() ? L"ON" : L"OFF") << L"\n";
 		ss << L"Collider Edit Mode: " << (m_pColliderEditor && m_pColliderEditor->IsColliderEditMode() ? L"ON" : L"OFF") << L"\n";
 		ss << L"Walkable Area Edit Mode: " << (m_pWalkableEditor->IsWalkableEditMode() ? L"ON" : L"OFF") << L"\n";
@@ -263,9 +265,10 @@ void EditorDebugPanel::DrawDebugInfo(Gdiplus::Graphics* pGraphics) {
 		}
 
 		ss << L"\n--- Hotkeys ---\n";
-		ss << L"ESC: Cancel/Exit (sub-palette, walkable edit, player spawn mode, deselect)\n";
+		ss << L"ESC: Cancel/Exit (sub-palette, walkable edit, erasing mode, player spawn mode, deselect)\n";
 		ss << L"F1: Toggle Debug Info (wheel on panel to scroll)\n";
-		ss << L"Shift: Toggle 3x3 tile placement (tile mode only)\n";
+		ss << L"E: Tile Erase Mode (toggle)\n";
+		ss << L"Shift: Toggle 3x3 mode (tile placement/erase mode)\n";
 		ss << L"P: Player Spawn Mode (click to set spawn)\n";
 		ss << L"R: Delete selected object (select object first)\n";
 		ss << L"G: Walkable Area Edit (toggle, drag to paint)\n";

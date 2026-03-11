@@ -53,7 +53,7 @@ void GameScene::Init()
 	ColliderManager::GetInstance()->Init();
 
 	// 크래프팅 UI 생성
-	m_craftingUI = new CraftingUI();
+	m_craftingUI = new MenuUI();
 	if (m_craftingUI) {
 		m_craftingUI->Init();
 		// CraftingUI는 내부적으로 필요한 UI 요소들을 UIManager에 추가함

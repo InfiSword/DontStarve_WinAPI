@@ -9,11 +9,11 @@ class UIButton;
 class UIText;
 class Player;
 
-class CraftingUI : public UIElement
+class MenuUI : public UIElement
 {
 private:
 	// UI 요소들
-	UIImage* m_craftBar;                              // 크래프팅 바 배경
+	UIImage* m_menuBar;                              // 크래프팅 바 배경
 	UIImage* m_toolPanelBg;                           // 도구 팔레트 배경
 	UIImage* m_ingredientPanelBg;                     // 재료 표시 배경
 	UIButton* m_craftIcon;                            // 크래프팅 아이콘 버튼 (도구 목록 토글)
@@ -26,6 +26,16 @@ private:
 	UIText* m_craftButtonText;                        // "제작하기" 버튼 텍스트
 	std::vector<UIImage*> m_ingredientImages;         // 재료 이미지들
 	std::vector<UIText*> m_ingredientTexts;           // 재료 설명 텍스트들 (최대 2개)
+	UIText* m_craftingItemNameText;                   // 제작하려는 아이템 이름 텍스트
+	
+	// 보스 전투 UI 요소들
+	UIImage* m_bossOverlay;                          // 반투명 검은색 오버레이
+	UIButton* m_houndBossPanel;                      // 하운드 보스 패널 (클릭 가능)
+	UIButton* m_spiderQueenBossPanel;                // 스파이더 퀸 보스 패널 (클릭 가능)
+	UIButton* m_bossChallengeButton;                 // 보스 도전 버튼
+	UIText* m_bossChallengeButtonText;               // 보스 도전 버튼 텍스트
+	bool m_isBossPanelVisible;                       // 보스 패널 표시 여부
+	GameObjectID m_selectedBossID;                   // 선택된 보스 ID
 	
 	// 상태 관리
 	bool m_isToolListVisible;                        // 도구 목록 표시 여부
@@ -62,8 +72,8 @@ private:
 	float m_toolButtonOffsetX;                        // 도구 버튼 그리드 X 추가 오프셋 (BG와 정렬)
 	
 public:
-	CraftingUI();
-	virtual ~CraftingUI();
+	MenuUI();
+	virtual ~MenuUI();
 
 	virtual void Init() override;
 	virtual void LateInit() override {}
@@ -81,17 +91,26 @@ public:
 	void ToggleCreateList();
 	// 요리 목록 토글 (CookIcon)
 	void ToggleCookList();
+	// 보스 패널 토글
+	void ToggleBossPanel();
 
 	// 도구 선택
 	void SelectTool(GameObjectID toolID);
+	// 보스 선택
+	void SelectBoss(GameObjectID bossID);
 
 	// 선택된 도구의 재료 정보 업데이트
 	void UpdateIngredientDisplay();
 
 	// 크래프팅 시도
 	bool TryCraftSelectedTool(Player* player);
+	// 보스 도전 시도
+	void TryChallengeBoss();
 
 private:
+	// 모든 패널 UI 닫기 (공통 로직)
+	void ClearAllPanels();
+
 	// UI 요소 생성 헬퍼 함수들
 	void CreateCraftBar();
 	void CreatePanelBackgrounds();                    // 도구/재료 패널 배경 생성
@@ -101,12 +120,10 @@ private:
 	void CreateCookItemButtons();
 	void CreateCraftButton();
 	void CreateIngredientDisplay();
-
-	void SetToolPanelBgVisible(bool visible);
-	void SetIngredientPanelBgVisible(bool visible);
-
-	// 재료 이미지 경로 가져오기
-	std::wstring GetIngredientImagePath(GameObjectID ingredientID);
-	// 재료 표시 이름 가져오기 (수량과 함께 텍스트에 사용)
-	std::wstring GetIngredientDisplayName(GameObjectID ingredientID);
+	void CreateBossUI();                             // 보스 UI 생성
+	
+	// 보스 클리어 상태 확인 헬퍼
+	bool IsHoundBossCleared() const;
+	bool IsSpiderQueenBossCleared() const;
+	void UpdateBossPanelHighlight();
 };

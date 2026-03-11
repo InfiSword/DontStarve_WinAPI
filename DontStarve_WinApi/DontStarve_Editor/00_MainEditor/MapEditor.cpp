@@ -287,6 +287,11 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			return 0;
 		}
 
+		if (m_isErasingMode) {
+			InvalidateRect(hWnd, NULL, FALSE);
+			return 0;
+		}
+
 		int selIdx = m_pPalette->GetSelectedPaletteIndex();
 		if (selIdx != -1 && m_isPlacingMode) {
 			const PaletteItem* pItem = m_pPalette->GetPaletteItem((size_t)selIdx);
@@ -332,6 +337,11 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 		const RECT& paletteRectFirst = m_pPalette->GetPaletteRect();
 		bool clickOnPaletteFirst = PtInRect(&paletteRectFirst, clickPoint) != FALSE;
+		
+		if (m_isErasingMode && !clickOnPaletteFirst) {
+			HandleErasingModeClick(clickPoint, hWnd);
+			return 0;
+		}
 		
 		if (m_isPlacingMode && !clickOnPaletteFirst) {
 			HandlePlacingModeClick(clickPoint, hWnd);
@@ -540,6 +550,11 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 				m_paletteLayerDirty = true;
 				needsRedraw = true;
 			}
+			else if (m_isErasingMode) {
+				m_isErasingMode = false;
+				m_is3x3Mode = false;
+				needsRedraw = true;
+			}
 			else if (m_isPlayerSpawnMode) {
 				m_isPlayerSpawnMode = false;
 				needsRedraw = true;
@@ -562,14 +577,33 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			return 0;
 		}
 
-		if (wParam == VK_SHIFT && m_isPlacingMode) {
-			int sp = m_pPalette->GetSelectedPaletteIndex();
-			const PaletteItem* pi = (sp >= 0) ? m_pPalette->GetPaletteItem((size_t)sp) : nullptr;
-			if (pi && pi->category == CATEGORY_TILE) {
+		if (wParam == VK_SHIFT) {
+			if (m_isPlacingMode) {
+				int sp = m_pPalette->GetSelectedPaletteIndex();
+				const PaletteItem* pi = (sp >= 0) ? m_pPalette->GetPaletteItem((size_t)sp) : nullptr;
+				if (pi && pi->category == CATEGORY_TILE) {
+					m_is3x3Mode = !m_is3x3Mode;
+					InvalidateRect(hWnd, NULL, FALSE);
+					return 0;
+				}
+			} else if (m_isErasingMode) {
 				m_is3x3Mode = !m_is3x3Mode;
 				InvalidateRect(hWnd, NULL, FALSE);
 				return 0;
 			}
+		}
+
+		if (wParam == 'E') {
+			if (m_isErasingMode) {
+				m_isErasingMode = false;
+				m_is3x3Mode = false;
+			} else {
+				ExitAllEditModes();
+				m_isErasingMode = true;
+				m_is3x3Mode = false;
+			}
+			InvalidateRect(hWnd, NULL, FALSE);
+			return 0;
 		}
 
 		if (wParam == 'P') {
@@ -634,8 +668,6 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 }
-
-
 
 void MapEditor::NewMap() {
 	for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -722,7 +754,63 @@ bool MapEditor::ShowOpenFileDialog(WCHAR* fileName, DWORD fileNameSize) {
 }
 
 void MapEditor::DrawPreview(Gdiplus::Graphics* pGraphics) {
-	if (!pGraphics || !m_isPlacingMode) return;
+	if (!pGraphics) return;
+	
+	// 제거 모드 프리뷰
+	if (m_isErasingMode) {
+		Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)m_rawMousePos.x, (float)m_rawMousePos.y));
+		int mapX = (int)floor(mouseWorldPos.X / TILE_SIZE);
+		int mapY = (int)floor(mouseWorldPos.Y / TILE_SIZE);
+		mapX = max(0, min(m_mapWidth - 1, mapX));
+		mapY = max(0, min(m_mapHeight - 1, mapY));
+
+		Gdiplus::PointF snappedWorldPos((float)(mapX * TILE_SIZE), (float)(mapY * TILE_SIZE));
+		Gdiplus::PointF screenPos = WorldToScreen(snappedWorldPos);
+		float tileSize = (float)TILE_SIZE * m_pView->GetZoomFactor();
+
+		if (m_is3x3Mode) {
+			Gdiplus::Pen erasePen(Gdiplus::Color(200, 255, 0, 0), 2.0f);
+			for (int dy = -1; dy <= 1; ++dy) {
+				for (int dx = -1; dx <= 1; ++dx) {
+					int targetX = mapX + dx;
+					int targetY = mapY + dy;
+					if (targetX >= 0 && targetX < m_mapWidth && targetY >= 0 && targetY < m_mapHeight) {
+						Gdiplus::PointF worldGridPos((float)(targetX * TILE_SIZE), (float)(targetY * TILE_SIZE));
+						Gdiplus::PointF screenGridPos = WorldToScreen(worldGridPos);
+						Gdiplus::RectF gridRect(screenGridPos.X, screenGridPos.Y, tileSize, tileSize);
+						pGraphics->DrawRectangle(&erasePen, gridRect);
+						
+						Gdiplus::SolidBrush fillBrush(Gdiplus::Color(80, 255, 0, 0));
+						pGraphics->FillRectangle(&fillBrush, gridRect);
+					}
+				}
+			}
+		} else {
+			Gdiplus::Pen erasePen(Gdiplus::Color(200, 255, 0, 0), 2.0f);
+			Gdiplus::RectF gridRect(screenPos.X, screenPos.Y, tileSize, tileSize);
+			pGraphics->DrawRectangle(&erasePen, gridRect);
+			
+			Gdiplus::SolidBrush fillBrush(Gdiplus::Color(80, 255, 0, 0));
+			pGraphics->FillRectangle(&fillBrush, gridRect);
+		}
+
+		// 제거 모드 안내 텍스트
+		Gdiplus::Font infoFont(L"Arial", 14, Gdiplus::FontStyleBold);
+		Gdiplus::SolidBrush textBrush(Gdiplus::Color(255, 255, 255, 0));
+		Gdiplus::SolidBrush backBrush(Gdiplus::Color(150, 0, 0, 0));
+		
+		std::wstring modeText = L"[TILE ERASE MODE] Click to erase";
+		if (m_is3x3Mode) modeText += L" (3x3)";
+		modeText += L" | E: Exit | Shift: Toggle 3x3";
+		
+		Gdiplus::RectF textRect(10, 40, 600, 30);
+		pGraphics->FillRectangle(&backBrush, textRect);
+		pGraphics->DrawString(modeText.c_str(), -1, &infoFont, textRect, nullptr, &textBrush);
+		return;
+	}
+	
+	// 기존 배치 모드 프리뷰
+	if (!m_isPlacingMode) return;
 
 	int selIdx = m_pPalette->GetSelectedPaletteIndex();
 	const PaletteItem* pSelectedItem = (selIdx >= 0) ? m_pPalette->GetPaletteItem((size_t)selIdx) : nullptr;
@@ -776,12 +864,16 @@ void MapEditor::DrawPreview(Gdiplus::Graphics* pGraphics) {
 		finalRenderX = screenPreviewPos.X;
 		finalRenderY = screenPreviewPos.Y;
 
+		// 중앙 타일 프리뷰 (항상 표시)
 		Gdiplus::Pen previewGridPen(Gdiplus::Color(150, 255, 255, 0), 2.0f);
 		Gdiplus::RectF previewGridRect(finalRenderX, finalRenderY, finalRenderWidth, finalRenderHeight);
 		pGraphics->DrawRectangle(&previewGridPen, previewGridRect);
 
+		// 3x3 모드일 때 초록색 강조 표시
 		if (m_is3x3Mode) {
-			Gdiplus::Pen gridPen3x3(Gdiplus::Color(100, 255, 255, 0), 1.5f);
+			// 초록색 테두리와 반투명 초록색 배경으로 강조
+			Gdiplus::Pen gridPen3x3(Gdiplus::Color(220, 0, 255, 100), 3.0f);  // 더 두꺼운 초록색 테두리
+			Gdiplus::SolidBrush fillBrush3x3(Gdiplus::Color(100, 100, 255, 150));  // 반투명 초록색 배경
 			float tileSize = (float)TILE_SIZE * m_pView->GetZoomFactor();
 
 			for (int dy = -1; dy <= 1; ++dy) {
@@ -791,9 +883,21 @@ void MapEditor::DrawPreview(Gdiplus::Graphics* pGraphics) {
 					Gdiplus::PointF screenGridPos = WorldToScreen(Gdiplus::PointF(worldGridX, worldGridY));
 
 					Gdiplus::RectF gridRect(screenGridPos.X, screenGridPos.Y, tileSize, tileSize);
+					
+					// 반투명 초록색 배경 먼저 그리기
+					pGraphics->FillRectangle(&fillBrush3x3, gridRect);
+					
+					// 초록색 테두리 그리기
 					pGraphics->DrawRectangle(&gridPen3x3, gridRect);
 				}
 			}
+			
+			// 전체 3x3 영역을 감싸는 외곽 테두리 (더욱 강조)
+			Gdiplus::PointF topLeftWorld(m_snappedPreviewPos.X - TILE_SIZE, m_snappedPreviewPos.Y - TILE_SIZE);
+			Gdiplus::PointF topLeftScreen = WorldToScreen(topLeftWorld);
+			Gdiplus::Pen outerPen(Gdiplus::Color(255, 0, 255, 50), 4.0f);  // 더 두꺼운 외곽선
+			Gdiplus::RectF outerRect(topLeftScreen.X, topLeftScreen.Y, tileSize * 3.0f, tileSize * 3.0f);
+			pGraphics->DrawRectangle(&outerPen, outerRect);
 		}
 	}
 	else if (selectedItem.category == CATEGORY_OBJECT) {
@@ -1118,10 +1222,39 @@ void MapEditor::DeselectObject(HWND hWnd) {
 	}
 }
 
+void MapEditor::HandleErasingModeClick(POINT clickPoint, HWND hWnd) {
+	Gdiplus::PointF mouseWorldPos = ScreenToWorld(Gdiplus::PointF((float)clickPoint.x, (float)clickPoint.y));
+
+	int mapX = (int)floor(mouseWorldPos.X / TILE_SIZE);
+	int mapY = (int)floor(mouseWorldPos.Y / TILE_SIZE);
+	mapX = max(0, min(m_mapWidth - 1, mapX));
+	mapY = max(0, min(m_mapHeight - 1, mapY));
+
+	if (m_is3x3Mode) {
+		for (int dy = -1; dy <= 1; ++dy) {
+			for (int dx = -1; dx <= 1; ++dx) {
+				int targetX = mapX + dx;
+				int targetY = mapY + dy;
+				if (targetX >= 0 && targetX < m_mapWidth && targetY >= 0 && targetY < m_mapHeight) {
+					m_tileMap[targetY][targetX] = ResourcePathUtils::TileResourceDef();
+				}
+			}
+		}
+	}
+	else {
+		m_tileMap[mapY][mapX] = ResourcePathUtils::TileResourceDef();
+	}
+	m_pLayerComposer->SetTileLayerDirty(true);
+	InvalidateRect(hWnd, NULL, FALSE);
+	UpdateWindow(hWnd);
+}
+
 void MapEditor::ExitAllEditModes() {
 	m_pWalkableEditor->EndWalkableEdit();
 	m_isPlayerSpawnMode = false;
 	m_isPlacingMode = false;
+	m_isErasingMode = false;
+	m_is3x3Mode = false;
 	if (m_pPalette->IsSubPaletteOpen()) {
 		m_pPalette->CloseSubPalette();
 		m_paletteLayerDirty = true;

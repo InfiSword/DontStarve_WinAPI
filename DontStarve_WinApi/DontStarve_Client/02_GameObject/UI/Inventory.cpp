@@ -219,6 +219,40 @@ bool Inventory::ConsumeItems(const std::map<UINT, UINT>& requiredItems) {
 	return true;
 }
 
+void Inventory::ClearAllItems()
+{
+	for (auto& slot : m_slots) {
+		slot.Clear();
+	}
+	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
+		UpdateSlotButton(i);
+	}
+}
+
+bool Inventory::AddItemByID(GameObjectID itemID, UINT count)
+{
+	GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(itemID, 0.0f, 0.0f, nullptr, false);
+	Item* item = dynamic_cast<Item*>(itemObj);
+	if (!item) {
+		if (itemObj) delete itemObj;
+		return false;
+	}
+	bool result = AddItem(item, count);
+	if (!result) delete item;
+	return result;
+}
+
+std::vector<std::pair<GameObjectID, UINT>> Inventory::GetAllItemsSnapshot() const
+{
+	std::vector<std::pair<GameObjectID, UINT>> result;
+	for (const ItemSlot& slot : m_slots) {
+		if (!slot.IsEmpty()) {
+			result.emplace_back(slot.item->GetID(), slot.count);
+		}
+	}
+	return result;
+}
+
 UINT Inventory::GetItemCount(UINT itemId) const {
 	UINT total = 0;
 	for (const auto& slot : m_slots)
