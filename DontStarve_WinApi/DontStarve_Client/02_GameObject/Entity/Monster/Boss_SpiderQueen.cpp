@@ -119,65 +119,27 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	// 애니메이션 기반 상태 처리 (HIT, DEATH, ATTACK)
-	if (m_state == (int)SpiderQueenState::HIT || m_state == (int)SpiderQueenState::DEATH || m_state == (int)SpiderQueenState::ATTACK)
-	{
-		if (m_animator->IsAnimationDone())
-		{
-			if (m_state == (int)SpiderQueenState::DEATH) {
-				ObjectManager::GetInstance()->RemoveGameObject(this);
-				return;
-			}
-
-			if (m_state == (int)SpiderQueenState::ATTACK) {
-				OnAttackEnd();
-			}
-			else if (m_state == (int)SpiderQueenState::HIT) {
-				if (m_attackTarget && m_attackTarget->IsEnabled())
-					ChangeState((int)SpiderQueenState::CHASE);
-				else
-					ChangeState((int)SpiderQueenState::IDLE);
-			}
-		}
+	// 1. 공통 애니메이션 상태 처리 (HIT, DEATH, ATTACK)
+	if (HandleCommonAnimationState((int)SpiderQueenState::HIT, (int)SpiderQueenState::DEATH, (int)SpiderQueenState::ATTACK))
 		return;
-	}
 
-	// 메인 상태 머신 (CHASE, IDLE)
-	if (m_state == (int)SpiderQueenState::CHASE)
-	{
-		if (!m_attackTarget || !m_attackTarget->IsEnabled()) {
-			m_attackTarget = nullptr;
-			ChangeState((int)SpiderQueenState::IDLE);
-			m_idleTimer = 0.0f;
-			return;
-		}
-
-		if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
-			if (m_attackCooldownTimer <= 0.0f) {
-				ChangeState((int)SpiderQueenState::ATTACK);
-				m_attackCooldownTimer = m_attackCooldown;
-			}
-			else {
-				ChangeState((int)SpiderQueenState::IDLE);
-			}
-		}
-	}
-
-	else if (m_state == (int)SpiderQueenState::IDLE)
-	{
-		m_idleTimer += deltaTime;
-		if (m_idleTimer >= m_idleDuration) 
-		{
-			ChangeState((int)SpiderQueenState::CHASE);
-			m_idleTimer = 0.0f;
-		}
-	}
+	// 2. 메인 AI 로직 (AlwaysChase 타입 헬퍼 사용)
+	// SpiderQueen은 CHASE 상태를 이동 상태로 사용합니다.
+	UpdateAI_AlwaysChase(deltaTime, 
+		(int)SpiderQueenState::CHASE, (int)SpiderQueenState::ATTACK, (int)SpiderQueenState::IDLE);
 }
 
 void Boss_SpiderQueen::UpdateMovement(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
 	if (m_state != (int)SpiderQueenState::CHASE) return;
+
+	// 플레이어와 너무 가까우면 이동을 멈춰 흔들림(jitter) 방지
+	if (m_distToPlayerSq < (m_attackRange * m_attackRange * 0.9f))
+	{
+		m_animator->SetState((int)SpiderQueenState::IDLE, transform->GetDirection());
+		return;
+	}
 
 	Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
 	transform->SetDirection(newDir);

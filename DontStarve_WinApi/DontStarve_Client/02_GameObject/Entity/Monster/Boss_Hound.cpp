@@ -70,49 +70,26 @@ void Boss_Hound::UpdateAI(float deltaTime)
 	if (!IsEnabled() || !transform || !m_animator)
 		return;
 
-	if (m_state == (int)BossHoundState::HIT || m_state == (int)BossHoundState::DEATH)
-	{
-		if (m_animator->IsAnimationDone())
-		{
-			if (m_state == (int)BossHoundState::DEATH) {
-				ObjectManager::GetInstance()->RemoveGameObject(this);
-				return;
-			}
-			ChangeState((int)BossHoundState::IDLE);
-		}
+	// 1. 공통 애니메이션 상태 처리 (HIT, DEATH, ATTACK)
+	if (HandleCommonAnimationState((int)BossHoundState::HIT, (int)BossHoundState::DEATH, (int)BossHoundState::ATTACK))
 		return;
-	}
 
-	// Monster::Update에서 어그로를 자동으로 처리함(ALWAYS 타입)
-	// 어그로가 켜져있을 때 항상 추격함
-
-	if (m_state == (int)BossHoundState::RUN)
-	{
-		if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
-			if (m_attackCooldownTimer <= 0.0f) {
-				ChangeState((int)BossHoundState::ATTACK);
-				m_attackCooldownTimer = m_attackCooldown;
-			}
-			else {
-				ChangeState((int)BossHoundState::IDLE);
-			}
-		}
-	}
-	else if (m_state == (int)BossHoundState::IDLE)
-	{
-		m_idleTimer += deltaTime;
-		if (m_idleTimer >= m_idleDuration)
-		{
-			ChangeState((int)BossHoundState::RUN);
-			m_idleTimer = 0.0f;
-		}
-	}
+	// 2. 메인 AI 로직 (AlwaysChase 타입 헬퍼 사용)
+	UpdateAI_AlwaysChase(deltaTime, 
+		(int)BossHoundState::RUN, (int)BossHoundState::ATTACK, (int)BossHoundState::IDLE);
 }
 
 void Boss_Hound::UpdateMovement(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
 	if (m_state != (int)BossHoundState::RUN) return;
+
+	// 플레이어와 너무 가까우면 이동을 멈춰 흔들림(jitter) 방지
+	if (m_distToPlayerSq < (m_attackRange * m_attackRange * 0.9f))
+	{
+		m_animator->SetState((int)BossHoundState::IDLE, transform->GetDirection());
+		return;
+	}
 
 	Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
 	transform->SetDirection(newDir);

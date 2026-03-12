@@ -56,5 +56,6 @@ private:
     float m_spawnRadius;  // 거미 스폰 범위
     float m_invincibleTimer; // 성장 후 무적 타이머
 
-	int m_amountOfSpidersToSpawn; // 피격 시 스폰할 거미 수
+	int m_amountOfSpidersToSpawn; // 한 번에 스폰할 거미 수
+	int m_remainingSpiders;       // 현재 거미집 안에 남은 총 거미 수
 };

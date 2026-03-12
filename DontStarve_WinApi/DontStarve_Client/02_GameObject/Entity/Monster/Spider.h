@@ -26,6 +26,7 @@ public:
     virtual void Init() override;
     virtual void UpdateAI(float deltaTime) override;
     virtual bool OnInteraction(GameObject* obj) override;    
+	virtual void UpdateMovement(float deltaTime) override;
     virtual void Damaged(int damage) override;
 
     // 어그로 설정
@@ -47,4 +48,5 @@ protected:
 private:
     SpiderEgg* m_homeEgg;                // 소속 거미집
     float m_spawnRadius;                 // 거미집 주변 배회 반경
+	bool m_bHasTaunted;                  // 현재 어그로 세션에서 도발 수행 여부
 };

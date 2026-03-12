@@ -22,6 +22,7 @@ public:
 
     virtual void Init() override;
     virtual void UpdateAI(float deltaTime) override;
+    virtual void UpdateMovement(float deltaTime) override;
     virtual void Damaged(int damage) override;
     virtual bool OnInteraction(GameObject* obj) override;
 

@@ -60,4 +60,20 @@ protected:
     virtual void UpdateAI(float deltaTime);
     virtual void UpdateMovement(float deltaTime);
     virtual void OnAttackHit();
+
+    // --- AI 공통 로직 헬퍼 함수 ---
+    // 애니메이션 기반 상태(HIT, DEATH, ATTACK) 처리. 처리되었으면 true 반환.
+    bool HandleCommonAnimationState(int hitState, int deathState, int attackState = -1);
+
+    // 공격 사거리 체크 및 상태 전환
+    void CheckAttackTransition(float range, int attackState, int idleState);
+
+    // 항상 추격하는 AI (보스, 하운드 등)
+    void UpdateAI_AlwaysChase(float deltaTime, int runState, int attackState, int idleState);
+
+    // 범위 기반 추격 AI (거미 등)
+    void UpdateAI_RangeChase(float deltaTime, int idleState, int walkState, int chaseState, int attackState, int tauntState = -1);
+
+    // 기본 배회 AI (피그, 거미 등)
+    void UpdateAI_Wander(float deltaTime, int walkState, int idleState);
 };

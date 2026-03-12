@@ -4,6 +4,7 @@
 #include "../../../02_GameObject/Component/Transform/Transform.h"
 #include "../../../02_GameObject/Component/Collider/BoxCollider.h"
 #include "../../../02_GameObject/Entity/Player/Player.h"
+#include "../../../03_Animation/Animator.h"
 
 Monster::Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
                  const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
@@ -56,15 +57,12 @@ void Monster::Damaged(int damage)
 
 void Monster::Update(float deltaTime)
 {
-    // Death 상태일 때는 애니메이션만 업데이트하고 AI/이동 로직은 건너뜀
-    if (m_isDead)
-    {
-        Entity::Update(deltaTime); // 애니메이션 업데이트
-        UpdateAI(deltaTime);       // 서브클래스에서 DEATH 완료 후 제거 등의 처리를 수행할 수 있도록 호출
-        return;
-    }
+	Entity::Update(deltaTime); // 애니메이션 업데이트
+	UpdateAI(deltaTime);       // 서브클래스에서 DEATH 완료 후 제거 등의 처리를 수행할 수 있도록 호출
 
-    // --- 1. [매 프레임] 플레이어와의 정보 계산 (제곱 거리 사용) ---
+	if (m_isDead) return;
+
+	// --- 1. [매 프레임] 플레이어와의 정보 계산 (제곱 거리 사용) ---
     Player* player = ObjectManager::GetInstance()->GetPlayer();
     if (player)
     {
@@ -155,5 +153,127 @@ void Monster::UpdateMovement(float deltaTime)
 void Monster::OnAttackHit()
 {
     // Default implementation - child classes should override
+}
+
+bool Monster::HandleCommonAnimationState(int hitState, int deathState, int attackState)
+{
+    if (m_state == hitState || m_state == deathState || (attackState != -1 && m_state == attackState))
+    {
+        if (m_animator && m_animator->IsAnimationDone())
+        {
+            if (m_state == deathState) {
+                ObjectManager::GetInstance()->RemoveGameObject(this);
+                return true;
+            }
+
+            if (attackState != -1 && m_state == attackState) {
+                OnAttackEnd();
+            }
+            
+            // 기본 상태로 복귀 (자식 클래스에서 UpdateAI 시 다시 결정됨)
+            ChangeState((int)0); // 보통 0은 IDLE
+        }
+        return true;
+    }
+    return false;
+}
+
+void Monster::CheckAttackTransition(float range, int attackState, int idleState)
+{
+    if (m_distToPlayerSq <= (range * range)) {
+        if (m_attackCooldownTimer <= 0.0f) {
+            ChangeState(attackState);
+            m_attackCooldownTimer = m_attackCooldown;
+        }
+        else {
+            ChangeState(idleState);
+        }
+    }
+}
+
+void Monster::UpdateAI_AlwaysChase(float deltaTime, int runState, int attackState, int idleState)
+{
+    if (m_state == runState)
+    {
+        CheckAttackTransition(m_attackRange, attackState, idleState);
+    }
+    else if (m_state == idleState)
+    {
+        // 공격 사거리 내에 있고 쿨다운이 끝났다면 즉시 공격 상태로 전환
+        if (m_distToPlayerSq <= (m_attackRange * m_attackRange) && m_attackCooldownTimer <= 0.0f) {
+            ChangeState(attackState);
+            m_attackCooldownTimer = m_attackCooldown;
+            return;
+        }
+
+        m_idleTimer += deltaTime;
+        if (m_idleTimer >= m_idleDuration)
+        {
+            // 공격 사거리 밖에 있을 때만 다시 추격(RUN) 상태로 전환
+            if (m_distToPlayerSq > (m_attackRange * m_attackRange)) {
+                ChangeState(runState);
+                m_idleTimer = 0.0f;
+            }
+        }
+    }
+}
+
+void Monster::UpdateAI_RangeChase(float deltaTime, int idleState, int walkState, int chaseState, int attackState, int tauntState)
+{
+    if (m_state == chaseState)
+    {
+        if (!m_attackTarget || !m_attackTarget->IsEnabled()) {
+            ChangeState(idleState);
+            m_idleTimer = 0.0f;
+            return;
+        }
+
+        CheckAttackTransition(m_attackRange, attackState, idleState);
+    }
+    else if (m_state == idleState)
+    {
+        if (m_attackTarget && m_attackTarget->IsEnabled()) {
+            // 공격 사거리 밖에 있을 때만 다시 추격(CHASE) 상태로 전환 (약간의 버퍼 1.1f 사용)
+            if (m_distToPlayerSq > (m_attackRange * m_attackRange * 1.1f)) {
+                if (tauntState != -1) ChangeState(tauntState);
+                else ChangeState(chaseState);
+                return;
+            }
+            
+            // 사거리 내에 있고 쿨다운이 끝났다면 공격
+            if (m_attackCooldownTimer <= 0.0f) {
+                ChangeState(attackState);
+                m_attackCooldownTimer = m_attackCooldown;
+            }
+            return;
+        }
+        UpdateAI_Wander(deltaTime, walkState, idleState);
+    }
+    else if (m_state == walkState)
+    {
+        if (m_attackTarget && m_attackTarget->IsEnabled()) {
+            if (tauntState != -1) ChangeState(tauntState);
+            else ChangeState(chaseState);
+            return;
+        }
+        // Wander 로직은 UpdateMovement에서 목표 지점 도달 시 IDLE로 전환함
+    }
+}
+
+void Monster::UpdateAI_Wander(float deltaTime, int walkState, int idleState)
+{
+    if (m_state != idleState) return;
+
+    m_idleTimer += deltaTime;
+    if (m_idleTimer >= m_idleDuration) {
+        float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
+        float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
+        m_targetX = transform->GetX() + cosf(angle) * dist;
+        m_targetY = transform->GetY() + sinf(angle) * dist;
+
+        // 맵 경계 체크 (Define.h 상수의 가시성 확인 필요, 여기서는 일반 로직만 작성)
+        ChangeState(walkState);
+        m_idleTimer = 0.0f;
+    }
 }
 
