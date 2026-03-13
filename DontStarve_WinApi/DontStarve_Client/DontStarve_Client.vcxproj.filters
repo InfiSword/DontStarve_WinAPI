@@ -66,6 +66,7 @@
     <ClCompile Include="02_GameObject\Item\Tool\Weapon\Weapon.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Monster.cpp" />
     <ClCompile Include="02_GameObject\Entity\Combatant.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\BossHoundScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -138,6 +139,7 @@
     <ClInclude Include="02_GameObject\Item\Tool\Weapon\Weapon.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Monster.h" />
     <ClInclude Include="02_GameObject\Entity\Combatant.h" />
+    <ClInclude Include="01_Manager\SceneManager\BossHoundScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

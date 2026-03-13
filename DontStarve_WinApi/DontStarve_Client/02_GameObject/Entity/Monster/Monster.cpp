@@ -168,6 +168,8 @@ bool Monster::HandleCommonAnimationState(int hitState, int deathState, int attac
 
             if (attackState != -1 && m_state == attackState) {
                 OnAttackEnd();
+                // 공격이 완전히 끝난 시점에 쿨다운 시작 (공격 애니메이션 도중 쿨다운이 깎이는 것 방지)
+                m_attackCooldownTimer = m_attackCooldown;
             }
             
             // 기본 상태로 복귀 (자식 클래스에서 UpdateAI 시 다시 결정됨)
@@ -183,10 +185,12 @@ void Monster::CheckAttackTransition(float range, int attackState, int idleState)
     if (m_distToPlayerSq <= (range * range)) {
         if (m_attackCooldownTimer <= 0.0f) {
             ChangeState(attackState);
-            m_attackCooldownTimer = m_attackCooldown;
+            // m_attackCooldownTimer 설정은 HandleCommonAnimationState의 OnAttackEnd 이후로 이동
         }
         else {
-            ChangeState(idleState);
+            // 공격 사거리 내에 있지만 쿨다운 중일 때는 억지로 IDLE로 바꾸지 않고 
+            // 현재 상태(보통 CHASE/RUN)를 유지하여 플레이어를 계속 따라붙게 함
+            // (IDLE로 바꾸면 제자리에서 멍하니 서있게 됨)
         }
     }
 }
@@ -200,10 +204,12 @@ void Monster::UpdateAI_AlwaysChase(float deltaTime, int runState, int attackStat
     else if (m_state == idleState)
     {
         // 공격 사거리 내에 있고 쿨다운이 끝났다면 즉시 공격 상태로 전환
-        if (m_distToPlayerSq <= (m_attackRange * m_attackRange) && m_attackCooldownTimer <= 0.0f) {
-            ChangeState(attackState);
-            m_attackCooldownTimer = m_attackCooldown;
-            return;
+        if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
+            if (m_attackCooldownTimer <= 0.0f) {
+                ChangeState(attackState);
+                return;
+            }
+            // 쿨다운 중이면 그대로 대기 (AlwaysChase는 보통 공격적인 타입)
         }
 
         m_idleTimer += deltaTime;
@@ -243,7 +249,6 @@ void Monster::UpdateAI_RangeChase(float deltaTime, int idleState, int walkState,
             // 사거리 내에 있고 쿨다운이 끝났다면 공격
             if (m_attackCooldownTimer <= 0.0f) {
                 ChangeState(attackState);
-                m_attackCooldownTimer = m_attackCooldown;
             }
             return;
         }
@@ -256,7 +261,6 @@ void Monster::UpdateAI_RangeChase(float deltaTime, int idleState, int walkState,
             else ChangeState(chaseState);
             return;
         }
-        // Wander 로직은 UpdateMovement에서 목표 지점 도달 시 IDLE로 전환함
     }
 }
 

@@ -12,6 +12,10 @@
 
 RenderManager::RenderManager()
 {
+	// 생성자에서 레이어별 커맨드 벡터의 초기 공간을 미리 확보 (싱글톤 생성 시 1회 수행)
+	for (int i = 0; i < LAYER_COUNT; ++i) {
+		m_layerCommands[i].reserve(512);
+	}
 }
 
 RenderManager::~RenderManager()
@@ -21,15 +25,11 @@ RenderManager::~RenderManager()
 
 void RenderManager::Init()
 {
-	// 각 레이어별로 충분한 메모리를 미리 할당하여 런타임 재할당 오버헤드 방지
-	// 총합 약 2000개 이상의 커맨드를 수용할 수 있도록 레이어당 넉넉히 예약 (프레임간 메모리 유지)
-	for (int i = 0; i < LAYER_COUNT; ++i) {
-		m_layerCommands[i].reserve(512);
-	}
-
 	// GDI+ 객체 캐싱 초기화
 	m_pCachedPen = new Gdiplus::Pen(Gdiplus::Color(0, 0, 0, 0));
+
 	m_pCachedBrush = new Gdiplus::SolidBrush(Gdiplus::Color(0, 0, 0, 0));
+
 	m_pCachedAttr = new Gdiplus::ImageAttributes();
 }
 
@@ -49,7 +49,7 @@ void RenderManager::Release()
 {
 	Clear();
 
-	// 캐싱된 GDI+ 객체 해제
+	// 캐싱된 GDI+ 객체 해제 및 nullptr 설정
 	if (m_pCachedPen) { delete m_pCachedPen; m_pCachedPen = nullptr; }
 	if (m_pCachedBrush) { delete m_pCachedBrush; m_pCachedBrush = nullptr; }
 	if (m_pCachedAttr) { delete m_pCachedAttr; m_pCachedAttr = nullptr; }
@@ -157,28 +157,19 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 {
 	if (!pObject || !pObject->IsEnabled()) return;
 
-	// [최적화] GetComponent 대신 미리 캐싱된 컴포넌트들을 확인합니다.
-	// SpriteRenderer(월드)와 Image(UI) 중 어떤 것이 있는지 확인
 	SpriteRenderer* spriteRenderer = pObject->GetComponent<SpriteRenderer>();
 	ComponentElement::Image* image = pObject->GetComponent<ComponentElement::Image>();
 	Animator* anim = pObject->GetComponent<Animator>();
 
 	if (!spriteRenderer && !image && !anim) return;
 
-	// --- 1. 월드 오브젝트 처리 (Transform 기반) ---
 	if (spriteRenderer || anim)
 	{
-		// [캐싱 활용] SpriteRenderer 내부에 미리 저장된 Transform을 가져옵니다.
 		Transform* transform =  pObject->GetComponent<Transform>();
 		if (!transform) return;
 
 		CameraManager* pCam = CameraManager::GetInstance();
-		Gdiplus::RectF viewport = pCam->GetViewportWorldRect();
-
-		float worldX = transform->GetX();
-		float worldY = transform->GetY();
-
-		Gdiplus::PointF screenPos = pCam->WorldToScreen(worldX, worldY);
+		Gdiplus::PointF screenPos = pCam->WorldToScreen(transform->GetX(), transform->GetY());
 		RenderLayer layer = (spriteRenderer) ? spriteRenderer->GetLayer() : LAYER_WORLD_OBJECT;
 		float sortKey = transform->GetSortKey(layer);
 		Direction dir = transform->GetDirection();
@@ -201,10 +192,8 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 				(spriteHandle->tintColor.GetA() < 255));
 		}
 	}
-	// --- 2. UI 오브젝트 처리 (RectTransform 기반) ---
 	else if (image)
 	{
-		// [캐싱 활용] Image 컴포넌트 내부에 캐싱된 RectTransform 사용
 		RectTransform* rectTransform = pObject->GetComponent<RectTransform>();
 		if (!rectTransform) return;
 
@@ -216,7 +205,6 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 		float x = rectTransform->GetX();
 		float y = rectTransform->GetY();
 
-		// UI는 카메라 변환 없이 RectTransform의 좌표를 직접 사용합니다.
 		float renderX = x - (rectTransform->GetPivotX() * width);
 		float renderY = y - (rectTransform->GetPivotY() * height);
 
@@ -249,67 +237,54 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 {
 	if (!pGraphics) return;
 
-	// 레이어 순서대로 순회하며 각 레이어 내의 오브젝트들만 정렬하여 출력
 	for (int i = 0; i < LAYER_COUNT; ++i) {
 		if (m_layerCommands[i].empty()) continue;
 		
-		// 해당 레이어 내에서만 sortKey 기준으로 정렬 (전체 정렬보다 훨씬 빠름)
 		std::sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), CompareDrawCommands);
 		
 		for (const auto& cmd : m_layerCommands[i]) {
 			switch (cmd.type) {
 			case DRAW_COMMAND_IMAGE:
 				if (cmd.pBitmap) {
-					if (cmd.hasTint) {
+					if (cmd.hasTint && m_pCachedAttr) {
 						float r = cmd.tintColor.GetR() / 255.0f;
 						float g = cmd.tintColor.GetG() / 255.0f;
 						float b = cmd.tintColor.GetB() / 255.0f;
 						float a = cmd.tintColor.GetA() / 255.0f;
-						Gdiplus::ColorMatrix matrix = 
-						{
-						  r,0,0,0,0,
-						  0,g,0,0,0,
-						  0,0,b,0,0,
-						  0,0,0,a,0,
-					      0,0,0,0,1 
-						};
+						Gdiplus::ColorMatrix matrix = { r,0,0,0,0, 0,g,0,0,0, 0,0,b,0,0, 0,0,0,a,0, 0,0,0,0,1 };
 						m_pCachedAttr->SetColorMatrix(&matrix);
-						pGraphics->DrawImage(cmd.pBitmap,
-							cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y,
-							cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit, m_pCachedAttr);
+						pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y, cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit, m_pCachedAttr);
 					}
 					else {
-						pGraphics->DrawImage(cmd.pBitmap, 
-							cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y, 
-							cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
+						pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y, cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
 					}
 				}
 				break;
 			case DRAW_COMMAND_TEXT:
-				if (cmd.textPtr) {
+				if (cmd.textPtr && cmd.pBrush) {
 					pGraphics->DrawString(cmd.textPtr->c_str(), -1, cmd.pFont, cmd.destRect, cmd.pStringFormat, cmd.pBrush);
 				}
 				break;
 			case DRAW_COMMAND_RECTANGLE:
-			{
-				m_pCachedPen->SetColor(cmd.color);
-				m_pCachedPen->SetWidth(cmd.thickness);
-				pGraphics->DrawRectangle(m_pCachedPen, cmd.destRect);
-			}
-			break;
+				if (m_pCachedPen) {
+					m_pCachedPen->SetColor(cmd.color);
+					m_pCachedPen->SetWidth(cmd.thickness);
+					pGraphics->DrawRectangle(m_pCachedPen, cmd.destRect);
+				}
+				break;
 			case DRAW_COMMAND_FILL_RECTANGLE:
-			{
-				m_pCachedBrush->SetColor(cmd.color);
-				pGraphics->FillRectangle(m_pCachedBrush, cmd.destRect);
-			}
-			break;
+				if (m_pCachedBrush) {
+					m_pCachedBrush->SetColor(cmd.color);
+					pGraphics->FillRectangle(m_pCachedBrush, cmd.destRect);
+				}
+				break;
 			case DRAW_COMMAND_ELLIPSE:
-			{
-				m_pCachedPen->SetColor(cmd.color);
-				m_pCachedPen->SetWidth(cmd.thickness);
-				pGraphics->DrawEllipse(m_pCachedPen, cmd.destRect);
-			}
-			break;
+				if (m_pCachedPen) {
+					m_pCachedPen->SetColor(cmd.color);
+					m_pCachedPen->SetWidth(cmd.thickness);
+					pGraphics->DrawEllipse(m_pCachedPen, cmd.destRect);
+				}
+				break;
 			}
 		}
 		m_layerCommands[i].clear();

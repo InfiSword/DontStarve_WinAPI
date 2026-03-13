@@ -4,9 +4,12 @@
 enum class BossHoundState {
 	IDLE,
 	RUN,
+	ATTACK_PRE,
 	ATTACK,
 	HIT,
 	DEATH,
+	HOWL,
+	CHASE,
 	COUNT
 };
 

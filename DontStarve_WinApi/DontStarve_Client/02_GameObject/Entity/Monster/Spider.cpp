@@ -49,7 +49,6 @@ void Spider::Init()
 	ChangeState((int)SpiderState::IDLE);
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
-	m_attackCooldownTimer = 0.0f;
 	m_bHasTaunted = false;
 
 	if (this->transform) {
@@ -293,8 +292,8 @@ void Spider::UpdateMovement(float deltaTime)
 
 	if (m_state == (int)SpiderState::CHASE)
 	{
-		// 플레이어와 너무 가까우면 이동을 멈춰 흔들림(jitter) 방지
-		if (m_distToPlayerSq < (m_attackRange * m_attackRange * 0.9f))
+		// 공격 사거리 내에 들어오면 즉시 멈춤 (AI 틱 대기 중 이동 방지)
+		if (m_distToPlayerSq <= (m_attackRange * m_attackRange))
 		{
 			m_animator->SetState((int)SpiderState::IDLE, transform->GetDirection());
 			return;
@@ -354,7 +353,6 @@ void Spider::Damaged(int damage)
 
 	if (!IsDead() && IsEnabled()) {
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
-		m_attackCooldownTimer = 0.0f;
 	}
 }
 

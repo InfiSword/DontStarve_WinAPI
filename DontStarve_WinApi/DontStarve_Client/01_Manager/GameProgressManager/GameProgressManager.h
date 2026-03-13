@@ -8,6 +8,16 @@
 enum SceneType;
 enum GameObjectID : UINT;
 
+// 플레이어 상태 스냅샷 (씬 전환 시 저장/복원용)
+struct PlayerStateSnapshot
+{
+	int hp;
+	int equippedSlotIndex;
+	std::vector<std::pair<GameObjectID, UINT>> inventoryItems;
+
+	PlayerStateSnapshot() : hp(100), equippedSlotIndex(-1) {}
+};
+
 // ====================== 게임 진행도 관련 구조체 =======================
 
 // 씬(맵) 클리어 정보 구조체
@@ -187,8 +197,18 @@ public:
 	// 현재 씬 진행도 초기화 (씬 전환 시 호출)
 	void ResetCurrentSceneProgress();
 
+	// 플레이어 상태 저장/복원 관련
+	void SavePlayerState(const PlayerStateSnapshot& snapshot);
+	const PlayerStateSnapshot& GetPlayerState() const { return m_playerSnapshot; }
+	bool HasSavedPlayerState() const { return m_hasSavedPlayerState; }
+	void ClearSavedPlayerState() { m_hasSavedPlayerState = false; }
+
 private:
 	GameProgress m_gameProgress;  // 게임 진행도 데이터
+
+	// 플레이어 상태 저장
+	PlayerStateSnapshot m_playerSnapshot;
+	bool m_hasSavedPlayerState = false;
 
 	// 현재 씬 진행도 추적 (클리어 조건 체크용)
 	std::map<GameObjectID, int> m_currentSceneKillCounts;

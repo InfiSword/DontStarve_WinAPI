@@ -144,6 +144,7 @@
     <ClInclude Include="01_Manager\InventoryManager\InventoryManager.h" />
     <ClInclude Include="01_Manager\ResourceManager\ResourceManager.h" />
     <ClInclude Include="01_Manager\SceneManager\BaseScene.h" />
+    <ClInclude Include="01_Manager\SceneManager\BossHoundScene.h" />
     <ClInclude Include="01_Manager\SceneManager\CharacterSelectScene.h" />
     <ClInclude Include="01_Manager\SceneManager\GameScene.h" />
     <ClInclude Include="01_Manager\SceneManager\SceneManager.h" />
@@ -212,6 +213,7 @@
     <ClInclude Include="02_GameObject\Building\SpiderEgg.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="01_Manager\SceneManager\BossHoundScene.cpp" />
     <ClCompile Include="01_Manager\UIManager\UIManager.cpp" />
     <ClCompile Include="01_Manager\GameProgressManager\GameProgressManager.cpp" />
     <ClCompile Include="01_Manager\InventoryManager\InventoryManager.cpp" />

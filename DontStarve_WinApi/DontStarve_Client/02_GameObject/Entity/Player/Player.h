@@ -1,9 +1,9 @@
 #pragma once
 #include "../Combatant.h"
 #include "../../Item/Tool/Tool.h"
+#include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
 
 class Inventory;
-class ResourceManager;
 
 enum PlayerState {
 	IDLE,               // 대기 상태
@@ -15,16 +15,6 @@ enum PlayerState {
 	ATTACK,
 	HIT,
 	COUNT,
-};
-
-// 플레이어 상태 스냅샷 (씬 전환 시 저장/복원용)
-struct PlayerStateSnapshot
-{
-	int hp;
-	int equippedSlotIndex;
-	std::vector<std::pair<GameObjectID, UINT>> inventoryItems;
-
-	PlayerStateSnapshot() : hp(100), equippedSlotIndex(-1) {}
 };
 
 class Player : public Combatant
@@ -61,10 +51,6 @@ public:
 	// 상태 저장/복원 (씬 전환용)
 	PlayerStateSnapshot SaveState() const;
 	void RestoreState(const PlayerStateSnapshot& snapshot);
-	
-	// 정적 저장소 (씬 전환 시 임시 저장용)
-	static PlayerStateSnapshot s_savedState;
-	static bool s_hasSavedState;
 
 private:
 	// singleTarget=true: 첫 번째 몬스터만 피해, false: 콜라이더와 겹치는 모든 몬스터 피해

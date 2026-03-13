@@ -187,7 +187,6 @@ void Boss_SpiderQueen::Damaged(int damage)
 
 	if (!IsDead() && IsEnabled()) {
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
-		m_attackCooldownTimer = 0.0f;
 	}
 }
 

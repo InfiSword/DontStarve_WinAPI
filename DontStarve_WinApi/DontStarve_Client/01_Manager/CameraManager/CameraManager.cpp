@@ -91,6 +91,12 @@ Gdiplus::PointF CameraManager::GetCameraPos() const
     return m_cameraPos;
 }
 
+void CameraManager::SetCameraPos(float x, float y)
+{
+    m_cameraPos.X = x;
+    m_cameraPos.Y = y;
+}
+
 Gdiplus::RectF CameraManager::GetViewportWorldRect() const
 {
     float halfWidth = WINCX / 2.0f;

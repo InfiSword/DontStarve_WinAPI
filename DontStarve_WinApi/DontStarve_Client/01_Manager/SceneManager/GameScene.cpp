@@ -33,10 +33,6 @@ GameScene::~GameScene()
 
 void GameScene::Init()
 {
-	// GameScene에 필요한 매니저들 초기화
-	// 주의: 일부 매니저는 이미 MainGame::Init()에서 초기화되었을 수 있음
-	// 중복 초기화를 피하기 위해 필요한 경우에만 초기화
-	
 	// UI 매니저는 씬마다 초기화 필요 (UI 리스트 클리어)
 	UIManager::GetInstance()->Init();
 	
@@ -52,15 +48,24 @@ void GameScene::Init()
 	// ColliderManager 초기화 (콜라이더 목록 등, 씬별로 정리 후 사용)
 	ColliderManager::GetInstance()->Init();
 
+	// RenderManager 초기화 (GDI+ 객체 캐싱 등)
+	RenderManager::GetInstance()->Init();
+
+	// InputManager 초기화 (키 상태 리셋)
+	InputManager::GetInstance()->Init();
+
 	// 크래프팅 UI 생성
-	m_craftingUI = new MenuUI();
+	if (!m_craftingUI) {
+		m_craftingUI = new MenuUI();
+	}
 	if (m_craftingUI) {
 		m_craftingUI->Init();
-		// CraftingUI는 내부적으로 필요한 UI 요소들을 UIManager에 추가함
 	}
 
-	// 플레이어 HP UI 생성 (우측 상단 게이지 + Game Over 패널)
-	m_playerHPUI = new PlayerHPUI();
+	// 플레이어 HP UI 생성
+	if (!m_playerHPUI) {
+		m_playerHPUI = new PlayerHPUI();
+	}
 	if (m_playerHPUI) {
 		m_playerHPUI->Init();
 	}

@@ -53,7 +53,7 @@ void PlayerHPUI::Init()
 		L"100/100",
 		Gdiplus::Color(255, 255, 255, 255),
 		LAYER_UI_FOREGROUND,
-		2.0f,
+		11.0f,
 		L"Arial",
 		16.0f,
 		Gdiplus::StringAlignmentCenter,
@@ -149,7 +149,7 @@ void PlayerHPUI::UpdateHPDisplay(int currentHp, int maxHp)
 		return;
 	m_lastDisplayedHp = currentHp;
 	m_lastDisplayedMaxHp = maxHp;
-	std::wstring str = std::to_wstring(maxHp) + L"/" + std::to_wstring(currentHp);
+	std::wstring str = std::to_wstring(currentHp) + L"/" + std::to_wstring(maxHp);
 	m_hpText->SetText(str);
 }
 
@@ -197,7 +197,7 @@ void PlayerHPUI::Render()
 	float iconCenterX = barLeft - GAP - ICON_SIZE * 0.5f;
 	float iconCenterY = barTop + BAR_HEIGHT * 0.5f;
 
-	// 1) HP 아이콘
+	// 1) HP 아이콘 - 높은 SortKey (10.0f)
 	if (m_hpIconSprite && m_hpIconSprite->bitmap) {
 		Gdiplus::Bitmap* bmp = m_hpIconSprite->bitmap.get();
 		pRM->AddUIImageCommand(
@@ -206,15 +206,15 @@ void PlayerHPUI::Render()
 			ICON_SIZE, ICON_SIZE,
 			0.5f, 0.5f,
 			LAYER_UI_FOREGROUND,
-			1.0f
+			10.0f
 		);
 	}
 
-	// 2) 게이지 바 배경
+	// 2) 게이지 바 배경 - 높은 SortKey (10.1f)
 	Gdiplus::RectF barRect(barLeft, barTop, BAR_WIDTH, BAR_HEIGHT);
-	pRM->AddFillRectangleCommand(barRect, Gdiplus::Color(80, 40, 40, 255), LAYER_UI_FOREGROUND, 1.1f);
+	pRM->AddFillRectangleCommand(barRect, Gdiplus::Color(255, 60, 0, 0), LAYER_UI_FOREGROUND, 10.1f);
 
-	// 3) 게이지 바 채움 (HP 비율)
+	// 3) 게이지 바 채움 (HP 비율) - 높은 SortKey (10.2f), 선명한 빨간색
 	Player* player = ObjectManager::GetInstance() ? ObjectManager::GetInstance()->GetPlayer() : nullptr;
 	float ratio = 1.0f;
 	if (player) {
@@ -227,13 +227,13 @@ void PlayerHPUI::Render()
 	float fillWidth = BAR_WIDTH * ratio;
 	if (fillWidth > 0.01f) {
 		Gdiplus::RectF fillRect(barLeft, barTop, fillWidth, BAR_HEIGHT);
-		pRM->AddFillRectangleCommand(fillRect, Gdiplus::Color(255, 70, 70, 255), LAYER_UI_FOREGROUND, 1.2f);
+		pRM->AddFillRectangleCommand(fillRect, Gdiplus::Color(255, 255, 0, 0), LAYER_UI_FOREGROUND, 10.2f);
 	}
 
-	// 4) Game Over 시 전체 화면 반투명 블록
+	// 4) Game Over 시 전체 화면 반투명 블록 - 가장 높은 SortKey
 	if (m_gameOverPanelVisible) {
 		Gdiplus::RectF blockRect(0.0f, 0.0f, screenW, screenH);
-		pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(150, 0, 0, 0), LAYER_UI_FOREGROUND, GAME_OVER_SORT_KEY);
+		pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(150, 0, 0, 0), LAYER_UI_FOREGROUND, GAME_OVER_SORT_KEY + 10.0f);
 	}
 }
 

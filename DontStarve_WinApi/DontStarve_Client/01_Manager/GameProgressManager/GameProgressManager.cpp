@@ -191,6 +191,13 @@ void GameProgressManager::ResetCurrentSceneProgress()
 	OutputDebugStringW(L"GameProgressManager: 현재 씬 진행도 초기화\n");
 }
 
+void GameProgressManager::SavePlayerState(const PlayerStateSnapshot& snapshot)
+{
+	m_playerSnapshot = snapshot;
+	m_hasSavedPlayerState = true;
+	OutputDebugStringW(L"GameProgressManager: 플레이어 상태 저장 완료\n");
+}
+
 // ====================== 저장/로드 =======================
 
 void GameProgressManager::SaveToFile(const std::wstring& filePath)

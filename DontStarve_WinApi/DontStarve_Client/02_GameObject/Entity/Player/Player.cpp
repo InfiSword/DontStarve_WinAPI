@@ -14,10 +14,7 @@
 #include "../../Component/Collider/BoxCollider.h"
 #include "../../../01_Manager/ColliderManager/ColliderManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
-
-// 정적 멤버 변수 정의
-PlayerStateSnapshot Player::s_savedState;
-bool Player::s_hasSavedState = false;
+#include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
 
 static const float CHOP_PIVOT_X = 0.3f;
 static const float CHOP_PIVOT_Y = 0.9f;
@@ -198,6 +195,11 @@ void Player::Init()
 
 	if (m_inventory)
 		m_inventory->Init();
+
+	// GameProgressManager에서 상태 복원
+	if (GameProgressManager::GetInstance()->HasSavedPlayerState()) {
+		RestoreState(GameProgressManager::GetInstance()->GetPlayerState());
+	}
 }
 
 void Player::ToggleEquipItem(int slotIndex)

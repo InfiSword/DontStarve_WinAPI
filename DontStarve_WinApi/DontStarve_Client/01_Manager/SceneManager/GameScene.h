@@ -46,10 +46,10 @@ public:
 	void SetSelectedCharacterID(GameObjectID characterID) { m_selectedCharacterID = characterID; }
 	GameObjectID GetSelectedCharacterID() const { return m_selectedCharacterID; }
 
-private:
+protected:
 	void CreateGameObjectsFromMapData();
 	
-private:
+protected:
 	// 맵 데이터 (SceneManager가 소유, GameScene은 포인터로만 참조)
 	const MapData* m_mapData;
 
@@ -63,6 +63,7 @@ private:
 	// 선택된 캐릭터 ID
 	GameObjectID m_selectedCharacterID;
 
+private:
 	// 크래프팅 UI
 	MenuUI* m_craftingUI;
 

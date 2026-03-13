@@ -32,10 +32,12 @@ public:
 	Gdiplus::RectF GetViewportWorldRect() const;
 	
 	Gdiplus::PointF GetCameraPos() const;
+	void SetCameraPos(float x, float y);
 
 	// 타겟 설정
 	void SetTarget(GameObject* target);
 	const GameObject* GetTarget() const;
+	GameObject* GetTarget() { return m_target; }
 	void FollowTarget();
 
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }

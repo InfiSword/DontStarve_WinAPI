@@ -3,6 +3,8 @@
 #include "TitleScene.h"
 #include "CharacterSelectScene.h"
 #include "GameScene.h"
+#include "BossHoundScene.h"
+#include "../GameProgressManager/GameProgressManager.h"
 #include "../UIManager/UIManager.h"
 #include "../InputManager/InputManager.h"
 #include "../CameraManager/CameraManager.h"
@@ -216,18 +218,23 @@ void SceneManager::DoLoadGameScene(const std::wstring& mapFileName, GameObjectID
 {
 	OutputDebugStringW(L"SceneManager: 게임 씬 로드 시작\n");
 
-	// 현재 플레이어 상태 저장 (씬 전환 전)
+	// 현재 플레이어 상태 저장 (GameProgressManager 이용)
 	ObjectManager* objMgr = ObjectManager::GetInstance();
-	Player* currentPlayer = objMgr ? objMgr->GetPlayer() : nullptr;
+	Player* currentPlayer = objMgr->GetPlayer();
 	if (currentPlayer) {
-		Player::s_savedState = currentPlayer->SaveState();
-		Player::s_hasSavedState = true;
-		OutputDebugStringW(L"SceneManager: 플레이어 상태 저장 완료\n");
+		GameProgressManager::GetInstance()->SavePlayerState(currentPlayer->SaveState());
 	}
 
 	ReleaseCurrentScene();
 
-	GameScene* gameScene = new GameScene();
+	GameScene* gameScene = nullptr;
+	if (mapFileName == L"GameData/01_BossHound.dsm") {
+		gameScene = new BossHoundScene();
+	}
+	else {
+		gameScene = new GameScene();
+	}
+	
 	gameScene->SetSelectedCharacterID(selectedCharacterID);
 
 	// 미리 로드된 맵 저장소에서 찾기 (Init에서 이미 로드됨)
@@ -236,19 +243,11 @@ void SceneManager::DoLoadGameScene(const std::wstring& mapFileName, GameObjectID
 		m_currentMapData = &it->second;
 		// GameScene은 포인터만 받음 (복사/파싱 없음, 즉시 사용)
 		gameScene->Init(m_currentMapData);
-
-		// 새로 생성된 플레이어에게 저장된 상태 복원
-		if (Player::s_hasSavedState) {
-			Player* newPlayer = ObjectManager::GetInstance()->GetPlayer();
-			if (newPlayer) {
-				newPlayer->RestoreState(Player::s_savedState);
-				OutputDebugStringW(L"SceneManager: 플레이어 상태 복원 완료\n");
-			}
-		}
 	}
 	else {
 		OutputDebugStringW((L"SceneManager: 맵 데이터를 찾을 수 없음 - " + mapFileName + L"\n").c_str());
 		m_currentMapData = nullptr;
+		gameScene->Init(nullptr);
 	}
 	m_currentScene = gameScene;
 
