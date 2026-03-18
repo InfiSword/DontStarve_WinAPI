@@ -1,8 +1,5 @@
 #pragma once
 #include "../../../Header/SingleTon.h"
-#include <string>
-#include <vector>
-#include <map>
 
 // 전방 선언
 enum SceneType;
@@ -20,34 +17,17 @@ struct PlayerStateSnapshot
 
 // ====================== 게임 진행도 관련 구조체 =======================
 
-// 씬(맵) 클리어 정보 구조체
+// 씬(맵) 클리어 정보 구조체 (런타임용)
 struct SceneClearInfo
 {
 	SceneType sceneType;
 	bool isCleared;
-	std::wstring clearDate;  // 클리어 날짜(문자열)
 
-	SceneClearInfo(SceneType type, bool cleared = false, const std::wstring& date = L"")
-		: sceneType(type), isCleared(cleared), clearDate(date) {}
+	SceneClearInfo(SceneType type, bool cleared = false)
+		: sceneType(type), isCleared(cleared) {}
 };
 
-// 씬 클리어 조건 정보 구조체
-struct SceneClearCondition
-{
-	SceneType sceneType;
-	std::wstring conditionDescription;  // 클리어 조건 설명
-	std::vector<GameObjectID> requiredKills;   // 처치해야 하는 오브젝트 ID
-	std::vector<GameObjectID> requiredItems;   // 모아야 하는 아이템 ID
-	int requiredItemCount;      // 필요 아이템 수량
-
-	SceneClearCondition(SceneType type, const std::wstring& desc,
-		const std::vector<GameObjectID>& kills = {},
-		const std::vector<GameObjectID>& items = {}, int count = 0)
-		: sceneType(type), conditionDescription(desc),
-		requiredKills(kills), requiredItems(items), requiredItemCount(count) {}
-};
-
-// 캐릭터 해금 정보 구조체
+// 캐릭터 해금 정보 구조체 (저장용)
 struct CharacterUnlockInfo
 {
 	GameObjectID characterID;
@@ -58,17 +38,16 @@ struct CharacterUnlockInfo
 		: characterID(id), isUnlocked(unlocked), requiredScene(scene) {}
 };
 
-// 게임 전체 진행도 저장 구조체
+// 게임 전체 진행도 데이터 구조체
 struct GameProgress
 {
 	std::vector<SceneClearInfo> sceneClearInfos;
 	std::vector<CharacterUnlockInfo> characterUnlockInfos;
-	std::vector<SceneClearCondition> sceneClearConditions;
 
 	GameProgress()
 	{
-		// 기본 클리어 정보
-		sceneClearInfos.emplace_back(SCENE_GAME_FARMING_AREA, true);      // 기본 해금
+		// 런타임 클리어 정보 초기화 (Farming Area만 기본 true)
+		sceneClearInfos.emplace_back(SCENE_GAME_FARMING_AREA, true);
 		sceneClearInfos.emplace_back(SCENE_GAME_HOUND_FOREST, false);
 		sceneClearInfos.emplace_back(SCENE_GAME_SPIDER_QUEEN_HOUSE, false);
 
@@ -76,44 +55,9 @@ struct GameProgress
 		characterUnlockInfos.emplace_back(GOID_PLAYER_WILSON, true, SCENE_NONE);
 		characterUnlockInfos.emplace_back(GOID_PLAYER_WILLOW, false, SCENE_GAME_HOUND_FOREST);
 		characterUnlockInfos.emplace_back(GOID_PLAYER_WOLFGANG, false, SCENE_GAME_SPIDER_QUEEN_HOUSE);
-
-		// 클리어 조건 초기화
-		InitializeSceneClearConditions();
 	}
 
-	// 씬별 클리어 조건 초기화
-	void InitializeSceneClearConditions()
-	{
-		sceneClearConditions.emplace_back(
-			SCENE_GAME_FARMING_AREA,
-			L"기본으로 열려 있는 지역입니다."
-		);
-
-		sceneClearConditions.emplace_back(
-			SCENE_GAME_HOUND_FOREST,
-			L"하운드 몬스터들을 처치하세요.",
-			std::vector<GameObjectID>{ GOID_MONSTER_HOUNDDOG, GOID_MONSTER_REDHOUNDDOG, GOID_MONSTER_ICEHOUNDDOG }
-		);
-
-		sceneClearConditions.emplace_back(
-			SCENE_GAME_SPIDER_QUEEN_HOUSE,
-			L"거미여왕을 처치하고 특정 아이템을 모으세요.",
-			std::vector<GameObjectID>{ GOID_MONSTER_QUEEN_SPIDER },
-			std::vector<GameObjectID>{ GOID_ITEM_MEAT, GOID_ITEM_BERRY },
-			5
-		);
-	}
-
-	// 특정 씬 클리어 조건 가져오기
-	const SceneClearCondition* GetSceneClearCondition(SceneType sceneType) const
-	{
-		for (const auto& condition : sceneClearConditions)
-			if (condition.sceneType == sceneType)
-				return &condition;
-		return nullptr;
-	}
-
-	// 씬 클리어 여부 확인
+	// 씬 클리어 여부 확인 (런타임)
 	bool IsSceneCleared(SceneType sceneType) const
 	{
 		for (const auto& sceneInfo : sceneClearInfos)
@@ -122,7 +66,7 @@ struct GameProgress
 		return false;
 	}
 
-	// 캐릭터 해금 여부 확인
+	// 캐릭터 해금 여부 확인 (저장 데이터)
 	bool IsCharacterUnlocked(GameObjectID characterID) const
 	{
 		for (const auto& charInfo : characterUnlockInfos)
@@ -131,7 +75,7 @@ struct GameProgress
 		return false;
 	}
 
-	// 씬 클리어 처리
+	// 씬 클리어 처리 (런타임 상태 업데이트 및 캐릭터 해금 체크)
 	void ClearScene(SceneType sceneType)
 	{
 		for (auto& sceneInfo : sceneClearInfos)
@@ -139,19 +83,19 @@ struct GameProgress
 			if (sceneInfo.sceneType == sceneType)
 			{
 				sceneInfo.isCleared = true;
-				UpdateCharacterUnlocks(); // 캐릭터 자동 해금
+				UpdateCharacterUnlocks(); // 캐릭터 자동 해금 체크
 				break;
 			}
 		}
 	}
 
-	// 캐릭터 해금 업데이트
+	// 캐릭터 해금 업데이트 (한 번 해금되면 유지)
 	void UpdateCharacterUnlocks()
 	{
 		for (auto& charInfo : characterUnlockInfos)
 		{
-			if (charInfo.requiredScene != SCENE_NONE)
-				charInfo.isUnlocked = IsSceneCleared(charInfo.requiredScene);
+			if (charInfo.requiredScene != SCENE_NONE && IsSceneCleared(charInfo.requiredScene))
+				charInfo.isUnlocked = true;
 		}
 	}
 };
@@ -168,36 +112,24 @@ private:
 public:
 	// 생명주기 메서드
 	void Init();
-	void Update(float deltaTime);
-	void LateUpdate();
-	void Render();
+	void Update(float deltaTime) {}
+	void LateUpdate() {}
+	void Render() {}
 	void Release();
 
-	// 씬 클리어 관련
+	// 씬 클리어 관련 (런타임)
 	bool IsSceneCleared(SceneType sceneType) const;
 	void ClearScene(SceneType sceneType);
-	const SceneClearCondition* GetSceneClearCondition(SceneType sceneType) const;
 
-	// 캐릭터 해금 관련
+	// 캐릭터 해금 관련 (영구 저장)
 	bool IsCharacterUnlocked(GameObjectID characterID) const;
 	void UpdateCharacterUnlocks();
 
-	// 이벤트 기반 체크 (핵심)
-	void OnMonsterKilled(GameObjectID monsterID, SceneType currentScene);
-	void OnItemCollected(GameObjectID itemID, int count, SceneType currentScene);
-	bool CheckCurrentSceneClearCondition(SceneType sceneType);
-
-	// 저장/로드 (텍스트 파일 형식)
+	// 저장/로드 (텍스트 파일 형식, 캐릭터 해금 정보만 저장)
 	void SaveToFile(const std::wstring& filePath);
 	void LoadFromFile(const std::wstring& filePath);
 
-	// GameProgress 접근자
-	const GameProgress& GetGameProgress() const { return m_gameProgress; }
-
-	// 현재 씬 진행도 초기화 (씬 전환 시 호출)
-	void ResetCurrentSceneProgress();
-
-	// 플레이어 상태 저장/복원 관련
+	// 플레이어 상태 저장/복원 관련 (씬 전환용)
 	void SavePlayerState(const PlayerStateSnapshot& snapshot);
 	const PlayerStateSnapshot& GetPlayerState() const { return m_playerSnapshot; }
 	bool HasSavedPlayerState() const { return m_hasSavedPlayerState; }
@@ -210,16 +142,8 @@ private:
 	PlayerStateSnapshot m_playerSnapshot;
 	bool m_hasSavedPlayerState = false;
 
-	// 현재 씬 진행도 추적 (클리어 조건 체크용)
-	std::map<GameObjectID, int> m_currentSceneKillCounts;
-	std::map<GameObjectID, int> m_currentSceneItemCounts;
-
 	std::wstring m_saveFilePath;  // 저장 파일 경로
 
 	// 내부 헬퍼 함수
-	std::wstring GetCurrentDateString() const;
-	void ParseSceneLine(const std::wstring& line);
 	void ParseCharacterLine(const std::wstring& line);
-	void ParseKillCountLine(const std::wstring& line);
-	void ParseItemCountLine(const std::wstring& line);
 };

@@ -75,14 +75,6 @@ bool InventoryManager::TryGainItemFromWorldObject(Player* player, GameObject* wo
 		OutputDebugStringW((L"InventoryManager: 아이템 획득 실패 - ID: " + std::to_wstring(drop.first) + L", 개수: " + std::to_wstring(drop.second) + L"\n").c_str());
 	}
 	
-	// 아이템 획득 이벤트 발생 (실제 획득 여부와 관계없이 드롭된 아이템은 진행도에 반영)
-	if (!drops.empty()) {
-		SceneType currentScene = SceneManager::GetInstance()->GetCurrentSceneType();
-		for (const auto& drop : drops) {
-			GameProgressManager::GetInstance()->OnItemCollected(drop.first, drop.second, currentScene);
-		}
-	}
-	
 	return anyItemAdded;
 }
 

@@ -157,62 +157,79 @@ void RenderManager::RenderGameObject(GameObject* pObject)
 {
 	if (!pObject || !pObject->IsEnabled()) return;
 
-	SpriteRenderer* spriteRenderer = pObject->GetComponent<SpriteRenderer>();
-	ComponentElement::Image* image = pObject->GetComponent<ComponentElement::Image>();
-	Animator* anim = pObject->GetComponent<Animator>();
-
-	if (!spriteRenderer && !image && !anim) return;
-
-	if (spriteRenderer || anim)
-	{
-		Transform* transform =  pObject->GetComponent<Transform>();
+	// UI 오브젝트와 월드 엔티티를 구분하여 처리
+	if (pObject->GetType() == GO_TYPE_UI) {
+		RectTransform* rectTransform = pObject->GetComponent<RectTransform>();
+		ComponentElement::Image* image = pObject->GetComponent<ComponentElement::Image>();
+		if (rectTransform && image) {
+			RenderUI(rectTransform, image);
+		}
+	}
+	else {
+		// Entity 타입 (나머지 월드 오브젝트)
+		Transform* transform = pObject->GetComponent<Transform>();
 		if (!transform) return;
 
-		CameraManager* pCam = CameraManager::GetInstance();
-		Gdiplus::PointF screenPos = pCam->WorldToScreen(transform->GetX(), transform->GetY());
-		RenderLayer layer = (spriteRenderer) ? spriteRenderer->GetLayer() : LAYER_WORLD_OBJECT;
-		float sortKey = transform->GetSortKey(layer);
-		Direction dir = transform->GetDirection();
+		SpriteRenderer* spriteRenderer = pObject->GetComponent<SpriteRenderer>();
+		Animator* anim = pObject->GetComponent<Animator>();
 
-		if (anim) {
-			anim->Draw(nullptr, screenPos, 1.0f, dir, layer, sortKey);
-		}
-		else if (spriteRenderer) {
-			auto spriteHandle = spriteRenderer->GetSpriteHandle();
-			if (!spriteHandle || !spriteHandle->bitmap) return;
-
-			float width = spriteHandle->sourceRect.Width;
-			float height = spriteHandle->sourceRect.Height;
-			float x = screenPos.X - width * transform->GetPivotX();
-			float y = screenPos.Y - height * transform->GetPivotY();
-
-			AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(x, y, width, height),
-				spriteHandle->sourceRect, Gdiplus::UnitPixel, screenPos,
-				layer, sortKey, dir, spriteHandle->tintColor,
-				(spriteHandle->tintColor.GetA() < 255));
+		if (spriteRenderer || anim) {
+			RenderEntity(transform, spriteRenderer, anim);
 		}
 	}
-	else if (image)
-	{
-		RectTransform* rectTransform = pObject->GetComponent<RectTransform>();
-		if (!rectTransform) return;
+}
 
-		auto spriteHandle = image->GetSpriteHandle();
+void RenderManager::RenderEntity(Transform* pTransform, SpriteRenderer* pSpriteRenderer, Animator* pAnimator)
+{
+	if (!pTransform) return;
+
+	CameraManager* pCam = CameraManager::GetInstance();
+	Gdiplus::PointF screenPos = pCam->WorldToScreen(pTransform->GetX(), pTransform->GetY());
+	
+	RenderLayer layer = (pSpriteRenderer) ? pSpriteRenderer->GetLayer() : LAYER_WORLD_OBJECT;
+	float sortKey = pTransform->GetSortKey(layer);
+	Direction dir = pTransform->GetDirection();
+
+	if (pAnimator) {
+		pAnimator->Draw(nullptr, screenPos, 1.0f, dir, layer, sortKey);
+	}
+	else if (pSpriteRenderer) {
+		auto spriteHandle = pSpriteRenderer->GetSpriteHandle();
 		if (!spriteHandle || !spriteHandle->bitmap) return;
 
-		float width = spriteHandle->sourceRect.Width * rectTransform->GetScaleX();
-		float height = spriteHandle->sourceRect.Height * rectTransform->GetScaleY();
-		float x = rectTransform->GetX();
-		float y = rectTransform->GetY();
+		// 스케일 적용하여 렌더링 크기 계산
+		float width = spriteHandle->sourceRect.Width * pTransform->GetScaleX();
+		float height = spriteHandle->sourceRect.Height * pTransform->GetScaleY();
+		float x = screenPos.X - width * pTransform->GetPivotX();
+		float y = screenPos.Y - height * pTransform->GetPivotY();
 
-		float renderX = x - (rectTransform->GetPivotX() * width);
-		float renderY = y - (rectTransform->GetPivotY() * height);
-
-		AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(renderX, renderY, width, height),
-			spriteHandle->sourceRect, Gdiplus::UnitPixel, Gdiplus::PointF(x, y),
-			image->GetLayer(), image->GetSortKey(), DIR_DOWN,
-			spriteHandle->tintColor, (spriteHandle->tintColor.GetA() < 255));
+		AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(x, y, width, height),
+			spriteHandle->sourceRect, Gdiplus::UnitPixel, screenPos,
+			layer, sortKey, dir, spriteHandle->tintColor,
+			(spriteHandle->tintColor.GetA() < 255));
 	}
+}
+
+void RenderManager::RenderUI(RectTransform* pRectTransform, ComponentElement::Image* pImage)
+{
+	if (!pRectTransform || !pImage) return;
+
+	auto spriteHandle = pImage->GetSpriteHandle();
+	if (!spriteHandle || !spriteHandle->bitmap) return;
+
+	// UI는 화면 좌표계에서 직접 계산
+	float width = spriteHandle->sourceRect.Width * pRectTransform->GetScaleX();
+	float height = spriteHandle->sourceRect.Height * pRectTransform->GetScaleY();
+	float x = pRectTransform->GetX();
+	float y = pRectTransform->GetY();
+
+	float renderX = x - (pRectTransform->GetPivotX() * width);
+	float renderY = y - (pRectTransform->GetPivotY() * height);
+
+	AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(renderX, renderY, width, height),
+		spriteHandle->sourceRect, Gdiplus::UnitPixel, Gdiplus::PointF(x, y),
+		pImage->GetLayer(), pImage->GetSortKey(), DIR_DOWN,
+		spriteHandle->tintColor, (spriteHandle->tintColor.GetA() < 255));
 }
 
 void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height)

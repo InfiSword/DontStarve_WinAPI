@@ -1,5 +1,7 @@
 #pragma once
 
+struct MapData;
+
 // BaseScene: 모든 Scene의 부모가 되는 추상 클래스
 class BaseScene
 {
@@ -8,7 +10,7 @@ public:
 	virtual ~BaseScene() = default;
 
 	// 기본 필수 함수들 - 모든 Scene에서 구현해야 함
-	virtual void Init() = 0;
+	virtual void Init(const MapData* mapData) = 0;
 	virtual void Update(float deltaTime) = 0;
 	virtual void LateUpdate() = 0;
 	virtual void Render() = 0;

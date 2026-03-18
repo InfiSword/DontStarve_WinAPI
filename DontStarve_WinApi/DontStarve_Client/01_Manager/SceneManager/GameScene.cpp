@@ -12,6 +12,7 @@
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/UI/CraftingUI.h"
 #include "../../02_GameObject/UI/PlayerHPUI.h"
+#include "../../02_GameObject/UI/GameOverUI.h"
 
 GameScene::GameScene()
 	: m_mapData(nullptr)
@@ -23,6 +24,7 @@ GameScene::GameScene()
 	, m_selectedCharacterID(GOID_NONE)
 	, m_craftingUI(nullptr)
 	, m_playerHPUI(nullptr)
+	, m_gameOverUI(nullptr)
 {
 }
 
@@ -31,59 +33,31 @@ GameScene::~GameScene()
 	Release();
 }
 
-void GameScene::Init()
-{
-	// UI 매니저는 씬마다 초기화 필요 (UI 리스트 클리어)
-	UIManager::GetInstance()->Init();
-	
-	// ObjectManager 초기화 (게임 오브젝트 관리)
-	ObjectManager::GetInstance()->Init();
-	
-	// CameraManager 초기화 (카메라 위치 등)
-	CameraManager::GetInstance()->Init();
-	
-	// InventoryManager 초기화
-	InventoryManager::GetInstance()->Init();
-
-	// ColliderManager 초기화 (콜라이더 목록 등, 씬별로 정리 후 사용)
-	ColliderManager::GetInstance()->Init();
-
-	// RenderManager 초기화 (GDI+ 객체 캐싱 등)
-	RenderManager::GetInstance()->Init();
-
-	// InputManager 초기화 (키 상태 리셋)
-	InputManager::GetInstance()->Init();
-
-	// 크래프팅 UI 생성
-	if (!m_craftingUI) {
-		m_craftingUI = new MenuUI();
-	}
-	if (m_craftingUI) {
-		m_craftingUI->Init();
-	}
-
-	// 플레이어 HP UI 생성
-	if (!m_playerHPUI) {
-		m_playerHPUI = new PlayerHPUI();
-	}
-	if (m_playerHPUI) {
-		m_playerHPUI->Init();
-	}
-
-	// GameProgressManager 초기화 (게임 진행도 로드)
-	GameProgressManager::GetInstance()->Init();
-}
-
 void GameScene::Init(const MapData* mapData)
 {
-	// 맵 데이터 참조만 저장 (복사 없음, SceneManager가 소유)
+	// 1. 매니저들 기초 초기화
+	UIManager::GetInstance()->Init();
+	ObjectManager::GetInstance()->Init();
+	CameraManager::GetInstance()->Init();
+	InventoryManager::GetInstance()->Init();
+	ColliderManager::GetInstance()->Init();
+	RenderManager::GetInstance()->Init();
+	InputManager::GetInstance()->Init();
+
+	// 2. UI 생성 및 초기화
+	if (!m_craftingUI) m_craftingUI = new MenuUI();
+	if (m_craftingUI) m_craftingUI->Init();
+
+	if (!m_playerHPUI) m_playerHPUI = new PlayerHPUI();
+	if (m_playerHPUI) m_playerHPUI->Init();
+
+	if (!m_gameOverUI) m_gameOverUI = new GameOverUI();
+	if (m_gameOverUI) m_gameOverUI->Init();
+
+	// 3. 맵 데이터 처리
 	m_mapData = mapData;
 	m_hasWalkableBounds = false;
 
-	// 기본 초기화
-	Init();
-
-	// Walkable 경계 계산 (맵 데이터 기준, 월드 좌표)
 	if (m_mapData && m_mapData->mapWidth > 0 && m_mapData->mapHeight > 0)
 	{
 		float minX = 1e9f, minY = 1e9f, maxX = -1e9f, maxY = -1e9f;
@@ -92,8 +66,7 @@ void GameScene::Init(const MapData* mapData)
 		{
 			for (int x = 0; x < m_mapData->mapWidth; ++x)
 			{
-				if (!m_mapData->walkableAreas[x][y])
-					continue;
+				if (!m_mapData->walkableAreas[x][y]) continue;
 
 				float wx = static_cast<float>(x) * TILE_SIZE + TILE_SIZE * 0.5f;
 				float wy = static_cast<float>(y) * TILE_SIZE + TILE_SIZE * 0.5f;
@@ -114,19 +87,14 @@ void GameScene::Init(const MapData* mapData)
 			m_walkableMaxX = maxX;
 			m_walkableMaxY = maxY;
 
-			// Walkable 영역으로 카메라 이동 제한 설정 (에디터에서 설정한 이동 가능 구역만큼만 카메라 이동)
 			CameraManager* cameraManager = CameraManager::GetInstance();
 			if (cameraManager)
-			{
 				cameraManager->SetWalkableBounds(m_walkableMinX, m_walkableMinY, m_walkableMaxX, m_walkableMaxY);
-			}
 		}
 	}
 
-	// 맵 데이터의 게임오브젝트들을 생성
+	// 4. 오브젝트 및 플레이어 생성
 	CreateGameObjectsFromMapData();
-
-	// 플레이어 생성
 	SpawnPlayer();
 }
 
@@ -138,8 +106,13 @@ void GameScene::Update(float deltaTime)
 	CameraManager::GetInstance()->Update(deltaTime);
 	RenderManager::GetInstance()->Update(deltaTime);
 	InventoryManager::GetInstance()->Update(deltaTime);
+	
 	if (m_playerHPUI) {
 		m_playerHPUI->Update(deltaTime);
+	}
+
+	if (m_gameOverUI) {
+		m_gameOverUI->Update(deltaTime);
 	}
 }
 
@@ -182,8 +155,6 @@ void GameScene::Render()
 	InputManager* inputManager = InputManager::GetInstance();
 	if (inputManager) {
 		inputManager->Render();
-	} else {
-		OutputDebugStringW(L"GameScene: InputManager가 null입니다.\n");
 	}
 	
 	// 5. UIManager (UI 요소들 렌더링)
@@ -192,9 +163,13 @@ void GameScene::Render()
 		uiManager->Render();
 	}
 	
-	// 5-2. 플레이어 HP UI (우측 상단 게이지 + Game Over 시 블록)
+	// 5-2. 플레이어 HUD 및 Game Over UI
 	if (m_playerHPUI) {
 		m_playerHPUI->Render();
+	}
+	
+	if (m_gameOverUI) {
+		m_gameOverUI->Render();
 	}
 	
 	// 6. InventoryManager (인벤토리 UI 렌더링)
@@ -206,14 +181,19 @@ void GameScene::Render()
 
 void GameScene::Release()
 {
-	// 플레이어 HP UI 해제
+	// UI 해제
 	if (m_playerHPUI) {
 		m_playerHPUI->Release();
 		delete m_playerHPUI;
 		m_playerHPUI = nullptr;
 	}
 
-	// 크래프팅 UI 해제
+	if (m_gameOverUI) {
+		m_gameOverUI->Release();
+		delete m_gameOverUI;
+		m_gameOverUI = nullptr;
+	}
+
 	if (m_craftingUI) {
 		m_craftingUI->Release();
 		delete m_craftingUI;
@@ -221,7 +201,6 @@ void GameScene::Release()
 	}
 
 	// GameScene에서 사용한 매니저/포인터 정리 (소멸자에서 호출)
-	// 콜라이더 목록을 먼저 비워서 오브젝트 해제 시 댕글링 포인터 방지
 	ColliderManager::GetInstance()->Release();
 	InventoryManager::GetInstance()->Release();
 	RenderManager::GetInstance()->Release();
@@ -230,7 +209,6 @@ void GameScene::Release()
 	InputManager::GetInstance()->Release();
 	UIManager::GetInstance()->Release();
 	
-	// MapData는 SceneManager가 소유하므로 여기서는 포인터만 해제
 	m_mapData = nullptr;
 }
 
@@ -241,14 +219,9 @@ void GameScene::CreateGameObjectsFromMapData()
 		return;
 	}
 
-	int createdCount = 0;
 	for (const ResourcePathUtils::ObjectResourceDef& objData : m_mapData->gameObjects)
 	{
-		// 맵에는 배치(type, id, x, y)만 있음. 오브젝트 정보는 ObjectManager가 ResourceManager에서 조회
-		GameObject* obj = objectManager->CreateGameObject(objData.id, objData.x, objData.y, nullptr);
-		if (obj) {
-			createdCount++;
-		}
+		objectManager->CreateGameObject(objData.id, objData.x, objData.y, nullptr);
 	}
 }
 
@@ -259,14 +232,11 @@ void GameScene::SpawnPlayer()
 		return;
 	}
 
-	// 플레이어 생성 (ID 기반)
 	GameObject* player = objectManager->CreateGameObject(m_selectedCharacterID, m_mapData->playerSpawn.x, m_mapData->playerSpawn.y);
 
 	if (player) {
-		// ObjectManager에서 캐싱된 플레이어 가져오기
 		Player* cachedPlayer = objectManager->GetPlayer();
 		if (cachedPlayer) {
-			// 플레이어를 카메라의 타겟으로 설정
 			CameraManager* cameraManager = CameraManager::GetInstance();
 			if (cameraManager) {
 				cameraManager->SetTarget(cachedPlayer);

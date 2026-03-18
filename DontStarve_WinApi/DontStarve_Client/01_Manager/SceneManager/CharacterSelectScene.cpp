@@ -21,7 +21,7 @@ CharacterSelectScene::~CharacterSelectScene()
 	Release();
 }
 
-void CharacterSelectScene::Init()
+void CharacterSelectScene::Init(const MapData* mapData)
 {
 	OutputDebugStringW(L"=== CharacterSelectScene::Init() 시작 ===\n");
 	
@@ -266,7 +266,7 @@ void CharacterSelectScene::InitializeCharacters()
 		L"Willow",
 		willowPortraitPath,
 		willowCharacterPath,
-		L"불의 마법사입니다.\n불을 두려워하지 않고 활용할 수 있습니다.\n\n해금 조건: 거미 던전 클리어",
+		L"불의 마법사입니다.\n불을 두려워하지 않고 활용할 수 있습니다.\n\n해금 조건: 늑대 던전 클리어",
 		startX + spacing,
 		characterY,
 		GOID_PLAYER_WILLOW,
@@ -297,7 +297,7 @@ void CharacterSelectScene::InitializeCharacters()
 		L"Wolfgang",
 		wolfgangPortraitPath,
 		wolfgangCharacterPath,
-		L"강한 캐릭터입니다.\n체력이 높을수록 더 강해지는 캐릭터입니다.\n\n해금 조건: 늑대 던전 클리어",
+		L"강한 캐릭터입니다.\n체력이 높을수록 더 강해지는 캐릭터입니다.\n\n해금 조건: 거미 던전 클리어",
 		startX + spacing * 2,
 		characterY,
 		GOID_PLAYER_WOLFGANG,

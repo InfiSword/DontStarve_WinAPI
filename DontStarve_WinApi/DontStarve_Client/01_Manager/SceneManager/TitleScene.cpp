@@ -17,7 +17,7 @@ TitleScene::~TitleScene()
 	Release();
 }
 
-void TitleScene::Init()
+void TitleScene::Init(const MapData* mapData)
 {
 	// TitleScene에 필요한 매니저들 초기화
 	UIManager::GetInstance()->Init();

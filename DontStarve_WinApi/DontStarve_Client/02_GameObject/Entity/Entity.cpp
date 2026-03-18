@@ -83,6 +83,7 @@ void Entity::SetDropItem(GameObjectID itemID, int count)
 
 bool Entity::OnInteraction(GameObject* obj)
 {
+	if (m_isDead) return false;
 	return GameObject::OnInteraction(obj);
 }
 

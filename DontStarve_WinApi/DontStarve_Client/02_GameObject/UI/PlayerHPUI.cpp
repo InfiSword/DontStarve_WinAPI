@@ -21,10 +21,6 @@ const float PlayerHPUI::GAME_OVER_SORT_KEY = 100.0f;
 
 PlayerHPUI::PlayerHPUI()
 	: m_hpText(nullptr)
-	, m_gameOverText(nullptr)
-	, m_btnToLobby(nullptr)
-	, m_btnQuit(nullptr)
-	, m_gameOverPanelVisible(false)
 	, m_lastDisplayedHp(-1)
 	, m_lastDisplayedMaxHp(-1)
 {
@@ -65,63 +61,6 @@ void PlayerHPUI::Init()
 	);
 	m_hpText->Init();
 	uiManager->AddUIText(m_hpText);
-
-	// Game Over 패널 요소 생성 (초기에는 비활성화, 표시 시 UIManager에 추가)
-	std::shared_ptr<Sprite> btnSprite = pRM->LoadSprite(L"Resource/UI/frontscreen.png");
-	std::shared_ptr<Sprite> btnHoverSprite = pRM->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
-	if (!btnSprite.get()) btnSprite = pRM->LoadSprite(L"Resource\\UI\\slot.png");
-	if (!btnHoverSprite.get()) btnHoverSprite = btnSprite;
-
-	m_gameOverText = new UIText(
-		GOID_NONE,
-		400.0f,
-		80.0f,
-		L"Game Over",
-		Gdiplus::Color(255, 255, 255, 255),
-		LAYER_UI_FOREGROUND,
-		GAME_OVER_SORT_KEY + 1.0f,
-		L"Arial",
-		48.0f,
-		Gdiplus::StringAlignmentCenter,
-		Gdiplus::StringAlignmentCenter,
-		0.5f, 0.5f,
-		0.5f, 0.5f,
-		0.0f, -80.0f
-	);
-	m_gameOverText->Init();
-	m_gameOverText->SetActive(false);
-
-	m_btnToLobby = new UIButton(
-		GOID_NONE,
-		200.0f,
-		50.0f,
-		btnSprite,
-		btnHoverSprite,
-		0.5f, 0.5f, 0.5f, 0.5f,
-		0.0f, 20.0f
-	);
-	m_btnToLobby->SetOnClickCallback([]() {
-		SceneManager::GetInstance()->LoadCharacterSelectScene();
-	});
-	m_btnToLobby->Init();
-	m_btnToLobby->SetSortKey(GAME_OVER_SORT_KEY + 2.0f);
-	m_btnToLobby->SetActive(false);
-
-	m_btnQuit = new UIButton(
-		GOID_NONE,
-		200.0f,
-		50.0f,
-		btnSprite,
-		btnHoverSprite,
-		0.5f, 0.5f, 0.5f, 0.5f,
-		0.0f, 85.0f
-	);
-	m_btnQuit->SetOnClickCallback([]() {
-		PostQuitMessage(0);
-	});
-	m_btnQuit->Init();
-	m_btnQuit->SetSortKey(GAME_OVER_SORT_KEY + 2.0f);
-	m_btnQuit->SetActive(false);
 }
 
 void PlayerHPUI::Update(float deltaTime)
@@ -131,13 +70,6 @@ void PlayerHPUI::Update(float deltaTime)
 		int currentHp = player->GetHp();
 		int maxHp = player->GetMaxHp();
 		UpdateHPDisplay(currentHp, maxHp);
-		if (player->IsDead())
-			ShowGameOverPanel();
-		else
-			HideGameOverPanel();
-	}
-	else {
-		HideGameOverPanel();
 	}
 }
 
@@ -151,36 +83,6 @@ void PlayerHPUI::UpdateHPDisplay(int currentHp, int maxHp)
 	m_lastDisplayedMaxHp = maxHp;
 	std::wstring str = std::to_wstring(currentHp) + L"/" + std::to_wstring(maxHp);
 	m_hpText->SetText(str);
-}
-
-void PlayerHPUI::ShowGameOverPanel()
-{
-	if (m_gameOverPanelVisible) return;
-	UIManager* uiManager = UIManager::GetInstance();
-	if (!uiManager) return;
-
-	m_gameOverPanelVisible = true;
-	m_gameOverText->SetActive(true);
-	m_btnToLobby->SetActive(true);
-	m_btnQuit->SetActive(true);
-	uiManager->AddUIText(m_gameOverText);
-	uiManager->AddUIButton(m_btnToLobby);
-	uiManager->AddUIButton(m_btnQuit);
-}
-
-void PlayerHPUI::HideGameOverPanel()
-{
-	if (!m_gameOverPanelVisible) return;
-	UIManager* uiManager = UIManager::GetInstance();
-	if (!uiManager) return;
-
-	m_gameOverPanelVisible = false;
-	m_gameOverText->SetActive(false);
-	m_btnToLobby->SetActive(false);
-	m_btnQuit->SetActive(false);
-	uiManager->RemoveUIText(m_gameOverText);
-	uiManager->RemoveUIButton(m_btnToLobby);
-	uiManager->RemoveUIButton(m_btnQuit);
 }
 
 void PlayerHPUI::Render()
@@ -229,18 +131,10 @@ void PlayerHPUI::Render()
 		Gdiplus::RectF fillRect(barLeft, barTop, fillWidth, BAR_HEIGHT);
 		pRM->AddFillRectangleCommand(fillRect, Gdiplus::Color(255, 255, 0, 0), LAYER_UI_FOREGROUND, 10.2f);
 	}
-
-	// 4) Game Over 시 전체 화면 반투명 블록 - 가장 높은 SortKey
-	if (m_gameOverPanelVisible) {
-		Gdiplus::RectF blockRect(0.0f, 0.0f, screenW, screenH);
-		pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(150, 0, 0, 0), LAYER_UI_FOREGROUND, GAME_OVER_SORT_KEY + 10.0f);
-	}
 }
 
 void PlayerHPUI::Release()
 {
-	HideGameOverPanel();
-
 	UIManager* uiManager = UIManager::GetInstance();
 	if (uiManager) {
 		if (m_hpText) {
@@ -250,23 +144,6 @@ void PlayerHPUI::Release()
 			m_hpText = nullptr;
 		}
 	}
-	// Game Over 요소는 HideGameOverPanel에서 이미 Remove됨
-	if (m_gameOverText) {
-		m_gameOverText->Release();
-		delete m_gameOverText;
-		m_gameOverText = nullptr;
-	}
-	if (m_btnToLobby) {
-		m_btnToLobby->Release();
-		delete m_btnToLobby;
-		m_btnToLobby = nullptr;
-	}
-	if (m_btnQuit) {
-		m_btnQuit->Release();
-		delete m_btnQuit;
-		m_btnQuit = nullptr;
-	}
 
 	m_hpIconSprite.reset();
-	m_gameOverPanelVisible = false;
 }

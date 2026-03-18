@@ -16,7 +16,8 @@
 #include "../../02_GameObject/Entity/Monster/Spider.h"
 #include "../../02_GameObject/Entity/Monster/Boss_SpiderQueen.h"
 #include "../../02_GameObject/Entity/Monster/Hound.h"
-#include "../../02_GameObject/Entity/Monster/Boss_Hound.h"
+#include "../../02_GameObject/Entity/Monster/Boss_RedHound.h"
+#include "../../02_GameObject/Entity/Monster/Boss_IceHound.h"
 #include "../../02_GameObject/Building/PigHouse.h"
 #include "../../02_GameObject/Building/SpiderEgg.h"
 #include "../../02_GameObject/Item/Ingredient.h"
@@ -227,10 +228,14 @@ void ObjectManager::InitializeFactories()
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Hound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 	};
-	registerIds({ GOID_MONSTER_REDHOUNDDOG, GOID_MONSTER_ICEHOUNDDOG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	m_gameObjectFactories[GOID_MONSTER_REDHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Boss_Hound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-	});
+		return new Boss_RedHound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
+	};
+	m_gameObjectFactories[GOID_MONSTER_ICEHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
+		return new Boss_IceHound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
+	};
 
 	// 건물 - 맵 파일의 피벗값 사용
 	m_gameObjectFactories[GOID_BUILDING_PIGHOUSE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {

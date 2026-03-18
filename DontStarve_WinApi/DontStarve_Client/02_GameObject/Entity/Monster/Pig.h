@@ -22,6 +22,7 @@ public:
     virtual ~Pig();
 
     virtual void Init() override;
+    virtual void ChangeState(int newState) override;
     virtual void UpdateAI(float deltaTime) override;
     virtual void UpdateMovement(float deltaTime) override;
     virtual bool OnInteraction(GameObject* obj) override;
@@ -36,5 +37,6 @@ public:
 protected:
     virtual void OnAttackHit() override;
     virtual void OnAttackEnd() override;
+    virtual void OnHitEnd();
     virtual void Die() override; // override to set DEATH state and play animation
 };

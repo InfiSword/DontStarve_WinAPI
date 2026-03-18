@@ -5,6 +5,7 @@ class GameObject;
 class Player;
 class MenuUI;
 class PlayerHPUI;
+class GameOverUI;
 
 class GameScene : public BaseScene
 {
@@ -13,16 +14,13 @@ public:
 	virtual ~GameScene();
 
 	// BaseScene 가상 함수 구현
-	virtual void Init() override;
+	virtual void Init(const MapData* mapData) override;
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
 	virtual void Render() override;
 	virtual void Release() override;
 
 	virtual SceneType GetSceneType() const override { return SCENE_GAME_FARMING_AREA; }
-	
-	// 맵 데이터 초기화 (SceneManager가 소유한 MapData 포인터만 받음)
-	void Init(const MapData* mapData);
 
 	// Walkable 영역 정보 조회 (몬스터, 기타 시스템에서 사용)
 	bool HasWalkableBounds() const { return m_hasWalkableBounds; }
@@ -67,6 +65,9 @@ private:
 	// 크래프팅 UI
 	MenuUI* m_craftingUI;
 
-	// 플레이어 HP UI (우측 상단 게이지 + Game Over 패널)
+	// 플레이어 HP UI (우측 상단 게이지)
 	PlayerHPUI* m_playerHPUI;
+
+	// 게임 오버 UI
+	GameOverUI* m_gameOverUI;
 };

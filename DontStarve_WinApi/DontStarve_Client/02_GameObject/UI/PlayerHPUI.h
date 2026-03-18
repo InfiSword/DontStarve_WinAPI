@@ -5,7 +5,7 @@ class Sprite;
 class UIText;
 class UIButton;
 
-// 플레이어 HP UI (우측 상단 아이콘 + 게이지바) 및 Game Over 패널
+// 플레이어 HP UI (우측 상단 아이콘 + 게이지바)
 class PlayerHPUI
 {
 public:
@@ -19,18 +19,10 @@ public:
 
 private:
 	void UpdateHPDisplay(int currentHp, int maxHp);
-	void ShowGameOverPanel();
-	void HideGameOverPanel();
 
 	// HP 바 (우측 상단)
 	std::shared_ptr<Sprite> m_hpIconSprite;
 	UIText* m_hpText;  // "max/hp" 텍스트 (게이지 바 안, UIManager 등록)
-
-	// Game Over 패널 (플레이어 사망 시)
-	UIText* m_gameOverText;
-	UIButton* m_btnToLobby;
-	UIButton* m_btnQuit;
-	bool m_gameOverPanelVisible;
 
 	// HP 텍스트 갱신 시 할당 방지: 마지막으로 표시한 값과 같으면 SetText 호출 안 함
 	int m_lastDisplayedHp;

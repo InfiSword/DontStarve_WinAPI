@@ -43,6 +43,7 @@ public:
 protected:
 	virtual void OnAttackHit() override;
 	virtual void OnAttackEnd() override;
+	virtual void OnHitEnd() override;
 	virtual void Die() override; // ensure death state set when HP<=0
 
 private:

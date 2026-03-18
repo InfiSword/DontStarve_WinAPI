@@ -26,8 +26,15 @@ public:
     virtual void Damaged(int damage) override;
     virtual bool OnInteraction(GameObject* obj) override;
 
+    // 디버그 레이아웃 시각화
+    virtual void RenderDebugOverlay() override;
+
 protected:
     virtual void OnAttackHit() override;
     virtual void OnAttackEnd() override;
+    virtual void OnHitEnd() override;
     virtual void Die() override;
+
+private:
+    bool m_bHasHowled;
 };

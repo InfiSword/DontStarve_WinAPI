@@ -26,7 +26,7 @@ Player::Player(float x, float y, GameObjectID characterID, const std::wstring& r
 	m_playerSpeed(300.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr),
 	m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr),
-	isMoveToGoal(false)
+	isMoveToGoal(false), m_bInputEnabled(true)
 {
 	m_hp = 100;
 	m_maxHp = 100;
@@ -237,6 +237,11 @@ void Player::ToggleEquipItem(int slotIndex)
 void Player::Damaged(int damage)
 {
 	Entity::Damaged(damage);
+}
+
+void Player::Die()
+{
+	this->SetActive(false);
 }
 
 void Player::Heal(int amount)
@@ -706,7 +711,7 @@ void Player::HandleRightClick(float worldX, float worldY)
 // 좌/우클릭 입력 처리. 인벤토리 UI 영역 위 클릭은 월드 상호작용·이동에 사용하지 않음.
 void Player::HandleMovement()
 {
-	if (GetHp() <= 0)
+	if (GetHp() <= 0 || !m_bInputEnabled)
 		return;
 
 	InputManager* inputManager = InputManager::GetInstance();
@@ -760,4 +765,3 @@ void Player::HandleMovement()
 		HandleRightClick(worldPos.X, worldPos.Y);
 	}
 }
-

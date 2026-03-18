@@ -145,7 +145,9 @@
     <ClInclude Include="01_Manager\ResourceManager\ResourceManager.h" />
     <ClInclude Include="01_Manager\SceneManager\BaseScene.h" />
     <ClInclude Include="01_Manager\SceneManager\BossHoundScene.h" />
+    <ClInclude Include="01_Manager\SceneManager\BossSpiderQueenScene.h" />
     <ClInclude Include="01_Manager\SceneManager\CharacterSelectScene.h" />
+    <ClInclude Include="01_Manager\SceneManager\ForestScene.h" />
     <ClInclude Include="01_Manager\SceneManager\GameScene.h" />
     <ClInclude Include="01_Manager\SceneManager\SceneManager.h" />
     <ClInclude Include="01_Manager\SceneManager\TitleScene.h" />
@@ -175,6 +177,7 @@
     <ClInclude Include="02_GameObject\Object.h" />
     <ClInclude Include="02_GameObject\UI\CraftingRecipe.h" />
     <ClInclude Include="02_GameObject\UI\CraftingUI.h" />
+    <ClInclude Include="02_GameObject\UI\GameOverUI.h" />
     <ClInclude Include="02_GameObject\UI\PlayerHPUI.h" />
     <ClInclude Include="02_GameObject\UI\UIElement.h" />
     <ClInclude Include="02_GameObject\UI\UIImage.h" />
@@ -205,7 +208,8 @@
     <ClInclude Include="01_Manager\UIManager\UIManager.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\BerryBush.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Sapling.h" />
-    <ClInclude Include="02_GameObject\Entity\Monster\Boss_Hound.h" />
+    <ClInclude Include="02_GameObject\Entity\Monster\Boss_RedHound.h" />
+    <ClInclude Include="02_GameObject\Entity\Monster\Boss_IceHound.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Boss_SpiderQueen.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Hound.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Pig.h" />
@@ -214,11 +218,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="01_Manager\SceneManager\BossHoundScene.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\BossSpiderQueenScene.cpp" />
     <ClCompile Include="01_Manager\UIManager\UIManager.cpp" />
     <ClCompile Include="01_Manager\GameProgressManager\GameProgressManager.cpp" />
     <ClCompile Include="01_Manager\InventoryManager\InventoryManager.cpp" />
     <ClCompile Include="01_Manager\ResourceManager\ResourceManager.cpp" />
     <ClCompile Include="01_Manager\SceneManager\CharacterSelectScene.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\ForestScene.cpp" />
     <ClCompile Include="01_Manager\SceneManager\GameScene.cpp" />
     <ClCompile Include="01_Manager\SceneManager\SceneManager.cpp" />
     <ClCompile Include="01_Manager\SceneManager\TitleScene.cpp" />
@@ -247,6 +253,7 @@
     <ClCompile Include="02_GameObject\Item\Tool\Weapon\Weapon.cpp" />
     <ClCompile Include="02_GameObject\Object.cpp" />
     <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
+    <ClCompile Include="02_GameObject\UI\GameOverUI.cpp" />
     <ClCompile Include="02_GameObject\UI\PlayerHPUI.cpp" />
     <ClCompile Include="02_GameObject\UI\UIElement.cpp" />
     <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
@@ -275,7 +282,8 @@
     <ClCompile Include="02_GameObject\UI\Inventory.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\BerryBush.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Sapling.cpp" />
-    <ClCompile Include="02_GameObject\Entity\Monster\Boss_Hound.cpp" />
+    <ClCompile Include="02_GameObject\Entity\Monster\Boss_RedHound.cpp" />
+    <ClCompile Include="02_GameObject\Entity\Monster\Boss_IceHound.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Boss_SpiderQueen.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Hound.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Pig.cpp" />

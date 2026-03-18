@@ -41,6 +41,9 @@ void DontStarve_MainGame::Init()
 
     // SceneManager 초기화 (첫 번째 씬 로드)
     SceneManager::GetInstance()->Init();
+    
+    // 게임 진행도 매니저 초기화 (저장된 데이터 로드)
+    GameProgressManager::GetInstance()->Init();
      
     m_bIsInitialized = true;
 }

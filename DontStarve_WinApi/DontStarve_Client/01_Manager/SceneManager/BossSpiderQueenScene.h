@@ -1,27 +1,26 @@
 #pragma once
 #include "GameScene.h"
 
-class BossHoundScene : public GameScene
+class BossSpiderQueenScene : public GameScene
 {
 public:
     enum class BossPhase {
-        Phase1_Hounds,      // 일반 하운드 처치 페이즈
+        Phase1_Minions,     // 일반 거미 처치 페이즈
         PhaseTransition,    // 페이즈 전환 대기
         Phase2_BossIntro,   // 보스 등장 카메라 연출
         Phase2_BossBattle,  // 보스 전투
         Cleared             // 클리어
     };
 
-    BossHoundScene();
-    virtual ~BossHoundScene();
+    BossSpiderQueenScene();
+    virtual ~BossSpiderQueenScene();
 
     virtual void Init(const MapData* mapData) override;
     virtual void Update(float deltaTime) override;
     virtual void Render() override;
 
-    virtual SceneType GetSceneType() const override { return SCENE_GAME_HOUND_FOREST; }
+    virtual SceneType GetSceneType() const override { return SCENE_GAME_SPIDER_QUEEN_HOUSE; }
 
-    // 보스 AI가 참조할 상태 정보
     BossPhase GetCurrentPhase() const { return m_currentPhase; }
     bool IsIntroReturning() const;
 
@@ -33,7 +32,6 @@ private:
     void UpdateCleared(float deltaTime);
 
     void StartBossIntro();
-    void SpawnBoss();
 
 private:
     BossPhase m_currentPhase;
@@ -42,12 +40,12 @@ private:
     // 카메라 연출 관련
     bool m_isIntroRunning;
     float m_introTimer;
-    int m_introTargetBossIndex;
     Gdiplus::PointF m_introTargetPos;
     Gdiplus::PointF m_introStartPos;
 
-    std::vector<GameObject*> m_bossObjects;
-    bool m_bossesActivated;
-	bool m_chaseAllowed;
+    GameObject* m_bossObject;
+    std::vector<GameObject*> m_minionObjects;
+    bool m_bossActivated;
     bool m_isClearUIShown;
+    bool m_chaseStarted;
 };

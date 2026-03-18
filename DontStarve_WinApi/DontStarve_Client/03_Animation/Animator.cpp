@@ -78,7 +78,8 @@ void Animator::SelectAndPlayAnimation() {
     }
     if (it != m_animations.end()) {
         AnimationClip* newClip = it->second.get();
-        if (m_currentClip != newClip) {
+        // 클립이 바뀌거나, 혹은 같은 클립이라도 현재 재생 중이 아니면 리셋하여 재생 시작
+        if (m_currentClip != newClip || !m_isPlaying) {
             m_currentClip = newClip;
             m_elapsed = 0.0f;
             m_isPlaying = true;
@@ -94,26 +95,41 @@ void Animator::Update(float deltaTime)
         // 경과 시간 누적
         m_elapsed += deltaTime;
         
-        // 루프가 아닌 애니메이션의 종료 체크
-        if (!m_currentClip->IsLooping() && m_elapsed >= m_currentClip->GetTotalDuration()) {
-            m_elapsed = m_currentClip->GetTotalDuration();
+        float totalDuration = m_currentClip->GetTotalDuration();
+        // 루프가 아닌 애니메이션의 종료 체크 (부동 소수점 오차 방지를 위해 epsilon 사용 고려 가능하나 일단 >= 로 처리)
+        if (!m_currentClip->IsLooping() && m_elapsed >= totalDuration) {
+            m_elapsed = totalDuration;
             m_isPlaying = false;
         }
 
         // 현재 프레임 인덱스 계산
         int currentFrameIndex = GetCurrentFrameIndex();
         
-        // 프레임 변경 시, 건너뛴 프레임 포함해 지나친 모든 프레임에 대해 이벤트 발생 (deltaTime이 커서 frame 4 등을 건너뛰는 경우 대비)
+        // 프레임 변경 시, 건너뛴 프레임 포함해 지나친 모든 프레임에 대해 이벤트 발생
         if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame)
 		{
             const std::map<int, std::wstring>& eventFrames = m_currentClip->GetEventFrames();
             const AnimationEventCallback& callback = m_currentClip->GetEventCallback();
-            const int startIdx = m_lastTriggeredFrame + 1;
-            const int endIdx = currentFrameIndex;
+            
+            int startIdx = m_lastTriggeredFrame + 1;
+            int endIdx = currentFrameIndex;
+            
+            // 현재 클립을 로컬에 저장 (콜백 중 m_currentClip이 바뀔 수 있음)
+            AnimationClip* pCurrentClipBeforeCallback = m_currentClip;
+
             for (int fi = startIdx; fi <= endIdx && callback; ++fi) {
                 auto eventIt = eventFrames.find(fi);
                 if (eventIt != eventFrames.end())
+                {
                     callback(fi, eventIt->second);
+                    
+                    // 콜백 내부에서 ChangeState 등으로 애니메이션이 바뀌었는지 확인
+                    if (pCurrentClipBeforeCallback != m_currentClip) {
+                        // 애니메이션이 바뀌었으므로 현재 루프 중단. 
+                        // m_lastTriggeredFrame은 이미 SelectAndPlayAnimation에서 -1로 리셋되었으므로 덮어씌우지 않음.
+                        return; 
+                    }
+                }
             }
             m_lastTriggeredFrame = currentFrameIndex;
         }       

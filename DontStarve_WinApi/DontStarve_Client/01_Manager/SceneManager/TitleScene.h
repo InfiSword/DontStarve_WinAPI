@@ -8,7 +8,7 @@ public:
 	virtual ~TitleScene();
 
 	// BaseScene 가상함수 구현
-	virtual void Init() override;
+	virtual void Init(const MapData* mapData) override;
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
 	virtual void Render() override;

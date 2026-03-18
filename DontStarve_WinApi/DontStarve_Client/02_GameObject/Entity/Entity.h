@@ -56,7 +56,9 @@ public:
     virtual void SetDropItem(GameObjectID itemID, int count = 1);   
 	virtual bool OnInteraction(GameObject* obj);
 
-    // Animator 접근자
+    // 컴포넌트 접근자 (GetComponent 대체)
+    Transform* GetTransform() const { return transform; }
+    SpriteRenderer* GetSpriteRenderer() const { return spriteRenderer; }
     Animator* GetAnimator() const { return m_animator; }
     
     // 콜라이더 접근자

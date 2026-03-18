@@ -1,8 +1,15 @@
 #pragma once
-
-#include "../../../Header/Enum.h"
+#include "../../../Header/SingleTon.h"
 
 class GameObject;
+class Transform;
+class RectTransform;
+class SpriteRenderer;
+class Animator;
+
+namespace ComponentElement {
+	class Image;
+}
 
 class RenderManager : public CSingleTon<RenderManager>
 {
@@ -27,6 +34,8 @@ public:
 		float pivotX, float pivotY, RenderLayer layer = LAYER_UI_BACKGROUND, float sortKey = 0.0f, const Gdiplus::Color& tintColor = Gdiplus::Color(255, 255, 255, 255), bool hasTint = false);
 	
 	void RenderGameObject(GameObject* pObject);
+	void RenderEntity(Transform* pTransform, SpriteRenderer* pSpriteRenderer, Animator* pAnimator);
+	void RenderUI(RectTransform* pRectTransform, ComponentElement::Image* pImage);
 	void RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height);
 
 	void Clear();

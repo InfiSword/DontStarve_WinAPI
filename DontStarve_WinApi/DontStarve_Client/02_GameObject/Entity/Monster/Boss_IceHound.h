@@ -1,7 +1,7 @@
 #pragma once
 #include "Monster.h"
 
-enum class BossHoundState {
+enum class BossIceHoundState {
 	IDLE,
 	RUN,
 	ATTACK_PRE,
@@ -13,12 +13,12 @@ enum class BossHoundState {
 	COUNT
 };
 
-class Boss_Hound : public Monster
+class Boss_IceHound : public Monster
 {
 public:
-	Boss_Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+	Boss_IceHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 			 const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
-	virtual ~Boss_Hound();
+	virtual ~Boss_IceHound();
 
 	virtual void Init() override;
 	virtual void UpdateAI(float deltaTime) override;
@@ -26,10 +26,15 @@ public:
 	virtual void Damaged(int damage) override;
 	virtual bool OnInteraction(GameObject* obj) override;
 
+	// 디버그 레이아웃 시각화
+	virtual void RenderDebugOverlay() override;
+
 protected:
 	virtual void OnAttackHit() override;
 	virtual void OnAttackEnd() override;
-	virtual void Die() override; // ensure death state set when HP<=0
+	virtual void OnHitEnd() override;
+	virtual void Die() override;
 
-	// No additional members needed - all are inherited from Monster and Combatant
+private:
+	bool m_bHasHowled;
 };

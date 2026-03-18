@@ -142,6 +142,10 @@ void Combatant::ApplyAttackDamageToTarget(int damage)
     for (GameObject* obj : hits) {
         if (!obj || !obj->IsEnabled() || obj == this) continue;
         
+        // 몬스터끼리는 서로 데미지를 입히지 않도록 처리
+        if (this->GetType() == GO_TYPE_MONSTER && obj->GetType() == GO_TYPE_MONSTER)
+            continue;
+
         obj->Damaged(damage);
         break; // 첫 번째 대상만
     }

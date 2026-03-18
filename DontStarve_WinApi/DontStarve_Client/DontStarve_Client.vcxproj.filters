@@ -37,7 +37,8 @@
     <ClCompile Include="01_Manager\UIManager\UIManager.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\BerryBush.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Sapling.cpp" />
-    <ClCompile Include="02_GameObject\Entity\Monster\Boss_Hound.cpp" />
+    <ClCompile Include="02_GameObject\Entity\Monster\Boss_RedHound.cpp" />
+    <ClCompile Include="02_GameObject\Entity\Monster\Boss_IceHound.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Boss_SpiderQueen.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Hound.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Pig.cpp" />
@@ -67,6 +68,8 @@
     <ClCompile Include="02_GameObject\Entity\Monster\Monster.cpp" />
     <ClCompile Include="02_GameObject\Entity\Combatant.cpp" />
     <ClCompile Include="01_Manager\SceneManager\BossHoundScene.cpp" />
+    <ClCompile Include="02_GameObject\UI\GameOverUI.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\BossSpiderQueenScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -109,7 +112,8 @@
     <ClInclude Include="01_Manager\UIManager\UIManager.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\BerryBush.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Sapling.h" />
-    <ClInclude Include="02_GameObject\Entity\Monster\Boss_Hound.h" />
+    <ClInclude Include="02_GameObject\Entity\Monster\Boss_RedHound.h" />
+    <ClInclude Include="02_GameObject\Entity\Monster\Boss_IceHound.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Boss_SpiderQueen.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Hound.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Pig.h" />
@@ -140,6 +144,8 @@
     <ClInclude Include="02_GameObject\Entity\Monster\Monster.h" />
     <ClInclude Include="02_GameObject\Entity\Combatant.h" />
     <ClInclude Include="01_Manager\SceneManager\BossHoundScene.h" />
+    <ClInclude Include="02_GameObject\UI\GameOverUI.h" />
+    <ClInclude Include="01_Manager\SceneManager\BossSpiderQueenScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

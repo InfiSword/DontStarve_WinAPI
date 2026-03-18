@@ -58,6 +58,7 @@ public:
 	virtual bool OnInteraction(GameObject* obj);
 	virtual void Damaged(int damage) {}
 	virtual bool CanInteract() const { return m_isInteractive; }
+	virtual void SetInteractive(bool interactive) { m_isInteractive = interactive; }
 
 	// 디버그/시각화 오버레이 
 	virtual void RenderDebugOverlay() {}
@@ -86,17 +87,17 @@ public:
         return nullptr;
     }
 
-    template <typename T>
-    std::vector<T*> GetComponents() const {
-        std::vector<T*> result;
-        if (m_bReleased) return result;
-        for (Component* component : m_components) {
-            if (!component) continue;
-            T* target = dynamic_cast<T*>(component);
-            if (target) result.push_back(target);
-        }
-        return result;
-    }
+	template <typename T>
+	std::vector<T*> GetComponents() const {
+		std::vector<T*> result;
+		if (m_bReleased) return result;
+		for (Component* component : m_components) {
+			if (!component) continue;
+			T* target = dynamic_cast<T*>(component);
+			if (target) result.push_back(target);
+		}
+		return result;
+	}
 
 	// inline 함수
 	inline GameObjectID GetID() const { return m_id; }

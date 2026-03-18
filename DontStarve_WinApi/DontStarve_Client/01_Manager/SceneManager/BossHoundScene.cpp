@@ -4,10 +4,14 @@
 #include "../CameraManager/CameraManager.h"
 #include "../UIManager/UIManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
+#include "../../02_GameObject/Entity/Entity.h"
+#include "../../02_GameObject/Entity/Monster/Monster.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../GameProgressManager/GameProgressManager.h"
 #include "../SceneManager/SceneManager.h"
+#include "../../02_GameObject/UI/UIImage.h"
+#include "../../02_GameObject/UI/UIText.h"
 
 BossHoundScene::BossHoundScene()
     : GameScene()
@@ -15,7 +19,10 @@ BossHoundScene::BossHoundScene()
     , m_phaseTimer(0.0f)
     , m_isIntroRunning(false)
     , m_introTimer(0.0f)
+    , m_introTargetBossIndex(0)
     , m_bossesActivated(false)
+	, m_chaseAllowed(false)
+    , m_isClearUIShown(false)
 {
 }
 
@@ -23,36 +30,45 @@ BossHoundScene::~BossHoundScene()
 {
 }
 
-void BossHoundScene::Init()
+void BossHoundScene::Init(const MapData* mapData)
 {
-    GameScene::Init();
-    
+    // 부모 클래스의 Init(mapData) 호출하여 맵 데이터 기반 오브젝트들 생성
+    GameScene::Init(mapData);
+
+    // 부모 클래스 초기화 후 상태값 재설정 (Init() 호출 시 덮어써지는 것 방지)
     m_currentPhase = BossPhase::Phase1_Hounds;
     m_phaseTimer = 0.0f;
     m_bossesActivated = false;
+	m_chaseAllowed = false;
     m_isIntroRunning = false;
+    m_isClearUIShown = false;
+    m_introTargetBossIndex = 0;
     m_bossObjects.clear();
 
-    // 맵 데이터에서 생성된 보스들을 찾아 비활성화
+    // 맵 데이터에서 생성된 보스들을 찾아 비활성화 (전투 준비 단계)
+    // 연출 순서 보장을 위해 순서대로 찾음 (Ice -> Red)
     ObjectManager* objMgr = ObjectManager::GetInstance();
     const auto& objects = objMgr->GetGameObjects();
     
+    GameObject* iceBoss = nullptr;
+    GameObject* redBoss = nullptr;
+
     for (auto* obj : objects)
     {
-        if (obj && (obj->GetID() == GOID_MONSTER_REDHOUNDDOG || obj->GetID() == GOID_MONSTER_ICEHOUNDDOG))
-        {
-            obj->SetActive(false);
-            m_bossObjects.push_back(obj);
-        }
+        if (!obj) continue;
+        if (obj->GetID() == GOID_MONSTER_ICEHOUNDDOG) iceBoss = obj;
+        else if (obj->GetID() == GOID_MONSTER_REDHOUNDDOG) redBoss = obj;
     }
 
-    OutputDebugStringW((L"BossHoundScene: Initialized. Bosses found: " + std::to_wstring(m_bossObjects.size()) + L"\n").c_str());
+    if (iceBoss) { iceBoss->SetActive(false); m_bossObjects.push_back(iceBoss); }
+    if (redBoss) { redBoss->SetActive(false); m_bossObjects.push_back(redBoss); }
+
+    OutputDebugStringW((L"BossHoundScene: Initialized with MapData. Bosses hidden: " + std::to_wstring(m_bossObjects.size()) + L"\n").c_str());
 }
 
 void BossHoundScene::Update(float deltaTime)
 {
     // 페이즈에 따라 게임 로직 업데이트 순서 조정 가능
-    // Intro 중에는 플레이어 이동 등을 막고 싶을 수 있음 (여기서는 일단 기본 Update 호출)
     GameScene::Update(deltaTime);
 
     switch (m_currentPhase)
@@ -68,6 +84,9 @@ void BossHoundScene::Update(float deltaTime)
         break;
     case BossPhase::Phase2_BossBattle:
         UpdatePhase2Battle(deltaTime);
+        break;
+    case BossPhase::Cleared:
+        UpdateCleared(deltaTime);
         break;
     }
 }
@@ -118,38 +137,49 @@ void BossHoundScene::StartBossIntro()
     m_currentPhase = BossPhase::Phase2_BossIntro;
     m_introTimer = 0.0f;
     m_isIntroRunning = true;
+    m_introTargetBossIndex = 0;
 
     CameraManager* camMgr = CameraManager::GetInstance();
     camMgr->SetFollowMode(false); // 수동 카메라 제어
     
     m_introStartPos = camMgr->GetCameraPos();
+
+    // 플레이어 입력 비활성화
+    Player* player = ObjectManager::GetInstance()->GetPlayer();
+    if (player) player->SetInputEnabled(false);
+
+    // 만약 초기화 시 보스를 못 찾았다면 여기서 동적으로 생성
+    if (m_bossObjects.empty())
+    {
+        ObjectManager* objMgr = ObjectManager::GetInstance();
+        float px = 0, py = 0;
+        if (player)
+        {
+            Transform* tr = player->GetComponent<Transform>();
+            px = tr->GetX();
+            py = tr->GetY();
+        }
+
+        // 보스 생성 (Ice -> Red 순서로 리스트에 추가)
+        GameObject* iceBoss = objMgr->CreateGameObject(GOID_MONSTER_ICEHOUNDDOG, px - 300.0f, py - 200.0f);
+        GameObject* redBoss = objMgr->CreateGameObject(GOID_MONSTER_REDHOUNDDOG, px + 300.0f, py - 200.0f);
+
+        if (iceBoss) { iceBoss->SetActive(false); m_bossObjects.push_back(iceBoss); }
+        if (redBoss) { redBoss->SetActive(false); m_bossObjects.push_back(redBoss); }
+    }
     
-    // 보스들이 있는 위치의 중심으로 카메라 이동
+    // 첫 번째 보스 위치로 타겟 설정
     if (!m_bossObjects.empty())
     {
-        float totalX = 0, totalY = 0;
-        for (auto* boss : m_bossObjects)
-        {
-            Transform* tr = boss->GetComponent<Transform>();
-            if (tr)
-            {
-                totalX += tr->GetX();
-                totalY += tr->GetY();
-            }
-        }
-        m_introTargetPos = { totalX / m_bossObjects.size(), totalY / m_bossObjects.size() };
+        Transform* tr = m_bossObjects[0]->GetComponent<Transform>();
+        if (tr) m_introTargetPos = { tr->GetX(), tr->GetY() };
     }
     else
     {
-        // 보스가 없으면 (에러 상황) 플레이어 위치
-        Player* player = ObjectManager::GetInstance()->GetPlayer();
-        if (player) {
-            Transform* tr = player->GetComponent<Transform>();
-            m_introTargetPos = { tr->GetX(), tr->GetY() };
-        }
+        m_introTargetPos = m_introStartPos;
     }
 
-    OutputDebugStringW(L"BossHoundScene: Boss Intro Started.\n");
+    OutputDebugStringW(L"BossHoundScene: Boss Intro Started. Player input disabled.\n");
 }
 
 void BossHoundScene::UpdatePhase2Intro(float deltaTime)
@@ -157,46 +187,116 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
     m_introTimer += deltaTime;
     CameraManager* camMgr = CameraManager::GetInstance();
 
-    float moveDuration = 2.0f; // 카메라 이동 시간
-    float waitDuration = 1.5f; // 보스 활성화 후 대기 시간
-    float returnDuration = 1.5f; // 플레이어에게 돌아가는 시간
+    float moveDuration = 1.0f;   // 보스 한 마리에게 이동하는 시간
+    float waitDuration = 1.5f;   // 보스를 보여주는 시간 (Howling 애니메이션 고려)
+    float returnDuration = 1.5f; // 플레이어에게 돌아오는 시간
 
-    if (m_introTimer <= moveDuration)
+    int bossCount = (int)m_bossObjects.size();
+    float cycleDuration = moveDuration + waitDuration;
+    float totalBossIntroDuration = bossCount * cycleDuration;
+
+    if (m_introTimer <= totalBossIntroDuration)
     {
-        // 1. 타겟 위치로 카메라 이동
-        float t = m_introTimer / moveDuration;
-        float curX = m_introStartPos.X + (m_introTargetPos.X - m_introStartPos.X) * t;
-        float curY = m_introStartPos.Y + (m_introTargetPos.Y - m_introStartPos.Y) * t;
-        camMgr->SetCameraPos(curX, curY);
-    }
-    else if (m_introTimer <= moveDuration + waitDuration)
-    {
-        // 2. 보스 활성화
-        if (!m_bossesActivated)
+        // 보스들을 순차적으로 보여줌
+        int currentIndex = (int)(m_introTimer / cycleDuration);
+        float timeInCycle = fmod(m_introTimer, cycleDuration);
+
+        if (currentIndex < bossCount)
         {
-            SpawnBoss(); // 실제로 활성화하는 함수
+            GameObject* boss = m_bossObjects[currentIndex];
+            Transform* tr = boss->GetComponent<Transform>();
+            if (tr)
+            {
+                Gdiplus::PointF bossPos = { tr->GetX(), tr->GetY() };
+                Gdiplus::PointF startPos;
+
+                if (currentIndex == 0)
+                    startPos = m_introStartPos;
+                else
+                {
+                    Transform* prevTr = m_bossObjects[currentIndex - 1]->GetComponent<Transform>();
+                    startPos = prevTr ? Gdiplus::PointF{ prevTr->GetX(), prevTr->GetY() } : m_introStartPos;
+                }
+
+                if (timeInCycle <= moveDuration)
+                {
+                    float t = timeInCycle / moveDuration;
+                    float smoothT = t * t * (3 - 2 * t);
+                    float curX = startPos.X + (bossPos.X - startPos.X) * smoothT;
+                    float curY = startPos.Y + (bossPos.Y - startPos.Y) * smoothT;
+                    camMgr->SetCameraPos(curX, curY);
+                }
+                else
+                {
+                    camMgr->SetCameraPos(bossPos.X, bossPos.Y);
+                    
+                    // 보스 활성화
+                    if (!boss->IsEnabled())
+                    {
+                        boss->SetActive(true);
+                        OutputDebugStringW((L"BossHoundScene: Boss " + std::to_wstring(currentIndex) + L" Activated!\n").c_str());
+                    }
+                }
+            }
         }
     }
-    else if (m_introTimer <= moveDuration + waitDuration + returnDuration)
+    else if (m_introTimer <= totalBossIntroDuration + returnDuration)
     {
-        // 3. 플레이어에게 카메라 복귀
+        // 플레이어에게 카메라가 돌아가기 시작할 때 추격 허용
+        
+        // 플레이어에게 복귀
         Player* player = ObjectManager::GetInstance()->GetPlayer();
         if (player)
         {
             Transform* tr = player->GetComponent<Transform>();
-            float t = (m_introTimer - moveDuration - waitDuration) / returnDuration;
-            float curX = m_introTargetPos.X + (tr->GetX() - m_introTargetPos.X) * t;
-            float curY = m_introTargetPos.Y + (tr->GetY() - m_introTargetPos.Y) * t;
+            
+            Gdiplus::PointF lastPos = m_introStartPos;
+            if (!m_bossObjects.empty())
+            {
+                Transform* lastTr = m_bossObjects.back()->GetComponent<Transform>();
+                if (lastTr) lastPos = { lastTr->GetX(), lastTr->GetY() };
+            }
+
+            float t = (m_introTimer - totalBossIntroDuration) / returnDuration;
+            float smoothT = t * t * (3 - 2 * t);
+            float curX = lastPos.X + (tr->GetX() - lastPos.X) * smoothT;
+            float curY = lastPos.Y + (tr->GetY() - lastPos.Y) * smoothT;
             camMgr->SetCameraPos(curX, curY);
         }
+		
+		if (!m_chaseAllowed)
+		{
+			for (auto* boss : m_bossObjects)
+			{
+				Monster* pMonster = dynamic_cast<Monster*>(boss);
+				if (pMonster) pMonster->SetCanChase(true);
+			}
+			m_chaseAllowed = true;
+		}
     }
     else
     {
-        // 연출 종료
+        // 모든 연출 종료
+        m_bossesActivated = true;
         camMgr->SetFollowMode(true);
         m_currentPhase = BossPhase::Phase2_BossBattle;
-        OutputDebugStringW(L"BossHoundScene: Phase 2 Battle Started.\n");
+
+        // 플레이어 입력 재활성화
+        Player* player = ObjectManager::GetInstance()->GetPlayer();
+        if (player) player->SetInputEnabled(true);
+
+        OutputDebugStringW(L"BossHoundScene: Phase 2 Battle Started. Player input re-enabled.\n");
     }
+}
+
+bool BossHoundScene::IsIntroReturning() const
+{
+    float moveDuration = 1.0f;
+    float waitDuration = 1.5f;
+    int bossCount = (int)m_bossObjects.size();
+    float totalBossIntroDuration = bossCount * (moveDuration + waitDuration);
+
+    return (m_currentPhase == BossPhase::Phase2_BossIntro && m_introTimer > totalBossIntroDuration);
 }
 
 void BossHoundScene::SpawnBoss()
@@ -208,16 +308,19 @@ void BossHoundScene::SpawnBoss()
         if (boss) boss->SetActive(true);
     }
     m_bossesActivated = true;
-    OutputDebugStringW(L"BossHoundScene: Bosses Activated!\n");
+    OutputDebugStringW(L"BossHoundScene: Bosses Spawned and Activated!\n");
 }
 
 void BossHoundScene::UpdatePhase2Battle(float deltaTime)
 {
-    // 모든 보스가 죽었는지 체크
+    // 보스들이 필드에 남아있는지 직접 체크 (Safer check)
+    ObjectManager* objMgr = ObjectManager::GetInstance();
+    const auto& objects = objMgr->GetGameObjects();
+    
     bool bossesAlive = false;
-    for (auto* boss : m_bossObjects)
+    for (auto* obj : objects)
     {
-        if (boss && boss->IsEnabled())
+        if (obj && (obj->GetID() == GOID_MONSTER_REDHOUNDDOG || obj->GetID() == GOID_MONSTER_ICEHOUNDDOG) && obj->IsEnabled())
         {
             bossesAlive = true;
             break;
@@ -227,12 +330,39 @@ void BossHoundScene::UpdatePhase2Battle(float deltaTime)
     if (!bossesAlive)
     {
         m_currentPhase = BossPhase::Cleared;
+        m_phaseTimer = 0.0f;
+        m_isClearUIShown = false;
         OutputDebugStringW(L"BossHoundScene: All Bosses Defeated! Scene Cleared.\n");
         
-        // 클리어 처리
-        // 어떤 보스든 하나만 넘겨도 되는지, 아니면 씬 클리어 이벤트가 따로 있는지 확인
-        // 여기선 첫 번째 보스 ID를 넘겨 기록
-        if (!m_bossObjects.empty())
-            GameProgressManager::GetInstance()->OnMonsterKilled(m_bossObjects[0]->GetID(), GetSceneType());
+        // 클리어 기록 및 캐릭터 해금
+        GameProgressManager::GetInstance()->ClearScene(SCENE_GAME_HOUND_FOREST);
+    }
+}
+
+void BossHoundScene::UpdateCleared(float deltaTime)
+{
+    m_phaseTimer += deltaTime;
+
+    // 1초 뒤에 클리어 UI 표시
+    if (m_phaseTimer >= 1.0f && !m_isClearUIShown)
+    {
+        UIManager* uiMgr = UIManager::GetInstance();
+        
+        // 뒷배경 어둡게 하기 (또는 클리어 배너 표시)
+        UIImage* clearBanner = new UIImage(GOID_NONE, 600.0f, 150.0f, LAYER_UI_BACKGROUND, L"Resource/UI/BG_Banner.png", 999.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
+        uiMgr->AddUIImage(clearBanner);
+
+        UIText* clearText = new UIText(GOID_NONE, 400.0f, 100.0f, L"CLEARED!", Gdiplus::Color(255, 255, 255, 0), LAYER_UI_FOREGROUND, 1000.0f, L"Arial", 48.0f, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
+        uiMgr->AddUIText(clearText);
+
+        m_isClearUIShown = true;
+        OutputDebugStringW(L"BossHoundScene: Clear UI displayed.\n");
+    }
+
+    // 클리어 화면 뜬지 3초(총 4초) 뒤에 씬 이동
+    if (m_phaseTimer >= 4.0f)
+    {
+        OutputDebugStringW(L"BossHoundScene: Transitioning back to Farming Area...\n");
+        SceneManager::GetInstance()->LoadGameScene(L"GameData/00_map.dsm", GetSelectedCharacterID());
     }
 }

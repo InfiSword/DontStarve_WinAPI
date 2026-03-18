@@ -35,6 +35,9 @@ public:
 	void FinalizePickup();
 	virtual bool OnInteraction(GameObject* obj) override;
 
+	void SetInputEnabled(bool enabled) { m_bInputEnabled = enabled; }
+	bool IsInputEnabled() const { return m_bInputEnabled; }
+
 	Inventory* GetInventory() { return m_inventory; }
 
 	PlayerState GetPlayerState() const { return (PlayerState)m_state; }
@@ -45,6 +48,7 @@ public:
 	void ToggleEquipItem(int slotIndex);
 
 	virtual void Damaged(int damage) override;
+	virtual void Die() override;
 
 	void Heal(int amount);
 
@@ -82,4 +86,5 @@ private:
 
 	int m_equippedSlotIndex;
 	Tool* m_equippedItem;
+	bool m_bInputEnabled;
 };
