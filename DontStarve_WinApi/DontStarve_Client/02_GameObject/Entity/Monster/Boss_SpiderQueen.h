@@ -22,7 +22,7 @@ class Boss_SpiderQueen : public Monster
 public:
 	Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 		const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
-	virtual ~Boss_SpiderQueen();
+	virtual ~Boss_SpiderQueen() override;
 
 	virtual void Init() override;
 	virtual void UpdateAI(float deltaTime) override;

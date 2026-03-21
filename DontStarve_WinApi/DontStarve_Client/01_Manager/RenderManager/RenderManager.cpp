@@ -55,7 +55,7 @@ void RenderManager::Release()
 	if (m_pCachedAttr) { delete m_pCachedAttr; m_pCachedAttr = nullptr; }
 }
 
-void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped)
+void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_IMAGE;
@@ -70,11 +70,12 @@ void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::Rect
 	cmd.tintColor = tintColor;
 	cmd.hasTint = hasTint;
 	cmd.preFlipped = preFlipped;
+	cmd.rotation = rotation;
 
 	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey)
+void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey, float rotation, const Gdiplus::PointF& rotationPivot)
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_TEXT;
@@ -85,6 +86,8 @@ void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFon
 	cmd.destRect = destRect;
 	cmd.layer = layer;
 	cmd.sortKey = sortKey;
+	cmd.rotation = rotation;
+	cmd.objectScreenPos = rotationPivot;
 
 	m_layerCommands[layer].push_back(cmd);
 }
@@ -260,6 +263,16 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 		std::sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), CompareDrawCommands);
 		
 		for (const auto& cmd : m_layerCommands[i]) {
+			Gdiplus::GraphicsState state;
+			bool rotated = (cmd.rotation != 0.0f);
+			
+			if (rotated) {
+				state = pGraphics->Save();
+				pGraphics->TranslateTransform(cmd.objectScreenPos.X, cmd.objectScreenPos.Y);
+				pGraphics->RotateTransform(cmd.rotation);
+				pGraphics->TranslateTransform(-cmd.objectScreenPos.X, -cmd.objectScreenPos.Y);
+			}
+
 			switch (cmd.type) {
 			case DRAW_COMMAND_IMAGE:
 				if (cmd.pBitmap) {
@@ -302,6 +315,10 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 					pGraphics->DrawEllipse(m_pCachedPen, cmd.destRect);
 				}
 				break;
+			}
+
+			if (rotated) {
+				pGraphics->Restore(state);
 			}
 		}
 		m_layerCommands[i].clear();

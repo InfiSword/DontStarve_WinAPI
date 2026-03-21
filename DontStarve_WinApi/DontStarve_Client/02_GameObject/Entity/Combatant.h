@@ -33,7 +33,7 @@ public:
               const std::wstring& baseDir = L"", const std::wstring& imageName = L"",
               bool isActive = true, bool isInteractive = false,
               ColliderType colliderType = COLLIDER_BOX);
-    virtual ~Combatant();
+    virtual ~Combatant() override;
 
     virtual void Init() override;
     virtual void Release() override;
@@ -52,20 +52,6 @@ public:
     // 타겟 관리
     void SetAttackTarget(GameObject* target) { m_attackTarget = target; }
     GameObject* GetAttackTarget() const { return m_attackTarget; }
-    
-    // Getter/Setter
-    int GetDamage() const { return m_damage; }
-    void SetDamage(int damage) { m_damage = damage; }
-    float GetAttackRange() const { return m_attackRange; }
-    void SetAttackRange(float range) { m_attackRange = range; }
-    float GetAttackCooldown() const { return m_attackCooldown; }
-    void SetAttackCooldown(float cooldown) { m_attackCooldown = cooldown; }
-    int GetAttackHitFrame() const { return m_attackHitFrame; }
-    void SetAttackHitFrame(int frame) { m_attackHitFrame = frame; }
-    int GetAttackBoxWidth() const { return m_attackBoxWidth; }
-    void SetAttackBoxWidth(int width) { m_attackBoxWidth = width; }
-    int GetAttackBoxHeight() const { return m_attackBoxHeight; }
-    void SetAttackBoxHeight(int height) { m_attackBoxHeight = height; }
 
 protected:
     void UpdateAttackBoxByDirection(Direction dir);

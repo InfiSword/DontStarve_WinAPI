@@ -24,13 +24,15 @@ protected:
     Collider* m_entityCollider;      // 몸통 콜라이더
     ColliderType m_colliderType;     // 콜라이더 타입
 
+	virtual void ChangeState(int newState);
+
 public:
     Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
            const std::wstring& baseDir = L"",
            const std::wstring& imageName = L"",
            bool isActive = true, bool isInteractive = false,
            ColliderType colliderType = COLLIDER_BOX);
-    virtual ~Entity();
+    virtual ~Entity() override;
 
     // 초기화
     virtual void Init() override;
@@ -48,22 +50,12 @@ public:
     int GetHp() const { return m_hp; }
     int GetMaxHp() const { return m_maxHp; }
     int GetState() const { return m_state; }
-    virtual void ChangeState(int newState);
 
     // 드롭 아이템 관련 가상 함수들
     virtual GameObjectID GetDropItemID() const;
     virtual int GetDropItemCount() const;
     virtual void SetDropItem(GameObjectID itemID, int count = 1);   
-	virtual bool OnInteraction(GameObject* obj);
-
-    // 컴포넌트 접근자 (GetComponent 대체)
-    Transform* GetTransform() const { return transform; }
-    SpriteRenderer* GetSpriteRenderer() const { return spriteRenderer; }
-    Animator* GetAnimator() const { return m_animator; }
-    
-    // 콜라이더 접근자
-    Collider* GetEntityCollider() const { return m_entityCollider; }
-    void SetEntityCollider(Collider* collider) { m_entityCollider = collider; }
+  virtual bool OnInteraction(GameObject* obj) override;
 
     // 맵 경계 체크 및 반환
     void ClampPositionToMapBounds();

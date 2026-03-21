@@ -135,6 +135,9 @@ public:
 	bool HasSavedPlayerState() const { return m_hasSavedPlayerState; }
 	void ClearSavedPlayerState() { m_hasSavedPlayerState = false; }
 
+	// 런타임 게임 데이터 초기화 (타이틀로 복귀 시)
+	void ResetRuntimeData();
+
 private:
 	GameProgress m_gameProgress;  // 게임 진행도 데이터
 

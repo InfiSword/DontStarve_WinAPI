@@ -565,7 +565,7 @@ void CharacterSelectScene::OnSelectButtonClicked()
 	m_currentState = CharacterSelectionState::CLICK_GAME;
 	
 	// 선택된 캐릭터 정보를 SceneManager에 전달하여 게임 씬으로 전환 요청
-	SceneManager::GetInstance()->LoadGameScene(L"GameData/00_map.dsm", selectedCharacterID);
+	SceneManager::GetInstance()->LoadGameScene(SCENE_GAME_FARMING_AREA, selectedCharacterID);
 }
 
 void CharacterSelectScene::OnCancelButtonClicked()

@@ -19,10 +19,9 @@ class Pig : public Monster
 public:
     Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
         const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
-    virtual ~Pig();
+    virtual ~Pig() override;
 
     virtual void Init() override;
-    virtual void ChangeState(int newState) override;
     virtual void UpdateAI(float deltaTime) override;
     virtual void UpdateMovement(float deltaTime) override;
     virtual bool OnInteraction(GameObject* obj) override;
@@ -35,8 +34,10 @@ public:
     float GetActionRadius() const { return m_wanderRadius; }
 
 protected:
+    virtual void ChangeState(int newState) override;
+
     virtual void OnAttackHit() override;
     virtual void OnAttackEnd() override;
-    virtual void OnHitEnd();
+    virtual void OnHitEnd() override;
     virtual void Die() override; // override to set DEATH state and play animation
 };

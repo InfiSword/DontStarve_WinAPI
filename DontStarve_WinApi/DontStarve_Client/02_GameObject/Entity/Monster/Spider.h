@@ -21,7 +21,7 @@ class Spider : public Monster
 public:
     Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
            const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
-    virtual ~Spider();
+	virtual ~Spider() override;
 
     virtual void Init() override;
     virtual void UpdateAI(float deltaTime) override;
@@ -34,6 +34,7 @@ public:
 
     // SpiderEgg 설정 (거미집 주변을 배회하도록)
     void SetHomeEgg(SpiderEgg* egg, float spawnRadius);
+	bool HasHomeEgg() const { return m_homeEgg != nullptr; }
 
 	SpiderState GetSpiderState() const { return (SpiderState)m_state; }
 
@@ -45,6 +46,8 @@ protected:
 	virtual void OnAttackEnd() override;
 	virtual void OnHitEnd() override;
 	virtual void Die() override; // ensure death state set when HP<=0
+    virtual void ResetAggroSession() override;
+    virtual void ResolveWanderCenter(float& outX, float& outY) const override;
 
 private:
     SpiderEgg* m_homeEgg;                // 소속 거미집

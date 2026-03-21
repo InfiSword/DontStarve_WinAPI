@@ -3,7 +3,6 @@
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
-#include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -59,13 +58,16 @@ void Spider::Init()
 			m_maxHp = m_hp;
 			m_walkSpeed = isWarrior ? 80.0f : 60.0f;
 			m_runSpeed = isWarrior ? 180.0f : 150.0f;
+			m_attackRange = isWarrior ? 60.0f : 50.0f;
+			m_attackBoxWidth = isWarrior ? 72 : 60;
+			m_attackBoxHeight = isWarrior ? 48 : 40;
 
 			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
 			if (objData) {
 				std::wstring base = objData->baseDir + L"\\";
 				std::wstring prefix = isWarrior ? L"Warrior_spider_" : L"Spider_spider_";
 				
-				for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) m_animator->RegisterAnimation((int)SpiderState::IDLE, (Direction)dir, base + prefix + L"idle_01.png", 0, 0, 1, 1, transform->GetPivotX(), transform->GetPivotY(), true, 0.05f);
+				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) m_animator->RegisterAnimation((int)SpiderState::IDLE, (Direction)dir, base + prefix + L"idle_01.png", 0, 0, 1, 1, transform->GetPivotX(), transform->GetPivotY(), true, 0.05f);
 				
 				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_DOWN, base + prefix + L"walk_loop_down.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f);
 				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_UP, base + prefix + L"walk_loop_up.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f);
@@ -79,7 +81,7 @@ void Spider::Init()
 				m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_LEFT, attackSidePath, 0, 0, 7, 71, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f, false);
 				m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_RIGHT, attackSidePath, 0, 0, 7, 71, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
 
-				for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::ATTACK, (Direction)dir);
 					if (clip) {
 						clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
@@ -91,7 +93,7 @@ void Spider::Init()
 					}
 				}
 
-				for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 					m_animator->RegisterAnimation((int)SpiderState::HIT, (Direction)dir, base + prefix + L"hit.png", 0, 0, 7, 34, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
 					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::HIT, (Direction)dir);
 					if (clip) {
@@ -102,7 +104,7 @@ void Spider::Init()
 					}
 				}
 
-				for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 					m_animator->RegisterAnimation((int)SpiderState::DEATH, (Direction)dir, base + prefix + L"death.png", 0, 0, 7, 56, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
 					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::DEATH, (Direction)dir);
 					if (clip) {
@@ -113,7 +115,7 @@ void Spider::Init()
 					}
 				}
 
-				for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 					m_animator->RegisterAnimation((int)SpiderState::TAUNT, (Direction)dir, base + prefix + L"taunt.png", 0, 0, 7, 64, transform->GetPivotX(), transform->GetPivotY(), false, 0.01f);
 					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::TAUNT, (Direction)dir);
 					if (clip) {
@@ -135,12 +137,18 @@ void Spider::Init()
 	}
 }
 
-void Spider::SetHomeEgg(SpiderEgg* egg, float spawnRadius) { m_homeEgg = egg; m_spawnRadius = spawnRadius; }
+void Spider::SetHomeEgg(SpiderEgg* egg, float spawnRadius)
+{
+	m_homeEgg = egg;
+	m_spawnRadius = spawnRadius;
+	m_wanderRadius = spawnRadius;
+}
 
 void Spider::SetAggroTarget(GameObject* target)
 {
 	if (target && target->IsEnabled())
 	{
+		if (!m_homeEgg || !m_homeEgg->IsEnabled()) m_bCanChase = true;
 		m_attackTarget = target;
 		
 		if (!m_bHasTaunted)  
@@ -159,11 +167,29 @@ void Spider::SetAggroTarget(GameObject* target)
 	}
 }
 
+void Spider::ResetAggroSession()
+{
+	m_bHasTaunted = false;
+}
+
+void Spider::ResolveWanderCenter(float& outX, float& outY) const
+{
+	if (m_homeEgg && m_homeEgg->IsEnabled()) {
+		Transform* eggTr = m_homeEgg->GetComponent<Transform>();
+		if (eggTr) {
+			outX = eggTr->GetX();
+			outY = eggTr->GetY();
+			return;
+		}
+	}
+
+	Monster::ResolveWanderCenter(outX, outY);
+}
+
 void Spider::UpdateAI(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
-
-	if (!m_attackTarget || !m_attackTarget->IsEnabled()) m_bHasTaunted = false;
+	const bool canChaseNow = m_bCanChase || !m_homeEgg || !m_homeEgg->IsEnabled();
 
 	switch ((SpiderState)m_state)
 	{
@@ -171,11 +197,16 @@ void Spider::UpdateAI(float deltaTime)
 		// Transition handled by callback
 		break;
 	case SpiderState::CHASE:
-		if (!m_attackTarget || !m_attackTarget->IsEnabled()) { ChangeState((int)SpiderState::IDLE); m_idleTimer = 0.0f; }
-		else CheckAttackTransition(m_attackRange, (int)SpiderState::ATTACK, (int)SpiderState::IDLE);
+		if (!m_attackTarget || !m_attackTarget->IsEnabled() || !canChaseNow) {
+			ChangeState((int)SpiderState::IDLE);
+			m_idleTimer = 0.0f;
+		}
+		else {
+			CheckAttackTransition(m_attackRange, (int)SpiderState::ATTACK, (int)SpiderState::IDLE);
+		}
 		break;
 	case SpiderState::IDLE:
-		if (m_attackTarget && m_attackTarget->IsEnabled() && m_bCanChase) {
+		if (m_attackTarget && m_attackTarget->IsEnabled() && canChaseNow) {
 			if (m_distToPlayerSq > (m_attackRange * m_attackRange * 1.1f)) {
 				if (!m_bHasTaunted) { ChangeState((int)SpiderState::TAUNT); m_bHasTaunted = true; }
 				else ChangeState((int)SpiderState::CHASE);
@@ -183,21 +214,16 @@ void Spider::UpdateAI(float deltaTime)
 			else if (m_attackCooldownTimer <= 0.0f) ChangeState((int)SpiderState::ATTACK);
 		}
 		else {
-			if (m_idleTimer == 0.0f && m_homeEgg && m_homeEgg->IsEnabled()) {
-				float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
-				float dist = (rand() / (float)RAND_MAX) * m_spawnRadius;
-				Transform* eggTr = m_homeEgg->GetComponent<Transform>();
-				m_targetX = eggTr->GetX() + cosf(angle) * dist;
-				m_targetY = eggTr->GetY() + sinf(angle) * dist;
-			}
 			UpdateAI_Wander(deltaTime, (int)SpiderState::WALK, (int)SpiderState::IDLE);
 		}
 		break;
 	case SpiderState::WALK:
-		if (m_attackTarget && m_attackTarget->IsEnabled()) {
+		if (m_attackTarget && m_attackTarget->IsEnabled() && canChaseNow) {
 			if (!m_bHasTaunted) { ChangeState((int)SpiderState::TAUNT); m_bHasTaunted = true; }
 			else ChangeState((int)SpiderState::CHASE);
 		}
+		break;
+	default:
 		break;
 	}
 
@@ -213,13 +239,16 @@ void Spider::UpdateMovement(float deltaTime)
 	case SpiderState::CHASE: MoveTowardPlayer(deltaTime, m_runSpeed, (int)SpiderState::WALK, (int)SpiderState::IDLE); break;
 	case SpiderState::WALK: MoveTowardLocation(deltaTime, m_walkSpeed, (int)SpiderState::WALK, (int)SpiderState::IDLE); break;
 	case SpiderState::IDLE: m_animator->SetState((int)SpiderState::IDLE, transform->GetDirection()); break;
+	default:
+		break;
 	}
 }
 
 void Spider::Damaged(int damage)
 {
-	Entity::Damaged(damage);
+	Monster::Damaged(damage);
 	if (!IsDead()) {
+		if (!m_homeEgg || !m_homeEgg->IsEnabled()) m_bCanChase = true;
 		ChangeState((int)SpiderState::HIT);
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 	}
@@ -251,7 +280,17 @@ void Spider::RenderDebugOverlay()
 	RenderManager* renderManager = RenderManager::GetInstance();
 	if (!cameraManager || !renderManager) return;
 
-	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(transform->GetX(), transform->GetY());
+	float wanderCenterX = transform->GetX();
+	float wanderCenterY = transform->GetY();
+	if (m_homeEgg && m_homeEgg->IsEnabled()) {
+		Transform* eggTr = m_homeEgg->GetComponent<Transform>();
+		if (eggTr) {
+			wanderCenterX = eggTr->GetX();
+			wanderCenterY = eggTr->GetY();
+		}
+	}
+
+	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(wanderCenterX, wanderCenterY);
 	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_spawnRadius, screenCenter.Y - m_spawnRadius, m_spawnRadius * 2.0f, m_spawnRadius * 2.0f), Gdiplus::Color(100, 200, 100, 255), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
 	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_aggroRadius, screenCenter.Y - m_aggroRadius, m_aggroRadius * 2.0f, m_aggroRadius * 2.0f), Gdiplus::Color(255, 255, 0), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
 	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_deaggroRadius, screenCenter.Y - m_deaggroRadius, m_deaggroRadius * 2.0f, m_deaggroRadius * 2.0f), Gdiplus::Color(255, 165, 0), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);

@@ -2,8 +2,6 @@
 #include "Monster.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../02_GameObject/Component/Transform/Transform.h"
-#include "../../../02_GameObject/Component/Collider/BoxCollider.h"
-#include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../02_GameObject/Entity/Player/Player.h"
 #include "../../../03_Animation/Animator.h"
 
@@ -65,6 +63,8 @@ void Monster::Update(float deltaTime)
 		return;
 	}
 
+	const bool hadAggroTarget = (m_attackTarget && m_attackTarget->IsEnabled());
+
 	UpdateAI(deltaTime);
 
 	// --- 1. [매 프레임] 정보 수집 (이동 계산에 필요하므로 매 프레임 수행) ---
@@ -120,9 +120,15 @@ void Monster::Update(float deltaTime)
 		else if (m_aggroType != AggroType::ALWAYS)
 		{
 			if (m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius)) m_attackTarget = nullptr;
-		};
+		}
 
 		m_aiTickTimer = 0.0f;
+	}
+
+	const bool hasAggroTarget = (m_attackTarget && m_attackTarget->IsEnabled());
+	if (hadAggroTarget && !hasAggroTarget)
+	{
+		ResetAggroSession();
 	}
 
 	if (m_attackCooldownTimer > 0.0f)
@@ -161,10 +167,25 @@ void Monster::OnDeathEnd()
 	ObjectManager::GetInstance()->RemoveGameObject(this);
 }
 
+void Monster::ResetAggroSession()
+{
+}
+
+void Monster::ResolveWanderCenter(float& outX, float& outY) const
+{
+	if (transform)
+	{
+		outX = transform->GetX();
+		outY = transform->GetY();
+		return;
+	}
+
+	outX = 0.0f;
+	outY = 0.0f;
+}
+
 void Monster::ChangeState(int newState)
 {
-	if (m_state == newState) return;
-
 	Entity::ChangeState(newState);
 }
 
@@ -312,14 +333,17 @@ void Monster::UpdateAI_Wander(float deltaTime, int walkState, int idleState)
 {
 	if (m_state != idleState) return;
 
+	float centerX = 0.0f;
+	float centerY = 0.0f;
+	ResolveWanderCenter(centerX, centerY);
+
 	m_idleTimer += deltaTime;
 	if (m_idleTimer >= m_idleDuration) {
 		float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
 		float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
-		m_targetX = transform->GetX() + cosf(angle) * dist;
-		m_targetY = transform->GetY() + sinf(angle) * dist;
+		m_targetX = centerX + cosf(angle) * dist;
+		m_targetY = centerY + sinf(angle) * dist;
 
-		// 맵 경계 체크 (Define.h 상수의 가시성 확인 필요, 여기서는 일반 로직만 작성)
 		ChangeState(walkState);
 		m_idleTimer = 0.0f;
 	}

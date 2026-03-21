@@ -63,7 +63,9 @@ void UIText::Render()
 			textParams.format,
 			textParams.destRect,
 			textParams.layer,
-			textParams.sortKey
+			textParams.sortKey,
+			rectTransform->GetRotation(),
+			Gdiplus::PointF(rectTransform->GetX(), rectTransform->GetY())
 		);
 	}
 }

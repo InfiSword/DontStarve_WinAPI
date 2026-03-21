@@ -91,7 +91,7 @@ void Boss_RedHound::Init()
 			m_animator->RegisterAnimation((int)BossRedHoundState::ATTACK, DIR_LEFT, atkSidePath, 0, 0, 7, 18, px, py, false, 0.03f, false);
 			m_animator->RegisterAnimation((int)BossRedHoundState::ATTACK, DIR_RIGHT, atkSidePath, 0, 0, 7, 18, px, py, false, 0.03f);
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossRedHoundState::ATTACK, (Direction)dir);
 				if (clip) {
 					clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
@@ -103,7 +103,7 @@ void Boss_RedHound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossRedHoundState::HIT, (Direction)dir, base + houndPrefix + L"hit_side.png", 0, 0, 7, 27, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossRedHoundState::HIT, (Direction)dir);
 				if (clip) {
@@ -114,7 +114,7 @@ void Boss_RedHound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossRedHoundState::DEATH, (Direction)dir, base + houndPrefix + L"death.png", 0, 0, 7, 52, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossRedHoundState::DEATH, (Direction)dir);
 				if (clip) {
@@ -125,7 +125,7 @@ void Boss_RedHound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossRedHoundState::HOWL, (Direction)dir, base + houndPrefix + L"howl.png", 0, 0, 7, 47, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossRedHoundState::HOWL, (Direction)dir);
 				if (clip) {
@@ -153,10 +153,10 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 	switch ((BossRedHoundState)m_state)
 	{
 	case BossRedHoundState::HOWL:
-		// Handle by callback
 		break;
 	case BossRedHoundState::ATTACK_PRE:
-		if (m_animator->IsAnimationDone()) ChangeState((int)BossRedHoundState::ATTACK);
+		if (m_animator->IsAnimationDone()) 
+			ChangeState((int)BossRedHoundState::ATTACK);
 		break;
 	case BossRedHoundState::CHASE:
 		if (!m_bCanChase) { ChangeState((int)BossRedHoundState::IDLE); break; }
@@ -174,7 +174,8 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 		else UpdateAI_Wander(deltaTime, (int)BossRedHoundState::RUN, (int)BossRedHoundState::IDLE);
 		break;
 	case BossRedHoundState::RUN:
-		if (m_attackTarget && m_attackTarget->IsEnabled() && m_bCanChase) ChangeState((int)BossRedHoundState::CHASE);
+		if (m_attackTarget && m_attackTarget->IsEnabled() && m_bCanChase) 
+			ChangeState((int)BossRedHoundState::CHASE);
 		break;
 	}
 
@@ -199,12 +200,15 @@ void Boss_RedHound::Damaged(int damage)
 	if (!IsDead()) ChangeState((int)BossRedHoundState::HIT);
 }
 
-void Boss_RedHound::OnAttackHit() { if (m_state == (int)BossRedHoundState::ATTACK) ProcessAttackHit(m_damage); }
+void Boss_RedHound::OnAttackHit()
+{
+	if (m_state == (int)BossRedHoundState::ATTACK)
+		ProcessAttackHit(m_damage);
+}
 
 void Boss_RedHound::OnAttackEnd()
 {
 	if (m_state != (int)BossRedHoundState::ATTACK) return;
-	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
 	ChangeState((int)BossRedHoundState::RUN);
 }
 

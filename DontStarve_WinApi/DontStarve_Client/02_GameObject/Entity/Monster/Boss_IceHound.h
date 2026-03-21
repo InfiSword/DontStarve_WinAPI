@@ -18,7 +18,7 @@ class Boss_IceHound : public Monster
 public:
 	Boss_IceHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 			 const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
-	virtual ~Boss_IceHound();
+	virtual ~Boss_IceHound() override;
 
 	virtual void Init() override;
 	virtual void UpdateAI(float deltaTime) override;

@@ -3,12 +3,8 @@
 #include <gdiplus.h>
 #include "Define.h"
 #include "Enum.h"
-#include <cstddef>
 #include <string>
-#include <cstring>
 #include <vector>
-#include <map>
-#include <cmath>
 
 // ====================== Enum 문자열 변환 테이블 =======================
 
@@ -29,6 +25,11 @@ namespace EnumTables {
 	struct GameObjectIDEntry {
 		GameObjectID value;
 		const WCHAR* name;
+	};
+
+	struct SceneTypeByPath {
+		SceneType value;
+		const WCHAR* path;
 	};
 
 	// TileType 테이블
@@ -58,7 +59,8 @@ namespace EnumTables {
 	};
 
 	// GameObjectID 테이블
-	static constexpr GameObjectIDEntry GameObjectIDTable[] = {
+	static constexpr GameObjectIDEntry GameObjectIDTable[] = 
+	{
 		{ GOID_NONE,                     L"GOID_NONE" },
 		{ GOID_NORMAL_GRASS,             L"GOID_NORMAL_GRASS" },
 		{ GOID_NORMAL_TREE_SHORT,        L"GOID_NORMAL_TREE_SHORT" },
@@ -109,6 +111,13 @@ namespace EnumTables {
 		{ GOID_SELECT_BUTTON,            L"GOID_SELECT_BUTTON" },
 		{ GOID_CANCEL_SELECTION,         L"GOID_CANCEL_SELECTION" },
 		{ GOID_BACK_BUTTON,              L"GOID_BACK_BUTTON" }
+	};
+
+	static constexpr SceneTypeByPath SceneTypeTable[] =
+	{
+		{ SCENE_GAME_FARMING_AREA, L"GameData/00_map.dsm" },
+		{ SCENE_GAME_HOUND_FOREST, L"GameData/01_BossHound.dsm" },
+		{ SCENE_GAME_SPIDER_QUEEN_HOUSE, L"GameData/02_BossSpiderQueen.dsm"}
 	};
 }
 
@@ -364,6 +373,7 @@ struct DrawCommand {
 	Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);
 	bool hasTint = false;
 	bool preFlipped = false;
+	float rotation = 0.0f;
 };
 
 // ====================== 플레이어 스폰 데이터 구조체 =======================

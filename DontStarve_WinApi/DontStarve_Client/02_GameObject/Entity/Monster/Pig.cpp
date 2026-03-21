@@ -82,7 +82,7 @@ void Pig::Init()
 			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_LEFT, atkSidePath, 0, 0, 4, 66, transform->GetPivotX(), transform->GetPivotY(), false, 0.025f, false);
 			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_RIGHT, atkSidePath, 0, 0, 4, 66, transform->GetPivotX(), transform->GetPivotY(), false, 0.025f);
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)PigState::ATTACK, (Direction)dir);
 				if (clip) {
 					clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
@@ -94,7 +94,7 @@ void Pig::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)PigState::HIT, (Direction)dir, base + L"Hit\\Hit_pigman_hit.png", 232, 245, 4, 29, transform->GetPivotX(), transform->GetPivotY(), false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)PigState::HIT, (Direction)dir);
 				if (clip) {
@@ -104,7 +104,7 @@ void Pig::Init()
 						});
 				}
 			}
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)PigState::DEATH, (Direction)dir, base + L"Death\\Death_pigman_death.png", 227, 243, 4, 64, transform->GetPivotX(), transform->GetPivotY(), false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)PigState::DEATH, (Direction)dir);
 				if (clip) {
@@ -189,6 +189,11 @@ void Pig::Damaged(int damage)
 		ChangeState((int)PigState::HIT);
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 	}
+}
+
+void Pig::ChangeState(int newState)
+{
+	Monster::ChangeState(newState);
 }
 
 void Pig::OnAttackHit() { if (m_state == (int)PigState::ATTACK) ProcessAttackHit(m_damage); }

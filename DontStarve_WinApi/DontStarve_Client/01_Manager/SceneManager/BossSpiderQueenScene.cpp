@@ -4,10 +4,9 @@
 #include "../CameraManager/CameraManager.h"
 #include "../UIManager/UIManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
-#include "../../02_GameObject/Entity/Entity.h"
 #include "../../02_GameObject/Entity/Monster/Monster.h"
+#include "../../02_GameObject/Entity/Monster/Spider.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
-#include "../ResourceManager/ResourceManager.h"
 #include "../GameProgressManager/GameProgressManager.h"
 #include "../SceneManager/SceneManager.h"
 #include "../../02_GameObject/UI/UIImage.h"
@@ -24,6 +23,7 @@ BossSpiderQueenScene::BossSpiderQueenScene()
     , m_bossActivated(false)
     , m_isClearUIShown(false)
     , m_bossObject(nullptr)
+    , m_chaseStarted(false)
 {
 }
 
@@ -41,6 +41,7 @@ void BossSpiderQueenScene::Init(const MapData* mapData)
     m_bossActivated = false;
     m_isIntroRunning = false;
     m_isClearUIShown = false;
+    m_chaseStarted = false;
     m_bossObject = nullptr;
     m_minionObjects.clear();
 
@@ -62,7 +63,8 @@ void BossSpiderQueenScene::Init(const MapData* mapData)
         {
             m_minionObjects.push_back(obj);
             Monster* pMinion = dynamic_cast<Monster*>(obj);
-            if (pMinion) pMinion->SetCanChase(false);
+            Spider* pSpider = dynamic_cast<Spider*>(obj);
+            if (pMinion) pMinion->SetCanChase(pSpider && !pSpider->HasHomeEgg() ? true : false);
         }
         // 나무 오브젝트 상호작용 비활성화
         else if (dynamic_cast<Tree*>(obj))
@@ -213,8 +215,7 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
         }
 
         // 복귀 도중 추격 시작 (유저 요청: "이 때 주변에 다른 거미들도 동시에 플레이어를 추격을 시작")
-        static bool chaseStarted = false;
-        if (!chaseStarted)
+        if (!m_chaseStarted)
         {
             if (m_bossObject)
             {
@@ -225,7 +226,6 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
             // 주변 모든 거미(민ion)들도 추격 시작
             ObjectManager* objMgr = ObjectManager::GetInstance();
             const auto& objects = objMgr->GetGameObjects();
-            Player* pPlayer = objMgr->GetPlayer();
             for (auto* obj : objects)
             {
                 if (obj && (obj->GetID() == GOID_MONSTER_SPIDER || obj->GetID() == GOID_MONSTER_WARRIOR_SPIDER))
@@ -239,7 +239,7 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
                     }
                 }
             }
-            chaseStarted = true;
+            m_chaseStarted = true;
         }
     }
     else
@@ -289,7 +289,7 @@ void BossSpiderQueenScene::UpdateCleared(float deltaTime)
 
     if (m_phaseTimer >= 4.0f)
     {
-        SceneManager::GetInstance()->LoadGameScene(L"GameData/00_map.dsm", GetSelectedCharacterID());
+        SceneManager::GetInstance()->LoadGameScene(SCENE_GAME_FARMING_AREA, GetSelectedCharacterID());
     }
 }
 

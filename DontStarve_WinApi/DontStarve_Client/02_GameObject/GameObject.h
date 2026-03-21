@@ -42,7 +42,7 @@ public:
 		const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", 
 		bool isActive = true, bool isInteractive = false);
  
-	virtual ~GameObject();
+	virtual ~GameObject() override;
 
 	virtual void Init();
 	virtual void LateInit();

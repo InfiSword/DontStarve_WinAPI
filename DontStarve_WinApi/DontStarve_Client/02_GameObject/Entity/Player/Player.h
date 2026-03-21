@@ -21,7 +21,7 @@ class Player : public Combatant
 {
 public:
 	Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
-	virtual ~Player();
+	virtual ~Player() override;
 
 	virtual void Init() override;
 	virtual void LateInit() override;

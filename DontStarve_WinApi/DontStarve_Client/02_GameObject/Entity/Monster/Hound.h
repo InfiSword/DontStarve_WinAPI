@@ -18,7 +18,7 @@ class Hound : public Monster
 public:
     Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
           const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
-    virtual ~Hound();
+    virtual ~Hound() override;
 
     virtual void Init() override;
     virtual void UpdateAI(float deltaTime) override;

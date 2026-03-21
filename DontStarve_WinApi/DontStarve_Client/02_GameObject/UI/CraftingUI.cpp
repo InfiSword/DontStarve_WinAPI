@@ -32,6 +32,8 @@ MenuUI::MenuUI()
 	m_spiderQueenBossPanel(nullptr),
 	m_bossChallengeButton(nullptr),
 	m_bossChallengeButtonText(nullptr),
+	m_houndClearText(nullptr),
+	m_spiderQueenClearText(nullptr),
 	m_isBossPanelVisible(false),
 	m_selectedBossID(GOID_NONE),
 	m_isToolListVisible(false),
@@ -148,6 +150,18 @@ void MenuUI::Release()
 		uiManager->RemoveUIButton(m_spiderQueenBossPanel);
 		delete m_spiderQueenBossPanel;
 		m_spiderQueenBossPanel = nullptr;
+	}
+
+	if (m_houndClearText) {
+		uiManager->RemoveUIText(m_houndClearText);
+		delete m_houndClearText;
+		m_houndClearText = nullptr;
+	}
+
+	if (m_spiderQueenClearText) {
+		uiManager->RemoveUIText(m_spiderQueenClearText);
+		delete m_spiderQueenClearText;
+		m_spiderQueenClearText = nullptr;
 	}
 
 	if (m_bossChallengeButton) {
@@ -612,7 +626,6 @@ void MenuUI::ClearAllPanels()
 	m_isCreateListVisible = false;
 	m_isCookListVisible = false;
 	m_isBossPanelVisible = false;
-	m_isBossPanelVisible = false;
 
 	// 모든 버튼 숨김
 	for (auto* button : m_toolButtons) {
@@ -628,6 +641,9 @@ void MenuUI::ClearAllPanels()
 	m_bossOverlay->SetActive(false);
 	m_houndBossPanel->SetActive(false);
 	m_spiderQueenBossPanel->SetActive(false);
+	
+	if (m_houndClearText) m_houndClearText->SetActive(false);
+	if (m_spiderQueenClearText) m_spiderQueenClearText->SetActive(false);
 
 	m_bossChallengeButton->SetActive(false);
 	m_bossChallengeButtonText->SetActive(false);
@@ -709,13 +725,12 @@ void MenuUI::ToggleBossPanel()
 	if (m_houndBossPanel) m_houndBossPanel->SetActive(m_isBossPanelVisible);
 	if (m_spiderQueenBossPanel) m_spiderQueenBossPanel->SetActive(m_isBossPanelVisible);
 
-	if (m_bossChallengeButton) m_bossChallengeButton->SetActive(m_isBossPanelVisible);
-	if (m_bossChallengeButtonText) m_bossChallengeButtonText->SetActive(m_isBossPanelVisible);
-
 	if (m_isBossPanelVisible) {
 		UpdateBossPanelHighlight();
 	}
 
+	if (m_bossChallengeButton) m_bossChallengeButton->SetActive(m_isBossPanelVisible);
+	if (m_bossChallengeButtonText) m_bossChallengeButtonText->SetActive(m_isBossPanelVisible);
 }
 
 void MenuUI::SelectTool(GameObjectID toolID)
@@ -920,6 +935,16 @@ void MenuUI::CreateBossUI()
 	m_houndBossPanel->SetOnClickCallback([this]() { SelectBoss(GOID_MONSTER_HOUNDDOG); });
 	uiManager->AddUIButton(m_houndBossPanel);
 
+	// 하운드 CLEAR 텍스트
+	m_houndClearText = new UIText(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 605),
+		200.0f, 60.0f, L"CLEAR", Gdiplus::Color::Red, LAYER_UI_FOREGROUND, 1000.0f, L"Arial", 48.0f
+	);
+	m_houndClearText->GetRectTransform()->SetPosition(houndPanelX, panelY);
+	m_houndClearText->GetRectTransform()->SetRotation(-25.0f); // 약간 기울임
+	m_houndClearText->SetActive(false);
+	uiManager->AddUIText(m_houndClearText);
+
 	if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_houndBossPanel->GetImageComponent())) {
 		img->SetTintColor(200, 200, 200, 255);
 	}
@@ -951,6 +976,16 @@ void MenuUI::CreateBossUI()
 		});
 
 	uiManager->AddUIButton(m_spiderQueenBossPanel);
+
+	// 스파이더 퀸 CLEAR 텍스트
+	m_spiderQueenClearText = new UIText(
+		static_cast<GameObjectID>(GOID_CRAFT_BAR + 606),
+		200.0f, 60.0f, L"CLEAR", Gdiplus::Color::Red, LAYER_UI_FOREGROUND, 1000.0f, L"Arial", 48.0f
+	);
+	m_spiderQueenClearText->GetRectTransform()->SetPosition(spiderPanelX, panelY);
+	m_spiderQueenClearText->GetRectTransform()->SetRotation(-25.0f); // 약간 기울임
+	m_spiderQueenClearText->SetActive(false);
+	uiManager->AddUIText(m_spiderQueenClearText);
 
 	if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_spiderQueenBossPanel->GetImageComponent())) {
 		img->SetTintColor(150, 150, 150, 255);
@@ -1045,11 +1080,11 @@ void MenuUI::TryChallengeBoss()
 
 	if (m_selectedBossID == GOID_MONSTER_HOUNDDOG) {
 		// 하우드 보스 맵 로드
-		SceneManager::GetInstance()->LoadGameScene(L"GameData/01_BossHound.dsm", selectedChar);
+		SceneManager::GetInstance()->LoadGameScene(SCENE_GAME_HOUND_FOREST, selectedChar);
 		OutputDebugStringW(L"CraftingUI: 하운드 숲으로 이동 요청 전송\n");
 	} else if (m_selectedBossID == GOID_MONSTER_QUEEN_SPIDER) {
 		// 스파이더 퀸 보스 맵 로드
-		SceneManager::GetInstance()->LoadGameScene(L"GameData/02_BossSpiderQueen.dsm", selectedChar);
+		SceneManager::GetInstance()->LoadGameScene(SCENE_GAME_SPIDER_QUEEN_HOUSE, selectedChar);
 		OutputDebugStringW(L"CraftingUI: 스파이더 퀸의 집으로 이동 요청 전송\n");
 	}
 
@@ -1075,8 +1110,14 @@ void MenuUI::UpdateBossPanelHighlight()
 {
 	if (!m_houndBossPanel || !m_spiderQueenBossPanel) return;
 
+	bool isHoundCleared = IsHoundBossCleared();
+	bool isSpiderQueenCleared = IsSpiderQueenBossCleared();
+
 	// 하운드 보스 패널 효과
-	if (m_selectedBossID == GOID_MONSTER_HOUNDDOG)
+	m_houndBossPanel->SetDisabled(isHoundCleared);
+	if (m_houndClearText) m_houndClearText->SetActive(m_isBossPanelVisible && isHoundCleared);
+
+	if (m_selectedBossID == GOID_MONSTER_HOUNDDOG && !isHoundCleared)
 	{
 		// 선택됨: 빨간색 틴트 + 크기 확대
 		if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_houndBossPanel->GetImageComponent())) {
@@ -1088,26 +1129,21 @@ void MenuUI::UpdateBossPanelHighlight()
 	}
 	else
 	{
-
+		if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_houndBossPanel->GetImageComponent())) {
+			if (isHoundCleared) img->SetTintColor(100, 100, 100, 255); // 클리어 시 어둡게
+			else img->SetTintColor(200, 200, 200, 255);
+		}
 		if (RectTransform* rectTransform = m_houndBossPanel->GetRectTransform()) {
 			rectTransform->SetScale(1.0f, 1.0f);
 		}
 	}
 
 	// 스파이더 퀸 보스 패널 효과
-	bool isSpiderQueenLocked = !IsHoundBossCleared();
+	bool isSpiderQueenLocked = !isHoundCleared;
+	m_spiderQueenBossPanel->SetDisabled(isSpiderQueenLocked || isSpiderQueenCleared);
+	if (m_spiderQueenClearText) m_spiderQueenClearText->SetActive(m_isBossPanelVisible && isSpiderQueenCleared);
 
-	// 잠금 상태에 따라 버튼 비활성화 여부 결정
-	if (isSpiderQueenLocked) {
-		// 잠금 상태: 버튼 기능 비활성화
-		m_spiderQueenBossPanel->SetDisabled(true);
-	}
-	else {
-		// 해금 상태: 버튼 기능 활성화
-		m_spiderQueenBossPanel->SetDisabled(false);
-	}
-
-	if (m_selectedBossID == GOID_MONSTER_QUEEN_SPIDER && !isSpiderQueenLocked) {
+	if (m_selectedBossID == GOID_MONSTER_QUEEN_SPIDER && !isSpiderQueenLocked && !isSpiderQueenCleared) {
 		// 선택됨 (해금된 상태): 빨간색 틴트 + 크기 확대
 		if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_spiderQueenBossPanel->GetImageComponent())) {
 			img->SetTintColor(255, 180, 180, 255);
@@ -1118,10 +1154,9 @@ void MenuUI::UpdateBossPanelHighlight()
 	}
 	else {
 		if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_spiderQueenBossPanel->GetImageComponent())) {
-			if (isSpiderQueenLocked) {
-				// 잠금 상태: 매우 어둡게 (60% 밝기)
-				img->SetTintColor(120, 120, 120, 255);
-			}
+			if (isSpiderQueenCleared) img->SetTintColor(100, 100, 100, 255); // 클리어 시 어둡게
+			else if (isSpiderQueenLocked) img->SetTintColor(120, 120, 120, 255); // 잠금 시 어둡게
+			else img->SetTintColor(150, 150, 150, 255);
 		}
 		// 원래 크기로 복원
 		if (RectTransform* rectTransform = m_spiderQueenBossPanel->GetRectTransform()) {

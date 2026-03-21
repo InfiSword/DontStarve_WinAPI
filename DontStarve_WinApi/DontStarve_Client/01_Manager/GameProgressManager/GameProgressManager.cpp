@@ -161,3 +161,21 @@ void GameProgressManager::ParseCharacterLine(const std::wstring& line)
 		OutputDebugStringW(L"GameProgressManager: 캐릭터 라인 파싱 에러\n");
 	}
 }
+
+void GameProgressManager::ResetRuntimeData()
+{
+	// 런타임 씬 클리어 정보 초기화 (Farming Area만 true)
+	for (auto& sceneInfo : m_gameProgress.sceneClearInfos) {
+		if (sceneInfo.sceneType == SCENE_GAME_FARMING_AREA) {
+			sceneInfo.isCleared = true;
+		} else {
+			sceneInfo.isCleared = false;
+		}
+	}
+
+	// 플레이어 상태 저장 초기화
+	m_hasSavedPlayerState = false;
+	m_playerSnapshot = PlayerStateSnapshot();
+
+	OutputDebugStringW(L"GameProgressManager: 런타임 데이터 초기화 완료\n");
+}

@@ -31,6 +31,7 @@ SceneManager::~SceneManager()
 
 void SceneManager::Init()
 {
+	// 모든 맵 데이터 로드 (게임 시작 시 한 번만 수행)
 	LoadAllMapData();
 	LoadTitleScene();
 }
@@ -70,25 +71,28 @@ void SceneManager::Release()
 		m_nextScene = nullptr;
 	}
 	
-	for (auto& pair : m_mapDataStorage) {
-		MapData& mapData = pair.second;
-		for (auto& objDef : mapData.gameObjects) {
-			objDef.baseDir.clear(); objDef.baseDir.shrink_to_fit();
-			objDef.imageName.clear(); objDef.imageName.shrink_to_fit();
-		}
-		mapData.gameObjects.clear(); mapData.gameObjects.shrink_to_fit();
-		
-		for (int y = 0; y < MAP_HEIGHT; ++y) {
-			for (int x = 0; x < MAP_WIDTH; ++x) {
-				mapData.tiles[x][y].baseDir.clear(); mapData.tiles[x][y].baseDir.shrink_to_fit();
-				mapData.tiles[x][y].imageName.clear(); mapData.tiles[x][y].imageName.shrink_to_fit();
-			}
-		}
-		mapData.mapName.clear(); mapData.mapName.shrink_to_fit();
-		mapData.mapFilePath.clear(); mapData.mapFilePath.shrink_to_fit();
+	// m_mapDataStorage 정리 (스택 할당 회피)
+	for (auto it = m_mapDataStorage.begin(); it != m_mapDataStorage.end(); ++it) {
+		it->second.gameObjects.clear();
+		it->second.gameObjects.shrink_to_fit();
+		it->second.mapName.clear();
+		it->second.mapName.shrink_to_fit();
+		it->second.mapFilePath.clear();
+		it->second.mapFilePath.shrink_to_fit();
 	}
-	
 	m_mapDataStorage.clear();
+	
+	// m_mapDataBackup 정리 (스택 할당 회피)
+	for (auto it = m_mapDataBackup.begin(); it != m_mapDataBackup.end(); ++it) {
+		it->second.gameObjects.clear();
+		it->second.gameObjects.shrink_to_fit();
+		it->second.mapName.clear();
+		it->second.mapName.shrink_to_fit();
+		it->second.mapFilePath.clear();
+		it->second.mapFilePath.shrink_to_fit();
+	}
+	m_mapDataBackup.clear();
+	
 	m_currentMapData = nullptr;
 }
 
@@ -108,7 +112,7 @@ void SceneManager::LoadCharacterSelectScene()
 	m_nextScene = characterSelectScene;
 }
 
-void SceneManager::LoadGameScene(const std::wstring& mapFileName, GameObjectID selectedCharacterID)
+void SceneManager::LoadGameScene(SceneType sceneType, GameObjectID selectedCharacterID)
 {
 	if (m_nextScene) return;
 
@@ -119,23 +123,46 @@ void SceneManager::LoadGameScene(const std::wstring& mapFileName, GameObjectID s
 		GameProgressManager::GetInstance()->SavePlayerState(currentPlayer->SaveState());
 	}
 
+	// 보스 씬으로 진입하는 경우: 파밍 씬 상태 백업
+	bool isBossScene = (sceneType == SCENE_GAME_HOUND_FOREST || 
+	                     sceneType == SCENE_GAME_SPIDER_QUEEN_HOUSE);
+	if (isBossScene) {
+		SaveGameSceneState(SCENE_GAME_FARMING_AREA);
+	}
+	// 파밍 씬으로 복귀하는 경우: 보스 이전 상태 복원
+	else if (sceneType == SCENE_GAME_FARMING_AREA) {
+		// 현재 씬이 보스 씬인지 확인
+		if (m_currentScene) {
+			SceneType currentSceneType = GetCurrentSceneType();
+			if (currentSceneType == SCENE_GAME_HOUND_FOREST || 
+				currentSceneType == SCENE_GAME_SPIDER_QUEEN_HOUSE) {
+				// 보스 씬에서 돌아오는 것이므로 백업된 상태 복원
+				RestoreGameSceneState(SCENE_GAME_FARMING_AREA);
+			}
+		}
+	}
+
 	GameScene* gameScene = nullptr;
-	if (mapFileName == L"GameData/01_BossHound.dsm") {
+	switch (sceneType)
+	{
+	case SCENE_GAME_HOUND_FOREST:
 		gameScene = new BossHoundScene();
-	}
-	else if (mapFileName == L"GameData/02_BossSpiderQueen.dsm") {
+		break;
+	case SCENE_GAME_SPIDER_QUEEN_HOUSE:
 		gameScene = new BossSpiderQueenScene();
-	}
-	else {
+		break;
+	case SCENE_GAME_FARMING_AREA:
+	default:
 		gameScene = new ForestScene();
+		break;
 	}
 	
 	gameScene->SetSelectedCharacterID(selectedCharacterID);
 
-	auto it = m_mapDataStorage.find(mapFileName);
+	// 맵 데이터 설정 (m_mapDataStorage에서 가져옴)
+	auto it = m_mapDataStorage.find(sceneType);
 	if (it != m_mapDataStorage.end()) {
 		m_currentMapData = &it->second;
-		// 주의: Init은 ChangeSceneIfReserved에서 새 씬이 활성화될 때 호출함
 	}
 	else {
 		m_currentMapData = nullptr;
@@ -150,7 +177,7 @@ void SceneManager::ChangeSceneIfReserved()
 
 	OutputDebugStringW(L"SceneManager: 예약된 씬으로 안전하게 교체 수행\n");
 
-	// 1. 기존 씬 삭제
+	// 1. 기존 씬 정리
 	if (m_currentScene) {
 		delete m_currentScene;
 		m_currentScene = nullptr;
@@ -164,20 +191,46 @@ void SceneManager::ChangeSceneIfReserved()
 	m_currentScene->Init(m_currentMapData);
 }
 
+SceneType SceneManager::GetCurrentSceneType() const
+{
+	if (!m_currentScene) return SCENE_NONE;
+	return m_currentScene->GetSceneType();
+}
+
+void SceneManager::SaveGameSceneState(SceneType sceneType)
+{
+	// 현재 씬의 상태를 백업으로 저장
+	GameScene* currentGameScene = dynamic_cast<GameScene*>(m_currentScene);
+	if (!currentGameScene) return;
+
+	MapData backupData;
+	// 게임 씬에서 현재 상태를 추출
+	currentGameScene->SaveCurrentObjectsToMapData(backupData);
+	m_mapDataBackup[sceneType] = backupData;
+	
+	OutputDebugStringW((L"SceneManager: 게임 씬 상태 백업 완료 - SceneType: " + std::to_wstring((int)sceneType) + L"\n").c_str());
+}
+
+void SceneManager::RestoreGameSceneState(SceneType sceneType)
+{
+	// 백업된 씬의 상태를 현재 상태로 복원
+	auto backupIt = m_mapDataBackup.find(sceneType);
+	if (backupIt != m_mapDataBackup.end()) {
+		m_currentMapData = &backupIt->second;
+		OutputDebugStringW((L"SceneManager: 게임 씬 상태 복원 완료 - SceneType: " + std::to_wstring((int)sceneType) + L"\n").c_str());
+	}
+}
+
 void SceneManager::LoadAllMapData()
 {
-	std::vector<std::wstring> mapFiles = {
-		L"GameData/00_map.dsm",
-		L"GameData/01_BossHound.dsm",
-		L"GameData/02_BossSpiderQueen.dsm",
-	};
-
-	for (const std::wstring& mapFileName : mapFiles) {
+	// 게임 시작 시 모든 맵 데이터 로드
+	for (const auto& entry : EnumTables::SceneTypeTable) {
 		MapData mapData;
-		if (ParseMapFile(mapFileName, mapData)) {
-			m_mapDataStorage[mapFileName] = std::move(mapData);
+		if (SceneManager::ParseMapFile(entry.path, mapData)) {
+			m_mapDataStorage[entry.value] = std::move(mapData);
 		}
 	}
+	OutputDebugStringW(L"SceneManager: 모든 맵 데이터 로드 완료\n");
 }
 
 bool SceneManager::ParseMapFile(const std::wstring& mapFileName, MapData& outMapData)
@@ -187,10 +240,4 @@ bool SceneManager::ParseMapFile(const std::wstring& mapFileName, MapData& outMap
 		return resMgr->GetObjectResourceInfo(id);
 	};
 	return ResourcePathUtils::ParseMapFileInto(mapFileName, outMapData, getObjectResourceInfo);
-}
-
-SceneType SceneManager::GetCurrentSceneType() const
-{
-	if (!m_currentScene) return SCENE_NONE;
-	return m_currentScene->GetSceneType();
 }

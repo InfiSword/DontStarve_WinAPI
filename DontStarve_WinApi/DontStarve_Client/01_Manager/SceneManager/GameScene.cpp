@@ -10,6 +10,7 @@
 #include "../ColliderManager/ColliderManager.h"
 #include "../GameProgressManager/GameProgressManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
+#include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/UI/CraftingUI.h"
 #include "../../02_GameObject/UI/PlayerHPUI.h"
 #include "../../02_GameObject/UI/GameOverUI.h"
@@ -44,9 +45,16 @@ void GameScene::Init(const MapData* mapData)
 	RenderManager::GetInstance()->Init();
 	InputManager::GetInstance()->Init();
 
-	// 2. UI 생성 및 초기화
-	if (!m_craftingUI) m_craftingUI = new MenuUI();
-	if (m_craftingUI) m_craftingUI->Init();
+	// 2. UI 생성 및 초기화 (보스 씬 제외)
+	// 보스 씬은 CraftingUI를 표시하지 않음
+	SceneType currentSceneType = GetSceneType();
+	bool isBossScene = (currentSceneType == SCENE_GAME_HOUND_FOREST || 
+	                     currentSceneType == SCENE_GAME_SPIDER_QUEEN_HOUSE);
+
+	if (!isBossScene) {
+		if (!m_craftingUI) m_craftingUI = new MenuUI();
+		if (m_craftingUI) m_craftingUI->Init();
+	}
 
 	if (!m_playerHPUI) m_playerHPUI = new PlayerHPUI();
 	if (m_playerHPUI) m_playerHPUI->Init();
@@ -245,3 +253,36 @@ void GameScene::SpawnPlayer()
 		}
 	}
 }
+
+void GameScene::SaveCurrentObjectsToMapData(MapData& outMapData)
+{
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	if (!objectManager) return;
+
+	const auto& gameObjects = objectManager->GetGameObjects();
+
+	// 기존 초기 맵 오브젝트 리스트를 클리어하고 현재 활성화된 상태로 갱신
+	outMapData.gameObjects.clear();
+
+	for (GameObject* obj : gameObjects)
+	{
+		if (!obj || !obj->IsEnabled()) continue;
+
+		GameObjectID id = obj->GetID();
+
+		// 플레이어나 UI 등 영구 상태 저장이 필요 없는 특수 오브젝트는 제외 (ID 범위 Wilson ~ Wolfgang, UI 등)
+		if (id >= 1000 && id < 2000) continue; // Player
+		if (id >= 3000) continue;              // UI
+
+		Transform* transform = obj->GetComponent<Transform>();
+		if (!transform) continue;
+
+		ResourcePathUtils::ObjectResourceDef objDef;
+		objDef.id = id;
+		objDef.x = transform->GetX();
+		objDef.y = transform->GetY();
+
+		outMapData.gameObjects.push_back(objDef);
+	}
+}
+

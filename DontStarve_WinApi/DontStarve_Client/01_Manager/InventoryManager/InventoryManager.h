@@ -41,6 +41,9 @@ public:
 	void SaveInventoryToFile(Player* player, const std::wstring& filePath);
 	void LoadInventoryFromFile(Player* player, const std::wstring& filePath);
 
+	// 플레이어 인벤토리 초기화 (타이틀로 복귀 시)
+	void ResetPlayerInventory(Player* player);
+
 	// 아이템 제작 레시피 조회 (CraftingUI에서 사용)
 	bool HasCraftingRecipe(GameObjectID itemID) const;
 	const std::map<UINT, UINT>* GetCraftingRecipe(GameObjectID itemID) const;

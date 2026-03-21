@@ -32,6 +32,8 @@ private:
 	UIImage* m_bossOverlay;                          // 반투명 검은색 오버레이
 	UIButton* m_houndBossPanel;                      // 하운드 보스 패널 (클릭 가능)
 	UIButton* m_spiderQueenBossPanel;                // 스파이더 퀸 보스 패널 (클릭 가능)
+	UIText* m_houndClearText;                        // "CLEAR" 텍스트 (하운드)
+	UIText* m_spiderQueenClearText;                  // "CLEAR" 텍스트 (스파이더 퀸)
 	UIButton* m_bossChallengeButton;                 // 보스 도전 버튼
 	UIText* m_bossChallengeButtonText;               // 보스 도전 버튼 텍스트
 	bool m_isBossPanelVisible;                       // 보스 패널 표시 여부

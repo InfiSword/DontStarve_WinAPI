@@ -21,13 +21,13 @@ BossHoundScene::BossHoundScene()
     , m_introTimer(0.0f)
     , m_introTargetBossIndex(0)
     , m_bossesActivated(false)
-	, m_chaseAllowed(false)
     , m_isClearUIShown(false)
 {
 }
 
 BossHoundScene::~BossHoundScene()
 {
+    m_bossObjects.clear();
 }
 
 void BossHoundScene::Init(const MapData* mapData)
@@ -39,7 +39,6 @@ void BossHoundScene::Init(const MapData* mapData)
     m_currentPhase = BossPhase::Phase1_Hounds;
     m_phaseTimer = 0.0f;
     m_bossesActivated = false;
-	m_chaseAllowed = false;
     m_isIntroRunning = false;
     m_isClearUIShown = false;
     m_introTargetBossIndex = 0;
@@ -243,13 +242,13 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
     else if (m_introTimer <= totalBossIntroDuration + returnDuration)
     {
         // 플레이어에게 카메라가 돌아가기 시작할 때 추격 허용
-        
+
         // 플레이어에게 복귀
         Player* player = ObjectManager::GetInstance()->GetPlayer();
         if (player)
         {
             Transform* tr = player->GetComponent<Transform>();
-            
+
             Gdiplus::PointF lastPos = m_introStartPos;
             if (!m_bossObjects.empty())
             {
@@ -263,19 +262,15 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
             float curY = lastPos.Y + (tr->GetY() - lastPos.Y) * smoothT;
             camMgr->SetCameraPos(curX, curY);
         }
-		
-		if (!m_chaseAllowed)
-		{
-			for (auto* boss : m_bossObjects)
-			{
-				Monster* pMonster = dynamic_cast<Monster*>(boss);
-				if (pMonster) pMonster->SetCanChase(true);
-			}
-			m_chaseAllowed = true;
-		}
     }
     else
     {
+    	for (auto* boss : m_bossObjects)
+    	{
+    		Monster* pMonster = dynamic_cast<Monster*>(boss);
+    		if (pMonster) pMonster->SetCanChase(true);
+    	}
+
         // 모든 연출 종료
         m_bossesActivated = true;
         camMgr->SetFollowMode(true);
@@ -313,10 +308,12 @@ void BossHoundScene::SpawnBoss()
 
 void BossHoundScene::UpdatePhase2Battle(float deltaTime)
 {
-    // 보스들이 필드에 남아있는지 직접 체크 (Safer check)
+    // 플레이어가 입력 가능할 때 보스 몬스터 2명도 동시에 Update (중첩 최소화, 중복 호출 제거)
+    // ObjectManager에서 이미 모든 GameObject의 Update를 호출하므로, 별도 호출 불필요
+
+    // 기존 보스 생존 체크 로직 유지
     ObjectManager* objMgr = ObjectManager::GetInstance();
     const auto& objects = objMgr->GetGameObjects();
-    
     bool bossesAlive = false;
     for (auto* obj : objects)
     {
@@ -333,7 +330,6 @@ void BossHoundScene::UpdatePhase2Battle(float deltaTime)
         m_phaseTimer = 0.0f;
         m_isClearUIShown = false;
         OutputDebugStringW(L"BossHoundScene: All Bosses Defeated! Scene Cleared.\n");
-        
         // 클리어 기록 및 캐릭터 해금
         GameProgressManager::GetInstance()->ClearScene(SCENE_GAME_HOUND_FOREST);
     }
@@ -347,7 +343,7 @@ void BossHoundScene::UpdateCleared(float deltaTime)
     if (m_phaseTimer >= 1.0f && !m_isClearUIShown)
     {
         UIManager* uiMgr = UIManager::GetInstance();
-        
+
         // 뒷배경 어둡게 하기 (또는 클리어 배너 표시)
         UIImage* clearBanner = new UIImage(GOID_NONE, 600.0f, 150.0f, LAYER_UI_BACKGROUND, L"Resource/UI/BG_Banner.png", 999.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
         uiMgr->AddUIImage(clearBanner);
@@ -363,6 +359,8 @@ void BossHoundScene::UpdateCleared(float deltaTime)
     if (m_phaseTimer >= 4.0f)
     {
         OutputDebugStringW(L"BossHoundScene: Transitioning back to Farming Area...\n");
-        SceneManager::GetInstance()->LoadGameScene(L"GameData/00_map.dsm", GetSelectedCharacterID());
+        SceneManager::GetInstance()->LoadGameScene(SCENE_GAME_FARMING_AREA, GetSelectedCharacterID());
     }
 }
+
+

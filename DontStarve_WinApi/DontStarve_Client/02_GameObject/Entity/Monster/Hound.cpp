@@ -80,11 +80,11 @@ void Hound::Init()
 			m_animator->RegisterAnimation((int)HoundState::ATTACK, DIR_LEFT, atkSidePath, 0, 0, 7, 18, px, py, false, 0.03f, false);
 			m_animator->RegisterAnimation((int)HoundState::ATTACK, DIR_RIGHT, atkSidePath, 0, 0, 7, 18, px, py, false, 0.03f);
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::ATTACK, (Direction)dir);
 				if (clip) {
 					clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
-					clip->AddEventFrame(17, L"attack_end");
+					clip->AddEventFrame(17, L"attack_end"); // 마지막 프레임에 이벤트 등록
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"attack_hit") this->OnAttackHit();
 						else if (eventName == L"attack_end") this->OnAttackEnd();
@@ -92,7 +92,7 @@ void Hound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)HoundState::HIT, (Direction)dir, base + L"Hound_hound_hit_side.png", 0, 0, 7, 27, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::HIT, (Direction)dir);
 				if (clip) {
@@ -103,7 +103,7 @@ void Hound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)HoundState::DEATH, (Direction)dir, base + L"Hound_hound_death.png", 0, 0, 7, 52, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::DEATH, (Direction)dir);
 				if (clip) {
@@ -114,7 +114,7 @@ void Hound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) 
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) 
 				m_animator->RegisterAnimation((int)HoundState::HOWL, (Direction)dir, base + L"Hound_hound_howl.png", 0, 0, 7, 47, px, py, false, 0.03f);
 		}
 		m_animator->SetState(m_state, this->transform->GetDirection());
@@ -139,9 +139,9 @@ void Hound::UpdateAI(float deltaTime)
 	case HoundState::ATTACK_PRE:
 		if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::ATTACK);
 		break;
-	case HoundState::ATTACK:
-		if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::CHASE);
-		break;
+	//case HoundState::ATTACK:
+	//	if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::RUN);
+	//	break;
 	case HoundState::CHASE:
 		CheckAttackTransition(m_attackRange, (int)HoundState::ATTACK_PRE, (int)HoundState::IDLE);
 		break;
@@ -198,6 +198,7 @@ void Hound::OnAttackHit()
 
 void Hound::OnAttackEnd()
 {
+	OutputDebugStringW(L"Hound::OnAttackEnd called\n");
 	if (m_state != (int)HoundState::ATTACK) return;
 	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
 	ChangeState((int)HoundState::CHASE);

@@ -5,6 +5,8 @@
 #include "../../01_Manager/RenderManager/RenderManager.h"
 #include "../../01_Manager/UIManager/UIManager.h"
 #include "../../01_Manager/SceneManager/SceneManager.h"
+#include "../../01_Manager/GameProgressManager/GameProgressManager.h"
+#include "../../01_Manager/InventoryManager/InventoryManager.h"
 #include "../UI/UIText.h"
 #include "../UI/UIButton.h"
 #include "../Entity/Player/Player.h"
@@ -52,7 +54,14 @@ void GameOverUI::Init()
         0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 20.0f
     );
     m_btnToLobby->SetOnClickCallback([]() {
-        SceneManager::GetInstance()->LoadCharacterSelectScene();
+        // 플레이어 사망 시 게임 데이터 초기화
+        ObjectManager* objMgr = ObjectManager::GetInstance();
+        Player* player = objMgr->GetPlayer();
+        if (player) {
+            InventoryManager::GetInstance()->ResetPlayerInventory(player);
+        }
+        GameProgressManager::GetInstance()->ResetRuntimeData();
+        SceneManager::GetInstance()->LoadTitleScene();
     });
     m_btnToLobby->Init();
     m_btnToLobby->SetSortKey(SORT_KEY + 2.0f);

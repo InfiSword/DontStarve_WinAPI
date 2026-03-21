@@ -44,6 +44,9 @@ public:
 	void SetSelectedCharacterID(GameObjectID characterID) { m_selectedCharacterID = characterID; }
 	GameObjectID GetSelectedCharacterID() const { return m_selectedCharacterID; }
 
+	// 현재 월드의 오브젝트 상태를 MapData에 저장 (런타임 유지용)
+	virtual void SaveCurrentObjectsToMapData(MapData& outMapData);
+
 protected:
 	void CreateGameObjectsFromMapData();
 	

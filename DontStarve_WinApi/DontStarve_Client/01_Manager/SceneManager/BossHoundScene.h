@@ -48,6 +48,5 @@ private:
 
     std::vector<GameObject*> m_bossObjects;
     bool m_bossesActivated;
-	bool m_chaseAllowed;
     bool m_isClearUIShown;
 };

@@ -91,7 +91,7 @@ void Boss_IceHound::Init()
 			m_animator->RegisterAnimation((int)BossIceHoundState::ATTACK, DIR_LEFT, atkSidePath, 0, 0, 7, 18, px, py, false, 0.03f, false);
 			m_animator->RegisterAnimation((int)BossIceHoundState::ATTACK, DIR_RIGHT, atkSidePath, 0, 0, 7, 18, px, py, false, 0.03f);
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::ATTACK, (Direction)dir);
 				if (clip) {
 					clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
@@ -103,7 +103,7 @@ void Boss_IceHound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossIceHoundState::HIT, (Direction)dir, base + houndPrefix + L"hit_side.png", 0, 0, 7, 27, px, py, false, 0.02f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::HIT, (Direction)dir);
 				if (clip) {
@@ -114,7 +114,7 @@ void Boss_IceHound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossIceHoundState::DEATH, (Direction)dir, base + houndPrefix + L"death.png", 0, 0, 7, 52, px, py, false, 0.02f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::DEATH, (Direction)dir);
 				if (clip) {
@@ -125,7 +125,7 @@ void Boss_IceHound::Init()
 				}
 			}
 
-			for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossIceHoundState::HOWL, (Direction)dir, base + houndPrefix + L"howl.png", 0, 0, 7, 47, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::HOWL, (Direction)dir);
 				if (clip) {
@@ -154,10 +154,10 @@ void Boss_IceHound::UpdateAI(float deltaTime)
 	switch ((BossIceHoundState)m_state)
 	{
 	case BossIceHoundState::HOWL:
-		// Handle by callback
 		break;
 	case BossIceHoundState::ATTACK_PRE:
-		if (m_animator->IsAnimationDone()) ChangeState((int)BossIceHoundState::ATTACK);
+		if (m_animator->IsAnimationDone())
+			ChangeState((int)BossIceHoundState::ATTACK);
 		break;
 	case BossIceHoundState::CHASE:
 		if (!m_bCanChase) { ChangeState((int)BossIceHoundState::IDLE); break; }
@@ -200,12 +200,15 @@ void Boss_IceHound::Damaged(int damage)
 	if (!IsDead()) ChangeState((int)BossIceHoundState::HIT);
 }
 
-void Boss_IceHound::OnAttackHit() { if (m_state == (int)BossIceHoundState::ATTACK) ProcessAttackHit(m_damage); }
+void Boss_IceHound::OnAttackHit()
+{
+	if (m_state == (int)BossIceHoundState::ATTACK)
+		ProcessAttackHit(m_damage);
+}
 
 void Boss_IceHound::OnAttackEnd()
 {
 	if (m_state != (int)BossIceHoundState::ATTACK) return;
-	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
 	ChangeState((int)BossIceHoundState::RUN);
 }
 

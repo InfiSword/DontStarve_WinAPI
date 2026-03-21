@@ -6,10 +6,9 @@
 #include "../../02_GameObject/Item/Tool/Tool.h"
 #include "../../02_GameObject/UI/Inventory.h"
 #include "../../02_GameObject/UI/CraftingRecipe.h"
-#include "../../01_Manager/SceneManager/SceneManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../01_Manager/GameProgressManager/GameProgressManager.h"
-#include "../../01_Manager/InputManager/InputManager.h"
+
 
 InventoryManager::InventoryManager() {}
 InventoryManager::~InventoryManager() {
@@ -302,4 +301,17 @@ std::vector<std::pair<GameObjectID, UINT>> InventoryManager::CalculateDropsFromO
 	}
 	
 	return drops;
-} 
+}
+
+void InventoryManager::ResetPlayerInventory(Player* player)
+{
+	if (!player) return;
+
+	Inventory* inventory = player->GetInventory();
+	if (!inventory) return;
+
+	// 인벤토리의 모든 아이템 제거
+	inventory->ClearAllItems();
+
+	OutputDebugStringW(L"InventoryManager: 플레이어 인벤토리 초기화 완료\n");
+}

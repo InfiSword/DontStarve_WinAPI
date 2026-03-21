@@ -86,7 +86,7 @@ void Boss_SpiderQueen::Init()
 			}
 		}
 
-		for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 			m_animator->RegisterAnimation((int)SpiderQueenState::HIT, (Direction)dir, base + L"Queen_spider_queen_hit_side.png", 0, 0, 7, 29, px, py, false, 0.02f);
 			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::HIT, (Direction)dir);
 			if (clip) {
@@ -150,19 +150,19 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 
 	switch ((SpiderQueenState)m_state)
 	{
-    case SpiderQueenState::COCOON:
-    case SpiderQueenState::COCOON_HIT:
-        m_cocoonTimer += deltaTime;
-        m_healTickTimer += deltaTime;
+	case SpiderQueenState::COCOON:
+	case SpiderQueenState::COCOON_HIT:
+		m_cocoonTimer += deltaTime;
+		m_healTickTimer += deltaTime;
 		if (m_spawnOnHitCooldown > 0.0f) m_spawnOnHitCooldown -= deltaTime;
 
-        // 1초마다 5% 회복
-        if (m_healTickTimer >= 1.0f)
-        {
-            m_hp += static_cast<int>(m_maxHp * 0.05f);
-            if (m_hp > m_maxHp) m_hp = m_maxHp;
-            m_healTickTimer = 0.0f;
-        }
+		// 1초마다 5% 회복
+		if (m_healTickTimer >= 1.0f)
+		{
+			m_hp += static_cast<int>(m_maxHp * 0.05f);
+			if (m_hp > m_maxHp) m_hp = m_maxHp;
+			m_healTickTimer = 0.0f;
+		}
 
 		// 피격 애니메이션 종료 후 복귀
 		if (m_state == (int)SpiderQueenState::COCOON_HIT && m_animator->IsAnimationDone())
@@ -170,28 +170,24 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 			ChangeState((int)SpiderQueenState::COCOON);
 		}
 
-        // 10초 후 종료
-        if (m_cocoonTimer >= 10.0f)
-        {
-            EndCocoonPhase();
-        }
-        break;
-
-    case SpiderQueenState::BIRTH:
-        if (m_animator->IsAnimationDone())
-        {
-            ChangeState((int)SpiderQueenState::IDLE);
-            if (m_spawnOutFxAnimator) m_spawnOutFxAnimator->SetActive(false);
-        }
-        break;
-
-	case SpiderQueenState::CHASE: CheckAttackTransition(m_attackRange, (int)SpiderQueenState::ATTACK, (int)SpiderQueenState::IDLE); break;
-	case SpiderQueenState::IDLE:
-		if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
-			if (m_attackCooldownTimer <= 0.0f) ChangeState((int)SpiderQueenState::ATTACK);
+		// 10초 후 종료
+		if (m_cocoonTimer >= 10.0f)
+		{
+			EndCocoonPhase();
 		}
-		else if (m_attackTarget && m_attackTarget->IsEnabled() && m_bCanChase) ChangeState((int)SpiderQueenState::CHASE);
-		else UpdateAI_Wander(deltaTime, (int)SpiderQueenState::CHASE, (int)SpiderQueenState::IDLE);
+		break;
+
+	case SpiderQueenState::BIRTH:
+		if (m_animator->IsAnimationDone())
+		{
+			ChangeState((int)SpiderQueenState::IDLE);
+			if (m_spawnOutFxAnimator) m_spawnOutFxAnimator->SetActive(false);
+		}
+		break;
+
+	default:
+		// 항상 추격 패턴 적용 (IDLE/CHASE/ATTACK 등)
+		UpdateAI_AlwaysChase(deltaTime, (int)SpiderQueenState::CHASE, (int)SpiderQueenState::ATTACK, (int)SpiderQueenState::IDLE);
 		break;
 	}
 }

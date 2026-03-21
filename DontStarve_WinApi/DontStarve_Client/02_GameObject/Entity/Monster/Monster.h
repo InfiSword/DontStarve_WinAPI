@@ -33,15 +33,14 @@ protected:
     bool m_hasBeenHit;
     bool m_bCanChase; 
 
-    public:
+public:
     Monster(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
             const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
-    virtual ~Monster();
+    virtual ~Monster() override;
 
     virtual void Init() override;
     virtual void Update(float deltaTime) override;
     virtual void Damaged(int damage) override;
-    virtual void ChangeState(int newState) override; 
 
     void SetupAggro(AggroType type, float aggroRadius = 300.0f, float deaggroRadius = 500.0f);
 
@@ -49,12 +48,16 @@ protected:
     bool CanChase() const { return m_bCanChase; }
 
 protected:
+    virtual void ChangeState(int newState) override;
+
     virtual void UpdateAI(float deltaTime);
     virtual void UpdateMovement(float deltaTime);
     virtual void OnAttackHit();
-    virtual void OnAttackEnd();
+    virtual void OnAttackEnd() override;
     virtual void OnHitEnd();
     virtual void OnDeathEnd();
+    virtual void ResetAggroSession();
+    virtual void ResolveWanderCenter(float& outX, float& outY) const;
 
     void MoveTowardPlayer(float deltaTime, float speed, int runAnimState, int idleState);
     void MoveTowardLocation(float deltaTime, float speed, int walkAnimState, int idleState);

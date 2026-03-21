@@ -93,7 +93,7 @@ void Player::Init()
 	const UINT PICKUP_TOTAL_FRAMES = 20;
 	const int PICKUP_LAST_FRAME = PICKUP_TOTAL_FRAMES - 1; // 19
 	std::wstring pickupPath = base + L"\\Interact\\Interact_wilson_pickup_pst_down.png";
-	for (int dir = DIR_DOWN; dir < DIR_COUNT; dir++) {
+	for (int dir = DIR_UP; dir < DIR_COUNT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
 			127, 201, 6, PICKUP_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
 		// AnimationClip에 직접 이벤트 등록 및 콜백 설정
@@ -114,7 +114,7 @@ void Player::Init()
 	const int CHOP_HIT_FRAME = 4;
 	const int CHOP_LAST_FRAME = CHOP_TOTAL_FRAMES - 1; // 35
 	std::wstring chopPath = base + L"\\Axe\\axe_wilson_chop_loop_down.png";
-	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+	for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::CHOP, (Direction)dir, chopPath,
 			284, 248, 6, CHOP_TOTAL_FRAMES, CHOP_PIVOT_X, CHOP_PIVOT_Y, false, 0.01f);
 		// AnimationClip에 직접 이벤트 등록 및 콜백 설정
@@ -139,7 +139,7 @@ void Player::Init()
 	const int MINE_HIT_FRAME = 4;
 	const int MINE_LAST_FRAME = MINE_TOTAL_FRAMES - 1; // 50
 	std::wstring pickaxePath = base + L"\\Pickaxe\\pickaxe_wilson_pickaxe_loop_down.png";
-	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+	for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::MINE, (Direction)dir, pickaxePath,
 			/*311*/0, /*360*/ 0, 6, MINE_TOTAL_FRAMES, MINE_PIVOT_X, MINE_PIVOT_Y, false, 0.01f);
 		AnimationClip* clip = m_animator->GetAnimationClip((int)PlayerState::MINE, (Direction)dir);
@@ -173,7 +173,7 @@ void Player::Init()
 	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_RIGHT, attackSidePath,
 		207, 217, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
 
-	for (int dir = DIR_DOWN; dir <= DIR_RIGHT; dir++) {
+	for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 		AnimationClip* clip = m_animator->GetAnimationClip((int)PlayerState::ATTACK, (Direction)dir);
 		if (clip) {
 			clip->AddEventFrame(ATTACK_HIT_FRAME, L"attack_hit");
