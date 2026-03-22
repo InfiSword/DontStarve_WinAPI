@@ -1,6 +1,5 @@
 #include "99_Default/pch.h"
 #include "GameScene.h"
-#include "../UIManager/UIManager.h"
 #include "../InputManager/InputManager.h"
 #include "../ObjectManager/ObjectManager.h"
 #include "../CameraManager/CameraManager.h"
@@ -12,7 +11,7 @@
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/UI/CraftingUI.h"
-#include "../../02_GameObject/UI/PlayerHPUI.h"
+#include "../../02_GameObject/UI/HPUI.h"
 #include "../../02_GameObject/UI/GameOverUI.h"
 
 GameScene::GameScene()
@@ -37,30 +36,12 @@ GameScene::~GameScene()
 void GameScene::Init(const MapData* mapData)
 {
 	// 1. 매니저들 기초 초기화
-	UIManager::GetInstance()->Init();
 	ObjectManager::GetInstance()->Init();
 	CameraManager::GetInstance()->Init();
 	InventoryManager::GetInstance()->Init();
 	ColliderManager::GetInstance()->Init();
 	RenderManager::GetInstance()->Init();
 	InputManager::GetInstance()->Init();
-
-	// 2. UI 생성 및 초기화 (보스 씬 제외)
-	// 보스 씬은 CraftingUI를 표시하지 않음
-	SceneType currentSceneType = GetSceneType();
-	bool isBossScene = (currentSceneType == SCENE_GAME_HOUND_FOREST || 
-	                     currentSceneType == SCENE_GAME_SPIDER_QUEEN_HOUSE);
-
-	if (!isBossScene) {
-		if (!m_craftingUI) m_craftingUI = new MenuUI();
-		if (m_craftingUI) m_craftingUI->Init();
-	}
-
-	if (!m_playerHPUI) m_playerHPUI = new PlayerHPUI();
-	if (m_playerHPUI) m_playerHPUI->Init();
-
-	if (!m_gameOverUI) m_gameOverUI = new GameOverUI();
-	if (m_gameOverUI) m_gameOverUI->Init();
 
 	// 3. 맵 데이터 처리
 	m_mapData = mapData;
@@ -101,34 +82,56 @@ void GameScene::Init(const MapData* mapData)
 		}
 	}
 
-	// 4. 오브젝트 및 플레이어 생성
+	// 4. 오브젝트 및 플레이어 생성 (UI 초기화보다 먼저 호출하여 HPUI에 플레이어 정보를 넘김)
 	CreateGameObjectsFromMapData();
 	SpawnPlayer();
+
+	// 5. UI 생성 및 초기화 (보스 씬 제외)
+	// 보스 씬은 CraftingUI를 표시하지 않음
+	SceneType currentSceneType = GetSceneType();
+	bool isBossScene = (currentSceneType == SCENE_GAME_HOUND_FOREST || 
+	                     currentSceneType == SCENE_GAME_SPIDER_QUEEN_HOUSE);
+
+	if (!isBossScene) {
+		if (!m_craftingUI) m_craftingUI = new MenuUI();
+		if (m_craftingUI) {
+			m_craftingUI->Init();
+			ObjectManager::GetInstance()->AddGameObject(m_craftingUI);
+		}
+	}
+
+	if (!m_playerHPUI) {
+		Player* player = ObjectManager::GetInstance()->GetPlayer();
+		m_playerHPUI = new HPUI(player, L"", 200.0f, 28.0f,
+            Gdiplus::Color(255, 60, 0, 0), Gdiplus::Color(255, 255, 0, 0), Gdiplus::Color(255, 255, 255, 255),
+            1.0f, 0.0f, 1.0f, 0.0f, -278.0f, 34.0f,
+            10.1f, 10.2f, true, true);
+	}
+	if (m_playerHPUI) {
+		m_playerHPUI->Init();
+		ObjectManager::GetInstance()->AddGameObject(m_playerHPUI);
+	}
+
+	if (!m_gameOverUI) m_gameOverUI = new GameOverUI();
+	if (m_gameOverUI) {
+		m_gameOverUI->Init();
+		ObjectManager::GetInstance()->AddGameObject(m_gameOverUI);
+	}
 }
 
 void GameScene::Update(float deltaTime)
 {
 	// 매니저들 업데이트 (InputManager는 메인 루프에서 가장 먼저 업데이트됨)
-	UIManager::GetInstance()->Update(deltaTime);
 	ObjectManager::GetInstance()->Update(deltaTime);
 	CameraManager::GetInstance()->Update(deltaTime);
 	RenderManager::GetInstance()->Update(deltaTime);
 	InventoryManager::GetInstance()->Update(deltaTime);
-	
-	if (m_playerHPUI) {
-		m_playerHPUI->Update(deltaTime);
-	}
-
-	if (m_gameOverUI) {
-		m_gameOverUI->Update(deltaTime);
-	}
 }
 
 void GameScene::LateUpdate()
 {
 	// 매니저들 LateUpdate
 	// InputManager::LateUpdate는 메인 루프에서 처리됨
-	UIManager::GetInstance()->LateUpdate();
 	ObjectManager::GetInstance()->LateUpdate();
 	InventoryManager::GetInstance()->LateUpdate();	
 }
@@ -147,7 +150,7 @@ void GameScene::Render()
 		}
 	}
 	
-	// 2. ObjectManager (월드 오브젝트 렌더링 + 디버그 바운드)
+	// 2. ObjectManager (월드 오브젝트 렌더링 + 디버그 바운드 + UI 렌더링)
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (objectManager) {
 		objectManager->Render();
@@ -163,21 +166,6 @@ void GameScene::Render()
 	InputManager* inputManager = InputManager::GetInstance();
 	if (inputManager) {
 		inputManager->Render();
-	}
-	
-	// 5. UIManager (UI 요소들 렌더링)
-	UIManager* uiManager = UIManager::GetInstance();
-	if (uiManager) {
-		uiManager->Render();
-	}
-	
-	// 5-2. 플레이어 HUD 및 Game Over UI
-	if (m_playerHPUI) {
-		m_playerHPUI->Render();
-	}
-	
-	if (m_gameOverUI) {
-		m_gameOverUI->Render();
 	}
 	
 	// 6. InventoryManager (인벤토리 UI 렌더링)
@@ -215,7 +203,6 @@ void GameScene::Release()
 	CameraManager::GetInstance()->Release();
 	ObjectManager::GetInstance()->Release();
 	InputManager::GetInstance()->Release();
-	UIManager::GetInstance()->Release();
 	
 	m_mapData = nullptr;
 }

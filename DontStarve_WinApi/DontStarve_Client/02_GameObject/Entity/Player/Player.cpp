@@ -4,7 +4,6 @@
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../../01_Manager/UIManager/UIManager.h"
 #include "../../../02_GameObject/UI/Inventory.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
@@ -40,14 +39,8 @@ void Player::Init()
 {
 	Combatant::Init();
 	
-	// Player 전용 공격 박스 설정 (80x120, 방향별 오프셋)
-	SetAllAttackBoxes(
-		80, 120,      // width, height
-		-40, 0,       // down
-		-40, -60,     // up
-		-80, -60,     // left
-		0, -60        // right
-	);
+	// Player 전용 공격 박스 설정 (80x120)
+	SetupAttackBox(80, 120);
 
 	// Animator 생성 후 애니메이션 등록 (AnimationDefinition 클래스 제거)
 	if (!m_animator) {
@@ -157,7 +150,6 @@ void Player::Init()
 		}
 	}
 
-	// ATTACK (4열 36프레임, 6번째 프레임에 attack_hit, 마지막에 attack_end)
 	const UINT ATTACK_TOTAL_FRAMES = 36;
 	const int ATTACK_HIT_FRAME = 16;
 	const int ATTACK_LAST_FRAME = ATTACK_TOTAL_FRAMES - 1;
@@ -686,6 +678,24 @@ void Player::LateUpdate()
 	GameObject::LateUpdate();
 }
 
+void Player::RenderDebugOverlay()
+{
+	if (!transform) return;
+
+	CameraManager* cameraManager = CameraManager::GetInstance();
+	RenderManager* renderManager = RenderManager::GetInstance();
+	if (!cameraManager || !renderManager) return;
+
+	// 공격 중일 때 공격 박스 표시
+	if (m_state == (int)PlayerState::ATTACK && m_attackCollider) {
+		UpdateAttackBoxByDirection(transform->GetDirection());
+		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
+		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
+		Gdiplus::PointF bottomRight = cameraManager->WorldToScreen((float)worldRect.right, (float)worldRect.bottom);
+		renderManager->AddDrawRectCommand(Gdiplus::RectF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
+	}
+}
+
 void Player::LateInit() {
 }
 
@@ -735,7 +745,7 @@ void Player::HandleMovement()
 		POINT mousePos = inputManager->GetMousePos();
 		float sx = static_cast<float>(mousePos.x);
 		float sy = static_cast<float>(mousePos.y);
-		if (UIManager::GetInstance()->IsScreenPointBlockedByUI(sx, sy))
+		if (ObjectManager::GetInstance()->IsScreenPointBlockedByUI(sx, sy))
 			return;
 
 		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(sx, sy);
@@ -753,7 +763,7 @@ void Player::HandleMovement()
 		}
 		
 		// UI 영역 블로킹 체크 (인벤토리 외 다른 UI)
-		if (UIManager::GetInstance()->IsScreenPointBlockedByUI(sx, sy)) {
+		if (ObjectManager::GetInstance()->IsScreenPointBlockedByUI(sx, sy)) {
 			return;
 		}
 

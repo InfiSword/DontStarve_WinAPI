@@ -20,31 +20,14 @@ void InventoryManager::Init() {
 }
 
 void InventoryManager::LateInit() {}
-void InventoryManager::Update(float deltaTime) 
-{	
-}
+
+void InventoryManager::Update(float deltaTime) {}
+
 void InventoryManager::LateUpdate() {}
-void InventoryManager::Render() {
-	// Player의 인벤토리 렌더링
-	Player* player = ObjectManager::GetInstance()->GetPlayer();
-	if (!player) {
-		return;
-	}
-	
-	Inventory* inventory = player->GetInventory();
-	if (!inventory) {
-		return;
-	}
-	
-	// 현재 장착된 아이템의 슬롯 인덱스 가져오기
-	int equippedSlotIndex = player->GetEquippedSlotIndex();
-	
-	// RenderManager를 통해 인벤토리 렌더링
-	inventory->Render(equippedSlotIndex);
-}
+
+void InventoryManager::Render() {}
 
 void InventoryManager::Release() {
-	// 레시피 맵은 자동으로 정리됨
 	m_craftingRecipes.clear();
 }
 

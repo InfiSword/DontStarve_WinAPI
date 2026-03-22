@@ -72,18 +72,6 @@ void Combatant::SetupAttackBox(int width, int height, int offsetX, int offsetY)
     m_attackBoxRight.height = height;
 }
 
-void Combatant::SetAllAttackBoxes(int width, int height,
-                                   int downOffsetX, int downOffsetY,
-                                   int upOffsetX, int upOffsetY,
-                                   int leftOffsetX, int leftOffsetY,
-                                   int rightOffsetX, int rightOffsetY)
-{
-    m_attackBoxDown = AttackBox(downOffsetX, downOffsetY, width, height);
-    m_attackBoxUp = AttackBox(upOffsetX, upOffsetY, width, height);
-    m_attackBoxLeft = AttackBox(leftOffsetX, leftOffsetY, width, height);
-    m_attackBoxRight = AttackBox(rightOffsetX, rightOffsetY, width, height);
-}
-
 void Combatant::UpdateAttackBoxByDirection(Direction dir)
 {
     if (!m_attackCollider) return;

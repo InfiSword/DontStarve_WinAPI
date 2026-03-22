@@ -1,6 +1,9 @@
 #pragma once
 #include "GameScene.h"
 
+class UIText;
+class UIImage;
+
 class BossSpiderQueenScene : public GameScene
 {
 public:
@@ -18,6 +21,7 @@ public:
     virtual void Init(const MapData* mapData) override;
     virtual void Update(float deltaTime) override;
     virtual void Render() override;
+    virtual void Release() override;
 
     virtual SceneType GetSceneType() const override { return SCENE_GAME_SPIDER_QUEEN_HOUSE; }
 
@@ -34,6 +38,8 @@ private:
     void StartBossIntro();
 
 private:
+    std::wstring m_bossName;
+    class HPUI* m_bossHPUI;
     BossPhase m_currentPhase;
     float m_phaseTimer;
     
@@ -48,4 +54,7 @@ private:
     bool m_bossActivated;
     bool m_isClearUIShown;
     bool m_chaseStarted;
+
+    // UI
+    class GameClearUI* m_gameClearUI;
 };

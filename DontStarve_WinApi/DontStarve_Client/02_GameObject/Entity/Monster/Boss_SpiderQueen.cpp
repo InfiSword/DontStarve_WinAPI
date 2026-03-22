@@ -108,9 +108,30 @@ void Boss_SpiderQueen::Init()
 			}
 		}
 		
-        // ENTER (BIRTH) 애니메이션 (10x7 grid)
-        for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) m_animator->RegisterAnimation((int)SpiderQueenState::BIRTH, (Direction)dir, base + L"Queen_spider_queen_enter.png", 0, 0, 7, 65, px, py, false, 0.02f);
+        // ENTER (BIRTH) 애니메이션
+        for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::BIRTH, (Direction)dir, base + L"Queen_spider_queen_enter.png", 0, 0, 7, 65, px, py, false, 0.02f);
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::BIRTH, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(64, L"birth_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"birth_end") this->OnBirthEnd();
+					});
+			}
+		}
 		
+		// COCOON_PRE 애니메이션
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::COCOON_PRE, (Direction)dir, base + L"Cocoon_spider_queen_cocoon.png", 0, 0, 7, 45, px, py, false, 0.02f);
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::COCOON_PRE, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(44, L"cocoon_pre_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"cocoon_pre_end") this->OnCocoonPreEnd();
+					});
+			}
+		}
+
         // COCOON 상태: SmallEgg 리소스 사용
 		const ResourcePathUtils::ObjectResourceDef* eggData = pRM->GetObjectResourceInfo(GOID_BUILDING_SPIDER_SMALLEGG);
 		if (eggData) {
@@ -150,6 +171,11 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 
 	switch ((SpiderQueenState)m_state)
 	{
+	case SpiderQueenState::COCOON_PRE:
+	case SpiderQueenState::BIRTH:
+		// 애니메이션 이벤트로 상태 전이하므로 별도 로직 없음
+		break;
+
 	case SpiderQueenState::COCOON:
 	case SpiderQueenState::COCOON_HIT:
 		m_cocoonTimer += deltaTime;
@@ -177,14 +203,6 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 		}
 		break;
 
-	case SpiderQueenState::BIRTH:
-		if (m_animator->IsAnimationDone())
-		{
-			ChangeState((int)SpiderQueenState::IDLE);
-			if (m_spawnOutFxAnimator) m_spawnOutFxAnimator->SetActive(false);
-		}
-		break;
-
 	default:
 		// 항상 추격 패턴 적용 (IDLE/CHASE/ATTACK 등)
 		UpdateAI_AlwaysChase(deltaTime, (int)SpiderQueenState::CHASE, (int)SpiderQueenState::ATTACK, (int)SpiderQueenState::IDLE);
@@ -200,6 +218,7 @@ void Boss_SpiderQueen::UpdateMovement(float deltaTime)
 	{
     case SpiderQueenState::COCOON:
     case SpiderQueenState::BIRTH:
+	case SpiderQueenState::COCOON_PRE:
         break;
 	case SpiderQueenState::CHASE: MoveTowardPlayer(deltaTime, m_walkSpeed, (int)SpiderQueenState::CHASE, (int)SpiderQueenState::IDLE); break;
 	case SpiderQueenState::IDLE: m_animator->SetState((int)SpiderQueenState::IDLE, transform->GetDirection()); break;
@@ -216,10 +235,25 @@ void Boss_SpiderQueen::OnHitEnd()
 	ChangeState((int)SpiderQueenState::IDLE);
 }
 
+void Boss_SpiderQueen::OnCocoonPreEnd()
+{
+	ChangeState((int)SpiderQueenState::COCOON);
+}
+
+void Boss_SpiderQueen::OnBirthEnd()
+{
+	ChangeState((int)SpiderQueenState::IDLE);
+	if (m_spawnOutFxAnimator) m_spawnOutFxAnimator->SetActive(false);
+}
+
 bool Boss_SpiderQueen::OnInteraction(GameObject* obj) { return Entity::OnInteraction(obj); }
 
 void Boss_SpiderQueen::Damaged(int damage)
 {
+	// 진입/탈출 연출 중 무적 처리
+	if (m_state == (int)SpiderQueenState::COCOON_PRE || m_state == (int)SpiderQueenState::BIRTH)
+		return;
+
     if (m_state == (int)SpiderQueenState::COCOON || m_state == (int)SpiderQueenState::COCOON_HIT)
 	{
 		// 고치 상태에서 피격 시 연출 및 시간 단축
@@ -260,14 +294,17 @@ void Boss_SpiderQueen::StartCocoonPhase()
     m_healTickTimer = 0.0f;
     m_isHealing = true;
 
-    ChangeState((int)SpiderQueenState::COCOON);
+    ChangeState((int)SpiderQueenState::COCOON_PRE);
     
+	// 고치 진입 시 거미 소환
+	SummonSpider();
+
     if (m_healFxAnimator) {
         m_healFxAnimator->SetActive(true);
         m_healFxAnimator->SetState(0, DIR_DOWN);
     }
 
-    OutputDebugStringW(L"Boss_SpiderQueen: 고치 상태 돌입! 회복을 시작합니다.\n");
+    OutputDebugStringW(L"Boss_SpiderQueen: 고치 상태 돌입! 거미를 소환하고 회복을 시작합니다.\n");
 }
 
 void Boss_SpiderQueen::EndCocoonPhase()
@@ -282,13 +319,10 @@ void Boss_SpiderQueen::EndCocoonPhase()
         m_spawnOutFxAnimator->SetState(0, DIR_DOWN);
     }
 
-    // 고치 페이즈가 끝날 때 거미 소환
-    SpawnSpider();
-
     OutputDebugStringW(L"Boss_SpiderQueen: 고치에서 나옵니다!\n");
 }
 
-void Boss_SpiderQueen::SpawnSpider()
+void Boss_SpiderQueen::SummonSpider()
 {
     ObjectManager* objMgr = ObjectManager::GetInstance();
     if (!objMgr || !transform) return;

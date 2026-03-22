@@ -12,6 +12,7 @@ enum class SpiderQueenState
 	TAUNT,
 	COCOON,
 	COCOON_HIT,
+	COCOON_PRE,
 	COUNT
 };
 
@@ -39,10 +40,14 @@ protected:
 	virtual void OnAttackEnd() override;
 	virtual void OnHitEnd() override;
 
+	// 애니메이션 이벤트 콜백
+	void OnCocoonPreEnd();
+	void OnBirthEnd();
+
 private:
 	void StartCocoonPhase();
 	void EndCocoonPhase();
-	void SpawnSpider();
+	void SummonSpider();
 
 private:
 	int m_bossPhase;

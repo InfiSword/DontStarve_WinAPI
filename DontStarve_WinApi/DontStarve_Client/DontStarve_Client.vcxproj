@@ -178,7 +178,7 @@
     <ClInclude Include="02_GameObject\UI\CraftingRecipe.h" />
     <ClInclude Include="02_GameObject\UI\CraftingUI.h" />
     <ClInclude Include="02_GameObject\UI\GameOverUI.h" />
-    <ClInclude Include="02_GameObject\UI\PlayerHPUI.h" />
+    <ClInclude Include="02_GameObject\UI\HPUI.h" />
     <ClInclude Include="02_GameObject\UI\UIElement.h" />
     <ClInclude Include="02_GameObject\UI\UIImage.h" />
     <ClInclude Include="02_GameObject\UI\UIButton.h" />
@@ -205,7 +205,6 @@
     <ClInclude Include="01_Manager\RenderManager\RenderManager.h" />
     <ClInclude Include="02_GameObject\Building\PigHouse.h" />
     <ClInclude Include="02_GameObject\UI\Inventory.h" />
-    <ClInclude Include="01_Manager\UIManager\UIManager.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\BerryBush.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Sapling.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Boss_RedHound.h" />
@@ -219,7 +218,6 @@
   <ItemGroup>
     <ClCompile Include="01_Manager\SceneManager\BossHoundScene.cpp" />
     <ClCompile Include="01_Manager\SceneManager\BossSpiderQueenScene.cpp" />
-    <ClCompile Include="01_Manager\UIManager\UIManager.cpp" />
     <ClCompile Include="01_Manager\GameProgressManager\GameProgressManager.cpp" />
     <ClCompile Include="01_Manager\InventoryManager\InventoryManager.cpp" />
     <ClCompile Include="01_Manager\ResourceManager\ResourceManager.cpp" />
@@ -254,7 +252,7 @@
     <ClCompile Include="02_GameObject\Object.cpp" />
     <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
     <ClCompile Include="02_GameObject\UI\GameOverUI.cpp" />
-    <ClCompile Include="02_GameObject\UI\PlayerHPUI.cpp" />
+    <ClCompile Include="02_GameObject\UI\HPUI.cpp" />
     <ClCompile Include="02_GameObject\UI\UIElement.cpp" />
     <ClCompile Include="02_GameObject\UI\UIImage.cpp" />
     <ClCompile Include="02_GameObject\UI\UIButton.cpp" />

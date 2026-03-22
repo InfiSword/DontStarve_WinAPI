@@ -20,7 +20,8 @@ protected:
     // 공격 박스 (방향별)
     struct AttackBox {
         int offsetX, offsetY, width, height;
-        AttackBox() : offsetX(0), offsetY(0), width(0), height(0) {}
+        
+		AttackBox() : offsetX(0), offsetY(0), width(0), height(0) {}
         AttackBox(int ox, int oy, int w, int h) : offsetX(ox), offsetY(oy), width(w), height(h) {}
     };
     AttackBox m_attackBoxDown;
@@ -40,11 +41,6 @@ public:
 
     // 공격 관련 공통 메서드
     void SetupAttackBox(int width, int height, int offsetX = 0, int offsetY = 0);
-    void SetAllAttackBoxes(int width, int height,
-                          int downOffsetX, int downOffsetY,
-                          int upOffsetX, int upOffsetY,
-                          int leftOffsetX, int leftOffsetY,
-                          int rightOffsetX, int rightOffsetY);
     
     virtual void ProcessAttackHit(int damage);
     virtual void OnAttackEnd();

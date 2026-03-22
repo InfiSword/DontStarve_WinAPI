@@ -1,7 +1,6 @@
 #include "99_Default/pch.h"
 #include "CraftingUI.h"
 #include "CraftingRecipe.h"
-#include "../../01_Manager/UIManager/UIManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../01_Manager/InventoryManager/InventoryManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
@@ -112,125 +111,125 @@ void MenuUI::Update(float deltaTime)
 
 void MenuUI::Release()
 {
-	UIManager* uiManager = UIManager::GetInstance();
+	ObjectManager* objManager = ObjectManager::GetInstance();
 
-	// 생성한 UI 요소들을 UIManager에서 제거
+	// 생성한 UI 요소들을 ObjectManager에서 제거
 	if (m_menuBar) {
-		uiManager->RemoveUIImage(m_menuBar);
+		objManager->RemoveGameObject(m_menuBar);
 		delete m_menuBar;
 		m_menuBar = nullptr;
 	}
 
 	if (m_toolPanelBg) {
-		uiManager->RemoveUIImage(m_toolPanelBg);
+		objManager->RemoveGameObject(m_toolPanelBg);
 		delete m_toolPanelBg;
 		m_toolPanelBg = nullptr;
 	}
 
 	if (m_ingredientPanelBg) {
-		uiManager->RemoveUIImage(m_ingredientPanelBg);
+		objManager->RemoveGameObject(m_ingredientPanelBg);
 		delete m_ingredientPanelBg;
 		m_ingredientPanelBg = nullptr;
 	}
 
 	// 보스 UI 요소 제거
 	if (m_bossOverlay) {
-		uiManager->RemoveUIImage(m_bossOverlay);
+		objManager->RemoveGameObject(m_bossOverlay);
 		delete m_bossOverlay;
 		m_bossOverlay = nullptr;
 	}
 
 	if (m_houndBossPanel) {
-		uiManager->RemoveUIButton(m_houndBossPanel);
+		objManager->RemoveGameObject(m_houndBossPanel);
 		delete m_houndBossPanel;
 		m_houndBossPanel = nullptr;
 	}
 
 	if (m_spiderQueenBossPanel) {
-		uiManager->RemoveUIButton(m_spiderQueenBossPanel);
+		objManager->RemoveGameObject(m_spiderQueenBossPanel);
 		delete m_spiderQueenBossPanel;
 		m_spiderQueenBossPanel = nullptr;
 	}
 
 	if (m_houndClearText) {
-		uiManager->RemoveUIText(m_houndClearText);
+		objManager->RemoveGameObject(m_houndClearText);
 		delete m_houndClearText;
 		m_houndClearText = nullptr;
 	}
 
 	if (m_spiderQueenClearText) {
-		uiManager->RemoveUIText(m_spiderQueenClearText);
+		objManager->RemoveGameObject(m_spiderQueenClearText);
 		delete m_spiderQueenClearText;
 		m_spiderQueenClearText = nullptr;
 	}
 
 	if (m_bossChallengeButton) {
-		uiManager->RemoveUIButton(m_bossChallengeButton);
+		objManager->RemoveGameObject(m_bossChallengeButton);
 		delete m_bossChallengeButton;
 		m_bossChallengeButton = nullptr;
 	}
 
 	if (m_bossChallengeButtonText) {
-		uiManager->RemoveUIText(m_bossChallengeButtonText);
+		objManager->RemoveGameObject(m_bossChallengeButtonText);
 		delete m_bossChallengeButtonText;
 		m_bossChallengeButtonText = nullptr;
 	}
 
 	if (m_craftIcon) {
-		uiManager->RemoveUIButton(m_craftIcon);
+		objManager->RemoveGameObject(m_craftIcon);
 		delete m_craftIcon;
 		m_craftIcon = nullptr;
 	}
 
 	if (m_menuCreateIcon) {
-		uiManager->RemoveUIButton(m_menuCreateIcon);
+		objManager->RemoveGameObject(m_menuCreateIcon);
 		delete m_menuCreateIcon;
 		m_menuCreateIcon = nullptr;
 	}
 	if (m_menuEditIcon) {
-		uiManager->RemoveUIButton(m_menuEditIcon);
+		objManager->RemoveGameObject(m_menuEditIcon);
 		delete m_menuEditIcon;
 		m_menuEditIcon = nullptr;
 	}
 	if (m_menuBattleIcon) {
-		uiManager->RemoveUIButton(m_menuBattleIcon);
+		objManager->RemoveGameObject(m_menuBattleIcon);
 		delete m_menuBattleIcon;
 		m_menuBattleIcon = nullptr;
 	}
 	if (m_menuCookIcon) {
-		uiManager->RemoveUIButton(m_menuCookIcon);
+		objManager->RemoveGameObject(m_menuCookIcon);
 		delete m_menuCookIcon;
 		m_menuCookIcon = nullptr;
 	}
 
 	if (m_craftButton) {
-		uiManager->RemoveUIButton(m_craftButton);
+		objManager->RemoveGameObject(m_craftButton);
 		delete m_craftButton;
 		m_craftButton = nullptr;
 	}
 	if (m_craftButtonText) {
-	 uiManager->RemoveUIText(m_craftButtonText);
+	 objManager->RemoveGameObject(m_craftButtonText);
 	 delete m_craftButtonText;
 	 m_craftButtonText = nullptr;
 	}
 
 	for (auto* button : m_toolButtons) {
 		if (button) {
-			uiManager->RemoveUIButton(button);
+			objManager->RemoveGameObject(button);
 			delete button;
 		}
 	}
 	m_toolButtons.clear();
 	for (auto* button : m_createItemButtons) {
 		if (button) {
-			uiManager->RemoveUIButton(button);
+			objManager->RemoveGameObject(button);
 			delete button;
 		}
 	}
 	m_createItemButtons.clear();
 	for (auto* button : m_cookItemButtons) {
 		if (button) {
-			uiManager->RemoveUIButton(button);
+			objManager->RemoveGameObject(button);
 			delete button;
 		}
 	}
@@ -238,7 +237,7 @@ void MenuUI::Release()
 
 	for (auto* image : m_ingredientImages) {
 		if (image) {
-			uiManager->RemoveUIImage(image);
+			objManager->RemoveGameObject(image);
 			delete image;
 		}
 	}
@@ -246,14 +245,14 @@ void MenuUI::Release()
 
 	for (auto* text : m_ingredientTexts) {
 		if (text) {
-			uiManager->RemoveUIText(text);
+			objManager->RemoveGameObject(text);
 			delete text;
 		}
 	}
 	m_ingredientTexts.clear();
 
 	if (m_craftingItemNameText) {
-		uiManager->RemoveUIText(m_craftingItemNameText);
+		objManager->RemoveGameObject(m_craftingItemNameText);
 		delete m_craftingItemNameText;
 		m_craftingItemNameText = nullptr;
 	}
@@ -276,8 +275,8 @@ void MenuUI::InitializeCraftingUI()
 
 void MenuUI::CreateCraftBar()
 {
-	UIManager* uiManager = UIManager::GetInstance();
-	if (!uiManager) return;
+	ObjectManager* objManager = ObjectManager::GetInstance();
+	if (!objManager) return;
 
 	m_menuBar = new UIImage(
 		GOID_CRAFT_BAR,
@@ -290,13 +289,13 @@ void MenuUI::CreateCraftBar()
 		0.0f, 0.5f,
 		50.0f, 0.0f
 	);
-	uiManager->AddUIImage(m_menuBar);
-}
+	objManager->AddGameObject(m_menuBar);
+	}
 
-void MenuUI::CreatePanelBackgrounds()
-{
-	UIManager* uiManager = UIManager::GetInstance();
-	if (!uiManager) return;
+	void MenuUI::CreatePanelBackgrounds()
+	{
+	ObjectManager* objManager = ObjectManager::GetInstance();
+	if (!objManager) return;
 
 	const float toolPanelOffsetX = m_craftBarWidth;
 	const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
@@ -325,7 +324,7 @@ void MenuUI::CreatePanelBackgrounds()
 		toolPanelCX + m_paletteBgOffsetX, toolPanelCY + m_paletteBgOffsetY
 	);
 	m_toolPanelBg->SetActive(false);
-	uiManager->AddUIImage(m_toolPanelBg);
+	objManager->AddGameObject(m_toolPanelBg);
 
 	const float ingPadding = 16.0f;
 	const float craftButtonY = m_ingredientStartY + m_ingredientImageSize * 0.5f + 28.0f + m_craftButtonHeight * 0.5f;
@@ -346,14 +345,14 @@ void MenuUI::CreatePanelBackgrounds()
 		m_ingredientPanelCenterX, ingTop + ingPanelH * 0.5f
 	);
 	m_ingredientPanelBg->SetActive(false);
-	uiManager->AddUIImage(m_ingredientPanelBg);
-}
+	objManager->AddGameObject(m_ingredientPanelBg);
+	}
 
-void MenuUI::CreateMenuBarIcons()
-{
-	UIManager* uiManager = UIManager::GetInstance();
+	void MenuUI::CreateMenuBarIcons()
+	{
+	ObjectManager* objManager = ObjectManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	if (!uiManager || !resourceManager) return;
+	if (!objManager || !resourceManager) return;
 
 	std::shared_ptr<Sprite> craftIconNormal = resourceManager->LoadSprite(L"Resource/UI/CraftIcon.png");
 	std::shared_ptr<Sprite> craftIconHover = resourceManager->LoadSprite(L"Resource/UI/CraftIcon.png");
@@ -370,38 +369,38 @@ void MenuUI::CreateMenuBarIcons()
 	m_craftIcon = new UIButton(GOID_CRAFT_ICON, m_iconSize, m_iconSize,
 		craftIconNormal, craftIconHover, 0.0f, 0.5f, 0.0f, 0.5f, m_menuIconX, m_menuIconY[4]);
 	m_craftIcon->SetOnClickCallback([this]() { ToggleToolList(); });
-	uiManager->AddUIButton(m_craftIcon);
+	objManager->AddGameObject(m_craftIcon);
 
 	m_menuCreateIcon = new UIButton(static_cast<GameObjectID>(GOID_CRAFT_BAR + 10),
 		m_iconSize + 20, m_iconSize + 20, createNormal, createHover,
 		0.0f, 0.5f, 0.0f, 0.5f, m_menuIconX, m_menuIconY[3]);
 	m_menuCreateIcon->SetOnClickCallback([this]() { ToggleCreateList(); });
-	uiManager->AddUIButton(m_menuCreateIcon);
+	objManager->AddGameObject(m_menuCreateIcon);
 
 	m_menuCookIcon = new UIButton(static_cast<GameObjectID>(GOID_CRAFT_BAR + 13),
 		m_iconSize, m_iconSize, cookNormal, cookHover,
 		0.0f, 0.5f, 0.0f, 0.5f, m_menuIconX, m_menuIconY[2]);
 	m_menuCookIcon->SetOnClickCallback([this]() { ToggleCookList(); });
- uiManager->AddUIButton(m_menuCookIcon);
+	objManager->AddGameObject(m_menuCookIcon);
 
 	m_menuBattleIcon = new UIButton(static_cast<GameObjectID>(GOID_CRAFT_BAR + 12),
 		m_iconSize, m_iconSize, battleNormal, battleHover,
 		0.0f, 0.5f, 0.0f, 0.5f, m_menuIconX, m_menuIconY[1]);
 	m_menuBattleIcon->SetOnClickCallback([this]() { ToggleBossPanel(); });
- uiManager->AddUIButton(m_menuBattleIcon);
+	objManager->AddGameObject(m_menuBattleIcon);
 
 	m_menuEditIcon = new UIButton(static_cast<GameObjectID>(GOID_CRAFT_BAR + 11),
 		m_iconSize, m_iconSize, editNormal, editHover,
 		0.0f, 0.5f, 0.0f, 0.5f, m_menuIconX, m_menuIconY[0]);
 	m_menuEditIcon->SetOnClickCallback([]() {});
-	uiManager->AddUIButton(m_menuEditIcon);
-}
+	objManager->AddGameObject(m_menuEditIcon);
+	}
 
-void MenuUI::CreateToolButtons()
-{
-	UIManager* uiManager = UIManager::GetInstance();
+	void MenuUI::CreateToolButtons()
+	{
+	ObjectManager* objManager = ObjectManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	if (!uiManager || !resourceManager) return;
+	if (!objManager || !resourceManager) return;
 
 	const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
 	const float startX = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
@@ -432,15 +431,15 @@ void MenuUI::CreateToolButtons()
 		if (const ComponentElement::Image* img = toolButton->GetImageComponent())
 			img->SetDisplaySizeProportional(m_toolButtonSize);
 		m_toolButtons.push_back(toolButton);
-		uiManager->AddUIButton(toolButton);
+		objManager->AddGameObject(toolButton);
 	}
-}
+	}
 
-void MenuUI::CreateCreateItemButtons()
-{
-	UIManager* uiManager = UIManager::GetInstance();
+	void MenuUI::CreateCreateItemButtons()
+	{
+	ObjectManager* objManager = ObjectManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	if (!uiManager || !resourceManager) return;
+	if (!objManager || !resourceManager) return;
 
 	const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
 	const float startX = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
@@ -469,15 +468,15 @@ void MenuUI::CreateCreateItemButtons()
 		if (const ComponentElement::Image* img = btn->GetImageComponent())
 			img->SetDisplaySizeProportional(m_toolButtonSize);
 		m_createItemButtons.push_back(btn);
-		uiManager->AddUIButton(btn);
+		objManager->AddGameObject(btn);
 	}
-}
+	}
 
-void MenuUI::CreateCookItemButtons()
-{
-	UIManager* uiManager = UIManager::GetInstance();
+	void MenuUI::CreateCookItemButtons()
+	{
+	ObjectManager* objManager = ObjectManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	if (!uiManager || !resourceManager) return;
+	if (!objManager || !resourceManager) return;
 
 	const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
 	const float startX = m_craftBarWidth + m_toolButtonSize * 0.5f + m_toolButtonOffsetX;
@@ -508,15 +507,15 @@ void MenuUI::CreateCookItemButtons()
 		if (const ComponentElement::Image* img = btn->GetImageComponent())
 			img->SetDisplaySizeProportional(m_toolButtonSize);
 		m_cookItemButtons.push_back(btn);
-		uiManager->AddUIButton(btn);
+		objManager->AddGameObject(btn);
 	}
-}
+	}
 
-void MenuUI::CreateCraftButton()
-{
-	UIManager* uiManager = UIManager::GetInstance();
+	void MenuUI::CreateCraftButton()
+	{
+	ObjectManager* objManager = ObjectManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	if (!uiManager || !resourceManager) return;
+	if (!objManager || !resourceManager) return;
 
 	// 제작 버튼 Y = 재료 행 아래 레이아웃으로부터 계산 (재료중심 + 간격 + 버튼 반높이)
 	const float craftButtonY = m_ingredientStartY + m_ingredientImageSize * 0.5f + 28.0f + m_craftButtonHeight * 0.5f;
@@ -546,7 +545,7 @@ void MenuUI::CreateCraftButton()
 		}
 		});
 
-	uiManager->AddUIButton(m_craftButton);
+	objManager->AddGameObject(m_craftButton);
 
 	// "제작하기" 버튼 텍스트
 	m_craftButtonText = new UIText(
@@ -567,13 +566,13 @@ void MenuUI::CreateCraftButton()
 	);
 
 	m_craftButtonText->SetActive(false);
-	uiManager->AddUIText(m_craftButtonText);
-}
+	objManager->AddGameObject(m_craftButtonText);
+	}
 
-void MenuUI::CreateIngredientDisplay()
-{
-	UIManager* uiManager = UIManager::GetInstance();
-	if (!uiManager) return;
+	void MenuUI::CreateIngredientDisplay()
+	{
+	ObjectManager* objManager = ObjectManager::GetInstance();
+	if (!objManager) return;
 
 	const float textHeight = 28.0f;
 	const int   maxIngredients = 2;
@@ -590,7 +589,7 @@ void MenuUI::CreateIngredientDisplay()
 		0.0f, 0.5f,
 		m_ingredientPanelCenterX, itemNameY);
 	m_craftingItemNameText->SetActive(false);
-	uiManager->AddUIText(m_craftingItemNameText);
+	objManager->AddGameObject(m_craftingItemNameText);
 
 	for (int i = 0; i < maxIngredients; ++i) {
 		float xPos = m_ingredientPanelCenterX + (i - 0.5f) * (m_ingredientImageSize + m_ingredientSpacing);
@@ -603,7 +602,7 @@ void MenuUI::CreateIngredientDisplay()
 			0.0f, 0.5f, 0.0f, 0.5f, xPos, yPos);
 		ingredientImage->SetActive(false);
 		m_ingredientImages.push_back(ingredientImage);
-		uiManager->AddUIImage(ingredientImage);
+		objManager->AddGameObject(ingredientImage);
 
 		float textY = yPos + m_ingredientImageSize * 0.5f + textHeight * 0.5f - 10.0f;
 		UIText* ingredientText = new UIText(
@@ -615,12 +614,12 @@ void MenuUI::CreateIngredientDisplay()
 			0.0f, 0.5f, 0.0f, 0.5f, xPos, textY);
 		ingredientText->SetActive(false);
 		m_ingredientTexts.push_back(ingredientText);
-		uiManager->AddUIText(ingredientText);
+		objManager->AddGameObject(ingredientText);
 	}
-}
+	}
 
-void MenuUI::ClearAllPanels()
-{
+	void MenuUI::ClearAllPanels()
+	{
 	// 모든 패널 상태 플래그 초기화
 	m_isToolListVisible = false;
 	m_isCreateListVisible = false;
@@ -641,7 +640,7 @@ void MenuUI::ClearAllPanels()
 	m_bossOverlay->SetActive(false);
 	m_houndBossPanel->SetActive(false);
 	m_spiderQueenBossPanel->SetActive(false);
-	
+
 	if (m_houndClearText) m_houndClearText->SetActive(false);
 	if (m_spiderQueenClearText) m_spiderQueenClearText->SetActive(false);
 
@@ -669,10 +668,10 @@ void MenuUI::ClearAllPanels()
 	// 선택 초기화
 	m_selectedToolID = GOID_NONE;
 	m_selectedBossID = GOID_NONE;
-}
+	}
 
-void MenuUI::ToggleToolList()
-{
+	void MenuUI::ToggleToolList()
+	{
 	// 원하는 동작: 현재 상태를 반전시키되, "열기" 동작을 수행할 때만 다른 패널을 닫음
 	bool newState = !m_isToolListVisible;
 	ClearAllPanels();
@@ -684,10 +683,10 @@ void MenuUI::ToggleToolList()
 	}
 
 	if (m_toolPanelBg) m_toolPanelBg->SetActive(m_isToolListVisible);
-}
+	}
 
-void MenuUI::ToggleCreateList()
-{
+	void MenuUI::ToggleCreateList()
+	{
 	bool newState = !m_isCreateListVisible;
 
 	ClearAllPanels();
@@ -698,10 +697,10 @@ void MenuUI::ToggleCreateList()
 	}
 
 	if (m_toolPanelBg) m_toolPanelBg->SetActive(m_isCreateListVisible);
-}
+	}
 
-void MenuUI::ToggleCookList()
-{
+	void MenuUI::ToggleCookList()
+	{
 	bool newState = !m_isCookListVisible;
 	ClearAllPanels();
 
@@ -712,10 +711,10 @@ void MenuUI::ToggleCookList()
 	}
 
 	if (m_toolPanelBg) m_toolPanelBg->SetActive(m_isCookListVisible);
-}
+	}
 
-void MenuUI::ToggleBossPanel()
-{
+	void MenuUI::ToggleBossPanel()
+	{
 	bool newState = !m_isBossPanelVisible;
 
 	ClearAllPanels();
@@ -731,10 +730,10 @@ void MenuUI::ToggleBossPanel()
 
 	if (m_bossChallengeButton) m_bossChallengeButton->SetActive(m_isBossPanelVisible);
 	if (m_bossChallengeButtonText) m_bossChallengeButtonText->SetActive(m_isBossPanelVisible);
-}
+	}
 
-void MenuUI::SelectTool(GameObjectID toolID)
-{
+	void MenuUI::SelectTool(GameObjectID toolID)
+	{
 
 	if (toolID == m_selectedToolID) {
 		m_selectedToolID = GOID_NONE;
@@ -748,10 +747,10 @@ void MenuUI::SelectTool(GameObjectID toolID)
 
 	if (m_craftButton)     m_craftButton->SetActive(true);
 	if (m_craftButtonText) m_craftButtonText->SetActive(true);
-}
+	}
 
-void MenuUI::UpdateIngredientDisplay()
-{
+	void MenuUI::UpdateIngredientDisplay()
+	{
 	if (m_selectedToolID == GOID_NONE) {
 		for (auto* image : m_ingredientImages) {
 			if (image) image->SetActive(false);
@@ -838,10 +837,10 @@ void MenuUI::UpdateIngredientDisplay()
 			}
 		}
 	}
-}
+	}
 
-bool MenuUI::TryCraftSelectedTool(Player* player)
-{
+	bool MenuUI::TryCraftSelectedTool(Player* player)
+	{
 	if (m_selectedToolID == GOID_NONE) {
 		OutputDebugStringW(L"CraftingUI: 선택된 도구/아이템이 없습니다.\n");
 		return false;
@@ -876,13 +875,13 @@ bool MenuUI::TryCraftSelectedTool(Player* player)
 	}
 
 	return craftSuccess;
-}
+	}
 
-void MenuUI::CreateBossUI()
-{
-	UIManager* uiManager = UIManager::GetInstance();
+	void MenuUI::CreateBossUI()
+	{
+	ObjectManager* objManager = ObjectManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
-	if (!uiManager || !resourceManager) return;
+	if (!objManager || !resourceManager) return;
 
 	OutputDebugStringW(L"CraftingUI: CreateBossUI 시작\n");
 
@@ -902,7 +901,7 @@ void MenuUI::CreateBossUI()
 	);
 	m_bossOverlay->SetActive(false);
 	m_bossOverlay->SetTintColor(0, 0, 0, 180);
-	uiManager->AddUIImage(m_bossOverlay);
+	objManager->AddGameObject(m_bossOverlay);
 	OutputDebugStringW(L"CraftingUI: 보스 오버레이 생성 완료\n");
 
 	const float panelWidth = 300.0f;
@@ -933,7 +932,7 @@ void MenuUI::CreateBossUI()
 	);
 	m_houndBossPanel->SetActive(false);
 	m_houndBossPanel->SetOnClickCallback([this]() { SelectBoss(GOID_MONSTER_HOUNDDOG); });
-	uiManager->AddUIButton(m_houndBossPanel);
+	objManager->AddGameObject(m_houndBossPanel);
 
 	// 하운드 CLEAR 텍스트
 	m_houndClearText = new UIText(
@@ -943,7 +942,7 @@ void MenuUI::CreateBossUI()
 	m_houndClearText->GetRectTransform()->SetPosition(houndPanelX, panelY);
 	m_houndClearText->GetRectTransform()->SetRotation(-25.0f); // 약간 기울임
 	m_houndClearText->SetActive(false);
-	uiManager->AddUIText(m_houndClearText);
+	objManager->AddGameObject(m_houndClearText);
 
 	if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_houndBossPanel->GetImageComponent())) {
 		img->SetTintColor(200, 200, 200, 255);
@@ -975,7 +974,7 @@ void MenuUI::CreateBossUI()
 		SelectBoss(GOID_MONSTER_QUEEN_SPIDER);
 		});
 
-	uiManager->AddUIButton(m_spiderQueenBossPanel);
+	objManager->AddGameObject(m_spiderQueenBossPanel);
 
 	// 스파이더 퀸 CLEAR 텍스트
 	m_spiderQueenClearText = new UIText(
@@ -985,7 +984,7 @@ void MenuUI::CreateBossUI()
 	m_spiderQueenClearText->GetRectTransform()->SetPosition(spiderPanelX, panelY);
 	m_spiderQueenClearText->GetRectTransform()->SetRotation(-25.0f); // 약간 기울임
 	m_spiderQueenClearText->SetActive(false);
-	uiManager->AddUIText(m_spiderQueenClearText);
+	objManager->AddGameObject(m_spiderQueenClearText);
 
 	if (ComponentElement::Image* img = const_cast<ComponentElement::Image*>(m_spiderQueenBossPanel->GetImageComponent())) {
 		img->SetTintColor(150, 150, 150, 255);
@@ -1009,7 +1008,7 @@ void MenuUI::CreateBossUI()
 	);
 	m_bossChallengeButton->SetActive(false);
 	m_bossChallengeButton->SetOnClickCallback([this]() { TryChallengeBoss(); });
-	uiManager->AddUIButton(m_bossChallengeButton);
+	objManager->AddGameObject(m_bossChallengeButton);
 
 	m_bossChallengeButtonText = new UIText(
 		static_cast<GameObjectID>(GOID_CRAFT_BAR + 604),
@@ -1027,13 +1026,13 @@ void MenuUI::CreateBossUI()
 		screenCenterX, buttonY
 	);
 	m_bossChallengeButtonText->SetActive(false);
-	uiManager->AddUIText(m_bossChallengeButtonText);
+	objManager->AddGameObject(m_bossChallengeButtonText);
 
 	// 초기 하이라이트 상태 업데이트
 	UpdateBossPanelHighlight();
 
 	OutputDebugStringW(L"CraftingUI: CreateBossUI 완료\n");
-}
+	}
 
 void MenuUI::SelectBoss(GameObjectID bossID)
 {

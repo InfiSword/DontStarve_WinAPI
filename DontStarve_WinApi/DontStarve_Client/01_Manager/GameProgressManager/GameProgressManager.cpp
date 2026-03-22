@@ -22,6 +22,11 @@ void GameProgressManager::Init()
 	OutputDebugStringW(L"GameProgressManager: 초기화 완료\n");
 }
 
+void GameProgressManager::Update(float deltaTime)
+{
+	m_totalGameTime += deltaTime;
+}
+
 void GameProgressManager::Release()
 {
 	// 캐릭터 해금 정보 저장
@@ -176,6 +181,8 @@ void GameProgressManager::ResetRuntimeData()
 	// 플레이어 상태 저장 초기화
 	m_hasSavedPlayerState = false;
 	m_playerSnapshot = PlayerStateSnapshot();
+
+	m_totalGameTime = 0.0f;
 
 	OutputDebugStringW(L"GameProgressManager: 런타임 데이터 초기화 완료\n");
 }

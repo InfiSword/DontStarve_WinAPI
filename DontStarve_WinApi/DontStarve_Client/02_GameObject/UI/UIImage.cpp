@@ -51,37 +51,7 @@ void UIImage::Render()
 {
     if (!IsEnabled() || !m_image || !m_rectTransform) return;
 
-	std::shared_ptr<Sprite> spriteHandle = m_image->GetSpriteHandle();
-	if (!spriteHandle || !spriteHandle->bitmap) return;
-
-	Gdiplus::Bitmap* bitmap = spriteHandle->bitmap.get();
-
-	Gdiplus::RectF srcRect = spriteHandle->sourceRect;
-	float width = srcRect.Width * m_rectTransform->GetScaleX();
-	float height = srcRect.Height * m_rectTransform->GetScaleY();
-	
-	float x = m_rectTransform->GetX();
-	float y = m_rectTransform->GetY();
-	float pivotX = m_rectTransform->GetPivotX();
-	float pivotY = m_rectTransform->GetPivotY();
-
-	// Image 컴포넌트의 틴트 색상 가져오기
-	Gdiplus::Color tintColor = m_image->GetTintColor();
-	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
-
-    RenderManager::GetInstance()->AddUIImageCommand(
-        bitmap,
-        x,
-        y,
-        width,
-        height,
-		pivotX,
-		pivotY,
-		m_image->GetLayer(),
-		m_image->GetSortKey(),
-		tintColor,
-		hasTint
-    );
+	RenderManager::GetInstance()->RenderImage(m_rectTransform, m_image);
 }
 
 Gdiplus::Bitmap* UIImage::GetBitmap() const

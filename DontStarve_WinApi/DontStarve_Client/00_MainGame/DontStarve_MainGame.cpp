@@ -8,7 +8,6 @@
 #include "../01_Manager/ObjectManager/ObjectManager.h"
 #include "../01_Manager/ColliderManager/ColliderManager.h"
 #include "../01_Manager/InventoryManager/InventoryManager.h"
-#include "../01_Manager/UIManager/UIManager.h"
 #include "../01_Manager/SceneManager/SceneManager.h"
 #include "../01_Manager/ResourceManager/ResourceManager.h"
 #include "../01_Manager/GameProgressManager/GameProgressManager.h"
@@ -70,6 +69,9 @@ void DontStarve_MainGame::Update()
     // SceneManager 업데이트 (FPS 제한 적용)
     SceneManager::GetInstance()->Update(deltaTime);
 
+    // 게임 진행도 업데이트 (전체 시간 측정 등)
+    GameProgressManager::GetInstance()->Update(deltaTime);
+
     // FPS 제한 업데이트
     TimeManager::GetInstance()->UpdateFrameLimit();
 }
@@ -123,7 +125,6 @@ void DontStarve_MainGame::Release()
     ObjectManager::DestroyInstance();
     CameraManager::DestroyInstance();
     InputManager::DestroyInstance();
-    UIManager::DestroyInstance();
 
     // 4단계: 렌더/그래픽 매니저 파괴 (모든 Bitmap/Sprite 참조 해제 후)
     RenderManager::DestroyInstance();

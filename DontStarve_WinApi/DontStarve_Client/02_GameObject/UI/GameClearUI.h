@@ -4,13 +4,13 @@
 class UIText;
 class UIButton;
 
-class GameOverUI : public UIElement
+class GameClearUI : public UIElement
 {
 public:
-    GameOverUI(float anchorMinX = 0.5f, float anchorMinY = 0.5f,
-               float anchorMaxX = 0.5f, float anchorMaxY = 0.5f,
-               float anchoredPosX = 0.0f, float anchoredPosY = 0.0f);
-    virtual ~GameOverUI() override;
+    GameClearUI(float anchorMinX = 0.5f, float anchorMinY = 0.5f,
+                float anchorMaxX = 0.5f, float anchorMaxY = 0.5f,
+                float anchoredPosX = 0.0f, float anchoredPosY = 0.0f);
+    virtual ~GameClearUI() override;
 
     virtual void Init() override;
     virtual void Update(float deltaTime) override;
@@ -22,7 +22,11 @@ public:
     bool IsVisible() const { return IsEnabled(); }
 
 private:
-    UIText* m_gameOverText;
+    std::wstring FormatTime(float totalSeconds);
+
+private:
+    UIText* m_clearText;
+    UIText* m_timeText;
     UIButton* m_btnToLobby;
     UIText* m_btnToLobbyText;
     UIButton* m_btnQuit;

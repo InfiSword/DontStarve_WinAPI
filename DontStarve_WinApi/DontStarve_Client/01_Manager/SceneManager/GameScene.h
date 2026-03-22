@@ -4,7 +4,7 @@
 class GameObject;
 class Player;
 class MenuUI;
-class PlayerHPUI;
+class HPUI;
 class GameOverUI;
 
 class GameScene : public BaseScene
@@ -69,7 +69,7 @@ private:
 	MenuUI* m_craftingUI;
 
 	// 플레이어 HP UI (우측 상단 게이지)
-	PlayerHPUI* m_playerHPUI;
+	HPUI* m_playerHPUI;
 
 	// 게임 오버 UI
 	GameOverUI* m_gameOverUI;

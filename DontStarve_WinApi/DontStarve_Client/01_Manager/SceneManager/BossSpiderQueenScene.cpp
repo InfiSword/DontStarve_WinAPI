@@ -2,7 +2,6 @@
 #include "BossSpiderQueenScene.h"
 #include "../ObjectManager/ObjectManager.h"
 #include "../CameraManager/CameraManager.h"
-#include "../UIManager/UIManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/Entity/Monster/Monster.h"
 #include "../../02_GameObject/Entity/Monster/Spider.h"
@@ -11,11 +10,16 @@
 #include "../SceneManager/SceneManager.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIText.h"
+#include "../../02_GameObject/UI/GameClearUI.h"
+#include "../../02_GameObject/UI/HPUI.h"
 #include "../../02_GameObject/Entity/Enviorment/Tree.h"
 #include "../../03_Animation/Animator.h"
+#include "../../01_Manager/RenderManager/RenderManager.h"
 
 BossSpiderQueenScene::BossSpiderQueenScene()
     : GameScene()
+    , m_bossName(L"SPIDER QUEEN")
+    , m_bossHPUI(nullptr)
     , m_currentPhase(BossPhase::Phase1_Minions)
     , m_phaseTimer(0.0f)
     , m_isIntroRunning(false)
@@ -24,6 +28,7 @@ BossSpiderQueenScene::BossSpiderQueenScene()
     , m_isClearUIShown(false)
     , m_bossObject(nullptr)
     , m_chaseStarted(false)
+    , m_gameClearUI(nullptr)
 {
 }
 
@@ -44,6 +49,15 @@ void BossSpiderQueenScene::Init(const MapData* mapData)
     m_chaseStarted = false;
     m_bossObject = nullptr;
     m_minionObjects.clear();
+    m_bossHPUI = nullptr;
+    m_gameClearUI = nullptr;
+
+    ObjectManager* uiMgr = ObjectManager::GetInstance();
+    
+    // 게임 클리어 UI 생성
+    m_gameClearUI = new GameClearUI();
+    m_gameClearUI->Init();
+    uiMgr->AddGameObject(m_gameClearUI);
 
     ObjectManager* objMgr = ObjectManager::GetInstance();
     const auto& objects = objMgr->GetGameObjects();
@@ -71,6 +85,17 @@ void BossSpiderQueenScene::Init(const MapData* mapData)
         {
             obj->SetInteractive(false);
         }
+    }
+
+    // 보스 HP UI 미리 생성
+    if (m_bossObject)
+    {
+        m_bossHPUI = new HPUI(dynamic_cast<Entity*>(m_bossObject), m_bossName, 600.0f, 25.0f,
+            Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 255, 255, 255),
+            0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 60.0f,
+            1000.0f, 1002.0f, false, false);
+        m_bossHPUI->SetActive(false);
+        objMgr->AddGameObject(m_bossHPUI);
     }
 
     OutputDebugStringW(L"BossSpiderQueenScene: Initialized. Trees disabled.\n");
@@ -105,27 +130,54 @@ void BossSpiderQueenScene::Render()
     GameScene::Render();
 }
 
+void BossSpiderQueenScene::Release()
+{
+    // 보스 관련 포인터 정리
+    m_bossObject = nullptr;
+    m_minionObjects.clear();
+    
+    // UI 포인터 정리 (실제 삭제는 ObjectManager에서 수행됨)
+    m_bossHPUI = nullptr;
+    m_gameClearUI = nullptr;
+
+    // 부모 클래스의 Release 호출 (매니저들 및 공통 UI 정리)
+    GameScene::Release();
+}
+
 void BossSpiderQueenScene::UpdatePhase1(float deltaTime)
 {
-    // 필드에 있는 모든 일반 거미가 죽었는지 체크
     ObjectManager* objMgr = ObjectManager::GetInstance();
     const auto& objects = objMgr->GetGameObjects();
     
     bool minionsAlive = false;
+    bool eggsExist = false;
+
     for (auto* obj : objects)
     {
-        if (obj && (obj->GetID() == GOID_MONSTER_SPIDER || obj->GetID() == GOID_MONSTER_WARRIOR_SPIDER) && obj->IsEnabled())
+        if (!obj || !obj->IsEnabled()) continue;
+
+        GameObjectID id = obj->GetID();
+        
+        // 거미류 체크
+        if (id == GOID_MONSTER_SPIDER || id == GOID_MONSTER_WARRIOR_SPIDER)
         {
             minionsAlive = true;
-            break;
         }
+        // 거미알류 체크
+        else if (id == GOID_BUILDING_SPIDER_SMALLEGG || id == GOID_BUILDING_SPIDER_NORMALEGG || 
+                 id == GOID_BUILDING_SPIDER_TALLEGG || id == GOID_BUILDING_SPIDER_SACEGG)
+        {
+            eggsExist = true;
+        }
+
+        if (minionsAlive && eggsExist) break;
     }
 
-    if (!minionsAlive)
+    if (!minionsAlive && !eggsExist)
     {
         m_currentPhase = BossPhase::PhaseTransition;
         m_phaseTimer = 0.0f;
-        OutputDebugStringW(L"BossSpiderQueenScene: Phase 1 Cleared. Transitioning to Boss Intro...\n");
+        OutputDebugStringW(L"BossSpiderQueenScene: Phase 1 Cleared (All Spiders and Eggs destroyed). Transitioning to Boss Intro...\n");
     }
 }
 
@@ -193,7 +245,6 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
             camMgr->SetCameraPos(m_introTargetPos.X, m_introTargetPos.Y);
             
             // 보스 Taunt 애니메이션 강제 설정 (상태값이 TAUNT인 경우)
-            // Boss_SpiderQueen의 SpiderQueenState::TAUNT는 5번임 (Boss_SpiderQueen.h 참고)
             Animator* anim = m_bossObject->GetComponent<Animator>();
             if (anim) anim->SetState(5, m_bossObject->GetComponent<Transform>()->GetDirection());
             
@@ -214,7 +265,7 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
             camMgr->SetCameraPos(curX, curY);
         }
 
-        // 복귀 도중 추격 시작 (유저 요청: "이 때 주변에 다른 거미들도 동시에 플레이어를 추격을 시작")
+        // 복귀 도중 추격 시작
         if (!m_chaseStarted)
         {
             if (m_bossObject)
@@ -223,7 +274,6 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
                 if (pBoss) pBoss->SetCanChase(true);
             }
 
-            // 주변 모든 거미(민ion)들도 추격 시작
             ObjectManager* objMgr = ObjectManager::GetInstance();
             const auto& objects = objMgr->GetGameObjects();
             for (auto* obj : objects)
@@ -231,12 +281,7 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
                 if (obj && (obj->GetID() == GOID_MONSTER_SPIDER || obj->GetID() == GOID_MONSTER_WARRIOR_SPIDER))
                 {
                     Monster* pMinion = dynamic_cast<Monster*>(obj);
-                    if (pMinion)
-                    {
-                        pMinion->SetCanChase(true);
-                        // 즉시 플레이어 타겟팅 (Spider::SetAggroTarget 등의 기능이 있다면 사용)
-                        // 여기서는 Monster 수준에서 타겟 설정 로직이 AIUpdate에 포함되어 있다고 가정
-                    }
+                    if (pMinion) pMinion->SetCanChase(true);
                 }
             }
             m_chaseStarted = true;
@@ -247,6 +292,8 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
         // 연출 종료
         camMgr->SetFollowMode(true);
         m_currentPhase = BossPhase::Phase2_BossBattle;
+
+        if (m_bossHPUI) m_bossHPUI->SetActive(true);
 
         Player* player = ObjectManager::GetInstance()->GetPlayer();
         if (player) player->SetInputEnabled(true);
@@ -263,9 +310,10 @@ void BossSpiderQueenScene::UpdatePhase2Battle(float deltaTime)
         m_currentPhase = BossPhase::Cleared;
         m_phaseTimer = 0.0f;
         m_isClearUIShown = false;
-        OutputDebugStringW(L"BossSpiderQueenScene: Spider Queen Defeated!\n");
+        
+        if (m_bossHPUI) m_bossHPUI->SetActive(false);
 
-        // 클리어 기록 및 캐릭터 해금
+        OutputDebugStringW(L"BossSpiderQueenScene: Spider Queen Defeated!\n");
         GameProgressManager::GetInstance()->ClearScene(SCENE_GAME_SPIDER_QUEEN_HOUSE);
     }
 }
@@ -274,22 +322,15 @@ void BossSpiderQueenScene::UpdateCleared(float deltaTime)
 {
     m_phaseTimer += deltaTime;
 
-    if (m_phaseTimer >= 1.0f && !m_isClearUIShown)
+    // 보스 처치 후 약 1.5초 뒤에 게임 클리어 UI 표시
+    if (m_phaseTimer >= 1.5f && !m_isClearUIShown)
     {
-        UIManager* uiMgr = UIManager::GetInstance();
-        
-        UIImage* clearBanner = new UIImage(GOID_NONE, 600.0f, 150.0f, LAYER_UI_BACKGROUND, L"Resource/UI/BG_Banner.png", 999.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
-        uiMgr->AddUIImage(clearBanner);
-
-        UIText* clearText = new UIText(GOID_NONE, 400.0f, 100.0f, L"CLEARED!", Gdiplus::Color(255, 255, 255, 0), LAYER_UI_FOREGROUND, 1000.0f, L"Arial", 48.0f, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
-        uiMgr->AddUIText(clearText);
+        if (m_gameClearUI)
+        {
+            m_gameClearUI->Show();
+        }
 
         m_isClearUIShown = true;
-    }
-
-    if (m_phaseTimer >= 4.0f)
-    {
-        SceneManager::GetInstance()->LoadGameScene(SCENE_GAME_FARMING_AREA, GetSelectedCharacterID());
     }
 }
 

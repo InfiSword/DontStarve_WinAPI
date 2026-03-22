@@ -1,6 +1,7 @@
 #include "99_Default/pch.h"
 #include "Entity.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
+#include "../../01_Manager/RenderManager/RenderManager.h"
 #include "../../03_Animation/Animator.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
@@ -109,6 +110,32 @@ void Entity::Damaged(int damage)
 	}
 }
 
+void Entity::Render()
+{
+	if (!IsEnabled() || !transform) return;
+
+	RenderManager* pRM = RenderManager::GetInstance();
+
+	// 1. 모든 애니메이터 렌더링 (FX 포함)
+	std::vector<Animator*> animators = GetComponents<Animator>();
+	bool animatorRendered = false;
+	for (Animator* anim : animators) {
+		if (anim && anim->IsEnabled()) {
+			pRM->RenderAnimator(transform, anim);
+			animatorRendered = true;
+		}
+	}
+
+	// 2. 애니메이터가 하나도 렌더링되지 않았을 때만 스프라이트 렌더러 렌더링
+	if (!animatorRendered) {
+		std::vector<SpriteRenderer*> srs = GetComponents<SpriteRenderer>();
+		for (SpriteRenderer* sr : srs) {
+			if (sr && sr->IsEnabled()) {
+				pRM->RenderSprite(transform, sr);
+			}
+		}
+	}
+}
 
 void Entity::Update(float deltaTime)
 {

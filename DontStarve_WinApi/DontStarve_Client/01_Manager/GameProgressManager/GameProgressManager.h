@@ -112,10 +112,14 @@ private:
 public:
 	// 생명주기 메서드
 	void Init();
-	void Update(float deltaTime) {}
+	void Update(float deltaTime);
 	void LateUpdate() {}
 	void Render() {}
 	void Release();
+
+	// 게임 시간 관련
+	float GetTotalGameTime() const { return m_totalGameTime; }
+	void SetTotalGameTime(float time) { m_totalGameTime = time; }
 
 	// 씬 클리어 관련 (런타임)
 	bool IsSceneCleared(SceneType sceneType) const;
@@ -146,6 +150,8 @@ private:
 	bool m_hasSavedPlayerState = false;
 
 	std::wstring m_saveFilePath;  // 저장 파일 경로
+
+	float m_totalGameTime = 0.0f; // 전체 게임 시간
 
 	// 내부 헬퍼 함수
 	void ParseCharacterLine(const std::wstring& line);

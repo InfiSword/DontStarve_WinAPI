@@ -49,25 +49,9 @@ void UIText::Update(float deltaTime)
 
 void UIText::Render()
 {
-	if (!IsEnabled() || !m_text) return;
+	if (!IsEnabled() || !m_text || !m_rectTransform) return;
 	
-	RectTransform* rectTransform = GetRectTransform();
-	if (!rectTransform) return;
-	
-	auto textParams = m_text->BuildRenderParams(rectTransform);
-	if (textParams.textPtr && !textParams.textPtr->empty() && textParams.font && textParams.brush && textParams.format) {
-		RenderManager::GetInstance()->AddTextCommand(
-			textParams.textPtr,
-			textParams.font,
-			textParams.brush,
-			textParams.format,
-			textParams.destRect,
-			textParams.layer,
-			textParams.sortKey,
-			rectTransform->GetRotation(),
-			Gdiplus::PointF(rectTransform->GetX(), rectTransform->GetY())
-		);
-	}
+	RenderManager::GetInstance()->RenderText(m_rectTransform, m_text);
 }
 
 void UIText::SetText(const std::wstring& text)

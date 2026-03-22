@@ -7,7 +7,6 @@
 #include "BossHoundScene.h"
 #include "BossSpiderQueenScene.h"
 #include "../GameProgressManager/GameProgressManager.h"
-#include "../UIManager/UIManager.h"
 #include "../InputManager/InputManager.h"
 #include "../CameraManager/CameraManager.h"
 #include "../ObjectManager/ObjectManager.h"

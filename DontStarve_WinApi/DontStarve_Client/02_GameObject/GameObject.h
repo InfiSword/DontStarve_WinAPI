@@ -48,6 +48,7 @@ public:
 	virtual void LateInit();
 	virtual void Update(float deltaTime); 
 	virtual void LateUpdate();
+	virtual void Render() {}
 	virtual void Release();
 
 	// 코루틴 시스템

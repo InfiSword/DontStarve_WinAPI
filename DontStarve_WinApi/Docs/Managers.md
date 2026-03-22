@@ -10,11 +10,13 @@
   - `ProcessPendingSceneLoad()`: 씬 전환 요청을 실제로 실행
 
 ## 2. ObjectManager (오브젝트 매니저)
-- **역할**: 활성화된 모든 `GameObject`의 수명주기(Update, LateUpdate, Render, Release)를 통합 관리합니다.
-- **특징**: 팩토리 패턴을 사용하여 `GameObjectID`를 기반으로 객체를 생성하며, 삭제 지연 큐를 통해 순회 중 안전한 삭제를 지원합니다.
+- **역할**: 활성화된 모든 `GameObject`(플레이어, 몬스터, 아이템, UI 등)의 수명주기(Update, LateUpdate, Render, Release)를 통합 관리합니다.
+- **특징**: 팩토리 패턴을 사용하여 `GameObjectID`를 기반으로 객체를 생성하며, 삭제 지연 큐 및 UI 전용 리스트를 통해 안전하고 질서 있는 관리를 지원합니다.
 - **주요 기능**:
   - `CreateGameObject()`: ID별 팩토리 함수 호출을 통해 객체 생성
-  - `AddGameObject()`, `RemoveGameObject()`: 리스트 관리
+  - `AddGameObject() / RemoveGameObject()`: 월드 객체 관리
+  - `AddUI() / RemoveUI()`: UI 요소 관리 및 독립적 렌더링 보장
+  - `IsScreenPointBlockedByUI()`: UI 영역에 의한 마우스 클릭 차단 판정
   - `GetPlayer()`: 플레이어 객체 캐싱 및 접근 제공
 
 ## 3. RenderManager (렌더 매니저)
@@ -40,14 +42,7 @@
   - `LoadSprite()`, `LoadSpriteSheet()`: 캐싱 기반 리소스 로드
   - `GetObjectResourceInfo()`: ID별 데이터 정보(경로, 피벗 등) 조회
 
-## 6. UIManager (UI 매니저)
-- **역할**: 화면에 표시되는 UI 요소들을 관리하며 사용자 입력을 처리합니다.
-- **특징**: UI 요소에 의한 마우스 클릭 차단(`IsScreenPointBlockedByUI`) 기능을 제공합니다.
-- **주요 기능**:
-  - `AddUIImage()`, `AddUIButton()`, `AddUIText()`: UI 요소 등록
-  - `SetUIVisibility()`: 전체 UI 가시성 제어
-
-## 7. InventoryManager (인벤토리 매니저)
+## 6. InventoryManager (인벤토리 매니저)
 - **역할**: 플레이어의 아이템 소유 상태, 제작 레시피, 아이템 사용 로직을 관리합니다.
 - **특징**: 파일 입출력을 통한 인벤토리 저장/로드 기능과 제작 레시피 파싱을 담당합니다.
 - **주요 기능**:
@@ -55,7 +50,7 @@
   - `TryCraftItem()`: 제작 레시피 검사 및 아이템 생성
   - `SaveInventoryToFile()`, `LoadInventoryFromFile()`
 
-## 8. InputManager / TimeManager / ColliderManager
+## 7. InputManager / TimeManager / ColliderManager
 - **InputManager**: 키보드 및 마우스 입력을 상태별(Down, Up, Pressed)로 관리
 - **TimeManager**: 고정 델타 타임 및 실제 프레임 타임 계산
 - **ColliderManager**: 레이어별 충돌 체크 및 `OnCollisionEnter/Stay/Exit` 이벤트 발생

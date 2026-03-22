@@ -27,7 +27,7 @@ public:
 	virtual void LateInit() override;
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
-	virtual void Release() override;
+	virtual void RenderDebugOverlay() override;
 
 	void SetTargetPosition(float worldX, float worldY);
 	void HandleRightClick(float worldX, float worldY);

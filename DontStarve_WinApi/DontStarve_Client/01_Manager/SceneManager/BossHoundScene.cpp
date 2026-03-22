@@ -2,7 +2,6 @@
 #include "BossHoundScene.h"
 #include "../ObjectManager/ObjectManager.h"
 #include "../CameraManager/CameraManager.h"
-#include "../UIManager/UIManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/Entity/Entity.h"
 #include "../../02_GameObject/Entity/Monster/Monster.h"
@@ -12,6 +11,8 @@
 #include "../SceneManager/SceneManager.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIText.h"
+#include "../../02_GameObject/UI/HPUI.h"
+#include "../../01_Manager/RenderManager/RenderManager.h"
 
 BossHoundScene::BossHoundScene()
     : GameScene()
@@ -22,12 +23,15 @@ BossHoundScene::BossHoundScene()
     , m_introTargetBossIndex(0)
     , m_bossesActivated(false)
     , m_isClearUIShown(false)
+    , m_clearBanner(nullptr)
+    , m_clearText(nullptr)
+    , m_iceBossHPUI(nullptr)
+    , m_redBossHPUI(nullptr)
 {
 }
 
 BossHoundScene::~BossHoundScene()
 {
-    m_bossObjects.clear();
 }
 
 void BossHoundScene::Init(const MapData* mapData)
@@ -43,6 +47,20 @@ void BossHoundScene::Init(const MapData* mapData)
     m_isClearUIShown = false;
     m_introTargetBossIndex = 0;
     m_bossObjects.clear();
+    m_clearBanner = nullptr;
+    m_clearText = nullptr;
+    m_iceBossHPUI = nullptr;
+    m_redBossHPUI = nullptr;
+
+    ObjectManager* uiMgr = ObjectManager::GetInstance();
+    // 클리어 UI 미리 생성
+    m_clearBanner = new UIImage(GOID_NONE, 600.0f, 150.0f, LAYER_UI_BACKGROUND, L"Resource/UI/BG_Banner.png", 999.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
+    m_clearBanner->SetActive(false);
+    uiMgr->AddGameObject(m_clearBanner);
+
+    m_clearText = new UIText(GOID_NONE, 400.0f, 100.0f, L"CLEARED!", Gdiplus::Color(255, 255, 255, 0), LAYER_UI_FOREGROUND, 1000.0f, L"Arial", 48.0f, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
+    m_clearText->SetActive(false);
+    uiMgr->AddGameObject(m_clearText);
 
     // 맵 데이터에서 생성된 보스들을 찾아 비활성화 (전투 준비 단계)
     // 연출 순서 보장을 위해 순서대로 찾음 (Ice -> Red)
@@ -61,6 +79,28 @@ void BossHoundScene::Init(const MapData* mapData)
 
     if (iceBoss) { iceBoss->SetActive(false); m_bossObjects.push_back(iceBoss); }
     if (redBoss) { redBoss->SetActive(false); m_bossObjects.push_back(redBoss); }
+
+    // 보스 HP UI 미리 생성 (Order: Ice -> Red)
+    if (iceBoss)
+    {
+        m_iceBossHPUI = new HPUI(dynamic_cast<Entity*>(iceBoss), L"ICE HOUND", 600.0f, 25.0f, 
+            Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 100, 150, 255),
+            0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 60.0f,
+            1000.0f, 1002.0f, false, false);
+        m_iceBossHPUI->SetActive(false);
+        uiMgr->AddGameObject(m_iceBossHPUI);
+    }
+    
+    if (redBoss)
+    {
+        m_redBossHPUI = new HPUI(dynamic_cast<Entity*>(redBoss), L"RED HOUND", 600.0f, 25.0f,
+            Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 255, 100, 100),
+            0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 150.0f,
+            1000.0f, 1002.0f, false, false);
+        m_redBossHPUI->SetActive(false);
+        uiMgr->AddGameObject(m_redBossHPUI);
+    }
+
 
     OutputDebugStringW((L"BossHoundScene: Initialized with MapData. Bosses hidden: " + std::to_wstring(m_bossObjects.size()) + L"\n").c_str());
 }
@@ -276,6 +316,10 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
         camMgr->SetFollowMode(true);
         m_currentPhase = BossPhase::Phase2_BossBattle;
 
+        // 보스 HP UI 활성화
+        if (m_iceBossHPUI) m_iceBossHPUI->SetActive(true);
+        if (m_redBossHPUI) m_redBossHPUI->SetActive(true);
+
         // 플레이어 입력 재활성화
         Player* player = ObjectManager::GetInstance()->GetPlayer();
         if (player) player->SetInputEnabled(true);
@@ -315,20 +359,34 @@ void BossHoundScene::UpdatePhase2Battle(float deltaTime)
     ObjectManager* objMgr = ObjectManager::GetInstance();
     const auto& objects = objMgr->GetGameObjects();
     bool bossesAlive = false;
+
+    bool iceAlive = false;
+    bool redAlive = false;
+
     for (auto* obj : objects)
     {
-        if (obj && (obj->GetID() == GOID_MONSTER_REDHOUNDDOG || obj->GetID() == GOID_MONSTER_ICEHOUNDDOG) && obj->IsEnabled())
+        if (obj && obj->IsEnabled())
         {
-            bossesAlive = true;
-            break;
+            if (obj->GetID() == GOID_MONSTER_ICEHOUNDDOG) iceAlive = true;
+            else if (obj->GetID() == GOID_MONSTER_REDHOUNDDOG) redAlive = true;
         }
     }
+
+    if (iceAlive || redAlive) bossesAlive = true;
+
+    // 죽은 보스의 HP UI 숨기기
+    if (!iceAlive && m_iceBossHPUI) m_iceBossHPUI->SetActive(false);
+    if (!redAlive && m_redBossHPUI) m_redBossHPUI->SetActive(false);
 
     if (!bossesAlive)
     {
         m_currentPhase = BossPhase::Cleared;
         m_phaseTimer = 0.0f;
         m_isClearUIShown = false;
+
+        if (m_iceBossHPUI) m_iceBossHPUI->SetActive(false);
+        if (m_redBossHPUI) m_redBossHPUI->SetActive(false);
+
         OutputDebugStringW(L"BossHoundScene: All Bosses Defeated! Scene Cleared.\n");
         // 클리어 기록 및 캐릭터 해금
         GameProgressManager::GetInstance()->ClearScene(SCENE_GAME_HOUND_FOREST);
@@ -342,14 +400,9 @@ void BossHoundScene::UpdateCleared(float deltaTime)
     // 1초 뒤에 클리어 UI 표시
     if (m_phaseTimer >= 1.0f && !m_isClearUIShown)
     {
-        UIManager* uiMgr = UIManager::GetInstance();
-
         // 뒷배경 어둡게 하기 (또는 클리어 배너 표시)
-        UIImage* clearBanner = new UIImage(GOID_NONE, 600.0f, 150.0f, LAYER_UI_BACKGROUND, L"Resource/UI/BG_Banner.png", 999.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
-        uiMgr->AddUIImage(clearBanner);
-
-        UIText* clearText = new UIText(GOID_NONE, 400.0f, 100.0f, L"CLEARED!", Gdiplus::Color(255, 255, 255, 0), LAYER_UI_FOREGROUND, 1000.0f, L"Arial", 48.0f, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
-        uiMgr->AddUIText(clearText);
+        if (m_clearBanner) m_clearBanner->SetActive(true);
+        if (m_clearText) m_clearText->SetActive(true);
 
         m_isClearUIShown = true;
         OutputDebugStringW(L"BossHoundScene: Clear UI displayed.\n");
@@ -363,4 +416,14 @@ void BossHoundScene::UpdateCleared(float deltaTime)
     }
 }
 
+void BossHoundScene::Release()
+{
+    // UI 포인터 정리 (실제 삭제는 ObjectManager에서 수행됨)
+    m_clearBanner = nullptr;
+    m_clearText = nullptr;
+    m_iceBossHPUI = nullptr;
+    m_redBossHPUI = nullptr;
+    m_bossObjects.clear();
 
+    GameScene::Release();
+}

@@ -23,6 +23,9 @@
 #include "../../02_GameObject/Item/Ingredient.h"
 #include "../../02_GameObject/Item/Tool/Tool.h"
 
+#include "../../02_GameObject/UI/UIElement.h"
+#include "../../02_GameObject/Component/Transform/RectTransform.h"
+
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Collider/BoxCollider.h"
 #include "../../02_GameObject/Component/Collider/CircleCollider.h"
@@ -62,7 +65,7 @@ void ObjectManager::LateInit()
 void ObjectManager::Update(float deltaTime)
 {
 	for (GameObject* obj : m_gameObjects) {
-		if (obj && obj->IsEnabled()) 
+		if (obj && obj->IsEnabled())
 		{
 			obj->Update(deltaTime);
 		}
@@ -72,6 +75,7 @@ void ObjectManager::Update(float deltaTime)
 void ObjectManager::LateUpdate()
 {
 	ForEachEnabledObject([](GameObject* obj) { obj->LateUpdate(); });
+
 	ProcessPendingDeletions();
 }
 
@@ -82,6 +86,15 @@ void ObjectManager::Render()
 	if (cameraManager) {
 		cameraManager->RenderVisibleGameObjects();
 	}
+
+	// UI 렌더링 (월드 오브젝트는 카메라가 처리)
+	for (GameObject* obj : m_gameObjects) {
+		UIElement* ui = dynamic_cast<UIElement*>(obj);
+		if (ui && ui->IsEnabled()) {
+			ui->Render();
+		}
+	}
+
 }
 
 void ObjectManager::Release()
@@ -103,9 +116,11 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 
 	m_gameObjects.push_back(pObj);
 
-	// 뷰포트에 잡힐 때만 visible 목록에 추가 (다른 오브젝트와 동일하게 뷰포트 기준으로만 렌더링)
-	CameraManager* cam = CameraManager::GetInstance();
-	if (cam) cam->TryAddToVisibleIfInViewport(pObj);
+	// UI는 스크린 공간이므로 카메라 가시 목록에 넣지 않음
+	if (!dynamic_cast<UIElement*>(pObj)) {
+		CameraManager* cam = CameraManager::GetInstance();
+		if (cam) cam->TryAddToVisibleIfInViewport(pObj);
+	}
 
 	Player* player = dynamic_cast<Player*>(pObj);
 	if (player) {
@@ -116,44 +131,56 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 void ObjectManager::RemoveGameObject(GameObject* pObj)
 {
 	if (!pObj) return;
+
 	auto pendingIt = std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj);
 	if (pendingIt != m_pendingDeletions.end()) return;
 
 	pObj->SetActive(false);
-	
+
 	CameraManager* cam = CameraManager::GetInstance();
 	if (cam) cam->RemoveFromVisibleObjects(pObj);
 	m_pendingDeletions.push_back(pObj);
 }
 
+bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
+{
+
+	// 활성화된 UIElement의 RectTransform 바운딩 박스 검사
+	for (const GameObject* obj : m_gameObjects) {
+		const UIElement* element = dynamic_cast<const UIElement*>(obj);
+		if (!element || !element->IsEnabled()) continue;
+		RectTransform* rt = element->GetRectTransform();
+		if (!rt) continue;
+		Gdiplus::RectF bounds = rt->GetScreenBoundingBox();
+		if (bounds.Width > 0.0f && bounds.Height > 0.0f && bounds.Contains(screenX, screenY))
+			return true;
+	}
+	return false;
+}
+
+GameObject* ObjectManager::FindGameObject(GameObjectID id)
+{
+	for (GameObject* obj : m_gameObjects) {
+		if (obj && obj->GetID() == id) return obj;
+	}
+	return nullptr;
+}
+
 void ObjectManager::ProcessPendingDeletions()
 {
-	if (m_pendingDeletions.empty()) {
-		return;
-	}
-
-	// 삭제 대기 중인 모든 객체 처리
-	for (GameObject* obj : m_pendingDeletions)
-	{
-		if (!obj) continue;
-
-		// m_gameObjects에서 찾아서 제거
-		auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), obj);
-		if (it != m_gameObjects.end())
-		{
-			// 플레이어 캐시 해제
-			if (obj == m_cachedPlayer) {
-				m_cachedPlayer = nullptr;
+	// 게임 오브젝트 삭제 처리
+	if (!m_pendingDeletions.empty()) {
+		for (GameObject* obj : m_pendingDeletions) {
+			auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), obj);
+			if (it != m_gameObjects.end()) {
+				if (obj == m_cachedPlayer) m_cachedPlayer = nullptr;
+				(*it)->Release();
+				Utils::SafeDelete(*it);
+				m_gameObjects.erase(it);
 			}
-
-			(*it)->Release();
-			Utils::SafeDelete(*it);
-			m_gameObjects.erase(it);
 		}
+		m_pendingDeletions.clear();
 	}
-
-	// 삭제 지연 큐 비우기
-	m_pendingDeletions.clear();
 }
 
 void ObjectManager::ClearAllObjects()
@@ -162,7 +189,7 @@ void ObjectManager::ClearAllObjects()
 	m_cachedPlayer = nullptr;
 	ForEachObject([](GameObject* obj) { obj->Release(); Utils::SafeDelete(obj); });
 	m_gameObjects.clear();
-	m_gameObjects.shrink_to_fit(); // 벡터 capacity도 해제
+	m_gameObjects.shrink_to_fit();
 	m_pendingDeletions.clear();
 	m_pendingDeletions.shrink_to_fit();
 }
@@ -178,79 +205,79 @@ void ObjectManager::InitializeFactories()
 	// 동일 팩토리 함수를 여러 ID에 등록하는 헬퍼
 	auto registerIds = [this](const std::vector<GameObjectID>& ids, GameObjectFactoryFunc fn) {
 		for (GameObjectID id : ids) m_gameObjectFactories[id] = fn;
-	};
+		};
 
 	// 플레이어 (동일 람다)
 	registerIds({ GOID_PLAYER_WILSON, GOID_PLAYER_WILLOW, GOID_PLAYER_WOLFGANG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		return new Player(x, y, id, data->baseDir, data->imageName);
-	});
+		});
 
 	// 나무 (동일 람다) - 맵 파일의 피벗값 사용
 	registerIds({ GOID_NORMAL_TREE_SHORT, GOID_NORMAL_TREE_NORMAL, GOID_NORMAL_TREE_TALL }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Tree(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-	});
+		});
 
 	// 돌 (동일 람다) - 맵 파일의 피벗값 사용
 	registerIds({ GOID_NORMAL_ROCK, GOID_GOLD_ROCK }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Rock(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-	});
+		});
 
 	// 환경 오브젝트 (클래스별 1개씩) - 맵 파일의 피벗값 사용
 	m_gameObjectFactories[GOID_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Grass(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-	};
+		};
 	m_gameObjectFactories[GOID_NORMAL_SAPLING] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Sapling(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-	};
+		};
 	m_gameObjectFactories[GOID_BERRY_TREE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new BerryBush(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-	};
+		};
 
 	// 몬스터 - 맵 파일의 피벗값 사용
 	m_gameObjectFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Pig(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-	};
+		};
 	registerIds({ GOID_MONSTER_SPIDER, GOID_MONSTER_WARRIOR_SPIDER }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Spider(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-	});
+		});
 	m_gameObjectFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-	};
+		};
 	m_gameObjectFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Hound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-	};
+		};
 	m_gameObjectFactories[GOID_MONSTER_REDHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Boss_RedHound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-	};
+		};
 	m_gameObjectFactories[GOID_MONSTER_ICEHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Boss_IceHound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-	};
+		};
 
 	// 건물 - 맵 파일의 피벗값 사용
 	m_gameObjectFactories[GOID_BUILDING_PIGHOUSE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		return new PigHouse(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
-	};
+		};
 	registerIds({ GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG, GOID_BUILDING_SPIDER_SACEGG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		return new SpiderEgg(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
-	});
+		});
 
 	// 아이템 (이름/설명만 다른 Item 생성 패턴) - 맵 파일의 피벗값 사용
 	auto itemFactory = [](const wchar_t* name, const wchar_t* desc) {
 		return [name, desc](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 			return new Item(id, name, desc, data->baseDir, data->imageName, x, y, data->pivotX, data->pivotY);
+			};
 		};
-	};
 	m_gameObjectFactories[GOID_ITEM_NORMAL_TREE_LOG] = itemFactory(L"LOG", L"A Log.");
 	m_gameObjectFactories[GOID_ITEM_NORMAL_TWIGS] = itemFactory(L"Twigs", L"A common twig.");
 	m_gameObjectFactories[GOID_ITEM_NORMAL_ROCK] = itemFactory(L"Rock Shard", L"A small piece of rock.");
@@ -266,24 +293,24 @@ void ObjectManager::InitializeFactories()
 	m_gameObjectFactories[GOID_ITEM_COOKED_MONSTER_MEAT] = itemFactory(L"Cooked Monster Meat", L"Cooked monster meat.");
 	m_gameObjectFactories[GOID_ITEM_COOKED_SMALL_MEAT] = itemFactory(L"Cooked Small Meat", L"Cooked small meat.");
 	m_gameObjectFactories[GOID_ITEM_COOKED_MEAT] = itemFactory(L"Cooked Meat", L"A nicely cooked piece of meat.");
-	
+
 	// 도구: ID별 name/desc 테이블 조회 후 Tool 직접 생성
 	struct ToolDef { std::wstring name; std::wstring desc; };
 	auto GetToolDef = [](GameObjectID id) -> ToolDef {
 		switch (id) {
-			case GOID_TOOL_GOLDEN_SCYTHE: return { L"Golden Scythe", L"A golden scythe for harvesting." };
-			case GOID_TOOL_HAM_BAT:       return { L"Ham Bat",       L"A weapon made from ham." };
-			case GOID_TOOL_PICKAXE:       return { L"Pickaxe",       L"Mines rocks and ores." };
-			case GOID_TOOL_SPEAR:         return { L"Spear",         L"A simple spear for combat." };
-			case GOID_TOOL_SWAP_SPEAR:    return { L"Swap Spear",    L"A lightning-infused spear." };
-			case GOID_TOOL_TORCH:         return { L"Torch",         L"Provides light in darkness." };
-			case GOID_TOOL_RED_AXE:       return { L"Red Axe",       L"Cuts down trees." };
-			case GOID_TOOL_SWAP_AXE:      return { L"Swap Axe",      L"An axe with special properties." };
-			case GOID_TOOL_HALBERD:       return { L"Halberd",       L"A heavy polearm for long reach." };
-			case GOID_TOOL_HAMMER:        return { L"Hammer",        L"Used for deconstructing structures." };
-			default:                      return { L"Tool",          L"" };
+		case GOID_TOOL_GOLDEN_SCYTHE: return { L"Golden Scythe", L"A golden scythe for harvesting." };
+		case GOID_TOOL_HAM_BAT:       return { L"Ham Bat",       L"A weapon made from ham." };
+		case GOID_TOOL_PICKAXE:       return { L"Pickaxe",       L"Mines rocks and ores." };
+		case GOID_TOOL_SPEAR:         return { L"Spear",         L"A simple spear for combat." };
+		case GOID_TOOL_SWAP_SPEAR:    return { L"Swap Spear",    L"A lightning-infused spear." };
+		case GOID_TOOL_TORCH:         return { L"Torch",         L"Provides light in darkness." };
+		case GOID_TOOL_RED_AXE:       return { L"Red Axe",       L"Cuts down trees." };
+		case GOID_TOOL_SWAP_AXE:      return { L"Swap Axe",      L"An axe with special properties." };
+		case GOID_TOOL_HALBERD:       return { L"Halberd",       L"A heavy polearm for long reach." };
+		case GOID_TOOL_HAMMER:        return { L"Hammer",        L"Used for deconstructing structures." };
+		default:                      return { L"Tool",          L"" };
 		}
-	};
+		};
 
 	auto toolFactory = [GetToolDef](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
 		ToolDef def = GetToolDef(id);
@@ -291,14 +318,14 @@ void ObjectManager::InitializeFactories()
 		int damage = stats->damage;
 		float attackRange = stats->attackRange;
 		return new Tool(id, def.name, def.desc, data->baseDir, data->imageName, damage, attackRange);
-	};
+		};
 
 	registerIds({
 		GOID_TOOL_GOLDEN_SCYTHE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE,
 		GOID_TOOL_SPEAR, GOID_TOOL_SWAP_SPEAR, GOID_TOOL_TORCH,
 		GOID_TOOL_RED_AXE, GOID_TOOL_SWAP_AXE, GOID_TOOL_HALBERD,
 		GOID_TOOL_HAMMER
-	}, toolFactory);
+		}, toolFactory);
 }
 
 // ========================================
@@ -331,7 +358,7 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 							data->colliderHeight
 						);
 					}
-					else if (data->colliderType == COLLIDER_CIRCLE) 
+					else if (data->colliderType == COLLIDER_CIRCLE)
 					{
 						CircleCollider* col = newObj->AddComponent<CircleCollider>();
 						col->SetObjectCollider(
@@ -348,7 +375,7 @@ GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, c
 		else {
 			OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 실패 - ID: " + std::to_wstring(id) + L"\n").c_str());
 		}
-		
+
 		return newObj;
 	}
 	else {

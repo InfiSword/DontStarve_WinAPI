@@ -18,6 +18,7 @@ public:
     virtual void Init(const MapData* mapData) override;
     virtual void Update(float deltaTime) override;
     virtual void Render() override;
+    virtual void Release() override;
 
     virtual SceneType GetSceneType() const override { return SCENE_GAME_HOUND_FOREST; }
 
@@ -49,4 +50,10 @@ private:
     std::vector<GameObject*> m_bossObjects;
     bool m_bossesActivated;
     bool m_isClearUIShown;
+
+    // UI
+    class UIImage* m_clearBanner;
+    class UIText* m_clearText;
+    class HPUI* m_iceBossHPUI;
+    class HPUI* m_redBossHPUI;
 };

@@ -433,14 +433,11 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData)
 
 void CameraManager::RenderVisibleGameObjects()
 {
-	RenderManager* renderManager = RenderManager::GetInstance();
-	if (!renderManager) return;
-
 	for (GameObject* obj : m_visibleObjects) {
 		if (!obj || !obj->IsEnabled()) {
 			continue;
 		}
-		renderManager->RenderGameObject(obj);
+		obj->Render();
 		obj->RenderDebugOverlay();
 	}
 }

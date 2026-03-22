@@ -37,6 +37,7 @@ public:
     // 초기화
     virtual void Init() override;
     virtual void Update(float deltaTime) override;
+	virtual void Render() override;
     virtual void Release() override;
 
     // 데미지 처리

@@ -78,42 +78,16 @@ void UIButton::Update(float deltaTime)
 
 void UIButton::Render()
 {
-	if (!IsEnabled() || !m_image || !m_buttonComp) return;
-	if (m_buttonComp->IsDisabled()) {
-		RenderDisabled();
-		return;
-	}
-
-	RectTransform* rt = GetRectTransform();
-	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
-	float w = rt->GetWidth() * rt->GetScaleX();
-	float h = rt->GetHeight() * rt->GetScaleY();
-	Gdiplus::Color tintColor = m_image->GetTintColor();
-	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
-
-	RenderManager::GetInstance()->AddUIImageCommand(
-		bitmap, rt->GetX(), rt->GetY(), w, h,
-		rt->GetPivotX(), rt->GetPivotY(),
-		m_image->GetLayer(), m_image->GetSortKey(),
-		tintColor, hasTint
-	);
+	if (!IsEnabled() || !m_image || !m_buttonComp || !m_rectTransform) return;
+	
+	RenderManager::GetInstance()->RenderImage(m_rectTransform, m_image);
 }
 
 void UIButton::RenderDisabled()
 {
 	if (!m_image || !m_rectTransform) return;
-	RectTransform* rt = m_rectTransform;
-	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
-	float w = rt->GetWidth() * rt->GetScaleX();
-	float h = rt->GetHeight() * rt->GetScaleY();
-	Gdiplus::Color tintColor = m_image->GetTintColor();
-	bool hasTint = (tintColor.GetA() != 255 || tintColor.GetR() != 255 || tintColor.GetG() != 255 || tintColor.GetB() != 255);
-	RenderManager::GetInstance()->AddUIImageCommand(
-		bitmap, rt->GetX(), rt->GetY(), w, h,
-		rt->GetPivotX(), rt->GetPivotY(),
-		m_image->GetLayer(), m_image->GetSortKey(),
-		tintColor, hasTint
-	);
+	
+	RenderManager::GetInstance()->RenderImage(m_rectTransform, m_image);
 }
 
 Gdiplus::Bitmap* UIButton::GetBitmap() const

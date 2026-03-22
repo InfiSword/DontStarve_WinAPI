@@ -1,9 +1,9 @@
 #include "99_Default/pch.h"
 #include "TitleScene.h"
 #include "SceneManager.h"
-#include "../UIManager/UIManager.h"
 #include "../InputManager/InputManager.h"
 #include "../ResourceManager/ResourceManager.h"
+#include "../ObjectManager/ObjectManager.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
 #include "../../02_GameObject/UI/UIText.h"
@@ -20,11 +20,11 @@ TitleScene::~TitleScene()
 void TitleScene::Init(const MapData* mapData)
 {
 	// TitleScene에 필요한 매니저들 초기화
-	UIManager::GetInstance()->Init();
+	ObjectManager::GetInstance()->Init();
 	InputManager::GetInstance()->Init();
 	
 	// UI 생성
-	UIManager* uiManager = UIManager::GetInstance();
+	ObjectManager* objectManager = ObjectManager::GetInstance();
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 
 	// 배경 이미지 생성 (전체 화면)
@@ -39,7 +39,7 @@ void TitleScene::Init(const MapData* mapData)
 		1.0f, 1.0f,  // anchorMax
 		0.0f, 0.0f    // anchoredPosition
 	);
-	uiManager->AddUIImage(backgroundImage);
+	objectManager->AddGameObject(backgroundImage);
 
 	// 로고 이미지 생성 (화면 상단 중앙)
 	UIImage* logoImage = new UIImage(
@@ -53,7 +53,7 @@ void TitleScene::Init(const MapData* mapData)
 		0.5f, 0.0f,  // anchorMax (상단 중앙)
 		0.0f, 200.0f // anchoredPosition (상단에서 아래로 200px)
 	);
-	uiManager->AddUIImage(logoImage);
+	objectManager->AddGameObject(logoImage);
 
 	// 게임시작 버튼 생성 (화면 중앙 기준 아래로 100px)
 	std::shared_ptr<Sprite> startNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
@@ -77,7 +77,7 @@ void TitleScene::Init(const MapData* mapData)
 	startButton->SetOnClickCallback([this]() {
 		OnStartButtonClicked();
 		});
-	uiManager->AddUIButton(startButton);
+	objectManager->AddGameObject(startButton);
 
 	// 게임시작 버튼 텍스트 생성 (버튼과 동일한 anchor)
 	UIText* startButtonText = new UIText(
@@ -96,7 +96,7 @@ void TitleScene::Init(const MapData* mapData)
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
 	);
-	uiManager->AddUIText(startButtonText);
+	objectManager->AddGameObject(startButtonText);
 
 	// 종료 버튼 생성 (화면 중앙 기준 아래로 200px)
 	std::shared_ptr<Sprite> exitNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
@@ -120,7 +120,7 @@ void TitleScene::Init(const MapData* mapData)
 	exitButton->SetOnClickCallback([this]() {
 		OnExitButtonClicked();
 		});
-	uiManager->AddUIButton(exitButton);
+	objectManager->AddGameObject(exitButton);
 
 	// 종료 버튼 텍스트 생성 (버튼과 동일한 anchor)
 	UIText* exitButtonText = new UIText(
@@ -139,33 +139,33 @@ void TitleScene::Init(const MapData* mapData)
 		0.5f, 0.5f,  // anchorMax (중앙)
 		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
 	);
-	uiManager->AddUIText(exitButtonText);
+	objectManager->AddGameObject(exitButtonText);
 }
 
 void TitleScene::Update(float deltaTime)
 {
-	// TitleScene에서 UIManager 업데이트
+	// TitleScene에서 ObjectManager 업데이트
 	// InputManager는 메인 루프에서 가장 먼저 업데이트됨 (반응 속도 개선)
-	UIManager::GetInstance()->Update(deltaTime);
+	ObjectManager::GetInstance()->Update(deltaTime);
 }
 
 void TitleScene::LateUpdate()
 {
-	UIManager::GetInstance()->LateUpdate();
+	ObjectManager::GetInstance()->LateUpdate();
 	// InputManager::LateUpdate는 메인 루프에서 처리됨
 }
 
 void TitleScene::Render()
 {
 	// 매니저들 렌더링
-	UIManager::GetInstance()->Render();
+	ObjectManager::GetInstance()->Render();
 	InputManager::GetInstance()->Render();
 }
 
 void TitleScene::Release()
 {
 	// TitleScene에서 사용한 매니저/포인터 정리 (소멸자에서 호출)
-	UIManager::GetInstance()->Release();
+	ObjectManager::GetInstance()->Release();
 	InputManager::GetInstance()->Release();
 }
 
