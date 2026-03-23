@@ -151,10 +151,13 @@ void RenderManager::RenderSprite(Transform* pTransform, SpriteRenderer* pSpriteR
 	float x = screenPos.X - width * pTransform->GetPivotX();
 	float y = screenPos.Y - height * pTransform->GetPivotY();
 
+	// 스프라이트 자체의 틴트 색상 사용
+	Gdiplus::Color tintColor = spriteHandle->tintColor;
+	bool hasTint = (tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
+
 	AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(x, y, width, height),
 		spriteHandle->sourceRect, Gdiplus::UnitPixel, screenPos,
-		layer, sortKey, dir, spriteHandle->tintColor,
-		(spriteHandle->tintColor.GetA() < 255));
+		layer, sortKey, dir, tintColor, hasTint);
 }
 
 void RenderManager::RenderAnimator(Transform* pTransform, Animator* pAnimator)
@@ -187,10 +190,14 @@ void RenderManager::RenderImage(RectTransform* pRectTransform, ComponentElement:
 	float renderX = x - (pRectTransform->GetPivotX() * width);
 	float renderY = y - (pRectTransform->GetPivotY() * height);
 
+	// Image 컴포넌트의 틴트 색상 사용 (UI 버튼 등에서 상태 표현에 사용됨)
+	Gdiplus::Color tintColor = pImage->GetTintColor();
+	bool hasTint = (tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
+
 	AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(renderX, renderY, width, height),
 		spriteHandle->sourceRect, Gdiplus::UnitPixel, Gdiplus::PointF(x, y),
 		pImage->GetLayer(), pImage->GetSortKey(), DIR_DOWN,
-		spriteHandle->tintColor, (spriteHandle->tintColor.GetA() < 255));
+		tintColor, hasTint);
 }
 
 void RenderManager::RenderText(RectTransform* pRectTransform, Text* pText)

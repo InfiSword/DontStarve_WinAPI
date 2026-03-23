@@ -59,7 +59,8 @@ bool Button::IsPointInside(const RectTransform* rectTransform, ComponentElement:
 	float width, height;
 	
 	// 스프라이트가 있으면 스프라이트 크기 사용, 없으면 RectTransform의 width/height 사용
-	if (image && image->GetSprite()) {
+	if (image && image->GetSprite()) 
+	{
 		Gdiplus::Bitmap* bitmap = image->GetSprite();
 		float bitmapWidth = static_cast<float>(bitmap->GetWidth());
 		float bitmapHeight = static_cast<float>(bitmap->GetHeight());

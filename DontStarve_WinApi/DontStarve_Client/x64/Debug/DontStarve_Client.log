@@ -1,10 +1,5 @@
-﻿  InventoryManager.cpp
+﻿  MenuUI.cpp
 E:\p\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Item\Tool\Tool.h(23,40): warning C4244: 'return': 'const int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  (소스 파일 '/01_Manager/InventoryManager/InventoryManager.cpp'을(를) 컴파일하는 중)
+  (소스 파일 '/02_GameObject/UI/MenuUI.cpp'을(를) 컴파일하는 중)
   
-  Player.cpp
-E:\p\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Item\Tool\Tool.h(23,40): warning C4244: 'return': 'const int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  (소스 파일 '/02_GameObject/Entity/Player/Player.cpp'을(를) 컴파일하는 중)
-  
-  코드를 생성하고 있습니다...
   DontStarve_Client.vcxproj -> E:\p\DontStarve_WinAPI\DontStarve_WinApi\Build\DontStarve_Client.exe

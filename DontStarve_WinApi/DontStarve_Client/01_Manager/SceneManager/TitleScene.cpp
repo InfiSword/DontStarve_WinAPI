@@ -29,7 +29,7 @@ void TitleScene::Init(const MapData* mapData)
 
 	// 배경 이미지 생성 (전체 화면)
 	UIImage* backgroundImage = new UIImage(
-		static_cast<GameObjectID>(GOID_MAIN_BG),
+		static_cast<GameObjectID>(GOID_UI_IMAGE),
 		static_cast<float>(WINCX),
 		static_cast<float>(WINCY),
 		LAYER_UI_BACKGROUND,
@@ -43,7 +43,7 @@ void TitleScene::Init(const MapData* mapData)
 
 	// 로고 이미지 생성 (화면 상단 중앙)
 	UIImage* logoImage = new UIImage(
-		static_cast<GameObjectID>(GOID_GAME_LOGO),
+		static_cast<GameObjectID>(GOID_UI_IMAGE),
 		400.0f,
 		200.0f,
 		LAYER_UI_FOREGROUND,
@@ -59,7 +59,7 @@ void TitleScene::Init(const MapData* mapData)
 	std::shared_ptr<Sprite> startNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
 	std::shared_ptr<Sprite> startHoverSprite = resourceManager->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
 	UIButton* startButton = new UIButton(
-		static_cast<GameObjectID>(GOID_BUTTON1),
+		static_cast<GameObjectID>(GOID_UI_BUTTON),
 		200.0f,
 		60.0f,
 		startNormalSprite,
@@ -81,7 +81,7 @@ void TitleScene::Init(const MapData* mapData)
 
 	// 게임시작 버튼 텍스트 생성 (버튼과 동일한 anchor)
 	UIText* startButtonText = new UIText(
-		static_cast<GameObjectID>(GOID_BUTTON1_TEXT),
+		static_cast<GameObjectID>(GOID_UI_TEXT),
 		200.0f,
 		60.0f,
 		L"게임시작",
@@ -102,7 +102,7 @@ void TitleScene::Init(const MapData* mapData)
 	std::shared_ptr<Sprite> exitNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
 	std::shared_ptr<Sprite> exitHoverSprite = resourceManager->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
 	UIButton* exitButton = new UIButton(
-		static_cast<GameObjectID>(GOID_ENDBUTTON1),
+		static_cast<GameObjectID>(GOID_UI_BUTTON),
 		200.0f,
 		60.0f,
 		exitNormalSprite,
@@ -124,7 +124,7 @@ void TitleScene::Init(const MapData* mapData)
 
 	// 종료 버튼 텍스트 생성 (버튼과 동일한 anchor)
 	UIText* exitButtonText = new UIText(
-		static_cast<GameObjectID>(GOID_ENDBUTTON1_TEXT),
+		static_cast<GameObjectID>(GOID_UI_TEXT),
 		200.0f,
 		60.0f,
 		L"종료",

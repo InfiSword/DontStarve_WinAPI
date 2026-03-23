@@ -47,22 +47,20 @@ public:
     void SetCanChase(bool canChase) { m_bCanChase = canChase; }
     bool CanChase() const { return m_bCanChase; }
 
-protected:
-    virtual void ChangeState(int newState) override;
+    bool CheckCounterAttack();
 
-    virtual void UpdateAI(float deltaTime);
-    virtual void UpdateMovement(float deltaTime);
-    virtual void OnAttackHit();
-    virtual void OnAttackEnd() override;
-    virtual void OnHitEnd();
+protected:
+    virtual void UpdateAI(float deltaTime) {}
+    virtual void UpdateMovement(float deltaTime) {}
+    virtual void OnAttackHit() {}
+    virtual void OnHitEnd() {}
     virtual void OnDeathEnd();
-    virtual void ResetAggroSession();
+    virtual void ResetAggroSession() {}
     virtual void ResolveWanderCenter(float& outX, float& outY) const;
 
     void MoveTowardPlayer(float deltaTime, float speed, int runAnimState, int idleState);
     void MoveTowardLocation(float deltaTime, float speed, int walkAnimState, int idleState);
     void CheckAttackTransition(float range, int attackState, int idleState);
     void UpdateAI_AlwaysChase(float deltaTime, int runState, int attackState, int idleState);
-    void UpdateAI_RangeChase(float deltaTime, int idleState, int walkState, int chaseState, int attackState, int tauntState = -1);
     void UpdateAI_Wander(float deltaTime, int walkState, int idleState);
 };

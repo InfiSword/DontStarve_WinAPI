@@ -39,6 +39,7 @@ Boss_RedHound::~Boss_RedHound() {}
 void Boss_RedHound::Init()
 {
 	Monster::Init();
+	m_bUseSuperArmor = true;
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
 	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
 
@@ -197,7 +198,12 @@ void Boss_RedHound::UpdateMovement(float deltaTime)
 void Boss_RedHound::Damaged(int damage)
 {
 	Entity::Damaged(damage);
-	if (!IsDead()) ChangeState((int)BossRedHoundState::HIT);
+	if (IsDead()) return;
+
+	if (CheckSuperArmorHit()) return;
+	if (CheckCounterAttack()) return;
+
+	ChangeState((int)BossRedHoundState::HIT);
 }
 
 void Boss_RedHound::OnAttackHit()
@@ -209,6 +215,10 @@ void Boss_RedHound::OnAttackHit()
 void Boss_RedHound::OnAttackEnd()
 {
 	if (m_state != (int)BossRedHoundState::ATTACK) return;
+
+	HandleAttackEndSuperArmor();
+	if (m_state == (int)BossRedHoundState::HIT) return;
+
 	ChangeState((int)BossRedHoundState::RUN);
 }
 

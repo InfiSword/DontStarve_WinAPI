@@ -5,7 +5,7 @@ class Player;
 class Ingredient : public Item
 {
 public:
-	Ingredient(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+	Ingredient(GameObjectID id, const std::wstring& name, const std::wstring& desc, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
 
 	virtual ~Ingredient();
 public:
@@ -14,7 +14,6 @@ public:
 	virtual void Update(float deltaTime) override; 
 	virtual void LateUpdate() override;
 	virtual void Release() override;
-	virtual bool OnInteraction(GameObject* obj) override;
 
 private:
 };

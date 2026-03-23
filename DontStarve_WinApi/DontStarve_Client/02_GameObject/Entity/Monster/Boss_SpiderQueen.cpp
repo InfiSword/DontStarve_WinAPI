@@ -46,6 +46,7 @@ Boss_SpiderQueen::~Boss_SpiderQueen() {}
 void Boss_SpiderQueen::Init()
 {
 	Monster::Init();
+	m_bUseSuperArmor = true;
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
 	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
 
@@ -227,7 +228,15 @@ void Boss_SpiderQueen::UpdateMovement(float deltaTime)
 
 void Boss_SpiderQueen::OnAttackHit() { if (m_state == (int)SpiderQueenState::ATTACK) ProcessAttackHit(m_damage); }
 
-void Boss_SpiderQueen::OnAttackEnd() { if (m_state == (int)SpiderQueenState::ATTACK) ChangeState((int)SpiderQueenState::CHASE); }	
+void Boss_SpiderQueen::OnAttackEnd() 
+{ 
+	if (m_state != (int)SpiderQueenState::ATTACK) return;
+	
+	HandleAttackEndSuperArmor();
+	if (m_state == (int)SpiderQueenState::HIT) return;
+
+	ChangeState((int)SpiderQueenState::CHASE);
+}
 
 void Boss_SpiderQueen::OnHitEnd()
 {
@@ -268,7 +277,12 @@ void Boss_SpiderQueen::Damaged(int damage)
 	}
 
 	Entity::Damaged(damage);
-	if (!IsDead()) ChangeState((int)SpiderQueenState::HIT);
+	if (IsDead())
+	{
+		m_hp = 0; ChangeState((int)SpiderQueenState::DEATH); m_isDead = true;
+		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다\n");
+		return;
+	}
 
     // HP 50% 이하일 때 고치 페이즈 발동 (1회)
     if (!m_hasTriggeredCocoon && m_hp <= m_maxHp * 0.5f)
@@ -279,10 +293,10 @@ void Boss_SpiderQueen::Damaged(int damage)
 
 	if (m_hp <= m_maxHp * 0.5f && m_bossPhase == 1) { m_bossPhase = 2; OutputDebugStringW(L"Boss_SpiderQueen: 보스 페이즈가 2단계로 전환!\n"); }
 
-	if (m_hp <= 0) {
-		m_hp = 0; ChangeState((int)SpiderQueenState::DEATH); m_isDead = true;
-		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다\n");
-	}
+	if (CheckSuperArmorHit()) return;
+	if (CheckCounterAttack()) return;
+
+	ChangeState((int)SpiderQueenState::HIT);
 
 	if (!IsDead() && IsEnabled()) m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 }
@@ -339,7 +353,7 @@ void Boss_SpiderQueen::SummonSpider()
 
         GameObjectID spiderID = (rand() % 2 == 0) ? GOID_MONSTER_SPIDER : GOID_MONSTER_WARRIOR_SPIDER;
         
-        GameObject* spiderObj = objMgr->CreateGameObject(spiderID, sx, sy, nullptr, true);
+        Entity* spiderObj = objMgr->CreateEntity(spiderID, sx, sy);
         if (spiderObj)
         {
             Spider* spider = dynamic_cast<Spider*>(spiderObj);

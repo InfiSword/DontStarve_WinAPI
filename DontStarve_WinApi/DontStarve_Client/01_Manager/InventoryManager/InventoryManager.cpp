@@ -151,14 +151,14 @@ bool InventoryManager::TryCraftItem(Player* player, GameObjectID targetItemID) {
 	
 	// 재료 소모 후 제작 아이템 생성 및 인벤토리 추가
 	if (inventory->ConsumeItems(*recipe)) {
-		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(targetItemID, 0.0f, 0.0f, nullptr, false);
-		Item* item = dynamic_cast<Item*>(itemObj);
+		auto* objMgr = ObjectManager::GetInstance();
+		Item* item = objMgr->CreateItem(targetItemID, 0.0f, 0.0f);
 		if (item) {
 			if (inventory->AddItem(item, 1)) {
 				OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
 				return true;
 			}
-			delete item;
+			objMgr->RemoveGameObject(item);
 		}
 		OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 실패 (인벤토리 추가 실패) - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
 		return false;

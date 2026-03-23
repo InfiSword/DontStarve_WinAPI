@@ -81,17 +81,6 @@ void SceneManager::Release()
 	}
 	m_mapDataStorage.clear();
 	
-	// m_mapDataBackup 정리 (스택 할당 회피)
-	for (auto it = m_mapDataBackup.begin(); it != m_mapDataBackup.end(); ++it) {
-		it->second.gameObjects.clear();
-		it->second.gameObjects.shrink_to_fit();
-		it->second.mapName.clear();
-		it->second.mapName.shrink_to_fit();
-		it->second.mapFilePath.clear();
-		it->second.mapFilePath.shrink_to_fit();
-	}
-	m_mapDataBackup.clear();
-	
 	m_currentMapData = nullptr;
 }
 
@@ -120,25 +109,6 @@ void SceneManager::LoadGameScene(SceneType sceneType, GameObjectID selectedChara
 	Player* currentPlayer = objMgr->GetPlayer();
 	if (currentPlayer) {
 		GameProgressManager::GetInstance()->SavePlayerState(currentPlayer->SaveState());
-	}
-
-	// 보스 씬으로 진입하는 경우: 파밍 씬 상태 백업
-	bool isBossScene = (sceneType == SCENE_GAME_HOUND_FOREST || 
-	                     sceneType == SCENE_GAME_SPIDER_QUEEN_HOUSE);
-	if (isBossScene) {
-		SaveGameSceneState(SCENE_GAME_FARMING_AREA);
-	}
-	// 파밍 씬으로 복귀하는 경우: 보스 이전 상태 복원
-	else if (sceneType == SCENE_GAME_FARMING_AREA) {
-		// 현재 씬이 보스 씬인지 확인
-		if (m_currentScene) {
-			SceneType currentSceneType = GetCurrentSceneType();
-			if (currentSceneType == SCENE_GAME_HOUND_FOREST || 
-				currentSceneType == SCENE_GAME_SPIDER_QUEEN_HOUSE) {
-				// 보스 씬에서 돌아오는 것이므로 백업된 상태 복원
-				RestoreGameSceneState(SCENE_GAME_FARMING_AREA);
-			}
-		}
 	}
 
 	GameScene* gameScene = nullptr;
@@ -194,30 +164,6 @@ SceneType SceneManager::GetCurrentSceneType() const
 {
 	if (!m_currentScene) return SCENE_NONE;
 	return m_currentScene->GetSceneType();
-}
-
-void SceneManager::SaveGameSceneState(SceneType sceneType)
-{
-	// 현재 씬의 상태를 백업으로 저장
-	GameScene* currentGameScene = dynamic_cast<GameScene*>(m_currentScene);
-	if (!currentGameScene) return;
-
-	MapData backupData;
-	// 게임 씬에서 현재 상태를 추출
-	currentGameScene->SaveCurrentObjectsToMapData(backupData);
-	m_mapDataBackup[sceneType] = backupData;
-	
-	OutputDebugStringW((L"SceneManager: 게임 씬 상태 백업 완료 - SceneType: " + std::to_wstring((int)sceneType) + L"\n").c_str());
-}
-
-void SceneManager::RestoreGameSceneState(SceneType sceneType)
-{
-	// 백업된 씬의 상태를 현재 상태로 복원
-	auto backupIt = m_mapDataBackup.find(sceneType);
-	if (backupIt != m_mapDataBackup.end()) {
-		m_currentMapData = &backupIt->second;
-		OutputDebugStringW((L"SceneManager: 게임 씬 상태 복원 완료 - SceneType: " + std::to_wstring((int)sceneType) + L"\n").c_str());
-	}
 }
 
 void SceneManager::LoadAllMapData()

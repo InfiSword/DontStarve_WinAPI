@@ -18,7 +18,7 @@ const float GameClearUI::SORT_KEY = 100.0f;
 GameClearUI::GameClearUI(float anchorMinX, float anchorMinY,
                          float anchorMaxX, float anchorMaxY,
                          float anchoredPosX, float anchoredPosY)
-    : UIElement(GOID_NONE, L"", L"", true, false)
+    : UIElement(GOID_UI_GAME_CLEAR, L"", L"", true, false)
     , m_clearText(nullptr)
     , m_timeText(nullptr)
     , m_btnToLobby(nullptr)

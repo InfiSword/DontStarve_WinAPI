@@ -247,7 +247,7 @@ void SpiderEgg::SpawnSpiders()
 	float sx = eggTr->GetX() + cosf(angle) * dist;
 	float sy = eggTr->GetY() + sinf(angle) * dist;
 
-	GameObject* spiderObj = objectManager->CreateGameObject(spiderID, sx, sy, nullptr, true);
+	Entity* spiderObj = objectManager->CreateEntity(spiderID, sx, sy);
 	if (spiderObj) {
 		Spider* spider = dynamic_cast<Spider*>(spiderObj);
 		if (spider) {

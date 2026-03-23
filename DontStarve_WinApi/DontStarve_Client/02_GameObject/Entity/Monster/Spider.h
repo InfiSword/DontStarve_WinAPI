@@ -6,13 +6,14 @@ class BoxCollider;
 class SpiderEgg;
 
 enum class SpiderState {
-	IDLE,
-	WALK,
-	CHASE,
-	ATTACK,
-	HIT,
-	DEATH,
-	TAUNT,
+	IDLE = (int)CombatantState::IDLE,
+	WALK = (int)CombatantState::WALK,
+	CHASE = (int)CombatantState::CHASE,
+	ATTACK = (int)CombatantState::ATTACK,
+	HIT = (int)CombatantState::HIT,
+	DEATH = (int)CombatantState::DEATH,
+
+	TAUNT = (int)CombatantState::MAX_COMMON,
 	COUNT
 };
 

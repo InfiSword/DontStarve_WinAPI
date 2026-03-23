@@ -4,6 +4,7 @@
 #include "../Component/Sprite/SpriteRenderer.h"
 #include "../Component/Collider/BoxCollider.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../01_Manager/RenderManager/RenderManager.h"
 
 Item::Item(GameObjectID id, const std::wstring& name, const std::wstring& desc,
            const std::wstring& baseDir, const std::wstring& imageName,
@@ -53,6 +54,16 @@ void Item::Init()
     if (!m_collider) m_collider = GetComponent<Collider>();
 }
 
+void Item::Render()
+{
+    if (!IsEnabled() || !m_transform) return;
+
+    RenderManager* pRM = RenderManager::GetInstance();
+    if (m_spriteRenderer && m_spriteRenderer->IsEnabled()) {
+        pRM->RenderSprite(m_transform, m_spriteRenderer);
+    }
+}
+
 void Item::Release()
 {
     m_transform = nullptr;
@@ -60,4 +71,13 @@ void Item::Release()
     m_collider = nullptr;
     
     GameObject::Release();
+}
+
+bool Item::OnInteraction(GameObject* obj)
+{
+    if (!IsEnabled() || !obj)
+        return false;
+
+    // 대부분의 아이템은 자신과 상호작용을 시도한 객체(주로 Player)에게 상호작용 처리를 넘김
+    return obj->OnInteraction(this);
 }

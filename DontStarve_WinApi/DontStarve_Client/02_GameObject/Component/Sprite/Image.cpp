@@ -34,7 +34,6 @@ void Image::LoadSprite(const std::wstring& fullPath)
 		return;
 	}
 
-	// ResourceManager 캐시를 통해 Sprite 공유 (중복 비트맵 생성 방지)
 	m_sprite = ResourceManager::GetInstance()->LoadSprite(fullPath);
 }
 
@@ -52,9 +51,11 @@ void Image::SetDisplaySize(float width, float height) const
 void Image::SetDisplaySizeProportional(float maxSize) const
 {
 	if (!m_sprite || maxSize <= 0.0f) return;
-	RectTransform* rectTransform = GetOwner() ? GetOwner()->GetComponent<RectTransform>() : nullptr;
+	RectTransform* rectTransform =GetOwner()->GetComponent<RectTransform>();	
 	if (!rectTransform) return;
+
 	Gdiplus::RectF srcRect = m_sprite->sourceRect;
+	
 	if (srcRect.Width <= 0 || srcRect.Height <= 0) return;
 	float scale = maxSize / (srcRect.Width >= srcRect.Height ? srcRect.Width : srcRect.Height);
 	rectTransform->SetScale(scale, scale);

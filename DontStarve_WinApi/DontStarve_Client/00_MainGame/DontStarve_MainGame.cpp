@@ -34,9 +34,13 @@ void DontStarve_MainGame::Init()
     GraphicsManager::GetInstance()->Init();
     RenderManager::GetInstance()->Init();
     ResourceManager::GetInstance()->Init(); // 리소스 매니저 초기화 (오브젝트 리소스 등록 포함)
-
-    // InputManager 명시적 생성 및 초기화 (WndProc에서 GetInputManager()로 접근)
     InputManager::GetInstance()->Init();
+
+    // 씬과 무관하게 한 번만 초기화하면 되는 매니저들
+    ObjectManager::GetInstance()->Init();
+    InventoryManager::GetInstance()->Init();
+    ColliderManager::GetInstance()->Init();
+    CameraManager::GetInstance()->Init();
 
     // SceneManager 초기화 (첫 번째 씬 로드)
     SceneManager::GetInstance()->Init();

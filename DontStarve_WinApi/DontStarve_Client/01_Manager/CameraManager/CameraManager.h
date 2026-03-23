@@ -70,6 +70,13 @@ public:
 	
 	void ClearTileCache();
 
+	// Walkable 경계 정보 조회
+	bool HasWalkableBounds() const { return m_hasWalkableBounds; }
+	void GetWalkableBounds(float& outMinX, float& outMinY, float& outMaxX, float& outMaxY) const {
+		outMinX = m_walkableMinX; outMinY = m_walkableMinY;
+		outMaxX = m_walkableMaxX; outMaxY = m_walkableMaxY;
+	}
+
 	// Walkable 영역으로 카메라 이동 제한 (맵 로드 후 호출)
 	void SetWalkableBoundsFromMapData(const MapData* mapData);
 	// 외부에서 계산된 Walkable 경계를 설정 (GameScene 등에서 사용)

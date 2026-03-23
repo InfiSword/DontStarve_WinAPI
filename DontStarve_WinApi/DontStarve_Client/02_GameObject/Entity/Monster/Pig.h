@@ -4,13 +4,13 @@
 class BoxCollider;
 
 enum class PigState {
-	IDLE,
-	WALK,
-	RUN,
-	CHASE,
-	ATTACK,
-	HIT,
-	DEATH,
+	IDLE = (int)CombatantState::IDLE,
+	WALK = (int)CombatantState::WALK,
+	RUN = (int)CombatantState::RUN,
+	CHASE = (int)CombatantState::CHASE,
+	ATTACK = (int)CombatantState::ATTACK,
+	HIT = (int)CombatantState::HIT,
+	DEATH = (int)CombatantState::DEATH,
 	COUNT
 };
 

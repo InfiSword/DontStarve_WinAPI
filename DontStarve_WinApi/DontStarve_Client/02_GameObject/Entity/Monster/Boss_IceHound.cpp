@@ -39,6 +39,7 @@ Boss_IceHound::~Boss_IceHound() {}
 void Boss_IceHound::Init()
 {
 	Monster::Init();
+	m_bUseSuperArmor = true;
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
 	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
 
@@ -197,7 +198,12 @@ void Boss_IceHound::UpdateMovement(float deltaTime)
 void Boss_IceHound::Damaged(int damage)
 {
 	Entity::Damaged(damage);
-	if (!IsDead()) ChangeState((int)BossIceHoundState::HIT);
+	if (IsDead()) return;
+
+	if (CheckSuperArmorHit()) return;
+	if (CheckCounterAttack()) return;
+
+	ChangeState((int)BossIceHoundState::HIT);
 }
 
 void Boss_IceHound::OnAttackHit()
@@ -209,6 +215,10 @@ void Boss_IceHound::OnAttackHit()
 void Boss_IceHound::OnAttackEnd()
 {
 	if (m_state != (int)BossIceHoundState::ATTACK) return;
+	
+	HandleAttackEndSuperArmor();
+	if (m_state == (int)BossIceHoundState::HIT) return;
+
 	ChangeState((int)BossIceHoundState::RUN);
 }
 

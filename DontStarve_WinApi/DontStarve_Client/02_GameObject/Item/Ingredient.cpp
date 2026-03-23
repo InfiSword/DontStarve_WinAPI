@@ -9,8 +9,8 @@
 #include "../../03_Animation/SpriteSheet.h"
 #include "Ingredient.h"
 
-Ingredient::Ingredient(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
-    : Item(id, L"Ingredient", L"An ingredient item", resourcePath, imageName, x, y, pivotX, pivotY, DIR_DOWN, true, true)
+Ingredient::Ingredient(GameObjectID id, const std::wstring& name, const std::wstring& desc, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName)
+    : Item(id, name, desc, resourcePath, imageName, x, y, pivotX, pivotY, DIR_DOWN, true, true)
 {
 
 }
@@ -48,11 +48,3 @@ void Ingredient::Release()
 	Item::Release();
 }
 
-
-bool Ingredient::OnInteraction(GameObject* obj)
-{
-    if (!IsEnabled() || !obj)
-        return false;
-
-    return obj->OnInteraction(this);
-}

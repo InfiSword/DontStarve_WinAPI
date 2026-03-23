@@ -200,8 +200,8 @@ void BossHoundScene::StartBossIntro()
         }
 
         // 보스 생성 (Ice -> Red 순서로 리스트에 추가)
-        GameObject* iceBoss = objMgr->CreateGameObject(GOID_MONSTER_ICEHOUNDDOG, px - 300.0f, py - 200.0f);
-        GameObject* redBoss = objMgr->CreateGameObject(GOID_MONSTER_REDHOUNDDOG, px + 300.0f, py - 200.0f);
+        Entity* iceBoss = objMgr->CreateEntity(GOID_MONSTER_ICEHOUNDDOG, px - 300.0f, py - 200.0f);
+        Entity* redBoss = objMgr->CreateEntity(GOID_MONSTER_REDHOUNDDOG, px + 300.0f, py - 200.0f);
 
         if (iceBoss) { iceBoss->SetActive(false); m_bossObjects.push_back(iceBoss); }
         if (redBoss) { redBoss->SetActive(false); m_bossObjects.push_back(redBoss); }

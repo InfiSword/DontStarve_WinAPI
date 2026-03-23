@@ -3,7 +3,6 @@
 #include "../ResourceManager/ResourceManager.h"
 #include "../RenderManager/RenderManager.h"
 #include "../CameraManager/CameraManager.h"
-
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/Item/Item.h"
@@ -22,10 +21,12 @@
 #include "../../02_GameObject/Building/SpiderEgg.h"
 #include "../../02_GameObject/Item/Ingredient.h"
 #include "../../02_GameObject/Item/Tool/Tool.h"
-
+#include "../../02_GameObject/UI/MenuUI.h"
+#include "../../02_GameObject/UI/UIImage.h"
+#include "../../02_GameObject/UI/UIButton.h"
+#include "../../02_GameObject/UI/UIText.h"
 #include "../../02_GameObject/UI/UIElement.h"
 #include "../../02_GameObject/Component/Transform/RectTransform.h"
-
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Collider/BoxCollider.h"
 #include "../../02_GameObject/Component/Collider/CircleCollider.h"
@@ -203,98 +204,102 @@ Player* ObjectManager::GetPlayer() const
 void ObjectManager::InitializeFactories()
 {
 	// 동일 팩토리 함수를 여러 ID에 등록하는 헬퍼
-	auto registerIds = [this](const std::vector<GameObjectID>& ids, GameObjectFactoryFunc fn) {
-		for (GameObjectID id : ids) m_gameObjectFactories[id] = fn;
+	auto registerEntityIds = [this](const std::vector<GameObjectID>& ids, EntityFactoryFunc fn) {
+		for (GameObjectID id : ids) m_entityFactories[id] = fn;
 		};
 
 	// 플레이어 (동일 람다)
-	registerIds({ GOID_PLAYER_WILSON, GOID_PLAYER_WILLOW, GOID_PLAYER_WOLFGANG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	registerEntityIds({ GOID_PLAYER_WILSON, GOID_PLAYER_WILLOW, GOID_PLAYER_WOLFGANG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		return new Player(x, y, id, data->baseDir, data->imageName);
 		});
 
-	// 나무 (동일 람다) - 맵 파일의 피벗값 사용
-	registerIds({ GOID_NORMAL_TREE_SHORT, GOID_NORMAL_TREE_NORMAL, GOID_NORMAL_TREE_TALL }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	// 나무 
+	registerEntityIds({ GOID_NORMAL_TREE_SHORT, GOID_NORMAL_TREE_NORMAL, GOID_NORMAL_TREE_TALL }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Tree(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 		});
 
-	// 돌 (동일 람다) - 맵 파일의 피벗값 사용
-	registerIds({ GOID_NORMAL_ROCK, GOID_GOLD_ROCK }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	// 돌 
+	registerEntityIds({ GOID_NORMAL_ROCK, GOID_GOLD_ROCK }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Rock(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 		});
 
-	// 환경 오브젝트 (클래스별 1개씩) - 맵 파일의 피벗값 사용
-	m_gameObjectFactories[GOID_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	// 환경 오브젝트 
+	m_entityFactories[GOID_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Grass(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 		};
-	m_gameObjectFactories[GOID_NORMAL_SAPLING] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	m_entityFactories[GOID_NORMAL_SAPLING] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Sapling(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 		};
-	m_gameObjectFactories[GOID_BERRY_TREE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	m_entityFactories[GOID_BERRY_TREE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new BerryBush(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
 		};
 
-	// 몬스터 - 맵 파일의 피벗값 사용
-	m_gameObjectFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	// 몬스터 
+	m_entityFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Pig(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 		};
-	registerIds({ GOID_MONSTER_SPIDER, GOID_MONSTER_WARRIOR_SPIDER }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	registerEntityIds({ GOID_MONSTER_SPIDER, GOID_MONSTER_WARRIOR_SPIDER }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Spider(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 		});
-	m_gameObjectFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	m_entityFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 		};
-	m_gameObjectFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	m_entityFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Hound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 		};
-	m_gameObjectFactories[GOID_MONSTER_REDHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	m_entityFactories[GOID_MONSTER_REDHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Boss_RedHound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 		};
-	m_gameObjectFactories[GOID_MONSTER_ICEHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	m_entityFactories[GOID_MONSTER_ICEHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
 		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
 		return new Boss_IceHound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
 		};
 
-	// 건물 - 맵 파일의 피벗값 사용
-	m_gameObjectFactories[GOID_BUILDING_PIGHOUSE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	// 건물 
+	m_buildingFactories[GOID_BUILDING_PIGHOUSE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Building* {
 		return new PigHouse(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
 		};
-	registerIds({ GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG, GOID_BUILDING_SPIDER_SACEGG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	auto registerBuildingIds = [this](const std::vector<GameObjectID>& ids, BuildingFactoryFunc fn) {
+		for (GameObjectID id : ids) m_buildingFactories[id] = fn;
+		};
+	registerBuildingIds({ GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG, GOID_BUILDING_SPIDER_SACEGG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Building* {
 		return new SpiderEgg(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
 		});
 
-	// 아이템 (이름/설명만 다른 Item 생성 패턴) - 맵 파일의 피벗값 사용
-	auto itemFactory = [](const wchar_t* name, const wchar_t* desc) {
-		return [name, desc](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
-			return new Item(id, name, desc, data->baseDir, data->imageName, x, y, data->pivotX, data->pivotY);
+	// 아이템
+	auto itemFactory = [](const wchar_t* name, const wchar_t* desc) -> ItemFactoryFunc {
+		return [name, desc](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
+			return new Ingredient(id, name, desc, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
 			};
 		};
-	m_gameObjectFactories[GOID_ITEM_NORMAL_TREE_LOG] = itemFactory(L"LOG", L"A Log.");
-	m_gameObjectFactories[GOID_ITEM_NORMAL_TWIGS] = itemFactory(L"Twigs", L"A common twig.");
-	m_gameObjectFactories[GOID_ITEM_NORMAL_ROCK] = itemFactory(L"Rock Shard", L"A small piece of rock.");
-	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_GRASS] = itemFactory(L"Cut Grass", L"Bundled grass, good for crafting.");
-	m_gameObjectFactories[GOID_ITEM_GOLD_ROCK] = itemFactory(L"Gold", L"Shiny and valuable.");
-	m_gameObjectFactories[GOID_ITEM_ROPE] = itemFactory(L"Rope", L"Useful for crafting.");
-	m_gameObjectFactories[GOID_ITEM_CUT_NORMAL_STONE] = itemFactory(L"Cut Stone", L"Stone blocks for building.");
-	m_gameObjectFactories[GOID_ITEM_MEAT] = itemFactory(L"Meat", L"Fresh meat.");
-	m_gameObjectFactories[GOID_ITEM_BERRY] = itemFactory(L"Berry", L"Sweet and nutritious.");
-	m_gameObjectFactories[GOID_ITEM_WOOD_2] = itemFactory(L"Wooden Plank", L"Planks for crafting.");
-	m_gameObjectFactories[GOID_ITEM_SMALL_MEAT] = itemFactory(L"Small Meat", L"A small piece of meat.");
-	m_gameObjectFactories[GOID_ITEM_MONSTER_MEAT] = itemFactory(L"Monster Meat", L"Strange meat from a monster.");
-	m_gameObjectFactories[GOID_ITEM_COOKED_MONSTER_MEAT] = itemFactory(L"Cooked Monster Meat", L"Cooked monster meat.");
-	m_gameObjectFactories[GOID_ITEM_COOKED_SMALL_MEAT] = itemFactory(L"Cooked Small Meat", L"Cooked small meat.");
-	m_gameObjectFactories[GOID_ITEM_COOKED_MEAT] = itemFactory(L"Cooked Meat", L"A nicely cooked piece of meat.");
 
-	// 도구: ID별 name/desc 테이블 조회 후 Tool 직접 생성
+	m_itemFactories[GOID_ITEM_NORMAL_TREE_LOG] = itemFactory(L"LOG", L"A Log.");
+	m_itemFactories[GOID_ITEM_NORMAL_TWIGS] = itemFactory(L"Twigs", L"A common twig.");
+	m_itemFactories[GOID_ITEM_NORMAL_ROCK] = itemFactory(L"Rock Shard", L"A small piece of rock.");
+	m_itemFactories[GOID_ITEM_CUT_NORMAL_GRASS] = itemFactory(L"Cut Grass", L"Bundled grass, good for crafting.");
+	m_itemFactories[GOID_ITEM_GOLD_ROCK] = itemFactory(L"Gold", L"Shiny and valuable.");
+	m_itemFactories[GOID_ITEM_ROPE] = itemFactory(L"Rope", L"Useful for crafting.");
+	m_itemFactories[GOID_ITEM_CUT_NORMAL_STONE] = itemFactory(L"Cut Stone", L"Stone blocks for building.");
+	m_itemFactories[GOID_ITEM_MEAT] = itemFactory(L"Meat", L"Fresh meat.");
+	m_itemFactories[GOID_ITEM_BERRY] = itemFactory(L"Berry", L"Sweet and nutritious.");
+	m_itemFactories[GOID_ITEM_WOOD_2] = itemFactory(L"Wooden Plank", L"Planks for crafting.");
+	m_itemFactories[GOID_ITEM_SMALL_MEAT] = itemFactory(L"Small Meat", L"A small piece of meat.");
+	m_itemFactories[GOID_ITEM_MONSTER_MEAT] = itemFactory(L"Monster Meat", L"Strange meat from a monster.");
+	m_itemFactories[GOID_ITEM_COOKED_MONSTER_MEAT] = itemFactory(L"Cooked Monster Meat", L"Cooked monster meat.");
+	m_itemFactories[GOID_ITEM_COOKED_SMALL_MEAT] = itemFactory(L"Cooked Small Meat", L"Cooked small meat.");
+	m_itemFactories[GOID_ITEM_COOKED_MEAT] = itemFactory(L"Cooked Meat", L"A nicely cooked piece of meat.");
+
+	// 도구
 	struct ToolDef { std::wstring name; std::wstring desc; };
 	auto GetToolDef = [](GameObjectID id) -> ToolDef {
 		switch (id) {
@@ -312,7 +317,7 @@ void ObjectManager::InitializeFactories()
 		}
 		};
 
-	auto toolFactory = [GetToolDef](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> GameObject* {
+	auto toolFactory = [GetToolDef](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
 		ToolDef def = GetToolDef(id);
 		const ToolDataUtils::ToolStatsEntry* stats = ToolDataUtils::GetToolStats(id);
 		int damage = stats->damage;
@@ -320,7 +325,10 @@ void ObjectManager::InitializeFactories()
 		return new Tool(id, def.name, def.desc, data->baseDir, data->imageName, damage, attackRange);
 		};
 
-	registerIds({
+	auto registerItemIds = [this](const std::vector<GameObjectID>& ids, ItemFactoryFunc fn) {
+		for (GameObjectID id : ids) m_itemFactories[id] = fn;
+		};
+	registerItemIds({
 		GOID_TOOL_GOLDEN_SCYTHE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE,
 		GOID_TOOL_SPEAR, GOID_TOOL_SWAP_SPEAR, GOID_TOOL_TORCH,
 		GOID_TOOL_RED_AXE, GOID_TOOL_SWAP_AXE, GOID_TOOL_HALBERD,
@@ -331,55 +339,106 @@ void ObjectManager::InitializeFactories()
 // ========================================
 // 팩토리 패턴: 게임오브젝트 생성 및 관리 (모든 GameObject와 Item 통합)
 // ========================================
-GameObject* ObjectManager::CreateGameObject(GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* resourceData, bool addToManager)
+template<typename T>
+T* ObjectManager::PostCreate(T* pObj, const ResourcePathUtils::ObjectResourceDef* data)
 {
-	const ResourcePathUtils::ObjectResourceDef* data = resourceData ? resourceData : ResourceManager::GetInstance()->GetObjectResourceInfo(id);
-	if (!data) {
-		OutputDebugStringW((L"ObjectManager: 리소스 정보 없음 - ID: " + std::to_wstring(id) + L"\n").c_str());
-		return nullptr;
-	}
+	if (!pObj) return nullptr;
 
-	auto it = m_gameObjectFactories.find(id);
-	if (it != m_gameObjectFactories.end()) {
-		GameObject* newObj = it->second(id, x, y, data);
-
-		if (newObj) {
-			if (addToManager) {
-
-				// 오브젝트 데이터의 콜라이더 정보를 컴포넌트로 첨부 (월드 배치 오브젝트만)
-				if (data->hasCollider) {
-					if (data->colliderType == COLLIDER_BOX)
-					{
-						BoxCollider* col = newObj->AddComponent<BoxCollider>();
-						col->SetObjectCollider(
-							data->colliderOffsetX,
-							data->colliderOffsetY,
-							data->colliderWidth,
-							data->colliderHeight
-						);
-					}
-					else if (data->colliderType == COLLIDER_CIRCLE)
-					{
-						CircleCollider* col = newObj->AddComponent<CircleCollider>();
-						col->SetObjectCollider(
-							data->colliderCenterX,
-							data->colliderCenterY,
-							data->colliderRadius
-						);
-					}
-				}
-				AddGameObject(newObj);
-				newObj->Init();
-			}
+	// 오브젝트 데이터의 콜라이더 정보를 컴포넌트로 첨부 (월드 배치 오브젝트만)
+	if (data && data->hasCollider) {
+		if (data->colliderType == COLLIDER_BOX)
+		{
+			BoxCollider* col = pObj->template AddComponent<BoxCollider>();
+			col->SetObjectCollider(
+				data->colliderOffsetX,
+				data->colliderOffsetY,
+				data->colliderWidth,
+				data->colliderHeight
+			);
 		}
-		else {
-			OutputDebugStringW((L"ObjectManager: 새로운 게임오브젝트 생성 실패 - ID: " + std::to_wstring(id) + L"\n").c_str());
+		else if (data->colliderType == COLLIDER_CIRCLE)
+		{
+			CircleCollider* col = pObj->template AddComponent<CircleCollider>();
+			col->SetObjectCollider(
+				data->colliderCenterX,
+				data->colliderCenterY,
+				data->colliderRadius
+			);
 		}
+	}
+	AddGameObject(pObj);
+	pObj->Init();
 
-		return newObj;
-	}
-	else {
-		OutputDebugStringW((L"ObjectManager: 알 수 없는 GameObjectID - ID: " + std::to_wstring(id) + L"\n").c_str());
-		return nullptr;
-	}
+	return pObj;
 }
+
+Entity* ObjectManager::CreateEntity(GameObjectID id, float x, float y)
+{
+	const ResourcePathUtils::ObjectResourceDef* data = ResourceManager::GetInstance()->GetObjectResourceInfo(id);
+	auto it = m_entityFactories.find(id);
+	if (it != m_entityFactories.end()) {
+		return PostCreate(it->second(id, x, y, data), data);
+	}
+	OutputDebugStringW((L"ObjectManager: 알 수 없는 Entity ID - ID: " + std::to_wstring(id) + L"\n").c_str());
+	return nullptr;
+}
+
+Item* ObjectManager::CreateItem(GameObjectID id, float x, float y)
+{
+	const ResourcePathUtils::ObjectResourceDef* data = ResourceManager::GetInstance()->GetObjectResourceInfo(id);
+	auto it = m_itemFactories.find(id);
+	if (it != m_itemFactories.end()) {
+		return PostCreate(it->second(id, x, y, data), data);
+	}
+	OutputDebugStringW((L"ObjectManager: 알 수 없는 Item ID - ID: " + std::to_wstring(id) + L"\n").c_str());
+	return nullptr;
+}
+
+Building* ObjectManager::CreateBuilding(GameObjectID id, float x, float y)
+{
+	const ResourcePathUtils::ObjectResourceDef* data = ResourceManager::GetInstance()->GetObjectResourceInfo(id);
+	auto it = m_buildingFactories.find(id);
+	if (it != m_buildingFactories.end()) {
+		return PostCreate(it->second(id, x, y, data), data);
+	}
+	OutputDebugStringW((L"ObjectManager: 알 수 없는 Building ID - ID: " + std::to_wstring(id) + L"\n").c_str());
+	return nullptr;
+}
+
+UIButton* ObjectManager::CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorX, float anchorY, float x, float y, std::function<void()> onClick)
+{
+	auto* resMgr = ResourceManager::GetInstance();
+	auto normalSprite = resMgr->LoadSprite(normalPath);
+	auto hoverSprite = resMgr->LoadSprite(hoverPath);
+
+	UIButton* button = new UIButton(id, width, height, normalSprite, hoverSprite, anchorX, anchorY, anchorX, anchorY, x, y);
+	if (button) {
+		button->SetOnClickCallback(onClick);
+		AddGameObject(button);
+	}
+	return button;
+}
+
+UIImage* ObjectManager::CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorX, float anchorY, float x, float y)
+{
+	UIImage* image = new UIImage(id, width, height, layer, path, depth, anchorX, anchorY, anchorX, anchorY, x, y);
+	if (image) {
+		AddGameObject(image);
+	}
+	return image;
+}
+
+UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, float anchorX, float anchorY, float x, float y)
+{
+	RenderLayer layer = LAYER_UI_FOREGROUND;
+	float sortKey = 0.0f;
+	std::wstring fontName = L"Arial";
+
+	UIText* uiText = new UIText(id, width, height, text, color, layer, sortKey, fontName, fontSize, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, anchorX, anchorY, anchorX, anchorY, x, y);
+	if (uiText) {
+		AddGameObject(uiText);
+	}
+	return uiText;
+}
+
+

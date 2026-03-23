@@ -102,15 +102,15 @@ namespace EnumTables {
 		{ GOID_PLAYER_WILSON,            L"GOID_PLAYER_WILSON" },
 		{ GOID_PLAYER_WILLOW,            L"GOID_PLAYER_WILLOW" },
 		{ GOID_PLAYER_WOLFGANG,          L"GOID_PLAYER_WOLFGANG" },
-		{ GOID_PLAYER_INFO,              L"GOID_PLAYER_INFO" },
-		{ GOID_PLAYER_PORTRAIT,          L"GOID_PLAYER_PORTRAIT" },
-		{ GOID_MAIN_BG,                  L"GOID_MAIN_BG" },
-		{ GOID_GAME_LOGO,                L"GOID_GAME_LOGO" },
-		{ GOID_BUTTON1,                  L"GOID_BUTTON1" },
-		{ GOID_ENDBUTTON1,               L"GOID_ENDBUTTON1" },
-		{ GOID_SELECT_BUTTON,            L"GOID_SELECT_BUTTON" },
-		{ GOID_CANCEL_SELECTION,         L"GOID_CANCEL_SELECTION" },
-		{ GOID_BACK_BUTTON,              L"GOID_BACK_BUTTON" }
+	//	{ GOID_PLAYER_INFO,              L"GOID_PLAYER_INFO" },
+	//	{ GOID_PLAYER_PORTRAIT,          L"GOID_PLAYER_PORTRAIT" },
+	//	{ GOID_MAIN_BG,                  L"GOID_MAIN_BG" },
+	//	{ GOID_GAME_LOGO,                L"GOID_GAME_LOGO" },
+	//	{ GOID_BUTTON1,                  L"GOID_BUTTON1" },
+	//	{ GOID_ENDBUTTON1,               L"GOID_ENDBUTTON1" },
+	//	{ GOID_SELECT_BUTTON,            L"GOID_SELECT_BUTTON" },
+	//	{ GOID_CANCEL_SELECTION,         L"GOID_CANCEL_SELECTION" },
+	//	{ GOID_BACK_BUTTON,              L"GOID_BACK_BUTTON" }
 	};
 
 	static constexpr SceneTypeByPath SceneTypeTable[] =

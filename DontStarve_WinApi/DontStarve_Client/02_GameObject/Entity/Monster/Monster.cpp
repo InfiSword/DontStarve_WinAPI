@@ -137,38 +137,9 @@ void Monster::Update(float deltaTime)
 	UpdateMovement(deltaTime); 
 }
 
-void Monster::UpdateAI(float deltaTime)
-{
-	
-}
-
-void Monster::UpdateMovement(float deltaTime)
-{
-
-}
-
-void Monster::OnAttackHit()
-{
-
-}
-
-void Monster::OnAttackEnd()
-{
-
-}
-
-void Monster::OnHitEnd()
-{
-
-}
-
 void Monster::OnDeathEnd()
 {
 	ObjectManager::GetInstance()->RemoveGameObject(this);
-}
-
-void Monster::ResetAggroSession()
-{
 }
 
 void Monster::ResolveWanderCenter(float& outX, float& outY) const
@@ -184,9 +155,21 @@ void Monster::ResolveWanderCenter(float& outX, float& outY) const
 	outY = 0.0f;
 }
 
-void Monster::ChangeState(int newState)
+bool Monster::CheckCounterAttack()
 {
-	Entity::ChangeState(newState);
+	if (!m_bUseSuperArmor) return false;
+
+	if (m_attackCooldownTimer <= 0.0f && m_attackTarget && m_attackTarget->IsEnabled())
+	{
+		m_attackCooldownTimer = m_attackCooldown;
+		TriggerAttackState();
+		if (IsInAttackState())
+		{
+			m_bHitDuringAttack = true;
+			return true;
+		}
+	}
+	return false;
 }
 
 void Monster::MoveTowardPlayer(float deltaTime, float speed, int runAnimState, int idleState)
@@ -281,50 +264,6 @@ void Monster::UpdateAI_AlwaysChase(float deltaTime, int runState, int attackStat
 				ChangeState(runState);
 				m_idleTimer = 0.0f;
 			}
-		}
-	}
-}
-
-void Monster::UpdateAI_RangeChase(float deltaTime, int idleState, int walkState, int chaseState, int attackState, int tauntState)
-{
-	if (m_state == chaseState)
-	{
-		if (!m_attackTarget || !m_attackTarget->IsEnabled()) {
-			ChangeState(idleState);
-			m_idleTimer = 0.0f;
-			return;
-		}
-
-		CheckAttackTransition(m_attackRange, attackState, idleState);
-	}
-	else if (m_state == idleState)
-	{
-		if (m_attackTarget && m_attackTarget->IsEnabled()) {
-			// 공격 사거리 밖에 있을 때만 다시 추격(CHASE) 상태로 전환 (약간의 버퍼 1.1f 사용)
-			// m_bCanChase 플래그 확인 추가
-			if (m_bCanChase && m_distToPlayerSq > (m_attackRange * m_attackRange * 1.1f)) {
-				if (tauntState != -1) ChangeState(tauntState);
-				else ChangeState(chaseState);
-				return;
-			}
-
-			// 사거리 내에 있고 쿨다운이 끝났다면 공격
-			if (m_attackCooldownTimer <= 0.0f) {
-				ChangeState(attackState);
-			}
-			return;
-		}
-		UpdateAI_Wander(deltaTime, walkState, idleState);
-	}
-	else if (m_state == walkState)
-	{
-		if (m_attackTarget && m_attackTarget->IsEnabled()) {
-			// m_bCanChase 플래그 확인 추가
-			if (m_bCanChase) {
-				if (tauntState != -1) ChangeState(tauntState);
-				else ChangeState(chaseState);
-			}
-			return;
 		}
 	}
 }

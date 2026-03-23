@@ -24,7 +24,10 @@ public:
     virtual ~Item();
 
     virtual void Init() override;
+    virtual void Render() override;
     virtual void Release() override;
+
+    virtual bool OnInteraction(GameObject* obj) override;
 
     // Item은 데미지를 받지 않으므로 빈 구현
     virtual void Damaged(int damage) override { }

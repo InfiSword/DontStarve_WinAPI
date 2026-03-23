@@ -16,7 +16,7 @@ HPUI::HPUI(Entity* target, const std::wstring& name,
 	float barSortKey, float textSortKey,
 	bool showIcon, bool numericValue,
 	float margin, float gap, float iconSize)
-	: UIElement(GOID_NONE, L"", L"", true, false)
+	: UIElement(GOID_UI_HP, L"", L"", true, false)
 	, m_target(target), m_name(name)
 	, m_barWidth(barWidth), m_barHeight(barHeight)
 	, m_bgColor(bgColor), m_fillColor(fillColor), m_nameColor(nameColor)
@@ -156,7 +156,7 @@ void HPUI::Render()
 
 		float fillWidth = barW * ratio;
 		if (fillWidth > 0.01f) {
-			pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, fillWidth, barH), m_fillColor, LAYER_UI_FOREGROUND, m_barSortKey + 0.1f);
+			pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, fillWidth, barH), m_fillColor, LAYER_UI_FOREGROUND, m_barSortKey + 0.05f);
 		}
 	}
 }

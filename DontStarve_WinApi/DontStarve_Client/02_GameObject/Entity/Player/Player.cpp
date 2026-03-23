@@ -520,18 +520,18 @@ void Player::FinalizePickup()
 	GameObjectType objType = m_activeInteractionTarget->GetType();
 
 	bool itemAdded = false;
+	auto* objMgr = ObjectManager::GetInstance();
 
 	if (objType == GO_TYPE_ITEM) {
-		GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(objID, 0.0f, 0.0f, nullptr, false);
-		Item* item = dynamic_cast<Item*>(itemObj);
+		Item* item = objMgr->CreateItem(objID, 0.0f, 0.0f);
 		if (item) {
 			if (m_inventory->AddItem(item, 1)) {
 				itemAdded = true;
-				ObjectManager::GetInstance()->RemoveGameObject(m_activeInteractionTarget);
+				objMgr->RemoveGameObject(m_activeInteractionTarget);
 			}
 			else {
-				// 인벤토리 추가 실패 시 생성된 Item 삭제 (메모리 누수 방지)
-				delete item;
+				// 인벤토리 추가 실패 시 생성된 Item 삭제 요청
+				objMgr->RemoveGameObject(item);
 			}
 		}
 	}
@@ -540,16 +540,15 @@ void Player::FinalizePickup()
 		GameObjectID itemID = entity ? entity->GetDropItemID() : GOID_NONE;
 		int itemCount = entity ? entity->GetDropItemCount() : 0;
 		if (itemID != GOID_NONE && itemCount > 0) {
-			GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(itemID, 0.0f, 0.0f, nullptr, false);
-			Item* item = dynamic_cast<Item*>(itemObj);
+			Item* item = objMgr->CreateItem(itemID, 0.0f, 0.0f);
 			if (item) {
 				if (m_inventory->AddItem(item, itemCount)) {
 					itemAdded = true;
-					ObjectManager::GetInstance()->RemoveGameObject(m_activeInteractionTarget);
+					objMgr->RemoveGameObject(m_activeInteractionTarget);
 				}
 				else {
-					// 인벤토리 추가 실패 시 생성된 Item 삭제 (메모리 누수 방지)
-					delete item;
+					// 인벤토리 추가 실패 시 생성된 Item 삭제 요청
+					objMgr->RemoveGameObject(item);
 				}
 			}
 		}

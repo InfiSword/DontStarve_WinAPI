@@ -41,6 +41,15 @@ private:
 	bool m_isLockedCharacterSelected;   // 잠금 캐릭터가 선택되었는지 여부
 	bool m_isSelectButtonDisabled;      // 선택 버튼 비활성화 여부
 
+	// UI Elements
+	class UIImage* m_pPlayerPortrait = nullptr;
+	class UIImage* m_pPlayerInfo = nullptr;
+	class UIText* m_pCharacterDescription = nullptr;
+	class UIButton* m_pSelectButton = nullptr;
+	class UIButton* m_pCancelButton = nullptr;
+	class UIText* m_pSelectText = nullptr;
+	class UIText* m_pCancelText = nullptr;
+
 public:
 	CharacterSelectScene();
 	virtual ~CharacterSelectScene();

@@ -2,14 +2,15 @@
 #include "Monster.h"
 
 enum class HoundState {
-	IDLE,
-	RUN,
-	ATTACK_PRE,
-	ATTACK,
-	HIT,
-	DEATH,
-	HOWL,
-	CHASE,
+	IDLE = (int)CombatantState::IDLE,
+	RUN = (int)CombatantState::RUN,
+	CHASE = (int)CombatantState::CHASE,
+	ATTACK = (int)CombatantState::ATTACK,
+	ATTACK_PRE = (int)CombatantState::ATTACK_PRE,
+	HIT = (int)CombatantState::HIT,
+	DEATH = (int)CombatantState::DEATH,
+
+	HOWL = (int)CombatantState::MAX_COMMON,
 	COUNT
 };
 

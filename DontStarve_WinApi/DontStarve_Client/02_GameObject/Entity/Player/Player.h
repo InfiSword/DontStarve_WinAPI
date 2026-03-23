@@ -6,14 +6,16 @@
 class Inventory;
 
 enum PlayerState {
-	IDLE,               // 대기 상태
-	WALK,               // 걷기 상태
-	MOVING_TO_TARGET,   // 클릭한 위치로 이동 중
-	PICKUP,             // 오브젝트를 집는 중
+	IDLE = (int)CombatantState::IDLE,
+	WALK = (int)CombatantState::WALK,
+	ATTACK = (int)CombatantState::ATTACK,
+	HIT = (int)CombatantState::HIT,
+	DEATH = (int)CombatantState::DEATH,
+
+	PICKUP = (int)CombatantState::MAX_COMMON,
 	CHOP,
-	MINE,               // 곡괭이로 채광 중
-	ATTACK,
-	HIT,
+	MINE,
+	MOVING_TO_TARGET,
 	COUNT,
 };
 
@@ -27,6 +29,7 @@ public:
 	virtual void LateInit() override;
 	virtual void Update(float deltaTime) override;
 	virtual void LateUpdate() override;
+	virtual void Release() override;
 	virtual void RenderDebugOverlay() override;
 
 	void SetTargetPosition(float worldX, float worldY);
@@ -57,8 +60,6 @@ public:
 	void RestoreState(const PlayerStateSnapshot& snapshot);
 
 private:
-	// singleTarget=true: 첫 번째 몬스터만 피해, false: 콜라이더와 겹치는 모든 몬스터 피해
-	void ApplyAttackDamage(int damage, bool singleTarget = true);
 
 	void TryStartInteraction(float worldX, float worldY);
 	void UpdateAnimatorState();

@@ -120,7 +120,7 @@ void Tree::Die()
 				float spreadRadius = 30.0f + (rand() / (float)RAND_MAX) * 40.0f;
 				float offsetX = cosf(angle) * spreadRadius;
 				float offsetY = sinf(angle) * spreadRadius;
-				objMgr->CreateGameObject(dropItemID, tx + offsetX, ty + offsetY, nullptr, true);
+				objMgr->CreateItem(dropItemID, tx + offsetX, ty + offsetY);
 			}
 		}
 		objMgr->RemoveGameObject(this);

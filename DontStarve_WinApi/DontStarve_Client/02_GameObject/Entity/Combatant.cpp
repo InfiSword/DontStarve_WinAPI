@@ -16,6 +16,8 @@ Combatant::Combatant(GameObjectID id, float x, float y, float pivotX, float pivo
     , m_attackBoxHeight(0)
     , m_attackCollider(nullptr)
     , m_attackTarget(nullptr)
+    , m_bHitDuringAttack(false)
+    , m_bUseSuperArmor(false)
 {
 }
 
@@ -41,6 +43,31 @@ void Combatant::Release()
     m_attackCollider = nullptr;
     m_attackTarget = nullptr;
     Entity::Release();
+}
+
+bool Combatant::CheckSuperArmorHit()
+{
+    if (!m_bUseSuperArmor) return false;
+
+    if (IsInAttackState())
+    {
+        m_bHitDuringAttack = true;
+        return true; // 슈퍼아머 동작 중이므로 히트 애니메이션 스킵
+    }
+    return false;
+}
+
+void Combatant::HandleAttackEndSuperArmor()
+{
+    if (m_bHitDuringAttack)
+    {
+        m_bHitDuringAttack = false;
+        int hitState = GetHitState();
+        if (hitState != -1)
+        {
+            ChangeState(hitState);
+        }
+    }
 }
 
 void Combatant::SetupAttackBox(int width, int height, int offsetX, int offsetY)

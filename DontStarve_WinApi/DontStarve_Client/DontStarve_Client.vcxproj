@@ -176,7 +176,8 @@
     <ClInclude Include="02_GameObject\Item\Tool\Weapon\Weapon.h" />
     <ClInclude Include="02_GameObject\Object.h" />
     <ClInclude Include="02_GameObject\UI\CraftingRecipe.h" />
-    <ClInclude Include="02_GameObject\UI\CraftingUI.h" />
+    <ClInclude Include="02_GameObject\UI\MenuUI.h" />
+    <ClInclude Include="02_GameObject\UI\GameClearUI.h" />
     <ClInclude Include="02_GameObject\UI\GameOverUI.h" />
     <ClInclude Include="02_GameObject\UI\HPUI.h" />
     <ClInclude Include="02_GameObject\UI\UIElement.h" />
@@ -250,7 +251,8 @@
     <ClCompile Include="02_GameObject\Item\Tool\Torch\Torch.cpp" />
     <ClCompile Include="02_GameObject\Item\Tool\Weapon\Weapon.cpp" />
     <ClCompile Include="02_GameObject\Object.cpp" />
-    <ClCompile Include="02_GameObject\UI\CraftingUI.cpp" />
+    <ClCompile Include="02_GameObject\UI\MenuUI.cpp" />
+    <ClCompile Include="02_GameObject\UI\GameClearUI.cpp" />
     <ClCompile Include="02_GameObject\UI\GameOverUI.cpp" />
     <ClCompile Include="02_GameObject\UI\HPUI.cpp" />
     <ClCompile Include="02_GameObject\UI\UIElement.cpp" />

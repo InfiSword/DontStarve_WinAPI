@@ -14,7 +14,10 @@
 
 // 슬롯 소유의 Item을 해제하고 비움 (count==0일 때 RemoveItem/ConsumeItems에서 호출)
 void ItemSlot::Clear() {
-	if (item) { delete item; item = nullptr; }
+	if (item) { 
+		ObjectManager::GetInstance()->RemoveGameObject(item);
+		item = nullptr; 
+	}
 	count = 0;
 }
 
@@ -31,13 +34,17 @@ Inventory::Inventory(Player* owner)
 
 Inventory::~Inventory() {
 	for (auto& slot : m_slots) {
-		if (slot.item) { delete slot.item; slot.item = nullptr; }
+		if (slot.item) { 
+			ObjectManager::GetInstance()->RemoveGameObject(slot.item);
+			slot.item = nullptr; 
+		}
 	}
 
-	if (m_bgImage) { m_bgImage->Release(); delete m_bgImage; m_bgImage = nullptr; }
-	for (UIButton* btn : m_slotButtons) { if (btn) { btn->Release(); delete btn; } }
-	for (UIImage* img : m_slotItemImages) { if (img) { img->Release(); delete img; } }
-	for (UIText* txt : m_slotCountTexts) { if (txt) { txt->Release(); delete txt; } }
+	auto* objMgr = ObjectManager::GetInstance();
+	if (m_bgImage) { objMgr->RemoveGameObject(m_bgImage); m_bgImage = nullptr; }
+	for (UIButton* btn : m_slotButtons) { if (btn) { objMgr->RemoveGameObject(btn); } }
+	for (UIImage* img : m_slotItemImages) { if (img) { objMgr->RemoveGameObject(img); } }
+	for (UIText* txt : m_slotCountTexts) { if (txt) { objMgr->RemoveGameObject(txt); } }
 	m_slotButtons.clear();
 	m_slotItemImages.clear();
 	m_slotCountTexts.clear();
@@ -45,6 +52,8 @@ Inventory::~Inventory() {
 
 void Inventory::Init()
 {
+	auto* objMgr = ObjectManager::GetInstance();
+
 	// ── 인벤토리 배경 UIImage ────────────────────────────────────────────
 	{
 		auto bgSprite = ResourceManager::GetInstance()->LoadSprite(L"Resource\\UI\\Inven.png");
@@ -60,6 +69,7 @@ void Inventory::Init()
 			0.0f, 0.0f, 0.0f, 0.0f, bgCx, bgCy
 		);
 		m_bgImage->Init();
+		objMgr->AddGameObject(m_bgImage);
 	}
 
 	// ── 슬롯 UIButton / UIImage / UIText 생성 ───────────────────────────
@@ -86,6 +96,7 @@ void Inventory::Init()
 		btn->SetHoverColor(Gdiplus::Color(255, 255, 255, 255));
 		btn->SetClickedColor(Gdiplus::Color(255, 255, 255, 255));
 		btn->Init();
+		objMgr->AddGameObject(btn);
 		m_slotButtons[i] = btn;
 
 		UIImage* img = new UIImage(
@@ -96,6 +107,7 @@ void Inventory::Init()
 		);
 		img->Init();
 		img->SetActive(false);
+		objMgr->AddGameObject(img);
 		m_slotItemImages[i] = img;
 
 		float textX = cx - SLOT_WIDTH * 0.5f;
@@ -111,6 +123,7 @@ void Inventory::Init()
 		);
 		txt->Init();
 		txt->SetActive(false);
+		objMgr->AddGameObject(txt);
 		m_slotCountTexts[i] = txt;
 	}
 }
@@ -173,7 +186,10 @@ bool Inventory::AddItem(Item* itemDef, UINT count) {
 		m_slots[existingSlotIndex].count += actualAdd;
 		count -= actualAdd;
 		UpdateSlotButton(existingSlotIndex);
-		if (count == 0) { delete itemDef; return true; }
+		if (count == 0) { 
+			ObjectManager::GetInstance()->RemoveGameObject(itemDef); 
+			return true; 
+		}
 	}
 
 	int emptySlotIndex = FindFirstEmptySlot();
@@ -231,14 +247,12 @@ void Inventory::ClearAllItems()
 
 bool Inventory::AddItemByID(GameObjectID itemID, UINT count)
 {
-	GameObject* itemObj = ObjectManager::GetInstance()->CreateGameObject(itemID, 0.0f, 0.0f, nullptr, false);
-	Item* item = dynamic_cast<Item*>(itemObj);
+	Item* item = ObjectManager::GetInstance()->CreateItem(itemID, 0.0f, 0.0f);
 	if (!item) {
-		if (itemObj) delete itemObj;
 		return false;
 	}
 	bool result = AddItem(item, count);
-	if (!result) delete item;
+	if (!result) ObjectManager::GetInstance()->RemoveGameObject(item);
 	return result;
 }
 
@@ -282,19 +296,6 @@ void Inventory::Render(int equippedSlotIndex)
 {
 	RenderManager* pRM = RenderManager::GetInstance();
 	if (!pRM) return;
-
-	if (m_bgImage) m_bgImage->Render();
-
-	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-		if (m_slotButtons[i])
-			m_slotButtons[i]->Render();
-
-		if (m_slotItemImages[i] && m_slotItemImages[i]->IsEnabled())
-			m_slotItemImages[i]->Render();
-
-		if (m_slotCountTexts[i] && m_slotCountTexts[i]->IsEnabled())
-			m_slotCountTexts[i]->Render();
-	}
 
 	// 장착 슬롯 하이라이트
 	if (equippedSlotIndex >= 0 && equippedSlotIndex < INVENTORY_SLOT_COUNT

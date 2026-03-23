@@ -3,12 +3,13 @@
 
 enum class SpiderQueenState
 {
-	IDLE,
-	CHASE,
-	ATTACK,
-	HIT,
-	DEATH,
-	BIRTH,
+	IDLE = (int)CombatantState::IDLE,
+	CHASE = (int)CombatantState::CHASE,
+	ATTACK = (int)CombatantState::ATTACK,
+	HIT = (int)CombatantState::HIT,
+	DEATH = (int)CombatantState::DEATH,
+
+	BIRTH = (int)CombatantState::MAX_COMMON,
 	TAUNT,
 	COCOON,
 	COCOON_HIT,
@@ -34,6 +35,11 @@ public:
 
 	// 디버그 레이아웃 시각화
 	virtual void RenderDebugOverlay() override;
+
+	// 슈퍼아머 훅
+	virtual bool IsInAttackState() const override { return m_state == (int)SpiderQueenState::ATTACK; }
+	virtual int GetHitState() const override { return (int)SpiderQueenState::HIT; }
+	virtual void TriggerAttackState() override { ChangeState((int)SpiderQueenState::ATTACK); }
 
 protected:
 	virtual void OnAttackHit() override;
