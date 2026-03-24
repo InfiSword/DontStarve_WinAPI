@@ -4,6 +4,12 @@
 class UIText;
 class UIButton;
 
+enum class GameClearUIType
+{
+    Default,        // 클리어 타임 + 로비 이동/종료 버튼 표시 (보스 스파이더퀸 등)
+    NoButtons       // 텍스트만 표시하고 버튼은 숨김 (하운드 씬 등 자동 전환용)
+};
+
 class GameClearUI : public UIElement
 {
 public:
@@ -20,6 +26,7 @@ public:
     void Show();
     void Hide();
     bool IsVisible() const { return IsEnabled(); }
+    void SetType(GameClearUIType type) { m_type = type; }
 
 private:
     std::wstring FormatTime(float totalSeconds);
@@ -32,5 +39,6 @@ private:
     UIButton* m_btnQuit;
     UIText* m_btnQuitText;
 
+    GameClearUIType m_type;
     static const float SORT_KEY;
 };

@@ -52,8 +52,7 @@ private:
     bool m_isClearUIShown;
 
     // UI
-    class UIImage* m_clearBanner;
-    class UIText* m_clearText;
+    class GameClearUI* m_gameClearUI;
     class HPUI* m_iceBossHPUI;
     class HPUI* m_redBossHPUI;
 };

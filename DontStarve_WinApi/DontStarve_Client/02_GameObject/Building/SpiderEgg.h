@@ -50,6 +50,9 @@ public:
     void SpawnSpiders();
 
 private:
+    void PreSpawnSpiders();
+
+private:
     EggStage m_eggStage;
     bool m_isPlayingGrowth;
     bool m_isPlayingHit;
@@ -58,4 +61,6 @@ private:
 
 	int m_amountOfSpidersToSpawn; // 한 번에 스폰할 거미 수
 	int m_remainingSpiders;       // 현재 거미집 안에 남은 총 거미 수
+
+    std::vector<class Spider*> m_poolSpiders; // 미리 생성해 둔 거미 오브젝트 풀
 };

@@ -65,64 +65,46 @@ void Monster::Update(float deltaTime)
 
 	const bool hadAggroTarget = (m_attackTarget && m_attackTarget->IsEnabled());
 
-	UpdateAI(deltaTime);
-
-	// --- 1. [매 프레임] 정보 수집 (이동 계산에 필요하므로 매 프레임 수행) ---
+	// 1. 타겟 또는 플레이어와의 거리/방향 계산 (어그로 판정용)
 	Player* player = ObjectManager::GetInstance()->GetPlayer();
-	if (player && player->IsEnabled())
-	{
-		Transform* playerTr = player->GetComponent<Transform>();
-		if (playerTr && transform)
-		{
-			float dx = playerTr->GetX() - transform->GetX();
-			float dy = playerTr->GetY() - transform->GetY();
-			m_distToPlayerSq = dx * dx + dy * dy;
+	GameObject* targetToTrack = (m_attackTarget && m_attackTarget->IsEnabled()) ? m_attackTarget : player;
 
-			if (m_distToPlayerSq > 0.0001f)
-			{
+	if (targetToTrack && targetToTrack->IsEnabled()) {
+		Transform* targetTr = targetToTrack->GetComponent<Transform>();
+		if (targetTr && transform) {
+			float dx = targetTr->GetX() - transform->GetX();
+			float dy = targetTr->GetY() - transform->GetY();
+			m_distToPlayerSq = dx * dx + dy * dy;
+			if (m_distToPlayerSq > 0.0001f) {
 				float invDist = 1.0f / sqrtf(m_distToPlayerSq);
 				m_dirToPlayer.X = dx * invDist;
 				m_dirToPlayer.Y = dy * invDist;
 			}
 		}
 	}
-	else
-	{
+	else {
 		m_distToPlayerSq = 1e10f;
 		m_dirToPlayer = { 0.0f, 0.0f };
-		if (m_attackTarget == player) m_attackTarget = nullptr;
 	}
 
-	// --- 2. [AI Tick] 일정 간격으로만 무거운 로직 수행 (최적화) ---
-	m_aiTickTimer += deltaTime;
-	if (m_aiTickTimer >= m_aiTickInterval)
-	{
-		// 2-1. 어그로 타겟 체크 (매 프레임 할 필요 없는 판단 로직)
-		if (!m_attackTarget || !m_attackTarget->IsEnabled())
-		{
+	// 2. 어그로 관리 (해제 및 시작)
+	if (m_attackTarget && m_attackTarget->IsEnabled()) {
+		// 어그로 해제 체크 (deaggroRadius가 설정된 경우)
+		if (m_deaggroRadius > 0.0f && m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius)) {
 			m_attackTarget = nullptr;
-			if (player && player->IsEnabled())
-			{
-				switch (m_aggroType)
-				{
-				case AggroType::ON_RANGE:
-					if (m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius)) m_attackTarget = player;
-					break;
-				case AggroType::ALWAYS:
-					m_attackTarget = player;
-					break;
-				case AggroType::ON_HIT_THEN_RANGE:
-					if (m_hasBeenHit && m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius)) m_attackTarget = player;
-					break;
-				}
+		}
+	}
+	else if (player && player->IsEnabled()) {
+		// 어그로 시작 체크
+		if (m_aggroType == AggroType::ALWAYS) {
+			m_attackTarget = player;
+		}
+		else if (m_aggroType == AggroType::ON_RANGE ||
+			(m_aggroType == AggroType::ON_HIT_THEN_RANGE && m_hasBeenHit)) {
+			if (m_aggroRadius > 0.0f && m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius)) {
+				m_attackTarget = player;
 			}
 		}
-		else if (m_aggroType != AggroType::ALWAYS)
-		{
-			if (m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius)) m_attackTarget = nullptr;
-		}
-
-		m_aiTickTimer = 0.0f;
 	}
 
 	const bool hasAggroTarget = (m_attackTarget && m_attackTarget->IsEnabled());
@@ -131,10 +113,139 @@ void Monster::Update(float deltaTime)
 		ResetAggroSession();
 	}
 
+	UpdateAI(deltaTime);
+
 	if (m_attackCooldownTimer > 0.0f)
 		m_attackCooldownTimer -= deltaTime;
 
-	UpdateMovement(deltaTime); 
+	UpdateMovement(deltaTime);
+}
+
+void Monster::UpdateAI(float deltaTime)
+{
+	if (m_isDead) return;
+
+	int nextState = m_state;
+
+	switch (m_state)
+	{
+	case (int)CombatantState::IDLE:
+		nextState = UpdateIdle(deltaTime);
+		break;
+	case (int)CombatantState::WALK:
+		nextState = UpdateWalk(deltaTime);
+		break;
+	case (int)CombatantState::CHASE:
+		nextState = UpdateChase(deltaTime);
+		break;
+	case (int)CombatantState::ATTACK:
+		nextState = UpdateAttack(deltaTime);
+		break;
+	case (int)CombatantState::HIT:
+		nextState = UpdateHit(deltaTime);
+		break;
+	}
+
+	ChangeState(nextState);
+}
+
+void Monster::UpdateMovement(float deltaTime)
+{
+	if (m_isDead) return;
+
+	switch (m_state)
+	{
+	case (int)CombatantState::WALK:
+		MoveTowardLocation(deltaTime, m_walkSpeed);
+		break;
+	case (int)CombatantState::CHASE:
+		MoveTowardPlayer(deltaTime, m_runSpeed);
+		break;
+	}
+}
+
+int Monster::UpdateIdle(float deltaTime)
+{
+	if (m_attackTarget && m_attackTarget->IsEnabled())
+	{
+		if (m_distToPlayerSq > (m_attackRange * m_attackRange))
+		{
+			return (int)CombatantState::CHASE;
+		}
+		else if (m_attackCooldownTimer <= 0.0f)
+		{
+			return (int)CombatantState::ATTACK;
+		}
+	}
+	else
+	{
+		m_idleTimer += deltaTime;
+		if (m_idleTimer >= m_idleDuration)
+		{
+			float centerX, centerY;
+			ResolveWanderCenter(centerX, centerY);
+			float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
+			float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
+			m_targetX = centerX + cosf(angle) * dist;
+			m_targetY = centerY + sinf(angle) * dist;
+			m_idleTimer = 0.0f;
+			return (int)CombatantState::WALK;
+		}
+	}
+	return (int)CombatantState::IDLE;
+}
+
+int Monster::UpdateWalk(float deltaTime)
+{
+	if (m_attackTarget && m_attackTarget->IsEnabled())
+	{
+		return (int)CombatantState::CHASE;
+	}
+
+	if (!transform) return (int)CombatantState::IDLE;
+
+	float wdx = m_targetX - transform->GetX();
+	float wdy = m_targetY - transform->GetY();
+	if (wdx * wdx + wdy * wdy < 4.0f)
+	{
+		m_idleTimer = 0.0f;
+		return (int)CombatantState::IDLE;
+	}
+
+	return (int)CombatantState::WALK;
+}
+
+int Monster::UpdateChase(float deltaTime)
+{
+	if (!m_attackTarget || !m_attackTarget->IsEnabled() || !m_bCanChase)
+	{
+		m_idleTimer = 0.0f;
+		return (int)CombatantState::IDLE;
+	}
+
+	if (m_distToPlayerSq <= (m_attackRange * m_attackRange))
+	{
+		if (m_attackCooldownTimer <= 0.0f)
+		{
+			return (int)CombatantState::ATTACK;
+		}
+		else
+		{
+			return (int)CombatantState::IDLE;
+		}
+	}
+
+	return (int)CombatantState::CHASE;
+}
+
+int Monster::UpdateAttack(float deltaTime)
+{
+	return (int)CombatantState::ATTACK;
+}
+
+int Monster::UpdateHit(float deltaTime)
+{
+	return (int)CombatantState::HIT;
 }
 
 void Monster::OnDeathEnd()
@@ -155,38 +266,21 @@ void Monster::ResolveWanderCenter(float& outX, float& outY) const
 	outY = 0.0f;
 }
 
-bool Monster::CheckCounterAttack()
-{
-	if (!m_bUseSuperArmor) return false;
-
-	if (m_attackCooldownTimer <= 0.0f && m_attackTarget && m_attackTarget->IsEnabled())
-	{
-		m_attackCooldownTimer = m_attackCooldown;
-		TriggerAttackState();
-		if (IsInAttackState())
-		{
-			m_bHitDuringAttack = true;
-			return true;
-		}
-	}
-	return false;
-}
-
-void Monster::MoveTowardPlayer(float deltaTime, float speed, int runAnimState, int idleState)
+void Monster::MoveTowardPlayer(float deltaTime, float speed)
 {
 	if (!transform || !m_animator) return;
 
-	// 공격 사거리 내에 들어오면 즉시 멈춤
-	if (m_distToPlayerSq <= (m_attackRange * m_attackRange))
-	{
-		m_animator->SetState(idleState, transform->GetDirection());
-		return;
+	// 실시간 방향 업데이트 (플레이어와의 상대적 위치 기준)
+	Direction newDir = DIR_DOWN;
+	if (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) {
+		newDir = (m_dirToPlayer.X > 0.0f) ? DIR_RIGHT : DIR_LEFT;
+	}
+	else {
+		newDir = (m_dirToPlayer.Y > 0.0f) ? DIR_DOWN : DIR_UP;
 	}
 
-	// 방향 전환 (더 많이 차이나는 축 기준)
-	Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
 	transform->SetDirection(newDir);
-	m_animator->SetState(runAnimState, transform->GetDirection());
+	ChangeState(m_state);
 
 	// 이동
 	float moveDist = speed * deltaTime;
@@ -196,7 +290,7 @@ void Monster::MoveTowardPlayer(float deltaTime, float speed, int runAnimState, i
 	ClampPositionToMapBounds();
 }
 
-void Monster::MoveTowardLocation(float deltaTime, float speed, int walkAnimState, int idleState)
+void Monster::MoveTowardLocation(float deltaTime, float speed)
 {
 	if (!transform || !m_animator) return;
 
@@ -204,86 +298,24 @@ void Monster::MoveTowardLocation(float deltaTime, float speed, int walkAnimState
 	float wdy = m_targetY - transform->GetY();
 	float wdistSq = wdx * wdx + wdy * wdy;
 
-	// 도착 체크 (2px 이내)
-	if (wdistSq < 4.0f) {
-		ChangeState(idleState);
-		return;
-	}
+	if (wdistSq < 0.0001f) return;
 
 	float wdist = sqrtf(wdistSq);
-	Direction wDir = (std::abs(wdx) > std::abs(wdy)) ? (wdx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (wdy > 0.0f ? DIR_DOWN : DIR_UP);
+
+	// 실시간 방향 업데이트 (목표 지점 기준)
+	Direction wDir = DIR_DOWN;
+	if (std::abs(wdx) > std::abs(wdy)) {
+		wDir = (wdx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
+	}
+	else {
+		wDir = (wdy > 0.0f) ? DIR_DOWN : DIR_UP;
+	}
 	transform->SetDirection(wDir);
-	m_animator->SetState(walkAnimState, transform->GetDirection());
+	ChangeState(m_state);
 
 	float moveStep = speed * deltaTime;
 	transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
 
 	// 맵 경계 체크
 	ClampPositionToMapBounds();
-}
-
-void Monster::CheckAttackTransition(float range, int attackState, int idleState)
-{
-	// 사거리 계산 및 판별
-	if (m_distToPlayerSq <= (range * range)) {
-		// 쿨타임이 끝났다면 공격 상태로 전환
-		if (m_attackCooldownTimer <= 0.0f) {
-			m_attackCooldownTimer = m_attackCooldown; // 공격 시작 시 쿨타임 설정
-			ChangeState(attackState);
-		}
-		else {
-			// 사거리 내에 있지만 쿨타임 중이라면 대기(IDLE) 상태 유지
-			ChangeState(idleState);
-		}
-	}
-}
-
-void Monster::UpdateAI_AlwaysChase(float deltaTime, int runState, int attackState, int idleState)
-{
-	if (m_state == runState)
-	{
-		CheckAttackTransition(m_attackRange, attackState, idleState);
-	}
-	else if (m_state == idleState)
-	{
-		// 공격 사거리 내에 있고 쿨다운이 끝났다면 즉시 공격 상태로 전환
-		if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
-			if (m_attackCooldownTimer <= 0.0f) {
-				ChangeState(attackState);
-				return;
-			}
-			// 쿨다운 중이면 그대로 대기 (AlwaysChase는 보통 공격적인 타입)
-		}
-
-		m_idleTimer += deltaTime;
-		if (m_idleTimer >= m_idleDuration)
-		{
-			// 공격 사거리 밖에 있을 때만 다시 추격(RUN) 상태로 전환
-			// m_bCanChase 플래그 확인 추가
-			if (m_bCanChase && m_distToPlayerSq > (m_attackRange * m_attackRange)) {
-				ChangeState(runState);
-				m_idleTimer = 0.0f;
-			}
-		}
-	}
-}
-
-void Monster::UpdateAI_Wander(float deltaTime, int walkState, int idleState)
-{
-	if (m_state != idleState) return;
-
-	float centerX = 0.0f;
-	float centerY = 0.0f;
-	ResolveWanderCenter(centerX, centerY);
-
-	m_idleTimer += deltaTime;
-	if (m_idleTimer >= m_idleDuration) {
-		float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
-		float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
-		m_targetX = centerX + cosf(angle) * dist;
-		m_targetY = centerY + sinf(angle) * dist;
-
-		ChangeState(walkState);
-		m_idleTimer = 0.0f;
-	}
 }

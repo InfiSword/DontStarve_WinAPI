@@ -5,8 +5,7 @@ class BoxCollider;
 
 enum class CombatantState {
     IDLE = 0,
-    WALK,
-    RUN,
+	WALK,
     CHASE,
     ATTACK,
     ATTACK_PRE,
@@ -56,6 +55,11 @@ public:
     // 공격 관련 공통 메서드
     void SetupAttackBox(int width, int height, int offsetX = 0, int offsetY = 0);
     
+	virtual void RenderDebugOverlay() override;
+
+    // 공격 기즈모 표시 여부 제어
+    static bool s_bShowAttackGizmo;
+
     virtual void ProcessAttackHit(int damage);
     virtual void OnAttackEnd();
     

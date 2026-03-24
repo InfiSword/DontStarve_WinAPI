@@ -97,8 +97,8 @@ namespace EnumTables {
 		{ GOID_ITEM_COOKED_MONSTER_MEAT, L"GOID_ITEM_COOKED_MONSTER_MEAT" },
 		{ GOID_ITEM_COOKED_SMALL_MEAT,  L"GOID_ITEM_COOKED_SMALL_MEAT" },
 		{ GOID_ITEM_COOKED_MEAT,        L"GOID_ITEM_COOKED_MEAT" },
-		{ GOID_TOOL_HALBERD,             L"GOID_TOOL_HALBERD" },
-		{ GOID_TOOL_HAMMER,              L"GOID_TOOL_HAMMER" },
+		//{ GOID_TOOL_HALBERD,             L"GOID_TOOL_HALBERD" },
+		//{ GOID_TOOL_HAMMER,              L"GOID_TOOL_HAMMER" },
 		{ GOID_PLAYER_WILSON,            L"GOID_PLAYER_WILSON" },
 		{ GOID_PLAYER_WILLOW,            L"GOID_PLAYER_WILLOW" },
 		{ GOID_PLAYER_WOLFGANG,          L"GOID_PLAYER_WOLFGANG" },
@@ -188,7 +188,7 @@ namespace ResourcePathUtils
 		{ GOID_ITEM_COOKED_MONSTER_MEAT, L"Resource\\Objects\\food", L"Cooked_Monster_Meat.png" },
 		{ GOID_ITEM_COOKED_SMALL_MEAT, L"Resource\\Objects\\food", L"meat_small01-1.png" },
 		{ GOID_ITEM_COOKED_MEAT, L"Resource\\Objects\\food", L"meat_01-1.png" },
-		{ GOID_TOOL_GOLDEN_SCYTHE, L"Resource\\Objects\\Tools", L"Golden_Scythe_02.png" },
+		{ GOID_TOOL_GOLDEN_PICKAXE, L"Resource\\Objects\\Tools", L"Golden_Scythe_02.png" },
 		{ GOID_TOOL_HAM_BAT, L"Resource\\Objects\\Tools", L"hamBat_01.png" },
 		{ GOID_TOOL_PICKAXE, L"Resource\\Objects\\Tools", L"pickaxe-0.png" },
 		{ GOID_TOOL_RED_AXE, L"Resource\\Objects\\Tools", L"Red_Axe_02.png" },
@@ -283,7 +283,7 @@ namespace ToolDataUtils
 
 	// 도구 스탯 정적 테이블
 	static constexpr ToolStatsEntry ToolStatsTable[] = {
-		{ GOID_TOOL_GOLDEN_SCYTHE,  25,    120.0f },
+		{ GOID_TOOL_GOLDEN_PICKAXE,  20,    120.0f },
 		{ GOID_TOOL_HAM_BAT,        40,    100.0f },
 		{ GOID_TOOL_PICKAXE,        15,    80.0f  },
 		{ GOID_TOOL_RED_AXE,        20,    100.0f },
@@ -324,7 +324,7 @@ namespace ItemDisplayUtils
 		{ GOID_ITEM_COOKED_MEAT,         L"구운 고기" },
 		{ GOID_ITEM_COOKED_SMALL_MEAT,   L"구운 작은 고기" },
 		{ GOID_ITEM_COOKED_MONSTER_MEAT, L"구운 몬스터 고기" },
-		{ GOID_TOOL_GOLDEN_SCYTHE,       L"황금 낫" },
+		{ GOID_TOOL_GOLDEN_PICKAXE,       L"황금 곡괭이" },
 		{ GOID_TOOL_HAM_BAT,             L"햄 방망이" },
 		{ GOID_TOOL_PICKAXE,             L"곡괭이" },
 		{ GOID_TOOL_RED_AXE,             L"빨간 도끼" },

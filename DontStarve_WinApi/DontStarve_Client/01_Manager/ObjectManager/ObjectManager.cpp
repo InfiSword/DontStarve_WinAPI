@@ -303,7 +303,7 @@ void ObjectManager::InitializeFactories()
 	struct ToolDef { std::wstring name; std::wstring desc; };
 	auto GetToolDef = [](GameObjectID id) -> ToolDef {
 		switch (id) {
-		case GOID_TOOL_GOLDEN_SCYTHE: return { L"Golden Scythe", L"A golden scythe for harvesting." };
+		case GOID_TOOL_GOLDEN_PICKAXE: return { L"Golden Scythe", L"A golden scythe for harvesting." };
 		case GOID_TOOL_HAM_BAT:       return { L"Ham Bat",       L"A weapon made from ham." };
 		case GOID_TOOL_PICKAXE:       return { L"Pickaxe",       L"Mines rocks and ores." };
 		case GOID_TOOL_SPEAR:         return { L"Spear",         L"A simple spear for combat." };
@@ -329,7 +329,7 @@ void ObjectManager::InitializeFactories()
 		for (GameObjectID id : ids) m_itemFactories[id] = fn;
 		};
 	registerItemIds({
-		GOID_TOOL_GOLDEN_SCYTHE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE,
+		GOID_TOOL_GOLDEN_PICKAXE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE,
 		GOID_TOOL_SPEAR, GOID_TOOL_SWAP_SPEAR, GOID_TOOL_TORCH,
 		GOID_TOOL_RED_AXE, GOID_TOOL_SWAP_AXE, GOID_TOOL_HALBERD,
 		GOID_TOOL_HAMMER
@@ -428,10 +428,9 @@ UIImage* ObjectManager::CreateImage(GameObjectID id, float width, float height, 
 	return image;
 }
 
-UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, float anchorX, float anchorY, float x, float y)
+UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, float anchorX, float anchorY, float x, float y, float sortKey)
 {
 	RenderLayer layer = LAYER_UI_FOREGROUND;
-	float sortKey = 0.0f;
 	std::wstring fontName = L"Arial";
 
 	UIText* uiText = new UIText(id, width, height, text, color, layer, sortKey, fontName, fontSize, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, anchorX, anchorY, anchorX, anchorY, x, y);

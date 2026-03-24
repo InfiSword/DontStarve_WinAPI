@@ -1,5 +1,4 @@
 #include "99_Default/pch.h"
-#include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
@@ -13,7 +12,7 @@
 #include "Spider.h"
 
 Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
-               const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
 	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 	, m_homeEgg(nullptr)
 	, m_spawnRadius(200.0f)
@@ -22,7 +21,7 @@ Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, Di
 	m_type = GO_TYPE_MONSTER;
 	m_walkSpeed = 60.0f;
 	m_runSpeed = 150.0f;
-	m_attackRange = 50.0f;
+	m_attackRange = 80.0f;
 	m_attackCooldown = 1.2f;
 	m_attackHitFrame = 45;
 	m_damage = 15;
@@ -58,7 +57,7 @@ void Spider::Init()
 			m_maxHp = m_hp;
 			m_walkSpeed = isWarrior ? 80.0f : 60.0f;
 			m_runSpeed = isWarrior ? 180.0f : 150.0f;
-			m_attackRange = isWarrior ? 60.0f : 50.0f;
+			m_attackRange = isWarrior ? 100.0f : 80.0f;
 			m_attackBoxWidth = isWarrior ? 72 : 60;
 			m_attackBoxHeight = isWarrior ? 48 : 40;
 
@@ -66,14 +65,20 @@ void Spider::Init()
 			if (objData) {
 				std::wstring base = objData->baseDir + L"\\";
 				std::wstring prefix = isWarrior ? L"Warrior_spider_" : L"Spider_spider_";
-				
+
 				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) m_animator->RegisterAnimation((int)SpiderState::IDLE, (Direction)dir, base + prefix + L"idle_01.png", 0, 0, 1, 1, transform->GetPivotX(), transform->GetPivotY(), true, 0.05f);
-				
+
 				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_DOWN, base + prefix + L"walk_loop_down.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f);
 				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_UP, base + prefix + L"walk_loop_up.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f);
 				std::wstring walkSidePath = base + prefix + L"walk_loop_side.png";
 				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_LEFT, walkSidePath, 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f, false);
 				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_RIGHT, walkSidePath, 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f);
+
+				// CHASE 애니메이션도 WALK와 동일한 리소스를 사용하거나, 별도의 리소스가 있다면 그것을 사용 (거미는 WALK 리소스를 RUN 속도로 사용하거나 별도 리소스가 없으므로 일단 WALK 리소스를 CHASE에도 등록)
+				m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_DOWN, base + prefix + L"walk_loop_down.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.015f); // 더 빠른 프레임
+				m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_UP, base + prefix + L"walk_loop_up.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.015f);
+				m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_LEFT, walkSidePath, 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.015f, false);
+				m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_RIGHT, walkSidePath, 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.015f);
 
 				m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_DOWN, base + prefix + L"atk_down.png", 0, 0, 7, 71, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
 				m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_UP, base + prefix + L"atk_up.png", 0, 0, 7, 71, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
@@ -127,7 +132,7 @@ void Spider::Init()
 				}
 			}
 		}
-		m_animator->SetState(m_state, this->transform->GetDirection());
+		ChangeState(m_state);
 	}
 
 	m_attackCollider = AddComponent<BoxCollider>();
@@ -135,6 +140,11 @@ void Spider::Init()
 		UpdateAttackBoxByDirection(DIR_DOWN);
 		m_attackCollider->SetColliderEnabled(false);
 	}
+}
+
+void Spider::RenderDebugOverlay()
+{
+	Combatant::RenderDebugOverlay();
 }
 
 void Spider::SetHomeEgg(SpiderEgg* egg, float spawnRadius)
@@ -150,11 +160,11 @@ void Spider::SetAggroTarget(GameObject* target)
 	{
 		if (!m_homeEgg || !m_homeEgg->IsEnabled()) m_bCanChase = true;
 		m_attackTarget = target;
-		
-		if (!m_bHasTaunted)  
+
+		if (!m_bHasTaunted)
 		{
-			ChangeState((int)SpiderState::TAUNT); 
-			m_bHasTaunted = true; 
+			ChangeState((int)SpiderState::TAUNT);
+			m_bHasTaunted = true;
 		}
 
 		Transform* targetTr = target->GetComponent<Transform>();
@@ -189,66 +199,63 @@ void Spider::ResolveWanderCenter(float& outX, float& outY) const
 void Spider::UpdateAI(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
-	const bool canChaseNow = m_bCanChase || !m_homeEgg || !m_homeEgg->IsEnabled();
 
-	switch ((SpiderState)m_state)
-	{
-	case SpiderState::TAUNT:
-		// Transition handled by callback
-		break;
-	case SpiderState::CHASE:
-		if (!m_attackTarget || !m_attackTarget->IsEnabled() || !canChaseNow) {
-			ChangeState((int)SpiderState::IDLE);
-			m_idleTimer = 0.0f;
-		}
-		else {
-			CheckAttackTransition(m_attackRange, (int)SpiderState::ATTACK, (int)SpiderState::IDLE);
-		}
-		break;
-	case SpiderState::IDLE:
-		if (m_attackTarget && m_attackTarget->IsEnabled() && canChaseNow) {
-			if (m_distToPlayerSq > (m_attackRange * m_attackRange * 1.1f)) {
-				if (!m_bHasTaunted) { ChangeState((int)SpiderState::TAUNT); m_bHasTaunted = true; }
-				else ChangeState((int)SpiderState::CHASE);
-			}
-			else if (m_attackCooldownTimer <= 0.0f) ChangeState((int)SpiderState::ATTACK);
-		}
-		else {
-			UpdateAI_Wander(deltaTime, (int)SpiderState::WALK, (int)SpiderState::IDLE);
-		}
-		break;
-	case SpiderState::WALK:
-		if (m_attackTarget && m_attackTarget->IsEnabled() && canChaseNow) {
-			if (!m_bHasTaunted) { ChangeState((int)SpiderState::TAUNT); m_bHasTaunted = true; }
-			else ChangeState((int)SpiderState::CHASE);
-		}
-		break;
-	default:
-		break;
-	}
+	// 거미집 소속에 따른 추격 가능 여부 체크
+	bool canChaseNow = m_bCanChase || !m_homeEgg || !m_homeEgg->IsEnabled();
+	// Monster의 m_bCanChase와 동기화
+	SetCanChase(canChaseNow);
+
+	// 기본 Monster::UpdateAI 호출
+	Monster::UpdateAI(deltaTime);
 
 	if (m_state == (int)SpiderState::CHASE || m_state == (int)SpiderState::WALK) ClampPositionToMapBounds();
 }
 
 void Spider::UpdateMovement(float deltaTime)
 {
-	if (!IsEnabled()) return;
+	// Monster의 기본 이동 로직 사용
+	Monster::UpdateMovement(deltaTime);
+}
 
-	switch ((SpiderState)m_state)
+int Spider::UpdateIdle(float deltaTime)
+{
+	int nextState = Monster::UpdateIdle(deltaTime);
+
+	// CHASE로 전환될 때 도발(TAUNT) 체크
+	if (nextState == (int)SpiderState::CHASE && !m_bHasTaunted)
 	{
-	case SpiderState::CHASE: MoveTowardPlayer(deltaTime, m_runSpeed, (int)SpiderState::WALK, (int)SpiderState::IDLE); break;
-	case SpiderState::WALK: MoveTowardLocation(deltaTime, m_walkSpeed, (int)SpiderState::WALK, (int)SpiderState::IDLE); break;
-	case SpiderState::IDLE: m_animator->SetState((int)SpiderState::IDLE, transform->GetDirection()); break;
-	default:
-		break;
+		m_bHasTaunted = true;
+		return (int)SpiderState::TAUNT;
 	}
+
+	return nextState;
+}
+
+int Spider::UpdateWalk(float deltaTime)
+{
+	int nextState = Monster::UpdateWalk(deltaTime);
+
+	// CHASE로 전환될 때 도발(TAUNT) 체크
+	if (nextState == (int)SpiderState::CHASE && !m_bHasTaunted)
+	{
+		m_bHasTaunted = true;
+		return (int)SpiderState::TAUNT;
+	}
+
+	return nextState;
+}
+
+int Spider::UpdateChase(float deltaTime)
+{
+	return Monster::UpdateChase(deltaTime);
 }
 
 void Spider::Damaged(int damage)
 {
 	Monster::Damaged(damage);
 	if (!IsDead()) {
-		if (!m_homeEgg || !m_homeEgg->IsEnabled()) m_bCanChase = true;
+		if (!m_homeEgg || !m_homeEgg->IsEnabled())
+			m_bCanChase = true;
 		ChangeState((int)SpiderState::HIT);
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 	}
@@ -260,7 +267,12 @@ void Spider::OnAttackEnd()
 {
 	if (m_state != (int)SpiderState::ATTACK) return;
 	if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
-	ChangeState((int)SpiderState::CHASE);
+
+	if (m_attackTarget && m_attackTarget->IsEnabled() && m_distToPlayerSq <= (m_attackRange * m_attackRange * 1.1f)) {
+		ChangeState((int)SpiderState::IDLE);
+	}
+	else
+		ChangeState((int)SpiderState::CHASE);
 }
 
 void Spider::OnHitEnd()
@@ -269,37 +281,9 @@ void Spider::OnHitEnd()
 	ChangeState((int)SpiderState::IDLE);
 }
 
-void Spider::Die() { ChangeState((int)SpiderState::DEATH); }
+void Spider::Die() {
+	SetDropItem(GOID_ITEM_MONSTER_MEAT, 1);
+	ChangeState((int)SpiderState::DEATH);
+}
 
 bool Spider::OnInteraction(GameObject* obj) { return Entity::OnInteraction(obj); }
-
-void Spider::RenderDebugOverlay()
-{
-	if (!transform) return;
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	RenderManager* renderManager = RenderManager::GetInstance();
-	if (!cameraManager || !renderManager) return;
-
-	float wanderCenterX = transform->GetX();
-	float wanderCenterY = transform->GetY();
-	if (m_homeEgg && m_homeEgg->IsEnabled()) {
-		Transform* eggTr = m_homeEgg->GetComponent<Transform>();
-		if (eggTr) {
-			wanderCenterX = eggTr->GetX();
-			wanderCenterY = eggTr->GetY();
-		}
-	}
-
-	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(wanderCenterX, wanderCenterY);
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_spawnRadius, screenCenter.Y - m_spawnRadius, m_spawnRadius * 2.0f, m_spawnRadius * 2.0f), Gdiplus::Color(100, 200, 100, 255), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_aggroRadius, screenCenter.Y - m_aggroRadius, m_aggroRadius * 2.0f, m_aggroRadius * 2.0f), Gdiplus::Color(255, 255, 0), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_deaggroRadius, screenCenter.Y - m_deaggroRadius, m_deaggroRadius * 2.0f, m_deaggroRadius * 2.0f), Gdiplus::Color(255, 165, 0), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-
-	if (m_state == (int)SpiderState::ATTACK && m_attackCollider) {
-		UpdateAttackBoxByDirection(transform->GetDirection());
-		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
-		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
-		Gdiplus::PointF bottomRight = cameraManager->WorldToScreen((float)worldRect.right, (float)worldRect.bottom);
-		renderManager->AddDrawRectCommand(Gdiplus::RectF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
-	}
-}

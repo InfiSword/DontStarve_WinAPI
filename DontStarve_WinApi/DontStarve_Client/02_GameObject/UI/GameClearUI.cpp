@@ -25,6 +25,7 @@ GameClearUI::GameClearUI(float anchorMinX, float anchorMinY,
     , m_btnToLobbyText(nullptr)
     , m_btnQuit(nullptr)
     , m_btnQuitText(nullptr)
+    , m_type(GameClearUIType::Default)
 {
     if (m_rectTransform) {
         m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
@@ -61,7 +62,7 @@ void GameClearUI::Init()
 
     // 클리어 텍스트
     m_clearText = new UIText(
-        GOID_NONE, 400.0f, 80.0f, L"GAME CLEAR!", Gdiplus::Color(255, 255, 215, 0), // Gold color
+        GOID_NONE, 600.0f, 80.0f, L"GAME CLEAR!", Gdiplus::Color(255, 255, 215, 0), // Gold color
         LAYER_UI_FOREGROUND, SORT_KEY + 1.0f, L"Arial", 48.0f,
         Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
         anchorX, anchorY, anchorX, anchorY, centerX, centerY - 120.0f
@@ -135,11 +136,20 @@ void GameClearUI::Update(float deltaTime)
 
     bool isEnabled = IsEnabled();
     if (m_clearText && m_clearText->IsEnabled() != isEnabled) m_clearText->SetActive(isEnabled);
-    if (m_timeText && m_timeText->IsEnabled() != isEnabled) m_timeText->SetActive(isEnabled);
-    if (m_btnToLobby && m_btnToLobby->IsEnabled() != isEnabled) m_btnToLobby->SetActive(isEnabled);
-    if (m_btnToLobbyText && m_btnToLobbyText->IsEnabled() != isEnabled) m_btnToLobbyText->SetActive(isEnabled);
-    if (m_btnQuit && m_btnQuit->IsEnabled() != isEnabled) m_btnQuit->SetActive(isEnabled);
-    if (m_btnQuitText && m_btnQuitText->IsEnabled() != isEnabled) m_btnQuitText->SetActive(isEnabled);
+    
+    if (m_type == GameClearUIType::Default) {
+        if (m_timeText && m_timeText->IsEnabled() != isEnabled) m_timeText->SetActive(isEnabled);
+        if (m_btnToLobby && m_btnToLobby->IsEnabled() != isEnabled) m_btnToLobby->SetActive(isEnabled);
+        if (m_btnToLobbyText && m_btnToLobbyText->IsEnabled() != isEnabled) m_btnToLobbyText->SetActive(isEnabled);
+        if (m_btnQuit && m_btnQuit->IsEnabled() != isEnabled) m_btnQuit->SetActive(isEnabled);
+        if (m_btnQuitText && m_btnQuitText->IsEnabled() != isEnabled) m_btnQuitText->SetActive(isEnabled);
+    } else {
+        if (m_timeText && m_timeText->IsEnabled()) m_timeText->SetActive(false);
+        if (m_btnToLobby && m_btnToLobby->IsEnabled()) m_btnToLobby->SetActive(false);
+        if (m_btnToLobbyText && m_btnToLobbyText->IsEnabled()) m_btnToLobbyText->SetActive(false);
+        if (m_btnQuit && m_btnQuit->IsEnabled()) m_btnQuit->SetActive(false);
+        if (m_btnQuitText && m_btnQuitText->IsEnabled()) m_btnQuitText->SetActive(false);
+    }
 }
 
 void GameClearUI::Render()
@@ -162,8 +172,20 @@ void GameClearUI::Show()
     
     // 시간 업데이트
     if (m_timeText) {
-        float totalTime = GameProgressManager::GetInstance()->GetTotalGameTime();
-        m_timeText->SetText(L"Clear Time: " + FormatTime(totalTime));
+        if (m_type == GameClearUIType::Default) {
+            float totalTime = GameProgressManager::GetInstance()->GetTotalGameTime();
+            m_timeText->SetText(L"Clear Time: " + FormatTime(totalTime));
+            m_timeText->SetActive(true);
+        } else {
+            m_timeText->SetActive(false);
+        }
+    }
+
+    if (m_type == GameClearUIType::NoButtons) {
+        if (m_btnToLobby) m_btnToLobby->SetActive(false);
+        if (m_btnToLobbyText) m_btnToLobbyText->SetActive(false);
+        if (m_btnQuit) m_btnQuit->SetActive(false);
+        if (m_btnQuitText) m_btnQuitText->SetActive(false);
     }
 
     SetActive(true);

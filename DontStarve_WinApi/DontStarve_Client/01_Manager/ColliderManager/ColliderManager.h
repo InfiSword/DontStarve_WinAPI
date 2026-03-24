@@ -14,7 +14,6 @@ public:
     void LateInit();                     
     void Update(float deltaTime);         // 모든 게임오브젝트의 콜라이더 위치 업데이트
     void LateUpdate();                    // 충돌 검사 처리 
-    void RenderGizmos();                  // 디버그용 콜라이더 Gizmo 그리기 (RenderManager 명령 큐 사용)
     void Release();                    
 
     void AddCollider(Collider* pCollider);

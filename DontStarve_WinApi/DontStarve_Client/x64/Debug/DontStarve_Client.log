@@ -1,5 +1,79 @@
-﻿  MenuUI.cpp
-E:\p\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Item\Tool\Tool.h(23,40): warning C4244: 'return': 'const int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  (소스 파일 '/02_GameObject/UI/MenuUI.cpp'을(를) 컴파일하는 중)
-  
+﻿  pch.cpp
+  BossHoundScene.cpp
+  BossSpiderQueenScene.cpp
+  GameProgressManager.cpp
+  InventoryManager.cpp
+  ResourceManager.cpp
+  CharacterSelectScene.cpp
+  ForestScene.cpp
+  GameScene.cpp
+  SceneManager.cpp
+  TitleScene.cpp
+  Building.cpp
+  Button.cpp
+  Component.cpp
+  Collider.cpp
+  BoxCollider.cpp
+  CircleCollider.cpp
+  Image.cpp
+  Sprite.cpp
+  SpriteRenderer.cpp
+  Text.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
+  RectTransform.cpp
+  Transform.cpp
+  Combatant.cpp
+  Entity.cpp
+  Monster.cpp
+  Item.cpp
+  Rock.cpp
+  Tree.cpp
+  Axe.cpp
+  Pickaxe.cpp
+  Tool.cpp
+  Torch.cpp
+  Weapon.cpp
+  Object.cpp
+  MenuUI.cpp
+  GameClearUI.cpp
+  GameOverUI.cpp
+  HPUI.cpp
+  UIElement.cpp
+  UIImage.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
+  UIButton.cpp
+  UIText.cpp
+  AnimationClip.cpp
+  Animator.cpp
+  SpriteSheet.cpp
+  Client.cpp
+  DontStarve_MainGame.cpp
+  TimeManager.cpp
+  InputManager.cpp
+  CameraManager.cpp
+  GameObject.cpp
+  ObjectManager.cpp
+  ColliderManager.cpp
+  GraphicsManager.cpp
+  Player.cpp
+  Ingredient.cpp
+  Grass.cpp
+  RenderManager.cpp
+  PigHouse.cpp
+  Inventory.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
+  IntroNoticeUI.cpp
+  BerryBush.cpp
+  Sapling.cpp
+  Boss_RedHound.cpp
+  Boss_IceHound.cpp
+  Boss_SpiderQueen.cpp
+  Hound.cpp
+  Pig.cpp
+  Spider.cpp
+  SpiderEgg.cpp
+  코드를 생성하고 있습니다...
   DontStarve_Client.vcxproj -> E:\p\DontStarve_WinAPI\DontStarve_WinApi\Build\DontStarve_Client.exe

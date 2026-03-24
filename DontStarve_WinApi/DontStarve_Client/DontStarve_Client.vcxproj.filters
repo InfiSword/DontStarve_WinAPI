@@ -24,6 +24,7 @@
     <ClCompile Include="02_GameObject\Building\PigHouse.cpp" />
     <ClCompile Include="02_GameObject\Item\Item.cpp" />
     <ClCompile Include="02_GameObject\UI\Inventory.cpp" />
+    <ClCompile Include="02_GameObject\UI\IntroNoticeUI.cpp" />
     <ClCompile Include="02_GameObject\Building\Building.cpp" />
     <ClCompile Include="02_GameObject\Entity\Entity.cpp" />
     <ClCompile Include="01_Manager\GameProgressManager\GameProgressManager.cpp" />
@@ -99,6 +100,7 @@
     <ClInclude Include="02_GameObject\Building\PigHouse.h" />
     <ClInclude Include="02_GameObject\Item\Item.h" />
     <ClInclude Include="02_GameObject\UI\Inventory.h" />
+    <ClInclude Include="02_GameObject\UI\IntroNoticeUI.h" />
     <ClInclude Include="02_GameObject\Building\Building.h" />
     <ClInclude Include="02_GameObject\Entity\Entity.h" />
     <ClInclude Include="01_Manager\GameProgressManager\GameProgressManager.h" />

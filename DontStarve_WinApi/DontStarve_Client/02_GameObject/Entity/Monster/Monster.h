@@ -47,20 +47,26 @@ public:
     void SetCanChase(bool canChase) { m_bCanChase = canChase; }
     bool CanChase() const { return m_bCanChase; }
 
-    bool CheckCounterAttack();
-
 protected:
-    virtual void UpdateAI(float deltaTime) {}
-    virtual void UpdateMovement(float deltaTime) {}
+    virtual void UpdateAI(float deltaTime);
+    virtual void UpdateMovement(float deltaTime);
+
+    // New Virtual State Update Functions
+    virtual int UpdateIdle(float deltaTime);
+    virtual int UpdateWalk(float deltaTime);
+    virtual int UpdateChase(float deltaTime);
+    virtual int UpdateAttack(float deltaTime);
+    virtual int UpdateHit(float deltaTime);
+
     virtual void OnAttackHit() {}
+    virtual void OnAttackEnd() {}
     virtual void OnHitEnd() {}
     virtual void OnDeathEnd();
     virtual void ResetAggroSession() {}
     virtual void ResolveWanderCenter(float& outX, float& outY) const;
 
-    void MoveTowardPlayer(float deltaTime, float speed, int runAnimState, int idleState);
-    void MoveTowardLocation(float deltaTime, float speed, int walkAnimState, int idleState);
-    void CheckAttackTransition(float range, int attackState, int idleState);
-    void UpdateAI_AlwaysChase(float deltaTime, int runState, int attackState, int idleState);
-    void UpdateAI_Wander(float deltaTime, int walkState, int idleState);
+    // Movement Helpers (still available for derived classes if they want to use them in UpdateMovement)
+    void MoveTowardPlayer(float deltaTime, float speed);
+    void MoveTowardLocation(float deltaTime, float speed);
+
 };

@@ -4,6 +4,8 @@
 #include "Component/Sprite/SpriteRenderer.h"
 #include "../01_Manager/TimeManager/TimeManager.h"
 
+bool GameObject::g_bRenderDebugOverlay = false;
+
 GameObject::GameObject(GameObjectID id,
 	const std::wstring& resourcePath, const std::wstring& imageName,
 	bool isActive, bool isInteractive)

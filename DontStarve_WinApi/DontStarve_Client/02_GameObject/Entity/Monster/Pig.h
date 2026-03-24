@@ -6,7 +6,6 @@ class BoxCollider;
 enum class PigState {
 	IDLE = (int)CombatantState::IDLE,
 	WALK = (int)CombatantState::WALK,
-	RUN = (int)CombatantState::RUN,
 	CHASE = (int)CombatantState::CHASE,
 	ATTACK = (int)CombatantState::ATTACK,
 	HIT = (int)CombatantState::HIT,
@@ -22,19 +21,21 @@ public:
     virtual ~Pig() override;
 
     virtual void Init() override;
-    virtual void UpdateAI(float deltaTime) override;
-    virtual void UpdateMovement(float deltaTime) override;
+	virtual void RenderDebugOverlay() override;
     virtual bool OnInteraction(GameObject* obj) override;
     virtual void Damaged(int damage) override;
 
     PigState GetPigState() const { return (PigState)m_state; }
 
-    // 디버그 레이아웃 시각화
-    virtual void RenderDebugOverlay() override;
     float GetActionRadius() const { return m_wanderRadius; }
 
 protected:
-    virtual void ChangeState(int newState) override;
+	virtual void UpdateAI(float deltaTime) override;
+	virtual void UpdateMovement(float deltaTime) override;
+
+	virtual int UpdateIdle(float deltaTime) override;
+	virtual int UpdateWalk(float deltaTime) override;
+	virtual int UpdateChase(float deltaTime) override;
 
     virtual void OnAttackHit() override;
     virtual void OnAttackEnd() override;

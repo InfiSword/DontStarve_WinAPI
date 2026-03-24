@@ -50,7 +50,6 @@ private:
 	Gdiplus::SolidBrush* m_pCachedBrush = nullptr;
 	Gdiplus::ImageAttributes* m_pCachedAttr = nullptr;
 
-	// 레이어별로 이미 분할되어 있으므로 sortKey만 비교하여 정렬 비용 감소
 	static bool CompareDrawCommands(const DrawCommand& a, const DrawCommand& b)
 	{
 		return a.sortKey < b.sortKey;

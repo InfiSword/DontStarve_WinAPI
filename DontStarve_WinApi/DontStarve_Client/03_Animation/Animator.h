@@ -24,7 +24,7 @@ public:
     
     AnimationClip* GetAnimationClip(int state, Direction dir);
 
-    void SetState(int state, Direction direction);
+    void SetState(int state, Direction direction, bool restart);
 
     virtual void Init() override;
     virtual void Update(float deltaTime) override;

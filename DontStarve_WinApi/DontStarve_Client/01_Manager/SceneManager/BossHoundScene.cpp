@@ -11,6 +11,7 @@
 #include "../SceneManager/SceneManager.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIText.h"
+#include "../../02_GameObject/UI/GameClearUI.h"
 #include "../../02_GameObject/UI/HPUI.h"
 #include "../../01_Manager/RenderManager/RenderManager.h"
 
@@ -23,8 +24,7 @@ BossHoundScene::BossHoundScene()
     , m_introTargetBossIndex(0)
     , m_bossesActivated(false)
     , m_isClearUIShown(false)
-    , m_clearBanner(nullptr)
-    , m_clearText(nullptr)
+    , m_gameClearUI(nullptr)
     , m_iceBossHPUI(nullptr)
     , m_redBossHPUI(nullptr)
 {
@@ -47,20 +47,16 @@ void BossHoundScene::Init(const MapData* mapData)
     m_isClearUIShown = false;
     m_introTargetBossIndex = 0;
     m_bossObjects.clear();
-    m_clearBanner = nullptr;
-    m_clearText = nullptr;
+    m_gameClearUI = nullptr;
     m_iceBossHPUI = nullptr;
     m_redBossHPUI = nullptr;
 
     ObjectManager* uiMgr = ObjectManager::GetInstance();
-    // 클리어 UI 미리 생성
-    m_clearBanner = new UIImage(GOID_NONE, 600.0f, 150.0f, LAYER_UI_BACKGROUND, L"Resource/UI/BG_Banner.png", 999.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
-    m_clearBanner->SetActive(false);
-    uiMgr->AddGameObject(m_clearBanner);
-
-    m_clearText = new UIText(GOID_NONE, 400.0f, 100.0f, L"CLEARED!", Gdiplus::Color(255, 255, 255, 0), LAYER_UI_FOREGROUND, 1000.0f, L"Arial", 48.0f, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, -50.0f);
-    m_clearText->SetActive(false);
-    uiMgr->AddGameObject(m_clearText);
+    // 클리어 UI 생성
+    m_gameClearUI = new GameClearUI();
+    m_gameClearUI->SetType(GameClearUIType::NoButtons);
+    m_gameClearUI->Init();
+    uiMgr->AddGameObject(m_gameClearUI);
 
     // 맵 데이터에서 생성된 보스들을 찾아 비활성화 (전투 준비 단계)
     // 연출 순서 보장을 위해 순서대로 찾음 (Ice -> Red)
@@ -180,35 +176,13 @@ void BossHoundScene::StartBossIntro()
 
     CameraManager* camMgr = CameraManager::GetInstance();
     camMgr->SetFollowMode(false); // 수동 카메라 제어
-    
     m_introStartPos = camMgr->GetCameraPos();
 
     // 플레이어 입력 비활성화
     Player* player = ObjectManager::GetInstance()->GetPlayer();
     if (player) player->SetInputEnabled(false);
-
-    // 만약 초기화 시 보스를 못 찾았다면 여기서 동적으로 생성
-    if (m_bossObjects.empty())
-    {
-        ObjectManager* objMgr = ObjectManager::GetInstance();
-        float px = 0, py = 0;
-        if (player)
-        {
-            Transform* tr = player->GetComponent<Transform>();
-            px = tr->GetX();
-            py = tr->GetY();
-        }
-
-        // 보스 생성 (Ice -> Red 순서로 리스트에 추가)
-        Entity* iceBoss = objMgr->CreateEntity(GOID_MONSTER_ICEHOUNDDOG, px - 300.0f, py - 200.0f);
-        Entity* redBoss = objMgr->CreateEntity(GOID_MONSTER_REDHOUNDDOG, px + 300.0f, py - 200.0f);
-
-        if (iceBoss) { iceBoss->SetActive(false); m_bossObjects.push_back(iceBoss); }
-        if (redBoss) { redBoss->SetActive(false); m_bossObjects.push_back(redBoss); }
-    }
-    
-    // 첫 번째 보스 위치로 타겟 설정
-    if (!m_bossObjects.empty())
+	
+	if(!m_bossObjects.empty())
     {
         Transform* tr = m_bossObjects[0]->GetComponent<Transform>();
         if (tr) m_introTargetPos = { tr->GetX(), tr->GetY() };
@@ -272,7 +246,7 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
                     // 보스 활성화
                     if (!boss->IsEnabled())
                     {
-                        boss->SetActive(true);
+                        boss->SetActive(true);						
                         OutputDebugStringW((L"BossHoundScene: Boss " + std::to_wstring(currentIndex) + L" Activated!\n").c_str());
                     }
                 }
@@ -281,8 +255,6 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
     }
     else if (m_introTimer <= totalBossIntroDuration + returnDuration)
     {
-        // 플레이어에게 카메라가 돌아가기 시작할 때 추격 허용
-
         // 플레이어에게 복귀
         Player* player = ObjectManager::GetInstance()->GetPlayer();
         if (player)
@@ -305,16 +277,17 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
     }
     else
     {
-    	for (auto* boss : m_bossObjects)
-    	{
-    		Monster* pMonster = dynamic_cast<Monster*>(boss);
-    		if (pMonster) pMonster->SetCanChase(true);
-    	}
-
         // 모든 연출 종료
         m_bossesActivated = true;
         camMgr->SetFollowMode(true);
         m_currentPhase = BossPhase::Phase2_BossBattle;
+
+		// 플레이어에게 카메라가 돌아가기 시작할 때 추격 허용
+		for (auto* boss : m_bossObjects)
+		{
+			Monster* pMonster = dynamic_cast<Monster*>(boss);
+			if (pMonster) pMonster->SetCanChase(true);
+		}
 
         // 보스 HP UI 활성화
         if (m_iceBossHPUI) m_iceBossHPUI->SetActive(true);
@@ -400,9 +373,7 @@ void BossHoundScene::UpdateCleared(float deltaTime)
     // 1초 뒤에 클리어 UI 표시
     if (m_phaseTimer >= 1.0f && !m_isClearUIShown)
     {
-        // 뒷배경 어둡게 하기 (또는 클리어 배너 표시)
-        if (m_clearBanner) m_clearBanner->SetActive(true);
-        if (m_clearText) m_clearText->SetActive(true);
+        if (m_gameClearUI) m_gameClearUI->Show();
 
         m_isClearUIShown = true;
         OutputDebugStringW(L"BossHoundScene: Clear UI displayed.\n");
@@ -419,8 +390,7 @@ void BossHoundScene::UpdateCleared(float deltaTime)
 void BossHoundScene::Release()
 {
     // UI 포인터 정리 (실제 삭제는 ObjectManager에서 수행됨)
-    m_clearBanner = nullptr;
-    m_clearText = nullptr;
+    m_gameClearUI = nullptr;
     m_iceBossHPUI = nullptr;
     m_redBossHPUI = nullptr;
     m_bossObjects.clear();

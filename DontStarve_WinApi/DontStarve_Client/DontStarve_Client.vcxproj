@@ -206,6 +206,7 @@
     <ClInclude Include="01_Manager\RenderManager\RenderManager.h" />
     <ClInclude Include="02_GameObject\Building\PigHouse.h" />
     <ClInclude Include="02_GameObject\UI\Inventory.h" />
+    <ClInclude Include="02_GameObject\UI\IntroNoticeUI.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\BerryBush.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Sapling.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Boss_RedHound.h" />
@@ -280,6 +281,7 @@
     <ClCompile Include="01_Manager\RenderManager\RenderManager.cpp" />
     <ClCompile Include="02_GameObject\Building\PigHouse.cpp" />
     <ClCompile Include="02_GameObject\UI\Inventory.cpp" />
+    <ClCompile Include="02_GameObject\UI\IntroNoticeUI.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\BerryBush.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Sapling.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Boss_RedHound.cpp" />

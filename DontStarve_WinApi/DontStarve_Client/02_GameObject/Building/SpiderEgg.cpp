@@ -106,13 +106,15 @@ void SpiderEgg::Init()
 	if (m_eggStage == EggStage::Medium) idleState = EGG_STATE_IDLE_MEDIUM;
 	else if (m_eggStage == EggStage::Large) idleState = EGG_STATE_IDLE_LARGE;
 	else if (m_eggStage == EggStage::Sac) idleState = EGG_STATE_IDLE_SMALL;
-	m_animator->SetState(idleState, transform->GetDirection());
+	ChangeState(idleState);
 
 	// Sac 상태: 아무것도 렌더링하지 않음.
 	if (spriteRenderer) {
 		if (m_eggStage == EggStage::Sac) spriteRenderer->SetActive(false);
 		else spriteRenderer->SetActive(true);
 	}
+
+	PreSpawnSpiders();
 
 	OutputDebugStringW(L"SpiderEgg: Init 완료\n");
 }
@@ -157,10 +159,12 @@ void SpiderEgg::Update(float deltaTime)
 		case EggStage::Large: m_remainingSpiders = 3; break;
 		}
 
+		PreSpawnSpiders();
+
 		int idleState = EGG_STATE_IDLE_SMALL;
 		if (m_eggStage == EggStage::Medium) idleState = EGG_STATE_IDLE_MEDIUM;
 		else if (m_eggStage == EggStage::Large) idleState = EGG_STATE_IDLE_LARGE;
-		m_animator->SetState(idleState, transform->GetDirection());
+		ChangeState(idleState);
 	}
 
 	// Hit 애니메이션 종료 처리
@@ -170,7 +174,7 @@ void SpiderEgg::Update(float deltaTime)
 		int idleState = EGG_STATE_IDLE_SMALL;
 		if (m_eggStage == EggStage::Medium) idleState = EGG_STATE_IDLE_MEDIUM;
 		else if (m_eggStage == EggStage::Large) idleState = EGG_STATE_IDLE_LARGE;
-		m_animator->SetState(idleState, transform->GetDirection());
+		ChangeState(idleState);
 	}
 }
 
@@ -181,6 +185,13 @@ void SpiderEgg::LateUpdate()
 
 void SpiderEgg::Release()
 {
+	for (Spider* s : m_poolSpiders) {
+		if (s) {
+			ObjectManager::GetInstance()->RemoveGameObject(s);
+		}
+	}
+	m_poolSpiders.clear();
+
 	m_animator = nullptr;
 	Building::Release();
 }
@@ -222,7 +233,30 @@ void SpiderEgg::Damaged(int damage)
 			int hitState = EGG_STATE_HIT_SMALL;
 			if (m_eggStage == EggStage::Medium) hitState = EGG_STATE_HIT_MEDIUM;
 			else if (m_eggStage == EggStage::Large) hitState = EGG_STATE_HIT_LARGE;
-			m_animator->SetState(hitState, GetComponent<Transform>()->GetDirection());
+			ChangeState(hitState);
+		}
+	}
+}
+
+void SpiderEgg::PreSpawnSpiders()
+{
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	if (!objectManager) return;
+
+	while (m_poolSpiders.size() < m_remainingSpiders) {
+		GameObjectID spiderID = GOID_MONSTER_SPIDER;
+		if (m_eggStage == EggStage::Large && (rand() % 100 < 30)) {
+			spiderID = GOID_MONSTER_WARRIOR_SPIDER;
+		}
+
+		Entity* spiderObj = objectManager->CreateEntity(spiderID, 0.0f, 0.0f);
+		if (spiderObj) {
+			Spider* spider = dynamic_cast<Spider*>(spiderObj);
+			if (spider) {
+				spider->SetActive(false);
+				spider->SetHomeEgg(this, m_spawnRadius);
+				m_poolSpiders.push_back(spider);
+			}
 		}
 	}
 }
@@ -235,28 +269,30 @@ void SpiderEgg::SpawnSpiders()
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!eggTr || !objectManager) return;
 
-	// 거미 종류 결정
-	// Small/Medium이면 일반 거미, Large면 확률적으로 병정 거미
-	GameObjectID spiderID = GOID_MONSTER_SPIDER;
-	if (m_eggStage == EggStage::Large && (rand() % 100 < 30)) {
-		spiderID = GOID_MONSTER_WARRIOR_SPIDER;
+	if (m_poolSpiders.empty()) {
+		PreSpawnSpiders();
 	}
+	if (m_poolSpiders.empty()) return;
+
+	Spider* spider = m_poolSpiders.back();
+	m_poolSpiders.pop_back();
 
 	float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
 	float dist = 60.0f + (rand() / (float)RAND_MAX) * 60.0f;
 	float sx = eggTr->GetX() + cosf(angle) * dist;
 	float sy = eggTr->GetY() + sinf(angle) * dist;
 
-	Entity* spiderObj = objectManager->CreateEntity(spiderID, sx, sy);
-	if (spiderObj) {
-		Spider* spider = dynamic_cast<Spider*>(spiderObj);
-		if (spider) {
-			spider->SetHomeEgg(this, m_spawnRadius);
-			GameObject* player = objectManager->GetPlayer();
-			if (player) spider->SetAggroTarget(player);
-		}
-		m_remainingSpiders--;
+	Transform* spiderTr = spider->GetComponent<Transform>();
+	if (spiderTr) {
+		spiderTr->SetPosition(sx, sy);
 	}
+
+	spider->SetActive(true);
+
+	GameObject* player = objectManager->GetPlayer();
+	if (player) spider->SetAggroTarget(player);
+
+	m_remainingSpiders--;
 }
 
 void SpiderEgg::Grow()
@@ -269,7 +305,7 @@ void SpiderEgg::Grow()
 	if (m_eggStage == EggStage::Small) growState = EGG_STATE_GROW_SMALL_TO_MEDIUM;
 	else if (m_eggStage == EggStage::Medium) growState = EGG_STATE_GROW_MEDIUM_TO_LARGE;
 
-	m_animator->SetState(growState, transform->GetDirection());
+	ChangeState(growState);
 }
 
 void SpiderEgg::SetTimeState(BuildingState buildingState)

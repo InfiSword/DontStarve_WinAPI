@@ -96,9 +96,9 @@ RECT BoxCollider::GetWorldBoundingBox() const
 
 void BoxCollider::RenderGizmo()
 {
-	if (!IsEnabled()) {
+	/*if (!IsEnabled()) {
 		return;
-	}
+	}*/
 
 	RenderManager* renderManager = RenderManager::GetInstance();
 	CameraManager* cameraManager = CameraManager::GetInstance();
@@ -110,18 +110,6 @@ void BoxCollider::RenderGizmo()
 	Gdiplus::PointF screenTopLeft = cameraManager->WorldToScreen((float)worldBox.left, (float)worldBox.top);
 	Gdiplus::PointF screenBottomRight = cameraManager->WorldToScreen((float)worldBox.right, (float)worldBox.bottom);
 
-	// 화면 좌표로 변환된 사각형 크기 계산
-	float width = screenBottomRight.X - screenTopLeft.X;
-	float height = screenBottomRight.Y - screenTopLeft.Y;
+	renderManager->AddDrawRectCommand(Gdiplus::RectF(screenTopLeft.X, screenTopLeft.Y, screenBottomRight.X - screenTopLeft.X, screenBottomRight.Y - screenTopLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 10.0f);
 
-	// Gizmo 사각형 생성 (반투명 외곽선)
-	Gdiplus::RectF gizmoRect(screenTopLeft.X, screenTopLeft.Y, width, height);
-	Gdiplus::Color gizmoColor(255, 255, 0, 0); // 빨간색, 두께 2.0f
-
-	// 반투명 배경 추가 (반투명)
-	Gdiplus::Color bgColor(30, 255, 0, 0); // 반투명 빨간색
-	renderManager->AddFillRectangleCommand(gizmoRect, bgColor, LAYER_DEBUG_OVERLAY, 9998.0f);
-
-	// 외곽선 그리기
-	renderManager->AddDrawRectCommand(gizmoRect, gizmoColor, 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
 }

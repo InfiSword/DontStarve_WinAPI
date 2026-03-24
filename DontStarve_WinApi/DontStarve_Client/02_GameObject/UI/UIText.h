@@ -29,5 +29,6 @@ public:
     virtual void Release() override;
 
     void SetText(const std::wstring& text);
+    void SetColor(const Gdiplus::Color& color);
     Text* GetTextComponent() const { return m_text; }
 };

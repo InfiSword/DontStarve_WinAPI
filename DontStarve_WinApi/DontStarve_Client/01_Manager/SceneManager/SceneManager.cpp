@@ -148,6 +148,7 @@ void SceneManager::ChangeSceneIfReserved()
 
 	// 1. 기존 씬 정리
 	if (m_currentScene) {
+		m_currentScene->Release();
 		delete m_currentScene;
 		m_currentScene = nullptr;
 	}

@@ -55,6 +55,8 @@ public:
 	void StartCoroutine(CoroutineHandle coroutine);
 	void StopAllCoroutines();
 
+	virtual void RenderDebugOverlay() {}
+
 	// 상호작용 관련
 	virtual bool OnInteraction(GameObject* obj);
 	virtual void Damaged(int damage) {}
@@ -62,7 +64,7 @@ public:
 	virtual void SetInteractive(bool interactive) { m_isInteractive = interactive; }
 
 	// 디버그/시각화 오버레이 
-	virtual void RenderDebugOverlay() {}
+	static bool g_bRenderDebugOverlay;	
 
     template <typename T, typename... Args>
     T* AddComponent(Args&&... args) {

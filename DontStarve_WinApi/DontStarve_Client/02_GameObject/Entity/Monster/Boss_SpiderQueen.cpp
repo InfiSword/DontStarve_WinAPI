@@ -73,6 +73,9 @@ void Boss_SpiderQueen::Init()
 		std::wstring walkPath = base + L"Walk_spider_queen_walk_loop_side.png";
 		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) m_animator->RegisterAnimation((int)SpiderQueenState::CHASE, (Direction)dir, walkPath, 0, 0, 7, 65, px, py, true, 0.02f);
 
+		// WANDER 애니메이션도 동일한 리소스 사용 (약간 느리게)
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) m_animator->RegisterAnimation((int)SpiderQueenState::WALK, (Direction)dir, walkPath, 0, 0, 7, 65, px, py, true, 0.03f);
+
 		std::wstring attackPath = base + L"Queen_spider_queen_atk_side.png";
 		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 			m_animator->RegisterAnimation((int)SpiderQueenState::ATTACK, (Direction)dir, attackPath, 0, 0, 7, 53, px, py, false, 0.02f);
@@ -155,7 +158,7 @@ void Boss_SpiderQueen::Init()
         // 2. Spawn Out FX (단발)
         m_spawnOutFxAnimator->RegisterAnimation(0, DIR_DOWN, base + L"FX_splash_spiderweb_idle.png", 0, 0, 7, 45, px, py, false, 0.02f);
 	}
-	m_animator->SetState((int)m_state, this->transform->GetDirection());
+	ChangeState(m_state);
     m_healFxAnimator->SetActive(false);
     m_spawnOutFxAnimator->SetActive(false);
 
@@ -164,6 +167,11 @@ void Boss_SpiderQueen::Init()
 		UpdateAttackBoxByDirection(DIR_DOWN);
 		m_attackCollider->SetColliderEnabled(false);
 	}
+}
+
+void Boss_SpiderQueen::RenderDebugOverlay()
+{
+	Combatant::RenderDebugOverlay();
 }
 
 void Boss_SpiderQueen::UpdateAI(float deltaTime)
@@ -205,8 +213,7 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 		break;
 
 	default:
-		// 항상 추격 패턴 적용 (IDLE/CHASE/ATTACK 등)
-		UpdateAI_AlwaysChase(deltaTime, (int)SpiderQueenState::CHASE, (int)SpiderQueenState::ATTACK, (int)SpiderQueenState::IDLE);
+		Monster::UpdateAI(deltaTime);
 		break;
 	}
 }
@@ -217,13 +224,29 @@ void Boss_SpiderQueen::UpdateMovement(float deltaTime)
 
 	switch ((SpiderQueenState)m_state)
 	{
-    case SpiderQueenState::COCOON:
-    case SpiderQueenState::BIRTH:
+	case SpiderQueenState::COCOON:
+	case SpiderQueenState::BIRTH:
 	case SpiderQueenState::COCOON_PRE:
-        break;
-	case SpiderQueenState::CHASE: MoveTowardPlayer(deltaTime, m_walkSpeed, (int)SpiderQueenState::CHASE, (int)SpiderQueenState::IDLE); break;
-	case SpiderQueenState::IDLE: m_animator->SetState((int)SpiderQueenState::IDLE, transform->GetDirection()); break;
+		break;
+	default:
+		Monster::UpdateMovement(deltaTime);
+		break;
 	}
+}
+
+int Boss_SpiderQueen::UpdateIdle(float deltaTime)
+{
+	return Monster::UpdateIdle(deltaTime);
+}
+
+int Boss_SpiderQueen::UpdateWalk(float deltaTime)
+{
+	return Monster::UpdateWalk(deltaTime);
+}
+
+int Boss_SpiderQueen::UpdateChase(float deltaTime)
+{
+	return Monster::UpdateChase(deltaTime);
 }
 
 void Boss_SpiderQueen::OnAttackHit() { if (m_state == (int)SpiderQueenState::ATTACK) ProcessAttackHit(m_damage); }
@@ -233,7 +256,6 @@ void Boss_SpiderQueen::OnAttackEnd()
 	if (m_state != (int)SpiderQueenState::ATTACK) return;
 	
 	HandleAttackEndSuperArmor();
-	if (m_state == (int)SpiderQueenState::HIT) return;
 
 	ChangeState((int)SpiderQueenState::CHASE);
 }
@@ -276,7 +298,7 @@ void Boss_SpiderQueen::Damaged(int damage)
 		return;
 	}
 
-	Entity::Damaged(damage);
+	Monster::Damaged(damage);
 	if (IsDead())
 	{
 		m_hp = 0; ChangeState((int)SpiderQueenState::DEATH); m_isDead = true;
@@ -294,7 +316,6 @@ void Boss_SpiderQueen::Damaged(int damage)
 	if (m_hp <= m_maxHp * 0.5f && m_bossPhase == 1) { m_bossPhase = 2; OutputDebugStringW(L"Boss_SpiderQueen: 보스 페이즈가 2단계로 전환!\n"); }
 
 	if (CheckSuperArmorHit()) return;
-	if (CheckCounterAttack()) return;
 
 	ChangeState((int)SpiderQueenState::HIT);
 
@@ -315,7 +336,7 @@ void Boss_SpiderQueen::StartCocoonPhase()
 
     if (m_healFxAnimator) {
         m_healFxAnimator->SetActive(true);
-        m_healFxAnimator->SetState(0, DIR_DOWN);
+        // m_healFxAnimator->SetState(0, DIR_DOWN);
     }
 
     OutputDebugStringW(L"Boss_SpiderQueen: 고치 상태 돌입! 거미를 소환하고 회복을 시작합니다.\n");
@@ -330,7 +351,7 @@ void Boss_SpiderQueen::EndCocoonPhase()
 
     if (m_spawnOutFxAnimator) {
         m_spawnOutFxAnimator->SetActive(true);
-        m_spawnOutFxAnimator->SetState(0, DIR_DOWN);
+        // m_spawnOutFxAnimator->SetState(0, DIR_DOWN);
     }
 
     OutputDebugStringW(L"Boss_SpiderQueen: 고치에서 나옵니다!\n");
@@ -369,25 +390,4 @@ void Boss_SpiderQueen::SummonSpider()
         }
     }
     OutputDebugStringW((L"Boss_SpiderQueen: 거미 " + std::to_wstring(spawnCount) + L"마리 소환 완료\n").c_str());
-}
-
-void Boss_SpiderQueen::RenderDebugOverlay()
-{
-	if (!transform) return;
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	RenderManager* renderManager = RenderManager::GetInstance();
-	if (!cameraManager || !renderManager) return;
-
-	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(transform->GetX(), transform->GetY());
-	float rWander = m_wanderRadius;
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - rWander, screenCenter.Y - rWander, rWander * 2.0f, rWander * 2.0f), Gdiplus::Color(100, 200, 100, 255), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_aggroRadius, screenCenter.Y - m_aggroRadius, m_aggroRadius * 2.0f, m_aggroRadius * 2.0f), Gdiplus::Color(255, 255, 0), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-
-	if (m_state == (int)SpiderQueenState::ATTACK && m_attackCollider) {
-		UpdateAttackBoxByDirection(transform->GetDirection());
-		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
-		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
-		Gdiplus::PointF bottomRight = cameraManager->WorldToScreen((float)worldRect.right, (float)worldRect.bottom);
-		renderManager->AddDrawRectCommand(Gdiplus::RectF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
-	}
 }

@@ -44,6 +44,7 @@ public:
 
 	// 텍스트 내용은 런타임 변경 허용
 	void SetText(const std::wstring& text);
+	void SetColor(const Gdiplus::Color& color);
 	void ApplyStyle(const TextStyle& style);
 
 	// 렌더 파라미터 계산 (렌더 호출은 외부(UI)에서 수행)

@@ -24,7 +24,7 @@ protected:
     Collider* m_entityCollider;      // 몸통 콜라이더
     ColliderType m_colliderType;     // 콜라이더 타입
 
-	virtual void ChangeState(int newState);
+	virtual void ChangeState(int newState, bool restart = false);
 
 public:
     Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,

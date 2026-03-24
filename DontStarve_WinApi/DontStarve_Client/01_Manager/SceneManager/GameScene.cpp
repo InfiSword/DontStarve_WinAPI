@@ -53,9 +53,9 @@ void GameScene::Init(const MapData* mapData)
 
 	if (!m_playerHPUI) {
 		Player* player = ObjectManager::GetInstance()->GetPlayer();
-		m_playerHPUI = new HPUI(player, L"", 200.0f, 28.0f,
+		m_playerHPUI = new HPUI(player, L"", 220.f, 28.0f,
 			Gdiplus::Color(255, 60, 0, 0), Gdiplus::Color(255, 255, 0, 0), Gdiplus::Color(255, 255, 255, 255),
-			1.0f, 0.0f, 1.0f, 0.0f, -278.0f, 34.0f,
+			1.0f, 0.0f, 1.0f, 0.0f, -120.f, 34.0f,
 			10.1f, 10.2f, true, true);
 	}
 	if (m_playerHPUI) {
@@ -74,6 +74,12 @@ void GameScene::Update(float deltaTime)
 {
 	ObjectManager::GetInstance()->Update(deltaTime);
 	CameraManager::GetInstance()->Update(deltaTime);
+
+	Player* player = ObjectManager::GetInstance()->GetPlayer();
+	if (player && player->IsDead() && m_gameOverUI && !m_gameOverUI->IsEnabled())
+	{
+		m_gameOverUI->Show();
+	}
 }
 
 void GameScene::LateUpdate()
@@ -94,12 +100,6 @@ void GameScene::Render()
 	if (objectManager) {
 		objectManager->Render();
 	}
-
-	// 3. 디버그 레이어 (콜라이더 Gizmo)
-	ColliderManager* colliderManager = ColliderManager::GetInstance();
-	if (colliderManager) {
-		colliderManager->RenderGizmos();
-	}
 }
 
 void GameScene::Release()
@@ -109,7 +109,6 @@ void GameScene::Release()
 	m_gameOverUI = nullptr;
 	m_craftingUI = nullptr;
 
-	// 씬 전환 시 씬 종속 매니저 데이터 정리
 	ObjectManager::GetInstance()->Release();
 	ColliderManager::GetInstance()->Release();
 	CameraManager::GetInstance()->Release();
@@ -135,19 +134,11 @@ void GameScene::CreateGameObjectsFromMapData()
 			objectManager->CreateItem(id, objData.x, objData.y);
 		}
 		else if (id >= 3000) {
-			if (id == GOID_UI_MENU)
+			if (id == GOID_UI_MENU && !m_craftingUI)
 			{
-				if (!m_craftingUI) {
-					m_craftingUI = new MenuUI();
-					m_craftingUI->Init();
-					objectManager->AddGameObject(m_craftingUI);
-				}
-			}
-			else if (id == GOID_UI_HP) {
-				// HP UI는 Init에서 이미 생성하므로 중복 생성 방지
-			}
-			else if (id == GOID_UI_GAME_OVER) {
-				// Game Over UI는 Init에서 이미 생성하므로 중복 생성 방지
+				m_craftingUI = new MenuUI();
+				m_craftingUI->Init();
+				objectManager->AddGameObject(m_craftingUI);
 			}
 		}
 	}
@@ -160,8 +151,8 @@ void GameScene::SpawnPlayer()
 
 	objectManager->CreateEntity(m_selectedCharacterID, m_mapData->playerSpawn.x, m_mapData->playerSpawn.y);
 	Player* cachedPlayer = objectManager->GetPlayer();
-	
-	if (cachedPlayer) 
+
+	if (cachedPlayer)
 	{
 		CameraManager* cameraManager = CameraManager::GetInstance();
 		if (cameraManager) {

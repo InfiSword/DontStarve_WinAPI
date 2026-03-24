@@ -31,11 +31,12 @@ public:
     void ToggleCreateList();
     void ToggleCookList();
     void ToggleBossPanel();
+	void ToggleEditPanel();
 
-    void SelectTool(GameObjectID toolID);
+    void SelectCraftItem(GameObjectID itemID);
     void SelectBoss(GameObjectID bossID);
     void UpdateIngredientDisplay();
-    bool TryCraftSelectedTool(Player* player);
+    bool TryCraftSelectedItem(Player* player);
     void TryChallengeBoss();
 
 private:
@@ -56,6 +57,7 @@ private:
     void CreatePalettes();
     void CreateIngredientUI();
     void CreateBossChallengeUI();
+    void CreateEditUI();
 
     void UpdateBossPanelHighlight();
 
@@ -75,6 +77,7 @@ private:
     std::vector<GameObject*> m_createGroup;
     std::vector<GameObject*> m_cookGroup;
     std::vector<GameObject*> m_bossGroup;
+	std::vector<GameObject*> m_editGroup;
     std::vector<GameObject*> m_ingredientGroup;
 
     // 재료 UI 슬롯 (최대 2개 고정)
@@ -93,9 +96,12 @@ private:
     UIButton* m_bossChallengeButton     = nullptr;
     UIText*   m_bossChallengeButtonText = nullptr;
     UIImage*  m_bossOverlay             = nullptr;
+    
+	UIImage* m_debugToggleStatusBG = nullptr;
+	UIText*   m_debugToggleStatusText   = nullptr;
 
     // 데이터
-    GameObjectID m_selectedToolID = GOID_NONE;
+    GameObjectID m_selectedCraftItemID = GOID_NONE;
     GameObjectID m_selectedBossID = GOID_NONE;
     
     std::vector<GameObjectID> m_availableTools;
@@ -103,7 +109,7 @@ private:
     std::vector<GameObjectID> m_availableCookItems;
 
     // 상태
-    enum class PanelType { NONE, TOOL, CREATE, COOK, BOSS };
+    enum class PanelType { NONE, TOOL, CREATE, COOK, BOSS, Editor };
     PanelType m_currentPanel = PanelType::NONE;
 
     // 레이아웃 상수 (필요한 것만 보존)

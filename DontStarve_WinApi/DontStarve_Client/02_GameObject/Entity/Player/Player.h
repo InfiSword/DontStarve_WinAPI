@@ -75,15 +75,12 @@ private:
 
 	Inventory* m_inventory;
 	GameObject* m_pendingInteractionTarget;  // 이동 후 상호작용할 대상
-	GameObject* m_activeInteractionTarget;   // 현재 상호작용 중인 대상 (FinalizePickup용)
-	
-	// m_attackTarget, m_attackCollider는 Combatant에서 상속
+	GameObject* m_activeInteractionTarget;   // 현재 상호작용 중인 대상
 
 	bool isMoveToGoal;
 	float m_playerSpeed;
 	Gdiplus::PointF m_targetWorldPos;
 	float m_stopThreshold;
-	// m_attackRange, m_damage는 Combatant에서 상속
 
 	int m_equippedSlotIndex;
 	Tool* m_equippedItem;

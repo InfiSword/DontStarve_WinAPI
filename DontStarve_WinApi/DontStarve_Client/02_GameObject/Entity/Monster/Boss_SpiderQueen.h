@@ -4,6 +4,7 @@
 enum class SpiderQueenState
 {
 	IDLE = (int)CombatantState::IDLE,
+	WALK = (int)CombatantState::WALK,
 	CHASE = (int)CombatantState::CHASE,
 	ATTACK = (int)CombatantState::ATTACK,
 	HIT = (int)CombatantState::HIT,
@@ -27,14 +28,9 @@ public:
 	virtual ~Boss_SpiderQueen() override;
 
 	virtual void Init() override;
-	virtual void UpdateAI(float deltaTime) override;
-	virtual void UpdateMovement(float deltaTime) override;
-	virtual bool OnInteraction(GameObject* obj) override;
-
-	virtual void Damaged(int damage) override;
-
-	// 디버그 레이아웃 시각화
 	virtual void RenderDebugOverlay() override;
+	virtual bool OnInteraction(GameObject* obj) override;
+	virtual void Damaged(int damage) override;
 
 	// 슈퍼아머 훅
 	virtual bool IsInAttackState() const override { return m_state == (int)SpiderQueenState::ATTACK; }
@@ -42,6 +38,13 @@ public:
 	virtual void TriggerAttackState() override { ChangeState((int)SpiderQueenState::ATTACK); }
 
 protected:
+	virtual void UpdateAI(float deltaTime) override;
+	virtual void UpdateMovement(float deltaTime) override;
+
+	virtual int UpdateIdle(float deltaTime) override;
+	virtual int UpdateWalk(float deltaTime) override;
+	virtual int UpdateChase(float deltaTime) override;
+
 	virtual void OnAttackHit() override;
 	virtual void OnAttackEnd() override;
 	virtual void OnHitEnd() override;

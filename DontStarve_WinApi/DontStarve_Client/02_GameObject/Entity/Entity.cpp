@@ -88,13 +88,11 @@ bool Entity::OnInteraction(GameObject* obj)
 	return GameObject::OnInteraction(obj);
 }
 
-void Entity::ChangeState(int newState)
+void Entity::ChangeState(int newState, bool restart)
 {
-	if (m_state == newState) return;
-
 	m_state = newState;
 	if (m_animator && transform) {
-		m_animator->SetState(m_state, transform->GetDirection());
+		m_animator->SetState(m_state, transform->GetDirection(), restart);
 	}
 }
 

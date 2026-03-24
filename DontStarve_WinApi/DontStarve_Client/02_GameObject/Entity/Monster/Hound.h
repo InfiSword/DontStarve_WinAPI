@@ -3,7 +3,7 @@
 
 enum class HoundState {
 	IDLE = (int)CombatantState::IDLE,
-	RUN = (int)CombatantState::RUN,
+	WALK = (int)CombatantState::WALK,
 	CHASE = (int)CombatantState::CHASE,
 	ATTACK = (int)CombatantState::ATTACK,
 	ATTACK_PRE = (int)CombatantState::ATTACK_PRE,
@@ -22,15 +22,18 @@ public:
     virtual ~Hound() override;
 
     virtual void Init() override;
-    virtual void UpdateAI(float deltaTime) override;
-    virtual void UpdateMovement(float deltaTime) override;
+	virtual void RenderDebugOverlay() override;
     virtual void Damaged(int damage) override;
     virtual bool OnInteraction(GameObject* obj) override;
 
-    // 디버그 레이아웃 시각화
-    virtual void RenderDebugOverlay() override;
-
 protected:
+    virtual void UpdateAI(float deltaTime) override;
+    virtual void UpdateMovement(float deltaTime) override;
+
+    virtual int UpdateIdle(float deltaTime) override;
+    virtual int UpdateWalk(float deltaTime) override;
+    virtual int UpdateChase(float deltaTime) override;
+
     virtual void OnAttackHit() override;
     virtual void OnAttackEnd() override;
     virtual void OnHitEnd() override;

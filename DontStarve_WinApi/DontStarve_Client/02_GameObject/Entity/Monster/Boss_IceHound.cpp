@@ -12,7 +12,7 @@
 #include "Boss_IceHound.h"
 
 Boss_IceHound::Boss_IceHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
-                       const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
 	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 	, m_bHasHowled(false)
 {
@@ -48,7 +48,7 @@ void Boss_IceHound::Init()
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 	m_bHasHowled = false;
 	m_bCanChase = false; // 초기에는 추격 불가 (시네마틱 대기)
-	
+
 	if (this->transform) {
 		m_targetX = this->transform->GetX();
 		m_targetY = this->transform->GetY();
@@ -71,8 +71,8 @@ void Boss_IceHound::Init()
 			m_animator->RegisterAnimation((int)BossIceHoundState::IDLE, DIR_LEFT, idleSidePath, 0, 0, 7, 20, px, py, true, 0.03f, false);
 			m_animator->RegisterAnimation((int)BossIceHoundState::IDLE, DIR_RIGHT, idleSidePath, 0, 0, 7, 20, px, py, true, 0.03f);
 
-			for (int state = (int)BossIceHoundState::RUN; state <= (int)BossIceHoundState::CHASE; ++state) {
-				if (state != (int)BossIceHoundState::RUN && state != (int)BossIceHoundState::CHASE) continue;
+			for (int state = (int)BossIceHoundState::WALK; state <= (int)BossIceHoundState::CHASE; ++state) {
+				if (state != (int)BossIceHoundState::WALK && state != (int)BossIceHoundState::CHASE) continue;
 				m_animator->RegisterAnimation(state, DIR_DOWN, base + houndPrefix + L"run_loop_down.png", 0, 0, 7, 16, px, py, true, 0.03f);
 				m_animator->RegisterAnimation(state, DIR_UP, base + houndPrefix + L"run_loop_up.png", 0, 0, 7, 16, px, py, true, 0.03f);
 				std::wstring walkSidePath = base + houndPrefix + L"run_loop_side.png";
@@ -100,7 +100,7 @@ void Boss_IceHound::Init()
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"attack_hit") this->OnAttackHit();
 						else if (eventName == L"attack_end") this->OnAttackEnd();
-					});
+						});
 				}
 			}
 
@@ -111,7 +111,7 @@ void Boss_IceHound::Init()
 					clip->AddEventFrame(26, L"hit_end");
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"hit_end") this->OnHitEnd();
-					});
+						});
 				}
 			}
 
@@ -122,7 +122,7 @@ void Boss_IceHound::Init()
 					clip->AddEventFrame(51, L"death_end");
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"death_end") this->OnDeathEnd();
-					});
+						});
 				}
 			}
 
@@ -137,13 +137,18 @@ void Boss_IceHound::Init()
 							if (m_bCanChase) ChangeState((int)BossIceHoundState::CHASE);
 							else ChangeState((int)BossIceHoundState::IDLE);
 						}
-					});
+						});
 				}
 			}
 		}
 
-		m_animator->SetState(m_state, this->transform->GetDirection());
+		ChangeState(m_state);
 	}
+}
+
+void Boss_IceHound::RenderDebugOverlay()
+{
+	Combatant::RenderDebugOverlay();
 }
 
 bool Boss_IceHound::OnInteraction(GameObject* obj) { return Entity::OnInteraction(obj); }
@@ -152,56 +157,75 @@ void Boss_IceHound::UpdateAI(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
 
-	switch ((BossIceHoundState)m_state)
+	if (m_state == (int)BossIceHoundState::HOWL)
 	{
-	case BossIceHoundState::HOWL:
-		break;
-	case BossIceHoundState::ATTACK_PRE:
-		if (m_animator->IsAnimationDone())
+		// HOWL은 애니메이션 이벤트(howl_end)에서 상태 전이가 이루어짐
+		return;
+	}
+	if (m_state == (int)BossIceHoundState::ATTACK_PRE)
+	{
+		if (m_animator->IsAnimationDone()) 
 			ChangeState((int)BossIceHoundState::ATTACK);
-		break;
-	case BossIceHoundState::CHASE:
-		if (!m_bCanChase) { ChangeState((int)BossIceHoundState::IDLE); break; }
-		CheckAttackTransition(m_attackRange, (int)BossIceHoundState::ATTACK_PRE, (int)BossIceHoundState::IDLE);
-		break;
-	case BossIceHoundState::IDLE:
-		if (m_attackTarget && m_attackTarget->IsEnabled()) {
-			// 처음 발견 시 하울링
-			if (!m_bHasHowled) ChangeState((int)BossIceHoundState::HOWL);
-			else if (m_bCanChase) {
-				if (m_distToPlayerSq > (m_attackRange * m_attackRange * 1.1f)) ChangeState((int)BossIceHoundState::CHASE);
-				else if (m_attackCooldownTimer <= 0.0f) ChangeState((int)BossIceHoundState::ATTACK_PRE);
-			}
-		}
-		else UpdateAI_Wander(deltaTime, (int)BossIceHoundState::RUN, (int)BossIceHoundState::IDLE);
-		break;
-	case BossIceHoundState::RUN:
-		if (m_attackTarget && m_attackTarget->IsEnabled() && m_bCanChase) ChangeState((int)BossIceHoundState::CHASE);
-		break;
+		return;
 	}
 
-	if (m_state == (int)BossIceHoundState::CHASE || m_state == (int)BossIceHoundState::RUN) ClampPositionToMapBounds();
+	Monster::UpdateAI(deltaTime);
+
+	if (m_state == (int)BossIceHoundState::CHASE || m_state == (int)BossIceHoundState::WALK) ClampPositionToMapBounds();
 }
 
 void Boss_IceHound::UpdateMovement(float deltaTime)
 {
-	if (!IsEnabled()) return;
+	Monster::UpdateMovement(deltaTime);
+}
 
-	switch ((BossIceHoundState)m_state)
+int Boss_IceHound::UpdateIdle(float deltaTime)
+{
+	int nextState = Monster::UpdateIdle(deltaTime);
+
+	if (nextState == (int)BossIceHoundState::CHASE && !m_bHasHowled)
 	{
-	case BossIceHoundState::CHASE: MoveTowardPlayer(deltaTime, m_runSpeed, (int)BossIceHoundState::RUN, (int)BossIceHoundState::IDLE); break;
-	case BossIceHoundState::RUN: MoveTowardLocation(deltaTime, m_walkSpeed, (int)BossIceHoundState::RUN, (int)BossIceHoundState::IDLE); break;
-	case BossIceHoundState::IDLE: m_animator->SetState((int)BossIceHoundState::IDLE, transform->GetDirection()); break;
+		return (int)BossIceHoundState::HOWL;
 	}
+
+	if (nextState == (int)BossIceHoundState::ATTACK)
+	{
+		return (int)BossIceHoundState::ATTACK_PRE;
+	}
+
+	return nextState;
+}
+
+int Boss_IceHound::UpdateWalk(float deltaTime)
+{
+	int nextState = Monster::UpdateWalk(deltaTime);
+
+	if (nextState == (int)BossIceHoundState::CHASE && !m_bHasHowled)
+	{
+		return (int)BossIceHoundState::HOWL;
+	}
+
+	return nextState;
+}
+
+int Boss_IceHound::UpdateChase(float deltaTime)
+{
+	int nextState = Monster::UpdateChase(deltaTime);
+
+	if (nextState == (int)BossIceHoundState::ATTACK)
+	{
+		return (int)BossIceHoundState::ATTACK_PRE;
+	}
+
+	return nextState;
 }
 
 void Boss_IceHound::Damaged(int damage)
 {
-	Entity::Damaged(damage);
+	Monster::Damaged(damage);
 	if (IsDead()) return;
 
 	if (CheckSuperArmorHit()) return;
-	if (CheckCounterAttack()) return;
 
 	ChangeState((int)BossIceHoundState::HIT);
 }
@@ -215,11 +239,10 @@ void Boss_IceHound::OnAttackHit()
 void Boss_IceHound::OnAttackEnd()
 {
 	if (m_state != (int)BossIceHoundState::ATTACK) return;
-	
-	HandleAttackEndSuperArmor();
-	if (m_state == (int)BossIceHoundState::HIT) return;
 
-	ChangeState((int)BossIceHoundState::RUN);
+	HandleAttackEndSuperArmor();
+
+	ChangeState((int)BossIceHoundState::CHASE);
 }
 
 void Boss_IceHound::OnHitEnd()
@@ -229,24 +252,3 @@ void Boss_IceHound::OnHitEnd()
 }
 
 void Boss_IceHound::Die() { ChangeState((int)BossIceHoundState::DEATH); }
-
-void Boss_IceHound::RenderDebugOverlay()
-{
-	if (!transform) return;
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	RenderManager* renderManager = RenderManager::GetInstance();
-	if (!cameraManager || !renderManager) return;
-
-	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(transform->GetX(), transform->GetY());
-	float rWander = m_wanderRadius;
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - rWander, screenCenter.Y - rWander, rWander * 2.0f, rWander * 2.0f), Gdiplus::Color(100, 200, 100, 255), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_aggroRadius, screenCenter.Y - m_aggroRadius, m_aggroRadius * 2.0f, m_aggroRadius * 2.0f), Gdiplus::Color(255, 255, 0), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-
-	if (m_state == (int)BossIceHoundState::ATTACK && m_attackCollider) {
-		UpdateAttackBoxByDirection(transform->GetDirection());
-		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
-		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
-		Gdiplus::PointF bottomRight = cameraManager->WorldToScreen((float)worldRect.right, (float)worldRect.bottom);
-		renderManager->AddDrawRectCommand(Gdiplus::RectF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
-	}
-}

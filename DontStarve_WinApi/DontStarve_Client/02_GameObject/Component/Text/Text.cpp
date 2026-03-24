@@ -52,6 +52,11 @@ void Text::SetText(const std::wstring& text)
 	m_text = text;
 }
 
+void Text::SetColor(const Gdiplus::Color& color)
+{
+	m_brush = std::make_unique<Gdiplus::SolidBrush>(color);
+}
+
 void Text::ApplyStyle(const TextStyle& style)
 {
 	m_brush = std::make_unique<Gdiplus::SolidBrush>(style.color);

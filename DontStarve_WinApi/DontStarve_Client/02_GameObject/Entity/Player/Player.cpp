@@ -40,7 +40,7 @@ void Player::Init()
 	Combatant::Init();
 	
 	// Player 전용 공격 박스 설정 (80x120)
-	SetupAttackBox(80, 120);
+	SetupAttackBox(80, 120, 0, -100);
 
 	// Animator 생성 후 애니메이션 등록 (AnimationDefinition 클래스 제거)
 	if (!m_animator) {
@@ -283,7 +283,7 @@ void Player::UpdateAnimatorState() {
 
 	if (m_animator == nullptr) return;
 
-	m_animator->SetState(static_cast<int>(m_state), this->transform->GetDirection());
+	ChangeState(m_state);
 }
 
 
@@ -312,8 +312,6 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 	// 목표 위치가 설정되면 항상 WALK 상태 애니메이션으로 전환
 	UpdateAnimatorState();
 }
-
-
 
 void Player::Update(float deltaTime)
 {
@@ -449,8 +447,10 @@ void Player::TryStartInteraction(float worldX, float worldY)
 				}
 			}
 			else if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK) {
-				if (m_equippedItem && m_equippedItem->GetID() == GOID_TOOL_PICKAXE)
-					canInteract = true;
+				if (m_equippedItem) {
+					GameObjectID equippedID = m_equippedItem->GetID();
+					canInteract = (equippedID == GOID_TOOL_GOLDEN_PICKAXE || equippedID == GOID_TOOL_PICKAXE);
+				}
 			}
 			else {
 				canInteract = true;
@@ -572,10 +572,6 @@ void Player::OnChopHit()
 {
 	if (m_state != PlayerState::CHOP || !m_activeInteractionTarget) return;
 
-	GameObjectID objID = m_activeInteractionTarget->GetID();
-	if (objID != GOID_NORMAL_TREE_SHORT && objID != GOID_NORMAL_TREE_NORMAL && objID != GOID_NORMAL_TREE_TALL)
-		return;
-
 	m_activeInteractionTarget->Damaged(m_damage);
 	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
 	if (entity && entity->IsDead()) m_activeInteractionTarget = nullptr;
@@ -675,24 +671,17 @@ void Player::LateUpdate()
 {
 	// 부모 클래스의 LateUpdate() 호출하여 컴포넌트 업데이트
 	GameObject::LateUpdate();
+
+	if (m_inventory)
+	{
+		m_inventory->Render(m_equippedSlotIndex);
+	}
 }
 
 void Player::RenderDebugOverlay()
 {
-	if (!transform) return;
-
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	RenderManager* renderManager = RenderManager::GetInstance();
-	if (!cameraManager || !renderManager) return;
-
-	// 공격 중일 때 공격 박스 표시
-	if (m_state == (int)PlayerState::ATTACK && m_attackCollider) {
-		UpdateAttackBoxByDirection(transform->GetDirection());
-		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
-		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
-		Gdiplus::PointF bottomRight = cameraManager->WorldToScreen((float)worldRect.right, (float)worldRect.bottom);
-		renderManager->AddDrawRectCommand(Gdiplus::RectF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
-	}
+	// 부모 클래스(Combatant)의 공통 디버그 렌더링 호출
+	Combatant::RenderDebugOverlay();
 }
 
 void Player::LateInit() {

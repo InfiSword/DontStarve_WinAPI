@@ -5,6 +5,7 @@
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/Entity/Monster/Monster.h"
 #include "../../02_GameObject/Entity/Monster/Spider.h"
+#include "../../02_GameObject/Building/SpiderEgg.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../GameProgressManager/GameProgressManager.h"
 #include "../SceneManager/SceneManager.h"
@@ -158,16 +159,24 @@ void BossSpiderQueenScene::UpdatePhase1(float deltaTime)
 
         GameObjectID id = obj->GetID();
         
-        // 거미류 체크
+        // 거미류 체크 (죽는 애니메이션 중인 객체는 제외)
         if (id == GOID_MONSTER_SPIDER || id == GOID_MONSTER_WARRIOR_SPIDER)
         {
-            minionsAlive = true;
+            Monster* monster = dynamic_cast<Monster*>(obj);
+            if (monster && !monster->IsDead())
+            {
+                minionsAlive = true;
+            }
         }
-        // 거미알류 체크
+        // 거미알류 체크 (파괴된 객체는 제외)
         else if (id == GOID_BUILDING_SPIDER_SMALLEGG || id == GOID_BUILDING_SPIDER_NORMALEGG || 
                  id == GOID_BUILDING_SPIDER_TALLEGG || id == GOID_BUILDING_SPIDER_SACEGG)
         {
-            eggsExist = true;
+            SpiderEgg* egg = dynamic_cast<SpiderEgg*>(obj);
+            if (egg && egg->GetHp() > 0)
+            {
+                eggsExist = true;
+            }
         }
 
         if (minionsAlive && eggsExist) break;
@@ -227,7 +236,9 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
     float waitDuration = 2.0f; // Taunt 애니메이션 시간 고려
     float returnDuration = 1.5f;
 
-    if (m_introTimer <= moveDuration)
+	float totalBossIntroDuration = moveDuration + waitDuration;
+
+    if (m_introTimer <= totalBossIntroDuration)
     {
         // 보스에게 이동
         float t = m_introTimer / moveDuration;
@@ -236,21 +247,6 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
         float curY = m_introStartPos.Y + (m_introTargetPos.Y - m_introStartPos.Y) * smoothT;
         camMgr->SetCameraPos(curX, curY);
     }
-    else if (m_introTimer <= moveDuration + waitDuration)
-    {
-        // 보스 활성화 및 Taunt 애니메이션
-        if (m_bossObject && !m_bossObject->IsEnabled())
-        {
-            m_bossObject->SetActive(true);
-            camMgr->SetCameraPos(m_introTargetPos.X, m_introTargetPos.Y);
-            
-            // 보스 Taunt 애니메이션 강제 설정 (상태값이 TAUNT인 경우)
-            Animator* anim = m_bossObject->GetComponent<Animator>();
-            if (anim) anim->SetState(5, m_bossObject->GetComponent<Transform>()->GetDirection());
-            
-            OutputDebugStringW(L"BossSpiderQueenScene: Spider Queen Activated!\n");
-        }
-    }
     else if (m_introTimer <= moveDuration + waitDuration + returnDuration)
     {
         // 플레이어에게 복귀
@@ -258,6 +254,7 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
         if (player)
         {
             Transform* tr = player->GetComponent<Transform>();
+
             float t = (m_introTimer - (moveDuration + waitDuration)) / returnDuration;
             float smoothT = t * t * (3 - 2 * t);
             float curX = m_introTargetPos.X + (tr->GetX() - m_introTargetPos.X) * smoothT;
@@ -268,12 +265,6 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
         // 복귀 도중 추격 시작
         if (!m_chaseStarted)
         {
-            if (m_bossObject)
-            {
-                Monster* pBoss = dynamic_cast<Monster*>(m_bossObject);
-                if (pBoss) pBoss->SetCanChase(true);
-            }
-
             ObjectManager* objMgr = ObjectManager::GetInstance();
             const auto& objects = objMgr->GetGameObjects();
             for (auto* obj : objects)
@@ -291,12 +282,18 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
     {
         // 연출 종료
         camMgr->SetFollowMode(true);
+		Player* player = ObjectManager::GetInstance()->GetPlayer();
+		if (player) player->SetInputEnabled(true);
+
+		if (m_bossObject)
+		{
+			Monster* pBoss = dynamic_cast<Monster*>(m_bossObject);
+			if (pBoss) pBoss->SetCanChase(true);
+		}
+
         m_currentPhase = BossPhase::Phase2_BossBattle;
 
-        if (m_bossHPUI) m_bossHPUI->SetActive(true);
-
-        Player* player = ObjectManager::GetInstance()->GetPlayer();
-        if (player) player->SetInputEnabled(true);
+        if (m_bossHPUI) m_bossHPUI->SetActive(true); 
 
         OutputDebugStringW(L"BossSpiderQueenScene: Boss Battle Started.\n");
     }

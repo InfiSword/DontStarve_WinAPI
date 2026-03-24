@@ -34,14 +34,6 @@ void ColliderManager::LateUpdate()
     // 모든 게임오브젝트의 충돌 검사 처리 
 }
 
-void ColliderManager::RenderGizmos()
-{
-    // 모든 콜라이더의 Gizmo 렌더링 (각 Collider가 활성화 상태인지 확인)
-    for (Collider* pCollider : m_colliders) {
-        pCollider->RenderGizmo();
-    }
-}
-
 void ColliderManager::Release()
 {
     // Collider 해제는 Component 해제시에 처리되므로 여기서는 리스트만 정리

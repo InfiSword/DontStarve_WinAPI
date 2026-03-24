@@ -61,6 +61,13 @@ void UIText::SetText(const std::wstring& text)
 	}
 }
 
+void UIText::SetColor(const Gdiplus::Color& color)
+{
+	if (m_text) {
+		m_text->SetColor(color);
+	}
+}
+
 void UIText::Release()
 {
 	// UIText 전용 정리 작업

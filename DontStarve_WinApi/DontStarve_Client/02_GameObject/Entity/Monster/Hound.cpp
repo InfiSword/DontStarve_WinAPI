@@ -21,8 +21,8 @@ Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Dire
 	m_type = GO_TYPE_MONSTER;
 	m_walkSpeed = 80.0f;
 	m_runSpeed = 200.0f;
-	m_attackRange = 70.0f;
-	m_attackCooldown = 1.2f;
+	m_attackRange = 80.0f;
+	m_attackCooldown = 1.0f;
 	m_attackHitFrame = 4;
 	m_damage = 20;
 	m_attackBoxWidth = 80;
@@ -38,6 +38,7 @@ void Hound::Init()
 	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
 
 	ChangeState((int)HoundState::IDLE);
+
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 	m_bHasHowled = false;
@@ -62,11 +63,17 @@ void Hound::Init()
 			m_animator->RegisterAnimation((int)HoundState::IDLE, DIR_LEFT, idleSidePath, 0, 0, 7, 20, px, py, true, 0.02f, false);
 			m_animator->RegisterAnimation((int)HoundState::IDLE, DIR_RIGHT, idleSidePath, 0, 0, 7, 20, px, py, true, 0.02f);
 
-			m_animator->RegisterAnimation((int)HoundState::RUN, DIR_DOWN, base + L"Hound_hound_run_loop_down.png", 0, 0, 7, 16, px, py, true, 0.02f);
-			m_animator->RegisterAnimation((int)HoundState::RUN, DIR_UP, base + L"Hound_hound_run_loop_up.png", 0, 0, 7, 16, px, py, true, 0.02f);
+			m_animator->RegisterAnimation((int)HoundState::CHASE, DIR_DOWN, base + L"Hound_hound_run_loop_down.png", 0, 0, 7, 16, px, py, true, 0.02f);
+			m_animator->RegisterAnimation((int)HoundState::CHASE, DIR_UP, base + L"Hound_hound_run_loop_up.png", 0, 0, 7, 16, px, py, true, 0.02f);
 			std::wstring walkSidePath = base + L"Hound_hound_run_loop_side.png";
-			m_animator->RegisterAnimation((int)HoundState::RUN, DIR_LEFT, walkSidePath, 0, 0, 7, 16, px, py, true, 0.02f, false);
-			m_animator->RegisterAnimation((int)HoundState::RUN, DIR_RIGHT, walkSidePath, 0, 0, 7, 16, px, py, true, 0.02f);
+			m_animator->RegisterAnimation((int)HoundState::CHASE, DIR_LEFT, walkSidePath, 0, 0, 7, 16, px, py, true, 0.02f, false);
+			m_animator->RegisterAnimation((int)HoundState::CHASE, DIR_RIGHT, walkSidePath, 0, 0, 7, 16, px, py, true, 0.02f);
+
+			// WANDER 애니메이션도 CHASE와 동일한 리소스를 사용
+			m_animator->RegisterAnimation((int)HoundState::WALK, DIR_DOWN, base + L"Hound_hound_run_loop_down.png", 0, 0, 7, 16, px, py, true, 0.03f);
+			m_animator->RegisterAnimation((int)HoundState::WALK, DIR_UP, base + L"Hound_hound_run_loop_up.png", 0, 0, 7, 16, px, py, true, 0.03f);
+			m_animator->RegisterAnimation((int)HoundState::WALK, DIR_LEFT, walkSidePath, 0, 0, 7, 16, px, py, true, 0.03f, false);
+			m_animator->RegisterAnimation((int)HoundState::WALK, DIR_RIGHT, walkSidePath, 0, 0, 7, 16, px, py, true, 0.03f);
 
 			m_animator->RegisterAnimation((int)HoundState::ATTACK_PRE, DIR_DOWN, base + L"Hound_hound_atk_pre_down.png", 0, 0, 7, 29, px, py, false, 0.03f);
 			m_animator->RegisterAnimation((int)HoundState::ATTACK_PRE, DIR_UP, base + L"Hound_hound_atk_pre_up.png", 0, 0, 7, 29, px, py, false, 0.03f);
@@ -117,7 +124,7 @@ void Hound::Init()
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) 
 				m_animator->RegisterAnimation((int)HoundState::HOWL, (Direction)dir, base + L"Hound_hound_howl.png", 0, 0, 7, 47, px, py, false, 0.03f);
 		}
-		m_animator->SetState(m_state, this->transform->GetDirection());
+		ChangeState(m_state);
 	}
 
 	m_attackCollider = AddComponent<BoxCollider>();
@@ -127,64 +134,83 @@ void Hound::Init()
 	}
 }
 
+void Hound::RenderDebugOverlay()
+{
+	Combatant::RenderDebugOverlay();
+}
+
 void Hound::UpdateAI(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
 
-	switch ((HoundState)m_state)
+	// HOWL과 ATTACK_PRE는 애니메이션 종료 후 상태 전이가 일어나야 함
+	if (m_state == (int)HoundState::HOWL)
 	{
-	case HoundState::HOWL:
 		if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::CHASE);
-		break;
-	case HoundState::ATTACK_PRE:
+		return;
+	}
+	if (m_state == (int)HoundState::ATTACK_PRE)
+	{
 		if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::ATTACK);
-		break;
-	//case HoundState::ATTACK:
-	//	if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::RUN);
-	//	break;
-	case HoundState::CHASE:
-		CheckAttackTransition(m_attackRange, (int)HoundState::ATTACK_PRE, (int)HoundState::IDLE);
-		break;
-	case HoundState::IDLE:
-		if (m_attackTarget && m_attackTarget->IsEnabled()) {
-			if (m_distToPlayerSq > (m_attackRange * m_attackRange * 1.1f)) {
-				if (!m_bHasHowled) { ChangeState((int)HoundState::HOWL); m_bHasHowled = true; }
-				else ChangeState((int)HoundState::CHASE);
-			}
-			else if (m_attackCooldownTimer <= 0.0f) ChangeState((int)HoundState::ATTACK_PRE);
-		}
-		else
-			UpdateAI_Wander(deltaTime, (int)HoundState::RUN, (int)HoundState::IDLE);
-		break;
-	case HoundState::RUN:
-		if (m_attackTarget && m_attackTarget->IsEnabled()) ChangeState((int)HoundState::CHASE);
-		break;
+		return;
 	}
 
-	if (m_state == (int)HoundState::CHASE || m_state == (int)HoundState::RUN) ClampPositionToMapBounds();
+	Monster::UpdateAI(deltaTime);
+
+	if (m_state == (int)HoundState::CHASE || m_state == (int)HoundState::WALK) ClampPositionToMapBounds();
 }
 
 void Hound::UpdateMovement(float deltaTime)
 {
-	if (!IsEnabled()) return;
+	Monster::UpdateMovement(deltaTime);
+}
 
-	switch ((HoundState)m_state)
+int Hound::UpdateIdle(float deltaTime)
+{
+	int nextState = Monster::UpdateIdle(deltaTime);
+
+	if (nextState == (int)HoundState::CHASE && !m_bHasHowled)
 	{
-	case HoundState::CHASE: 
-		MoveTowardPlayer(deltaTime, m_runSpeed, (int)HoundState::RUN, (int)HoundState::IDLE); 
-		break;
-	case HoundState::RUN: 
-		MoveTowardLocation(deltaTime, m_walkSpeed, (int)HoundState::RUN, (int)HoundState::IDLE); 
-		break;
-	case HoundState::IDLE: 
-		m_animator->SetState((int)HoundState::IDLE, transform->GetDirection()); 
-		break;
+		m_bHasHowled = true;
+		return (int)HoundState::HOWL;
 	}
+
+	if (nextState == (int)HoundState::ATTACK)
+	{
+		return (int)HoundState::ATTACK_PRE;
+	}
+
+	return nextState;
+}
+
+int Hound::UpdateWalk(float deltaTime)
+{
+	int nextState = Monster::UpdateWalk(deltaTime);
+
+	if (nextState == (int)HoundState::CHASE && !m_bHasHowled)
+	{
+		m_bHasHowled = true;
+		return (int)HoundState::HOWL;
+	}
+
+	return nextState;
+}
+
+int Hound::UpdateChase(float deltaTime)
+{
+	int nextState = Monster::UpdateChase(deltaTime);
+
+	if (nextState == (int)HoundState::ATTACK)
+	{
+		return (int)HoundState::ATTACK_PRE;
+	}
+
+	return nextState;
 }
 
 void Hound::Damaged(int damage)
 {
-	Entity::Damaged(damage);
+	Monster::Damaged(damage);
 	if (!IsDead()) {
 		ChangeState((int)HoundState::HIT);
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
@@ -213,24 +239,3 @@ void Hound::OnHitEnd()
 void Hound::Die() { ChangeState((int)HoundState::DEATH); }
 
 bool Hound::OnInteraction(GameObject* obj) { return Entity::OnInteraction(obj); }
-
-void Hound::RenderDebugOverlay()
-{
-	if (!transform) return;
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	RenderManager* renderManager = RenderManager::GetInstance();
-	if (!cameraManager || !renderManager) return;
-
-	Gdiplus::PointF screenCenter = cameraManager->WorldToScreen(transform->GetX(), transform->GetY());
-	float rWander = m_wanderRadius;
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - rWander, screenCenter.Y - rWander, rWander * 2.0f, rWander * 2.0f), Gdiplus::Color(100, 200, 100, 255), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-	renderManager->AddDrawEllipseCommand(Gdiplus::RectF(screenCenter.X - m_aggroRadius, screenCenter.Y - m_aggroRadius, m_aggroRadius * 2.0f, m_aggroRadius * 2.0f), Gdiplus::Color(255, 255, 0), 1.0f, LAYER_DEBUG_OVERLAY, 9998.0f);
-
-	if (m_state == (int)HoundState::ATTACK && m_attackCollider) {
-		UpdateAttackBoxByDirection(transform->GetDirection());
-		RECT worldRect = m_attackCollider->GetWorldBoundingBox();
-		Gdiplus::PointF topLeft = cameraManager->WorldToScreen((float)worldRect.left, (float)worldRect.top);
-		Gdiplus::PointF bottomRight = cameraManager->WorldToScreen((float)worldRect.right, (float)worldRect.bottom);
-		renderManager->AddDrawRectCommand(Gdiplus::RectF(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
-	}
-}

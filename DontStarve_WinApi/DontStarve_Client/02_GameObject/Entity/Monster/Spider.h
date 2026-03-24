@@ -25,9 +25,8 @@ public:
 	virtual ~Spider() override;
 
     virtual void Init() override;
-    virtual void UpdateAI(float deltaTime) override;
+	virtual void RenderDebugOverlay() override;
     virtual bool OnInteraction(GameObject* obj) override;    
-	virtual void UpdateMovement(float deltaTime) override;
     virtual void Damaged(int damage) override;
 
     // 어그로 설정
@@ -39,14 +38,19 @@ public:
 
 	SpiderState GetSpiderState() const { return (SpiderState)m_state; }
 
-	// 디버그 레이아웃 시각화
-	virtual void RenderDebugOverlay() override;
-
 protected:
+	virtual void UpdateAI(float deltaTime) override;
+	virtual void UpdateMovement(float deltaTime) override;
+
+	virtual int UpdateIdle(float deltaTime) override;
+	virtual int UpdateWalk(float deltaTime) override;
+	virtual int UpdateChase(float deltaTime) override;
+
 	virtual void OnAttackHit() override;
 	virtual void OnAttackEnd() override;
 	virtual void OnHitEnd() override;
-	virtual void Die() override; // ensure death state set when HP<=0
+	virtual void Die() override;
+
     virtual void ResetAggroSession() override;
     virtual void ResolveWanderCenter(float& outX, float& outY) const override;
 
