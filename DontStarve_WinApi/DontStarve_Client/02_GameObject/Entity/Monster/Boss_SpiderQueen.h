@@ -1,5 +1,5 @@
 #pragma once
-#include "Monster.h"
+#include "Spider.h"
 
 enum class SpiderQueenState
 {
@@ -20,7 +20,7 @@ enum class SpiderQueenState
 
 class BoxCollider;
 
-class Boss_SpiderQueen : public Monster
+class Boss_SpiderQueen : public Spider
 {
 public:
 	Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
@@ -56,7 +56,7 @@ protected:
 private:
 	void StartCocoonPhase();
 	void EndCocoonPhase();
-	void SummonSpider();
+	void SummonSpider(int count = -1);
 
 private:
 	int m_bossPhase;
@@ -64,8 +64,6 @@ private:
 
 	float m_idleTimer;
 	float m_idleDuration;
-
-	BoxCollider* m_attackCollider;
 
 	// 회복 및 고치 로직 관련
 	bool m_hasTriggeredCocoon;

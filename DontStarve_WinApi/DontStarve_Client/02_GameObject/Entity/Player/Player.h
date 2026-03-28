@@ -19,6 +19,14 @@ enum PlayerState {
 	COUNT,
 };
 
+enum Debuff
+{
+	DEBUFF_NONE = -1,
+	SLOW,
+	FIRE,
+	DEBUFF_COUNT
+};
+
 class Player : public Combatant
 {
 public:
@@ -50,6 +58,8 @@ public:
 
 	void ToggleEquipItem(int slotIndex);
 
+	void SetSlow(float duration, float modifier);
+
 	virtual void Damaged(int damage) override;
 	virtual void Die() override;
 
@@ -79,6 +89,9 @@ private:
 
 	bool isMoveToGoal;
 	float m_playerSpeed;
+	float m_speedModifier;
+	float m_slowTimer;
+
 	Gdiplus::PointF m_targetWorldPos;
 	float m_stopThreshold;
 

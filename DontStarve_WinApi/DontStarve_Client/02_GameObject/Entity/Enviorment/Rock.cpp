@@ -1,5 +1,6 @@
 #include "99_Default/pch.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../Component/Sprite/SpriteRenderer.h"
@@ -32,7 +33,7 @@ Rock::~Rock() {}
 void Rock::Init()
 {
 	Entity::Init();
-	const ResourcePathUtils::ObjectResourceDef* objData = ResourceManager::GetInstance()->GetObjectResourceInfo(GetID());
+	const ResourcePathUtils::ObjectResourceDef* objData = DataManager::GetInstance()->GetObjectResourceInfo(GetID());
 	if (!objData || objData->imageName.empty()) return;
 
 	const std::wstring& baseDir = objData->baseDir;
@@ -50,9 +51,9 @@ void Rock::Init()
 	std::wstring path1 = ResourcePathUtils::BuildResourcePath(baseDir, fileName1);
 	std::wstring path2 = ResourcePathUtils::BuildResourcePath(baseDir, fileName2);
 
-	m_spriteIntact = pRM->LoadSprite(path0);
-	m_spriteCracked = pRM->LoadSprite(path1);
-	m_spriteBroken = pRM->LoadSprite(path2);
+	m_spriteIntact = pRM->LoadSprite(path0, { objData->pivotX, objData->pivotY });
+	m_spriteCracked = pRM->LoadSprite(path1, { objData->pivotX, objData->pivotY });
+	m_spriteBroken = pRM->LoadSprite(path2, { objData->pivotX, objData->pivotY });
 
 	if (spriteRenderer && m_spriteIntact)
 		spriteRenderer->SetSprite(m_spriteIntact);

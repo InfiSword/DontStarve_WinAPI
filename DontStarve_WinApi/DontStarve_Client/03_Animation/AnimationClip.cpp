@@ -1,14 +1,12 @@
 #include "99_Default/pch.h"
 #include "AnimationClip.h"
-#include "SpriteSheet.h"
+#include "../02_GameObject/Component/Sprite/SpriteSheet.h"
 
 // ============== AnimationClip 구현 ==============
 
 AnimationClip::AnimationClip(
     const std::wstring& name,
     std::shared_ptr<SpriteSheet> spriteSheet,
-    float pivotX,
-    float pivotY,
     bool loop,
     bool preFlipped,
     float frameDuration) 
@@ -16,12 +14,13 @@ AnimationClip::AnimationClip(
       m_isLooping(loop), 
       m_totalDuration(0.0f),
       m_preFlipped(preFlipped) {
-    // 생성 시점에 SpriteSheet -> Frames 초기화까지 완료
+    
     if (m_pSpriteSheet) {
-        m_frames = m_pSpriteSheet->ExtractFrames(frameDuration, pivotX, pivotY);
-        m_totalDuration = 0.0f;
-        for (const auto& frame : m_frames) {
-            m_totalDuration += frame.duration;
+        const auto& sprites = m_pSpriteSheet->GetSprites();
+        for (const auto& sprite : sprites) {
+            // Note: pivot is already set in Sprite during SpriteSheet::Slice
+            m_frames.emplace_back(sprite, frameDuration);
+            m_totalDuration += frameDuration;
         }
     }
 }

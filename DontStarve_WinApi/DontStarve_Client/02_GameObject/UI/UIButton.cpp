@@ -30,7 +30,7 @@ UIButton::UIButton(GameObjectID id, float width, float height,
 	rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
 	rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
 	rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
-	rectTransform->SetPivot(0.5f, 0.5f);
+	m_image->SetPivot(0.5f, 0.5f);
 
 	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
 	if (bitmap) {
@@ -78,16 +78,16 @@ void UIButton::Update(float deltaTime)
 
 void UIButton::Render()
 {
-	if (!IsEnabled() || !m_image || !m_buttonComp || !m_rectTransform) return;
+	if (!IsEnabled() || !m_image) return;
 	
-	RenderManager::GetInstance()->RenderImage(m_rectTransform, m_image);
+	m_image->Render();
 }
 
 void UIButton::RenderDisabled()
 {
-	if (!m_image || !m_rectTransform) return;
+	if (!m_image) return;
 	
-	RenderManager::GetInstance()->RenderImage(m_rectTransform, m_image);
+	m_image->Render();
 }
 
 Gdiplus::Bitmap* UIButton::GetBitmap() const

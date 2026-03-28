@@ -10,6 +10,7 @@
 #include "../01_Manager/InventoryManager/InventoryManager.h"
 #include "../01_Manager/SceneManager/SceneManager.h"
 #include "../01_Manager/ResourceManager/ResourceManager.h"
+#include "../01_Manager/DataManager/DataManager.h"
 #include "../01_Manager/GameProgressManager/GameProgressManager.h"
 
 DontStarve_MainGame::DontStarve_MainGame()
@@ -34,6 +35,7 @@ void DontStarve_MainGame::Init()
     GraphicsManager::GetInstance()->Init();
     RenderManager::GetInstance()->Init();
     ResourceManager::GetInstance()->Init(); // 리소스 매니저 초기화 (오브젝트 리소스 등록 포함)
+    DataManager::GetInstance()->Init();
     InputManager::GetInstance()->Init();
 
     // 씬과 무관하게 한 번만 초기화하면 되는 매니저들
@@ -135,6 +137,7 @@ void DontStarve_MainGame::Release()
     GraphicsManager::DestroyInstance();
 
     // 5단계: 리소스 매니저 파괴 (모든 오브젝트가 해제된 후 마지막)
+    DataManager::DestroyInstance();
     ResourceManager::DestroyInstance();
 
     // 6단계: 시간 매니저 파괴

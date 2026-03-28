@@ -1,5 +1,6 @@
 #pragma once
-#include "Monster.h"
+#include "Hound.h"
+class IceProjectile;
 
 enum class BossIceHoundState {
 	IDLE = (int)CombatantState::IDLE,
@@ -14,7 +15,7 @@ enum class BossIceHoundState {
 	COUNT
 };
 
-class Boss_IceHound : public Monster
+class Boss_IceHound : public Hound
 {
 public:
 	Boss_IceHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
@@ -45,5 +46,20 @@ protected:
 	virtual void Die() override;
 
 private:
-	bool m_bHasHowled;
+	void FireIceProjectile();
+	bool IsPlayerInProjectileRange() const;
+	bool CanStartProjectileAttack() const;
+	void MoveAwayFromPlayer(float deltaTime, float speed);
+
+	std::vector<IceProjectile*> m_projectiles;
+	float m_projectileCooldown;
+	float m_projectileCooldownTimer;
+	float m_projectileSpeed;
+	float m_projectileRange;
+	float m_projectileAttackRange;
+	float m_retreatSpeed;
+	float m_retreatBeforeShotDuration;
+	float m_retreatBeforeShotTimer;
+	bool m_retreatThenShootPending;
+	int m_projectileDamage;
 };

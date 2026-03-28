@@ -25,7 +25,6 @@ Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Di
 	// Transform 컴포넌트 추가
 	Transform* transform = AddComponent<Transform>();
 	transform->SetPosition(x, y);
-	transform->SetPivot(pivotX, pivotY);
 	transform->SetDirection(_dir);
 
 	// SpriteRenderer 컴포넌트 추가
@@ -36,7 +35,8 @@ Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Di
 		ResourceManager* pRM = ResourceManager::GetInstance();
 		std::wstring fullPath = ResourcePathUtils::BuildResourcePath(baseDir, imageName);
 		if (!fullPath.empty()) {
-			if (auto sprite = pRM->LoadSprite(fullPath)) {
+			// 로드 시점에 전달받은 피벗 적용
+			if (auto sprite = pRM->LoadSprite(fullPath, { pivotX, pivotY })) {
 				spriteRenderer->SetSprite(sprite);
 			}
 		}
@@ -104,6 +104,10 @@ void Entity::Damaged(int damage)
 	if (m_hp <= 0) {
 		m_hp = 0;
 		m_isDead = true;
+
+		// 죽었을 때 콜라이더를 즉시 비활성화하여 상호작용(클릭 등) 방지
+		if (m_entityCollider) m_entityCollider->SetColliderEnabled(false);
+
 		Die();
 	}
 }
@@ -112,25 +116,11 @@ void Entity::Render()
 {
 	if (!IsEnabled() || !transform) return;
 
-	RenderManager* pRM = RenderManager::GetInstance();
-
-	// 1. 모든 애니메이터 렌더링 (FX 포함)
-	std::vector<Animator*> animators = GetComponents<Animator>();
-	bool animatorRendered = false;
-	for (Animator* anim : animators) {
-		if (anim && anim->IsEnabled()) {
-			pRM->RenderAnimator(transform, anim);
-			animatorRendered = true;
-		}
-	}
-
-	// 2. 애니메이터가 하나도 렌더링되지 않았을 때만 스프라이트 렌더러 렌더링
-	if (!animatorRendered) {
-		std::vector<SpriteRenderer*> srs = GetComponents<SpriteRenderer>();
-		for (SpriteRenderer* sr : srs) {
-			if (sr && sr->IsEnabled()) {
-				pRM->RenderSprite(transform, sr);
-			}
+	// 모든 활성화된 SpriteRenderer 렌더링 (Animator가 업데이트한 프레임 포함)
+	std::vector<SpriteRenderer*> srs = GetComponents<SpriteRenderer>();
+	for (SpriteRenderer* sr : srs) {
+		if (sr && sr->IsEnabled()) {
+			sr->Render();
 		}
 	}
 }

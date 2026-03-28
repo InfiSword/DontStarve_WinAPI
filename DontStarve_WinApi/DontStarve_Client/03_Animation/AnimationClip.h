@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "SpriteSheet.h"
+#include "../02_GameObject/Component/Sprite/SpriteSheet.h"
 
 // 애니메이션 이벤트 콜백 타입 정의
 typedef std::function<void(int, const std::wstring&)> AnimationEventCallback;
@@ -17,8 +17,6 @@ public:
     AnimationClip(
         const std::wstring& name,
         std::shared_ptr<SpriteSheet> spriteSheet,
-        float pivotX = 0.5f,
-        float pivotY = 1.0f,
         bool loop = true,
         bool preFlipped = false,
         float frameDuration = 0.03f

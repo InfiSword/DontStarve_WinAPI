@@ -2,6 +2,7 @@
 #include "SpiderEgg.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../01_Manager/DataManager/DataManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../03_Animation/Animator.h"
 #include "../../03_Animation/AnimationClip.h"
@@ -59,9 +60,9 @@ void SpiderEgg::Init()
 	Building::Init();
 
 	Transform* transform = GetComponent<Transform>();
-	m_animator = AddComponent<Animator>();
+	m_animator = AddComponent<Animator>(spriteRenderer);
 
-	ResourceManager* pRM = ResourceManager::GetInstance();
+	DataManager* pRM = DataManager::GetInstance();
 	const ResourcePathUtils::ObjectResourceDef* data = pRM->GetObjectResourceInfo(m_id);
 	if (!data) return;
 
@@ -70,8 +71,8 @@ void SpiderEgg::Init()
 		base += L"\\";
 	}
 
-	float px = transform->GetPivotX();
-	float py = transform->GetPivotY();
+	float px = data->pivotX;
+	float py = data->pivotY;
 
 	// Idle (loop=true)
 	m_animator->RegisterAnimation(EGG_STATE_IDLE_SMALL, DIR_DOWN, base + L"Egg_spider_cocoon_small_Idle.png",

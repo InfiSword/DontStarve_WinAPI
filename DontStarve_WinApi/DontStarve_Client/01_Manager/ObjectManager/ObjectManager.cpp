@@ -1,6 +1,7 @@
 #include "99_Default/pch.h"
 #include "ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
+#include "../DataManager/DataManager.h"
 #include "../RenderManager/RenderManager.h"
 #include "../CameraManager/CameraManager.h"
 #include "../../02_GameObject/GameObject.h"
@@ -19,8 +20,7 @@
 #include "../../02_GameObject/Entity/Monster/Boss_IceHound.h"
 #include "../../02_GameObject/Building/PigHouse.h"
 #include "../../02_GameObject/Building/SpiderEgg.h"
-#include "../../02_GameObject/Item/Ingredient.h"
-#include "../../02_GameObject/Item/Tool/Tool.h"
+#include "../../02_GameObject/Item/Item.h"
 #include "../../02_GameObject/UI/MenuUI.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
@@ -277,57 +277,31 @@ void ObjectManager::InitializeFactories()
 		});
 
 	// 아이템
-	auto itemFactory = [](const wchar_t* name, const wchar_t* desc) -> ItemFactoryFunc {
-		return [name, desc](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
-			return new Ingredient(id, name, desc, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName);
-			};
+	auto itemFactory = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
+		auto* info = DataTable::GetItemInfo(id);
+		const wchar_t* name = info ? info->name : L"아이템";
+		const wchar_t* desc = info ? info->desc : L"";
+		return new Item(id, name, desc, data->baseDir, data->imageName, x, y, data->pivotX, data->pivotY);
 		};
 
-	m_itemFactories[GOID_ITEM_NORMAL_TREE_LOG] = itemFactory(L"LOG", L"A Log.");
-	m_itemFactories[GOID_ITEM_NORMAL_TWIGS] = itemFactory(L"Twigs", L"A common twig.");
-	m_itemFactories[GOID_ITEM_NORMAL_ROCK] = itemFactory(L"Rock Shard", L"A small piece of rock.");
-	m_itemFactories[GOID_ITEM_CUT_NORMAL_GRASS] = itemFactory(L"Cut Grass", L"Bundled grass, good for crafting.");
-	m_itemFactories[GOID_ITEM_GOLD_ROCK] = itemFactory(L"Gold", L"Shiny and valuable.");
-	m_itemFactories[GOID_ITEM_ROPE] = itemFactory(L"Rope", L"Useful for crafting.");
-	m_itemFactories[GOID_ITEM_CUT_NORMAL_STONE] = itemFactory(L"Cut Stone", L"Stone blocks for building.");
-	m_itemFactories[GOID_ITEM_MEAT] = itemFactory(L"Meat", L"Fresh meat.");
-	m_itemFactories[GOID_ITEM_BERRY] = itemFactory(L"Berry", L"Sweet and nutritious.");
-	m_itemFactories[GOID_ITEM_WOOD_2] = itemFactory(L"Wooden Plank", L"Planks for crafting.");
-	m_itemFactories[GOID_ITEM_SMALL_MEAT] = itemFactory(L"Small Meat", L"A small piece of meat.");
-	m_itemFactories[GOID_ITEM_MONSTER_MEAT] = itemFactory(L"Monster Meat", L"Strange meat from a monster.");
-	m_itemFactories[GOID_ITEM_COOKED_MONSTER_MEAT] = itemFactory(L"Cooked Monster Meat", L"Cooked monster meat.");
-	m_itemFactories[GOID_ITEM_COOKED_SMALL_MEAT] = itemFactory(L"Cooked Small Meat", L"Cooked small meat.");
-	m_itemFactories[GOID_ITEM_COOKED_MEAT] = itemFactory(L"Cooked Meat", L"A nicely cooked piece of meat.");
-
-	// 도구
-	struct ToolDef { std::wstring name; std::wstring desc; };
-	auto GetToolDef = [](GameObjectID id) -> ToolDef {
-		switch (id) {
-		case GOID_TOOL_GOLDEN_PICKAXE: return { L"Golden Scythe", L"A golden scythe for harvesting." };
-		case GOID_TOOL_HAM_BAT:       return { L"Ham Bat",       L"A weapon made from ham." };
-		case GOID_TOOL_PICKAXE:       return { L"Pickaxe",       L"Mines rocks and ores." };
-		case GOID_TOOL_SPEAR:         return { L"Spear",         L"A simple spear for combat." };
-		case GOID_TOOL_SWAP_SPEAR:    return { L"Swap Spear",    L"A lightning-infused spear." };
-		case GOID_TOOL_TORCH:         return { L"Torch",         L"Provides light in darkness." };
-		case GOID_TOOL_RED_AXE:       return { L"Red Axe",       L"Cuts down trees." };
-		case GOID_TOOL_SWAP_AXE:      return { L"Swap Axe",      L"An axe with special properties." };
-		case GOID_TOOL_HALBERD:       return { L"Halberd",       L"A heavy polearm for long reach." };
-		case GOID_TOOL_HAMMER:        return { L"Hammer",        L"Used for deconstructing structures." };
-		default:                      return { L"Tool",          L"" };
-		}
-		};
-
-	auto toolFactory = [GetToolDef](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
-		ToolDef def = GetToolDef(id);
-		const ToolDataUtils::ToolStatsEntry* stats = ToolDataUtils::GetToolStats(id);
-		int damage = stats->damage;
-		float attackRange = stats->attackRange;
-		return new Tool(id, def.name, def.desc, data->baseDir, data->imageName, damage, attackRange);
+	auto toolFactory = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
+		auto* info = DataTable::GetToolInfo(id);
+		if (!info) return nullptr;
+		return new Tool(id, info->name, info->desc, data->baseDir, data->imageName, info->damage, info->attackRange);
 		};
 
 	auto registerItemIds = [this](const std::vector<GameObjectID>& ids, ItemFactoryFunc fn) {
 		for (GameObjectID id : ids) m_itemFactories[id] = fn;
 		};
+
+	registerItemIds({
+		GOID_ITEM_NORMAL_TREE_LOG, GOID_ITEM_NORMAL_TWIGS, GOID_ITEM_NORMAL_ROCK,
+		GOID_ITEM_CUT_NORMAL_GRASS, GOID_ITEM_GOLD_ROCK, GOID_ITEM_ROPE,
+		GOID_ITEM_CUT_NORMAL_STONE, GOID_ITEM_MEAT, GOID_ITEM_BERRY,
+		GOID_ITEM_WOOD_2, GOID_ITEM_SMALL_MEAT, GOID_ITEM_MONSTER_MEAT,
+		GOID_ITEM_COOKED_MONSTER_MEAT, GOID_ITEM_COOKED_SMALL_MEAT, GOID_ITEM_COOKED_MEAT
+		}, itemFactory);
+
 	registerItemIds({
 		GOID_TOOL_GOLDEN_PICKAXE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE,
 		GOID_TOOL_SPEAR, GOID_TOOL_SWAP_SPEAR, GOID_TOOL_TORCH,
@@ -374,7 +348,7 @@ T* ObjectManager::PostCreate(T* pObj, const ResourcePathUtils::ObjectResourceDef
 
 Entity* ObjectManager::CreateEntity(GameObjectID id, float x, float y)
 {
-	const ResourcePathUtils::ObjectResourceDef* data = ResourceManager::GetInstance()->GetObjectResourceInfo(id);
+	const ResourcePathUtils::ObjectResourceDef* data = DataManager::GetInstance()->GetObjectResourceInfo(id);
 	auto it = m_entityFactories.find(id);
 	if (it != m_entityFactories.end()) {
 		return PostCreate(it->second(id, x, y, data), data);
@@ -385,7 +359,7 @@ Entity* ObjectManager::CreateEntity(GameObjectID id, float x, float y)
 
 Item* ObjectManager::CreateItem(GameObjectID id, float x, float y)
 {
-	const ResourcePathUtils::ObjectResourceDef* data = ResourceManager::GetInstance()->GetObjectResourceInfo(id);
+	const ResourcePathUtils::ObjectResourceDef* data = DataManager::GetInstance()->GetObjectResourceInfo(id);
 	auto it = m_itemFactories.find(id);
 	if (it != m_itemFactories.end()) {
 		return PostCreate(it->second(id, x, y, data), data);
@@ -396,7 +370,7 @@ Item* ObjectManager::CreateItem(GameObjectID id, float x, float y)
 
 Building* ObjectManager::CreateBuilding(GameObjectID id, float x, float y)
 {
-	const ResourcePathUtils::ObjectResourceDef* data = ResourceManager::GetInstance()->GetObjectResourceInfo(id);
+	const ResourcePathUtils::ObjectResourceDef* data = DataManager::GetInstance()->GetObjectResourceInfo(id);
 	auto it = m_buildingFactories.find(id);
 	if (it != m_buildingFactories.end()) {
 		return PostCreate(it->second(id, x, y, data), data);
@@ -428,12 +402,12 @@ UIImage* ObjectManager::CreateImage(GameObjectID id, float width, float height, 
 	return image;
 }
 
-UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, float anchorX, float anchorY, float x, float y, float sortKey)
+UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorX, float anchorY, float x, float y, float sortKey)
 {
 	RenderLayer layer = LAYER_UI_FOREGROUND;
 	std::wstring fontName = L"Arial";
 
-	UIText* uiText = new UIText(id, width, height, text, color, layer, sortKey, fontName, fontSize, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, anchorX, anchorY, anchorX, anchorY, x, y);
+	UIText* uiText = new UIText(id, width, height, text, color, layer, sortKey, fontName, fontSize, fontStyle, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, anchorX, anchorY, anchorX, anchorY, x, y);
 	if (uiText) {
 		AddGameObject(uiText);
 	}

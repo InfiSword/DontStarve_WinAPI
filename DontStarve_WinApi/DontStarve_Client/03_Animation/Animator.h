@@ -1,15 +1,14 @@
 #pragma once
 
-#include <Enum.h>
-#include <functional>
 #include "../02_GameObject/Component/Component.h"
 #include "AnimationClip.h"
 
 class GameObject;
+class SpriteRenderer;
 
 class Animator : public Component {
 public:
-    Animator(GameObject* owner);
+    Animator(GameObject* owner, SpriteRenderer* renderTarget);
     virtual ~Animator();
 
     void RegisterAnimation(int state, Direction dir, 
@@ -29,9 +28,7 @@ public:
     virtual void Init() override;
     virtual void Update(float deltaTime) override;
 
-    void Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& characterFootCenterScreenPos, 
-              float zoomFactor, Direction currentDir, RenderLayer layer, float sortKey);
-
+	const SpriteRenderer* GetRenderTarget() const { return m_renderTarget; }
     const AnimationFrame& GetCurrentFrame() const;
     const SpriteSheet* GetSpriteSheet() const;
     bool IsAnimationDone() const;
@@ -46,6 +43,7 @@ public:
 private:
     std::map<int, std::unique_ptr<AnimationClip>> m_animations;
 
+	SpriteRenderer* m_renderTarget;  // 애니메이션 프레임 렌더링 대상.
     AnimationClip* m_currentClip;
     int m_currentState;
     int m_currentDirection;

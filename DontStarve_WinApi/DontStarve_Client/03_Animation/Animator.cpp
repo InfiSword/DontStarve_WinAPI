@@ -1,14 +1,17 @@
 #include "99_Default/pch.h"
 #include "Animator.h"
 #include "AnimationClip.h"
-#include "SpriteSheet.h"
+#include "../02_GameObject/Component/Sprite/SpriteSheet.h"
 #include "../01_Manager/RenderManager/RenderManager.h"
 #include "../01_Manager/ResourceManager/ResourceManager.h"
+#include "../02_GameObject/GameObject.h"
+#include "../02_GameObject/Component/Transform/Transform.h"
+#include "../02_GameObject/Component/Sprite/SpriteRenderer.h"
 
-Animator::Animator(GameObject* owner)
+Animator::Animator(GameObject* owner, SpriteRenderer* renderTarget)
 	: Component(owner), m_currentClip(nullptr), m_currentState(-1), m_currentDirection(-1),
-	m_elapsed(0.0f), m_isPlaying(false), m_lastTriggeredFrame(-1) {
-}
+	m_elapsed(0.0f), m_isPlaying(false), m_lastTriggeredFrame(-1), m_renderTarget(renderTarget)
+{ }
 
 Animator::~Animator() {
 	m_animations.clear();
@@ -16,8 +19,7 @@ Animator::~Animator() {
 }
 
 void Animator::Init()
-{
-}
+{ }
 
 void Animator::RegisterAnimation(int state, Direction dir,
 	const std::wstring& imagePath,
@@ -32,9 +34,10 @@ void Animator::RegisterAnimation(int state, Direction dir,
 
 	bool shouldFlip = flipHorizontal ? true : (dir == DIR_LEFT);
 
-	// ResourceManager 캐시를 통해 SpriteSheet 공유 - 동일 이미지/설정은 비트맵 재사용
+	// ResourceManager를 통해 SpriteSheet 로드 (캐싱 지원)
 	std::shared_ptr<SpriteSheet> sheet = ResourceManager::GetInstance()->LoadSpriteSheet(
-		imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, shouldFlip);
+		imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, shouldFlip, { pivotX, pivotY });
+	
 	if (!sheet) return;
 
 	// 이미 해당 key로 등록된 클립이 있으면 교체하지 않음 (중복 등록 방지 → 댕글링 원인 제거)
@@ -42,7 +45,7 @@ void Animator::RegisterAnimation(int state, Direction dir,
 		return;
 	}
 
-	auto clip = std::make_unique<AnimationClip>(L"", sheet, pivotX, pivotY, loop, shouldFlip, frameDuration);
+	auto clip = std::make_unique<AnimationClip>(L"", sheet, loop, shouldFlip, frameDuration);
 	if (!clip) return;
 
 	m_animations[key] = std::move(clip);
@@ -81,6 +84,12 @@ void Animator::SelectAndPlayAnimation() {
 		m_isPlaying = true;
 		m_lastTriggeredFrame = -1;
 
+		// 애니메이션 상태가 바뀔 때 SpriteRenderer에도 현재 클립의 대표 스프라이트와 반전 상태를 설정
+		// 이를 통해 SpriteRenderer::GetPivotY() 등이 해당 애니메이션의 피벗을 올바르게 참조할 수 있음
+		if (m_renderTarget && !newClip->GetFrames().empty()) {
+			m_renderTarget->SetSprite(newClip->GetFrames()[0].sprite);
+			m_renderTarget->SetPreFlipped(newClip->IsPreFlipped());
+		}
 	}
 }
 
@@ -92,7 +101,7 @@ void Animator::Update(float deltaTime)
 		m_elapsed += deltaTime;
 
 		float totalDuration = m_currentClip->GetTotalDuration();
-		// 루프가 아닌 애니메이션의 종료 체크 (부동 소수점 오차 방지를 위해 epsilon 사용 고려 가능하나 일단 >= 로 처리)
+		// 루프가 아닌 애니메이션의 종료 체크
 		if (!m_currentClip->IsLooping() && m_elapsed >= totalDuration) {
 			m_elapsed = totalDuration;
 			m_isPlaying = false;
@@ -100,6 +109,14 @@ void Animator::Update(float deltaTime)
 
 		// 현재 프레임 인덱스 계산
 		int currentFrameIndex = GetCurrentFrameIndex();
+
+		// 매 프레임 SpriteRenderer(m_renderTarget)에 현재 프레임의 스프라이트를 동기화
+		if (m_renderTarget && currentFrameIndex != -1) {
+			const auto& frames = m_currentClip->GetFrames();
+			if (currentFrameIndex < (int)frames.size()) {							
+				m_renderTarget->SetSprite(frames[currentFrameIndex].sprite);
+			}
+		}
 
 		// 프레임 변경 시, 건너뛴 프레임 포함해 지나친 모든 프레임에 대해 이벤트 발생
 		if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame)
@@ -130,50 +147,6 @@ void Animator::Update(float deltaTime)
 			m_lastTriggeredFrame = currentFrameIndex;
 		}
 	}
-}
-
-void Animator::Draw(Gdiplus::Graphics* pGraphics, const Gdiplus::PointF& characterFootCenterScreenPos,
-	float zoomFactor, Direction currentDir, RenderLayer layer, float sortKey)
-{
-	if (!m_currentClip) {
-		return;
-	}
-
-	const SpriteSheet* currentSheet = m_currentClip->GetSpriteSheet();
-	if (!currentSheet) {
-		return;
-	}
-
-	Gdiplus::Bitmap* pBitmap = currentSheet->GetBitmap();
-	if (!pBitmap) {
-		return;
-	}
-
-	const AnimationFrame& currentFrame = GetCurrentFrame();
-
-	float scaledWidth = currentFrame.width * zoomFactor;
-	float scaledHeight = currentFrame.height * zoomFactor;
-
-	float finalRenderTopLeftScreenX = characterFootCenterScreenPos.X - (currentFrame.pivotX * scaledWidth);
-	float finalRenderTopLeftScreenY = characterFootCenterScreenPos.Y - (currentFrame.pivotY * scaledHeight);
-
-	Gdiplus::RectF destRect(finalRenderTopLeftScreenX, finalRenderTopLeftScreenY, scaledWidth, scaledHeight);
-	Gdiplus::RectF sourceRect(currentFrame.sourceRect.X, currentFrame.sourceRect.Y,
-		currentFrame.sourceRect.Width, currentFrame.sourceRect.Height);
-
-	RenderManager::GetInstance()->AddDrawCommand(
-		pBitmap,
-		destRect,
-		sourceRect,
-		Gdiplus::UnitPixel,
-		characterFootCenterScreenPos,
-		layer,
-		sortKey,
-		currentDir,
-		Gdiplus::Color(255, 255, 255, 255),
-		false,
-		m_currentClip->IsPreFlipped()
-	);
 }
 
 const AnimationFrame& Animator::GetCurrentFrame() const {

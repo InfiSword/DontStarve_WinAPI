@@ -114,10 +114,10 @@ void Inventory::Init()
 		float textY = cy - SLOT_HEIGHT * 0.5f;
 		UIText* txt = new UIText(
 			GOID_NONE, SLOT_WIDTH, SLOT_HEIGHT,
-			L"", Gdiplus::Color(255, 255, 255, 255),
+			L"", Gdiplus::Color(255, 0, 0, 0),
 			LAYER_UI_FOREGROUND,
 			3.0f + (float)i * 0.001f,
-			L"Arial", 18.0f,
+			L"Arial", 18.0f, Gdiplus::FontStyleRegular,
 			Gdiplus::StringAlignmentFar, Gdiplus::StringAlignmentFar,
 			0.0f, 0.0f, 0.0f, 0.0f, textX, textY
 		);
@@ -153,6 +153,22 @@ void Inventory::UpdateSlotButton(int slotIndex)
 			float scale = (std::min)(SLOT_WIDTH / bw, SLOT_HEIGHT / bh);
 			RectTransform* rt = img->GetRectTransform();
 			rt->SetScale(scale, scale);
+
+			// 스프라이트의 피벗을 직접 수정하지 않고, 위치를 보정하여 중앙 정렬
+			// 슬롯의 기준 중앙 좌표 계산
+			float totalSlotsWidth = SLOT_STRIDE * INVENTORY_SLOT_COUNT - SLOT_PADDING;
+			float startX = WINCX * 0.5f - totalSlotsWidth * 0.5f;
+			float startY = WINCY - SLOT_HEIGHT - 30.0f;
+			float cx = startX + slotIndex * SLOT_STRIDE + SLOT_WIDTH * 0.5f;
+			float cy = startY + SLOT_HEIGHT * 0.5f;
+
+			float actualW = bw * scale;
+			float actualH = bh * scale;
+			// (pivot - 0.5) * size 만큼 위치를 이동시키면 어떤 피벗이든 중앙에 그려짐
+			float offsetX = (spriteHandle->pivot.X - 0.5f) * actualW;
+			float offsetY = (spriteHandle->pivot.Y - 0.5f) * actualH;
+
+			rt->SetAnchoredPosition(cx + offsetX, cy + offsetY);
 		}
 		img->SetSprite(spriteHandle);
 		img->SetActive(true);
@@ -305,7 +321,7 @@ void Inventory::Render(int equippedSlotIndex)
 			float bw = rt->GetWidth() * rt->GetScaleX();
 			float bh = rt->GetHeight() * rt->GetScaleY();
 			Gdiplus::RectF highlightRect(rt->GetX() - bw * 0.5f, rt->GetY() - bh * 0.5f, bw, bh);
-			pRM->AddDrawRectCommand(highlightRect, Gdiplus::Color(255, 255, 0, 0), 3.0f, LAYER_UI_FOREGROUND, 3.2f);
+			pRM->AddDrawRectCommand(highlightRect, Gdiplus::Color(255, 255, 0, 0), 3.0f, LAYER_UI_FOREGROUND, 0.0f, 3.2f);
 		}
 	}
 }

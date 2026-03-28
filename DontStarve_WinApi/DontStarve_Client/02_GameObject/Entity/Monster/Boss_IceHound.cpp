@@ -2,22 +2,24 @@
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
-#include "../../../03_Animation/SpriteSheet.h"
+#include "../../Component/Sprite/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
 #include "../../Component/Collider/BoxCollider.h"
+#include "../../Skill/IceProjectile.h"
 #include "Boss_IceHound.h"
 
 Boss_IceHound::Boss_IceHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
-	, m_bHasHowled(false)
+	: Hound(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 {
 	m_hp = 300;
 	m_maxHp = m_hp;
+	m_bHasHowled = false;
 	m_type = GO_TYPE_MONSTER;
 	m_walkSpeed = 100.0f;
 	m_runSpeed = 250.0f;
@@ -32,6 +34,16 @@ Boss_IceHound::Boss_IceHound(GameObjectID id, float x, float y, float pivotX, fl
 	m_deaggroRadius = 600.0f;
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f;
+	m_projectileCooldown = 3.0f;
+	m_projectileCooldownTimer = 0.0f;
+	m_projectileSpeed = 430.0f;
+	m_projectileRange = 520.0f;
+	m_projectileAttackRange = 250.0f;
+	m_retreatSpeed = 220.0f;
+	m_retreatBeforeShotDuration = 0.25f;
+	m_retreatBeforeShotTimer = 0.0f;
+	m_retreatThenShootPending = false;
+	m_projectileDamage = 20;
 }
 
 Boss_IceHound::~Boss_IceHound() {}
@@ -39,31 +51,33 @@ Boss_IceHound::~Boss_IceHound() {}
 void Boss_IceHound::Init()
 {
 	Monster::Init();
-	m_bUseSuperArmor = true;
+
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
 	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
 
 	ChangeState((int)BossIceHoundState::IDLE);
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
+
+	m_bUseSuperArmor = true;
 	m_bHasHowled = false;
-	m_bCanChase = false; // 초기에는 추격 불가 (시네마틱 대기)
 
 	if (this->transform) {
 		m_targetX = this->transform->GetX();
 		m_targetY = this->transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>();
+	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+
 	if (m_animator) {
-		ResourceManager* pRM = ResourceManager::GetInstance();
+		DataManager* pRM = DataManager::GetInstance();
 		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
 		if (objData) {
 			std::wstring base = objData->baseDir + L"\\";
 			std::wstring prefix = L"IceHound_";
 			std::wstring houndPrefix = prefix + L"hound_";
-			float px = transform->GetPivotX();
-			float py = transform->GetPivotY();
+			float px = objData->pivotX;
+			float py = objData->pivotY;
 
 			m_animator->RegisterAnimation((int)BossIceHoundState::IDLE, DIR_DOWN, base + houndPrefix + L"idle_down.png", 0, 0, 7, 20, px, py, true, 0.03f);
 			m_animator->RegisterAnimation((int)BossIceHoundState::IDLE, DIR_UP, base + houndPrefix + L"idle_up.png", 0, 0, 7, 20, px, py, true, 0.03f);
@@ -94,55 +108,60 @@ void Boss_IceHound::Init()
 
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::ATTACK, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
-					clip->AddEventFrame(17, L"attack_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"attack_hit") this->OnAttackHit();
-						else if (eventName == L"attack_end") this->OnAttackEnd();
-						});
-				}
+
+				clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
+				clip->AddEventFrame(17, L"attack_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"attack_hit") this->OnAttackHit();
+					else if (eventName == L"attack_end") this->OnAttackEnd();
+					});
+
 			}
 
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossIceHoundState::HIT, (Direction)dir, base + houndPrefix + L"hit_side.png", 0, 0, 7, 27, px, py, false, 0.02f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::HIT, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(26, L"hit_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"hit_end") this->OnHitEnd();
-						});
-				}
+
+				clip->AddEventFrame(26, L"hit_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"hit_end") this->OnHitEnd();
+					});
+
 			}
 
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossIceHoundState::DEATH, (Direction)dir, base + houndPrefix + L"death.png", 0, 0, 7, 52, px, py, false, 0.02f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::DEATH, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(51, L"death_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"death_end") this->OnDeathEnd();
-						});
-				}
+				clip->AddEventFrame(51, L"death_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"death_end") this->OnDeathEnd();
+					});
 			}
 
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossIceHoundState::HOWL, (Direction)dir, base + houndPrefix + L"howl.png", 0, 0, 7, 47, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::HOWL, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(46, L"howl_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"howl_end") {
-							m_bHasHowled = true;
-							if (m_bCanChase) ChangeState((int)BossIceHoundState::CHASE);
-							else ChangeState((int)BossIceHoundState::IDLE);
-						}
-						});
-				}
+				clip->AddEventFrame(46, L"howl_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"howl_end") {
+						m_bHasHowled = true;
+						m_bCanChase = false;
+						ChangeState((int)BossIceHoundState::IDLE);
+					}
+					});
 			}
 		}
 
 		ChangeState(m_state);
+	}
+
+	// 발사체 5개 미리 생성하여 풀링
+	for (int i = 0; i < 5; ++i) {
+		IceProjectile* projectile = new IceProjectile();
+		projectile->Init();
+		projectile->SetActive(false); // 초기에는 비활성화 상태
+		ObjectManager::GetInstance()->AddGameObject(projectile);
+		m_projectiles.push_back(projectile);
 	}
 }
 
@@ -156,6 +175,9 @@ bool Boss_IceHound::OnInteraction(GameObject* obj) { return Entity::OnInteractio
 void Boss_IceHound::UpdateAI(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
+	m_projectileCooldownTimer = (std::max)(0.0f, m_projectileCooldownTimer - deltaTime);
+	if (m_retreatThenShootPending)
+		m_retreatBeforeShotTimer = (std::max)(0.0f, m_retreatBeforeShotTimer - deltaTime);
 
 	if (m_state == (int)BossIceHoundState::HOWL)
 	{
@@ -164,7 +186,7 @@ void Boss_IceHound::UpdateAI(float deltaTime)
 	}
 	if (m_state == (int)BossIceHoundState::ATTACK_PRE)
 	{
-		if (m_animator->IsAnimationDone()) 
+		if (m_animator->IsAnimationDone())
 			ChangeState((int)BossIceHoundState::ATTACK);
 		return;
 	}
@@ -176,21 +198,30 @@ void Boss_IceHound::UpdateAI(float deltaTime)
 
 void Boss_IceHound::UpdateMovement(float deltaTime)
 {
+	// 투사체 준비 완료 + 사거리 밖이면 잠깐 후진하여 간격을 벌린 뒤 발사 준비
+	if (m_state == (int)BossIceHoundState::CHASE && m_retreatThenShootPending)
+	{
+		MoveAwayFromPlayer(deltaTime, m_retreatSpeed);
+		return;
+	}
+
 	Monster::UpdateMovement(deltaTime);
 }
 
 int Boss_IceHound::UpdateIdle(float deltaTime)
 {
 	int nextState = Monster::UpdateIdle(deltaTime);
-
 	if (nextState == (int)BossIceHoundState::CHASE && !m_bHasHowled)
 	{
 		return (int)BossIceHoundState::HOWL;
 	}
-
 	if (nextState == (int)BossIceHoundState::ATTACK)
 	{
-		return (int)BossIceHoundState::ATTACK_PRE;
+		return (int)BossIceHoundState::ATTACK_PRE; // 근접 공격 유지
+	}
+	if (CanStartProjectileAttack())
+	{
+		return (int)BossIceHoundState::ATTACK_PRE; // 원거리 공격
 	}
 
 	return nextState;
@@ -204,17 +235,51 @@ int Boss_IceHound::UpdateWalk(float deltaTime)
 	{
 		return (int)BossIceHoundState::HOWL;
 	}
+	if (CanStartProjectileAttack())
+	{
+		return (int)BossIceHoundState::ATTACK_PRE;
+	}
 
 	return nextState;
 }
 
 int Boss_IceHound::UpdateChase(float deltaTime)
 {
-	int nextState = Monster::UpdateChase(deltaTime);
+	if (m_retreatThenShootPending)
+	{
+		// 플레이어가 너무 가까워지면 즉시 근접/투사체 공격으로 전환
+		if (m_distToPlayerSq <= (m_attackRange * m_attackRange))
+		{
+			m_retreatThenShootPending = false;
+			m_retreatBeforeShotTimer = 0.0f;
+			return (int)BossIceHoundState::ATTACK_PRE;
+		}
 
+		if (m_retreatBeforeShotTimer <= 0.0f)
+		{
+			m_retreatThenShootPending = false;
+			return (int)BossIceHoundState::ATTACK_PRE;
+		}
+
+		return (int)BossIceHoundState::CHASE;
+	}
+
+	int nextState = Monster::UpdateChase(deltaTime);
 	if (nextState == (int)BossIceHoundState::ATTACK)
 	{
+		return (int)BossIceHoundState::ATTACK_PRE; // 근접 공격 유지
+	}
+	if (CanStartProjectileAttack())
+	{
 		return (int)BossIceHoundState::ATTACK_PRE;
+	}
+
+	// 투사체 쿨다운이 끝났는데 플레이어가 발사 사거리보다 멀면, 후진 후 발사 로직 시작
+	if (m_projectileCooldownTimer <= 0.0f && m_distToPlayerSq > (m_projectileAttackRange * m_projectileAttackRange))
+	{
+		m_retreatThenShootPending = true;
+		m_retreatBeforeShotTimer = m_retreatBeforeShotDuration;
+		return (int)BossIceHoundState::CHASE;
 	}
 
 	return nextState;
@@ -232,8 +297,20 @@ void Boss_IceHound::Damaged(int damage)
 
 void Boss_IceHound::OnAttackHit()
 {
-	if (m_state == (int)BossIceHoundState::ATTACK)
-		ProcessAttackHit(m_damage);
+	if (m_state != (int)BossIceHoundState::ATTACK) return;
+
+	// 1. 발사체 쿨타임이 완료되었다면 무조건 발사
+	if (m_projectileCooldownTimer <= 0.0f) {
+		FireIceProjectile();
+		m_projectileCooldownTimer = m_projectileCooldown;
+		m_retreatThenShootPending = false;
+		m_retreatBeforeShotTimer = 0.0f;
+	}
+
+	// 2. 플레이어가 근접 사거리(m_attackRange) 내에 있다면 무조건 근접 공격 처리
+	if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
+		ProcessAttackHit(m_damage); // 근접 공격 처리
+	}
 }
 
 void Boss_IceHound::OnAttackEnd()
@@ -252,3 +329,72 @@ void Boss_IceHound::OnHitEnd()
 }
 
 void Boss_IceHound::Die() { ChangeState((int)BossIceHoundState::DEATH); }
+
+void Boss_IceHound::FireIceProjectile()
+{
+	if (!m_attackTarget || !m_attackTarget->IsEnabled()) return;
+
+
+	float dx, dy;
+	Transform* targetTr = m_attackTarget->GetComponent<Transform>();
+	if (targetTr) {
+		dx = targetTr->GetX() - transform->GetX();
+		dy = targetTr->GetY() - transform->GetY();
+	}
+
+
+	IceProjectile* projectile = nullptr;
+	for (IceProjectile* p : m_projectiles) {
+		if (p && !p->IsEnabled()) {
+			projectile = p;
+			break;
+		}
+	}
+
+	if (!projectile) {
+		projectile = new IceProjectile();
+		projectile->Init();
+		ObjectManager::GetInstance()->AddGameObject(projectile);
+		m_projectiles.push_back(projectile);
+	}
+
+	const float spawnOffset = 30.0f;
+	float x = transform->GetX();
+	float y = transform->GetY() - spawnOffset;
+
+	projectile->Fire(x, y, dx, dy, m_projectileDamage, m_projectileSpeed, m_projectileRange);
+}
+
+bool Boss_IceHound::IsPlayerInProjectileRange() const
+{
+	if (!m_attackTarget || !m_attackTarget->IsEnabled()) return false;
+	const float rangeSq = m_projectileAttackRange * m_projectileAttackRange;
+	return m_distToPlayerSq <= rangeSq;
+}
+
+bool Boss_IceHound::CanStartProjectileAttack() const
+{
+	if (m_state == (int)BossIceHoundState::HIT || m_state == (int)BossIceHoundState::DEATH) return false;
+	if (m_projectileCooldownTimer > 0.0f) return false;
+	return IsPlayerInProjectileRange();
+}
+
+void Boss_IceHound::MoveAwayFromPlayer(float deltaTime, float speed)
+{
+	if (!transform) return;
+
+	// 플레이어 방향 반대로 이동
+	float moveX = -m_dirToPlayer.X;
+	float moveY = -m_dirToPlayer.Y;
+	float moveDist = speed * deltaTime;
+	transform->SetPosition(transform->GetX() + moveX * moveDist, transform->GetY() + moveY * moveDist);
+	ClampPositionToMapBounds();
+
+	// 바라보는 방향은 플레이어 쪽으로 유지(공격 애니메이션 연결 자연스럽게)
+	Direction faceDir = DIR_DOWN;
+	if (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y))
+		faceDir = (m_dirToPlayer.X > 0.0f) ? DIR_RIGHT : DIR_LEFT;
+	else
+		faceDir = (m_dirToPlayer.Y > 0.0f) ? DIR_DOWN : DIR_UP;
+	transform->SetDirection(faceDir);
+}

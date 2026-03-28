@@ -37,6 +37,13 @@ private:
     void SpawnBoss();
 
 private:
+    enum class IntroStep {
+        MoveToBoss,
+        WaitHowl,
+        WaitExtra,
+        ReturnToPlayer
+    };
+
     BossPhase m_currentPhase;
     float m_phaseTimer;
     
@@ -44,6 +51,8 @@ private:
     bool m_isIntroRunning;
     float m_introTimer;
     int m_introTargetBossIndex;
+    IntroStep m_introStep;
+    bool m_startedHowl;
     Gdiplus::PointF m_introTargetPos;
     Gdiplus::PointF m_introStartPos;
 

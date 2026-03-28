@@ -3,9 +3,10 @@
 
 Sprite::Sprite(std::shared_ptr<Gdiplus::Bitmap> bmp,
 	const Gdiplus::RectF& srcRect,
+	const Gdiplus::PointF& pvt,
 	const std::wstring& k,
 	const Gdiplus::Color& tint)
-	: bitmap(std::move(bmp)), sourceRect(srcRect), key(k), tintColor(tint)
+	: bitmap(std::move(bmp)), sourceRect(srcRect), pivot(pvt), key(k), tintColor(tint)
 {
 
 }
@@ -15,7 +16,7 @@ Sprite::~Sprite()
 	std::wstring().swap(key);
 }
 
-std::unique_ptr<Sprite> Sprite::CreateFromFile(const std::wstring& path)
+std::shared_ptr<Sprite> Sprite::CreateFromFile(const std::wstring& path, const Gdiplus::PointF& pvt)
 {
 	Gdiplus::Bitmap* pBitmap = Gdiplus::Bitmap::FromFile(path.c_str());
 	if (!pBitmap || pBitmap->GetLastStatus() != Gdiplus::Ok) {
@@ -26,5 +27,5 @@ std::unique_ptr<Sprite> Sprite::CreateFromFile(const std::wstring& path)
 	std::shared_ptr<Gdiplus::Bitmap> sharedBitmap(pBitmap);
 	Gdiplus::RectF srcRect(0.0f, 0.0f, (float)pBitmap->GetWidth(), (float)pBitmap->GetHeight());
 
-	return std::make_unique<Sprite>(sharedBitmap, srcRect, path);
+	return std::make_shared<Sprite>(sharedBitmap, srcRect, pvt, path);
 }

@@ -14,6 +14,7 @@
 #include "../InventoryManager/InventoryManager.h"
 #include "../ColliderManager/ColliderManager.h"
 #include "../ResourceManager/ResourceManager.h"
+#include "../DataManager/DataManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 
 SceneManager::SceneManager()
@@ -87,6 +88,9 @@ void SceneManager::Release()
 void SceneManager::LoadTitleScene()
 {
 	if (m_nextScene) return;
+
+	// 타이틀로 돌아갈 때 런타임 게임 데이터(보스 클리어 정보 등) 초기화
+	GameProgressManager::GetInstance()->ResetRuntimeData();
 
 	TitleScene* titleScene = new TitleScene();
 	m_nextScene = titleScene;
@@ -170,7 +174,7 @@ SceneType SceneManager::GetCurrentSceneType() const
 void SceneManager::LoadAllMapData()
 {
 	// 게임 시작 시 모든 맵 데이터 로드
-	for (const auto& entry : EnumTables::SceneTypeTable) {
+	for (const auto& entry : DataTable::SceneTypeTable) {
 		MapData mapData;
 		if (SceneManager::ParseMapFile(entry.path, mapData)) {
 			m_mapDataStorage[entry.value] = std::move(mapData);
@@ -181,9 +185,8 @@ void SceneManager::LoadAllMapData()
 
 bool SceneManager::ParseMapFile(const std::wstring& mapFileName, MapData& outMapData)
 {
-	ResourceManager* resMgr = ResourceManager::GetInstance();
-	auto getObjectResourceInfo = [resMgr](GameObjectID id) -> const ResourcePathUtils::ObjectResourceDef* {
-		return resMgr->GetObjectResourceInfo(id);
+	auto getObjectResourceInfo = [](GameObjectID id) -> const ResourcePathUtils::ObjectResourceDef* {
+		return DataManager::GetInstance()->GetObjectResourceInfo(id);
 	};
 	return ResourcePathUtils::ParseMapFileInto(mapFileName, outMapData, getObjectResourceInfo);
 }

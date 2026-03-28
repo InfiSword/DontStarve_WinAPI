@@ -131,6 +131,7 @@ enum RenderLayer {
 	LAYER_TILE_BACKGROUND = 0,   // 타일 (배경 아래)
 	LAYER_WORLD_TILE,
 	LAYER_WORLD_OBJECT,          // 월드 오브젝트 (맵 위 오브젝트)
+	LAYER_WORLD_EFFECT,          // 월드 오브젝트 
 	LAYER_DEBUG_OVERLAY,         // 디버그 오버레이 (UI 아래, 월드 위)
 	LAYER_UI_BACKGROUND,         // UI 배경
 	LAYER_UI_FOREGROUND,         // UI 요소들, 텍스트
@@ -150,8 +151,7 @@ enum DrawCommandType
 	DRAW_COMMAND_IMAGE,
 	DRAW_COMMAND_TEXT,
 	DRAW_COMMAND_RECTANGLE,
-	DRAW_COMMAND_FILL_RECTANGLE,
-	DRAW_COMMAND_ELLIPSE
+	DRAW_COMMAND_FILL_RECTANGLE
 };
 
 // 콜라이더 타입 정의

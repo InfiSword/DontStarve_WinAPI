@@ -9,6 +9,7 @@
 #include <codecvt>
 #include <cstring>
 #include "Enum.h"
+#include "Struct.h"
 
 using namespace Gdiplus;
 
@@ -17,7 +18,7 @@ using namespace Gdiplus;
 namespace EnumTables {
 	// TileType -> 문자열
 	inline const WCHAR* GetEnumName(TileType value) {
-		for (const auto& entry : TileTypeTable) {
+		for (const auto& entry : DataTable::TileTypeTable) {
 			if (entry.value == value) return entry.name;
 		}
 		return L"UNKNOWN";
@@ -25,7 +26,7 @@ namespace EnumTables {
 
 	// 문자열 -> TileType
 	inline TileType GetTileType(const WCHAR* name) {
-		for (const auto& entry : TileTypeTable) {
+		for (const auto& entry : DataTable::TileTypeTable) {
 			if (std::wcscmp(entry.name, name) == 0) return entry.value;
 		}
 		return TILE_NONE;
@@ -33,7 +34,7 @@ namespace EnumTables {
 
 	// TileID -> 문자열
 	inline const WCHAR* GetEnumName(TileID value) {
-		for (const auto& entry : TileIDTable) {
+		for (const auto& entry : DataTable::TileIDTable) {
 			if (entry.value == value) return entry.name;
 		}
 		return L"UNKNOWN";
@@ -41,7 +42,7 @@ namespace EnumTables {
 
 	// 문자열 -> TileID
 	inline TileID GetTileID(const WCHAR* name) {
-		for (const auto& entry : TileIDTable) {
+		for (const auto& entry : DataTable::TileIDTable) {
 			if (std::wcscmp(entry.name, name) == 0) return entry.value;
 		}
 		return TILEID_NONE;
@@ -49,7 +50,7 @@ namespace EnumTables {
 
 	// GameObjectID -> 문자열
 	inline const WCHAR* GetEnumName(GameObjectID value) {
-		for (const auto& entry : GameObjectIDTable) {
+		for (const auto& entry : DataTable::GameObjectIDTable) {
 			if (entry.value == value) return entry.name;
 		}
 		return L"UNKNOWN";
@@ -57,7 +58,7 @@ namespace EnumTables {
 
 	// 문자열 -> GameObjectID
 	inline GameObjectID GetGameObjectID(const WCHAR* name) {
-		for (const auto& entry : GameObjectIDTable) {
+		for (const auto& entry : DataTable::GameObjectIDTable) {
 			if (std::wcscmp(entry.name, name) == 0) return entry.value;
 		}
 		return GOID_NONE;
@@ -68,14 +69,9 @@ namespace EnumTables {
 
 namespace ToolDataUtils
 {
-	// 도구 ID로 스탯 정보 조회
-	inline const ToolDataUtils::ToolStatsEntry* GetToolStats(GameObjectID toolID) {
-		for (size_t i = 0; i < ToolDataUtils::ToolStatsCount; ++i) {
-			if (ToolDataUtils::ToolStatsTable[i].toolID == toolID) {
-				return &ToolDataUtils::ToolStatsTable[i];
-			}
-		}
-		return nullptr;
+	// 도구 ID로 스탯 정보 조회 (DataTable 사용)
+	inline const ToolInfo* GetToolStats(GameObjectID toolID) {
+		return DataTable::GetToolInfo(toolID);
 	}
 }
 
@@ -83,13 +79,10 @@ namespace ToolDataUtils
 
 namespace ItemDisplayUtils
 {
-	// 아이템 ID로 디스플레이 이름 조회
+	// 아이템 ID로 디스플레이 이름 조회 (DataTable 사용)
 	inline const wchar_t* GetItemDisplayName(GameObjectID itemID) {
-		for (size_t i = 0; i < ItemDisplayUtils::ItemDisplayCount; ++i) {
-			if (ItemDisplayUtils::ItemDisplayTable[i].itemID == itemID) {
-				return ItemDisplayUtils::ItemDisplayTable[i].displayName;
-			}
-		}
+		if (auto* toolInfo = DataTable::GetToolInfo(itemID)) return toolInfo->name;
+		if (auto* itemInfo = DataTable::GetItemInfo(itemID)) return itemInfo->name;
 		return L"알 수 없는 아이템";
 	}
 }
@@ -102,11 +95,11 @@ namespace ResourceUtils
 	inline std::wstring GetResourceImagePath(GameObjectID itemID) {
 		using namespace ResourcePathUtils;
 		
-		for (size_t i = 0; i < ObjectResourceCount; ++i) {
-			if (ObjectResourceTable[i].id == itemID) {
-				std::wstring path = ObjectResourceTable[i].baseDir;
+		for (size_t i = 0; i < DataTable::ObjectResourceCount; ++i) {
+			if (DataTable::ObjectResourceTable[i].id == itemID) {
+				std::wstring path = DataTable::ObjectResourceTable[i].baseDir;
 				path += L"/";
-				path += ObjectResourceTable[i].imageName;
+				path += DataTable::ObjectResourceTable[i].imageName;
 				return path;
 			}
 		}
@@ -162,7 +155,7 @@ namespace Utils
 // 리소스 경로 관련 유틸리티 함수들
 namespace ResourcePathUtils
 {
-	// 맵 파일 파싱 함수 (Client와 Editor 공통 사용)
+	// 맵 파일 파싱 함수
 	// ResourceManager의 GetObjectResourceInfo 콜백을 통해 오브젝트 리소스 정보를 가져옴
 	template<typename GetObjectResourceInfoFunc>
 	inline bool ParseMapFileInto(const std::wstring& mapFileName, MapData& outMapData, GetObjectResourceInfoFunc getObjectResourceInfo)
@@ -268,10 +261,10 @@ namespace ResourcePathUtils
 						
 						// TileID로 경로 찾기
 						std::wstring baseDir, imageName;
-						for (size_t j = 0; j < TileResourceCount; ++j) {
-							if (TileResourceTable[j].id == tileID) {
-								baseDir = TileResourceTable[j].baseDir;
-								imageName = TileResourceTable[j].imageName;
+						for (size_t j = 0; j < DataTable::TileResourceCount; ++j) {
+							if (DataTable::TileResourceTable[j].id == tileID) {
+								baseDir = DataTable::TileResourceTable[j].baseDir;
+								imageName = DataTable::TileResourceTable[j].imageName;
 								break;
 							}
 						}
@@ -307,7 +300,7 @@ namespace ResourcePathUtils
 						objData.id = objID;
 						objData.x = objX;
 						objData.y = objY;
-						// 나머지 필드(baseDir, pivot, collider 등)는 기본값 유지. 생성 시 ResourceManager에서 조회
+
 						outMapData.gameObjects.push_back(objData);
 					}
 				}

@@ -3,8 +3,10 @@
 #include "../../../01_Manager/InputManager/InputManager.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../02_GameObject/UI/Inventory.h"
+#include "../../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../../Item/Tool/Tool.h"
@@ -25,7 +27,7 @@ Player::Player(float x, float y, GameObjectID characterID, const std::wstring& r
 	m_playerSpeed(300.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr),
 	m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr),
-	isMoveToGoal(false), m_bInputEnabled(true)
+	isMoveToGoal(false), m_bInputEnabled(true), m_speedModifier(1.0f), m_slowTimer(0.0f)
 {
 	m_hp = 100;
 	m_maxHp = 100;
@@ -44,10 +46,10 @@ void Player::Init()
 
 	// Animator 생성 후 애니메이션 등록 (AnimationDefinition 클래스 제거)
 	if (!m_animator) {
-		m_animator = AddComponent<Animator>();
+		m_animator = AddComponent<Animator>(spriteRenderer);
 	}
 
-	ResourceManager* pRM = ResourceManager::GetInstance();
+	DataManager* pRM = DataManager::GetInstance();
 	const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GetID());
 	if (!objData) return;
 	std::wstring base = objData->baseDir;
@@ -55,32 +57,32 @@ void Player::Init()
 	// IDLE
 	std::wstring idleDownPath = base + L"\\Idle\\Wilson_Idle_Down.png";
 	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_DOWN, idleDownPath,
-		126, 189, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+		126, 189, 7, 64, objData->pivotX, objData->pivotY, true, 0.03f);
 
 	std::wstring idleUpPath = base + L"\\Idle\\Wilson_Idle_Up.png";
 	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_UP, idleUpPath,
-		128, 193, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+		128, 193, 7, 64, objData->pivotX, objData->pivotY, true, 0.03f);
 
 	std::wstring idleSidePath = base + L"\\Idle\\Wilson_Idle_Side.png";
 	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_LEFT, idleSidePath,
-		135, 194, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+		135, 194, 7, 64, objData->pivotX, objData->pivotY, true, 0.03f);
 	m_animator->RegisterAnimation((int)PlayerState::IDLE, DIR_RIGHT, idleSidePath,
-		135, 194, 7, 64, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+		135, 194, 7, 64, objData->pivotX, objData->pivotY, true, 0.03f);
 
 	// WALK(RUN)
 	std::wstring runDownPath = base + L"\\Run\\Wilson_Run_Down.png";
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_DOWN, runDownPath,
-		139, 226, 6, 33, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+		139, 226, 6, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 
 	std::wstring runUpPath = base + L"\\Run\\Wilson_Run_Up.png";
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_UP, runUpPath,
-		133, 231, 6, 33, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+		133, 231, 6, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 
 	std::wstring runSidePath = base + L"\\Run\\Wilson_Run_Side.png";
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, runSidePath,
-		142, 226, 6, 33, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+		142, 226, 6, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, runSidePath,
-		141, 226, 6, 33, this->transform->GetPivotX(), this->transform->GetPivotY(), true, 0.03f);
+		141, 226, 6, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 
 	// PICKUP (마지막 프레임에 종료 이벤트)
 	const UINT PICKUP_TOTAL_FRAMES = 20;
@@ -88,7 +90,7 @@ void Player::Init()
 	std::wstring pickupPath = base + L"\\Interact\\Interact_wilson_pickup_pst_down.png";
 	for (int dir = DIR_UP; dir < DIR_COUNT; dir++) {
 		m_animator->RegisterAnimation((int)PlayerState::PICKUP, (Direction)dir, pickupPath,
-			127, 201, 6, PICKUP_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
+			127, 201, 6, PICKUP_TOTAL_FRAMES, objData->pivotX, objData->pivotY, false, 0.02f);
 		// AnimationClip에 직접 이벤트 등록 및 콜백 설정
 		AnimationClip* clip = m_animator->GetAnimationClip((int)PlayerState::PICKUP, (Direction)dir);
 		if (clip) {
@@ -115,6 +117,7 @@ void Player::Init()
 		if (clip) {
 			clip->AddEventFrame(CHOP_HIT_FRAME, L"chop_hit");
 			clip->AddEventFrame(CHOP_LAST_FRAME, L"chop_end");
+			clip->AddEventFrame(1, L"chop_Trigger");
 			// 이벤트 콜백 설정
 			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 				if (eventName == L"chop_hit") {
@@ -122,6 +125,13 @@ void Player::Init()
 				}
 				else if (eventName == L"chop_end") {
 					this->OnChopEnd();
+				}
+				else 
+				{
+					Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
+					if (targetT) {
+						transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+					}
 				}
 				});
 		}
@@ -139,12 +149,20 @@ void Player::Init()
 		if (clip) {
 			clip->AddEventFrame(MINE_HIT_FRAME, L"mine_hit");
 			clip->AddEventFrame(MINE_LAST_FRAME, L"mine_end");
+			clip->AddEventFrame(1, L"mine_Trigger");
 			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 				if (eventName == L"mine_hit") {
 					this->OnMineHit();
 				}
 				else if (eventName == L"mine_end") {
 					this->OnMineEnd();
+				}
+				else 
+				{					
+					Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
+					if (targetT) {
+						transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+					}
 				}
 				});
 		}
@@ -157,13 +175,13 @@ void Player::Init()
 	std::wstring attackUpPath = base + L"\\Attack\\Wilson_Attack_up.png";
 	std::wstring attackSidePath = base + L"\\Attack\\Wilson_Attack_side.png";
 	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_DOWN, attackDownPath,
-		209, 221, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
+		209, 221, 4, ATTACK_TOTAL_FRAMES, objData->pivotX, objData->pivotY, false, 0.02f);
 	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_UP, attackUpPath,
-		199, 218, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
+		199, 218, 4, ATTACK_TOTAL_FRAMES, objData->pivotX, objData->pivotY, false, 0.02f);
 	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_LEFT, attackSidePath,
-		207, 217, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f, false);
+		207, 217, 4, ATTACK_TOTAL_FRAMES, objData->pivotX, objData->pivotY, false, 0.02f, false);
 	m_animator->RegisterAnimation((int)PlayerState::ATTACK, DIR_RIGHT, attackSidePath,
-		207, 217, 4, ATTACK_TOTAL_FRAMES, this->transform->GetPivotX(), this->transform->GetPivotY(), false, 0.02f);
+		207, 217, 4, ATTACK_TOTAL_FRAMES, objData->pivotX, objData->pivotY, false, 0.02f);
 
 	for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 		AnimationClip* clip = m_animator->GetAnimationClip((int)PlayerState::ATTACK, (Direction)dir);
@@ -224,6 +242,12 @@ void Player::ToggleEquipItem(int slotIndex)
 		m_equippedSlotIndex = slotIndex;
 		m_equippedItem = toolItem;
 	}
+}
+
+void Player::SetSlow(float duration, float modifier)
+{
+	m_slowTimer = (std::max)(m_slowTimer, duration);
+	m_speedModifier = (std::min)(m_speedModifier, modifier);
 }
 
 void Player::Damaged(int damage)
@@ -317,9 +341,17 @@ void Player::Update(float deltaTime)
 {
 	Entity::Update(deltaTime);
 
+	if (m_slowTimer > 0) {
+		m_slowTimer -= deltaTime;
+		if (m_slowTimer <= 0) {
+			m_slowTimer = 0;
+			m_speedModifier = 1.0f;
+		}
+	}
+
 	HandleMovement();
 
-	float moveSpeedThisFrame = m_playerSpeed * deltaTime;
+	float moveSpeedThisFrame = m_playerSpeed * m_speedModifier * deltaTime;
 
 	if (isMoveToGoal)
 	{
@@ -361,6 +393,7 @@ void Player::Update(float deltaTime)
 					float ay = targetT->GetY() - transform->GetY();
 					float distToTarget = std::sqrt(ax * ax + ay * ay);
 					if (distToTarget <= m_attackRange) {
+
 						Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
 						transform->SetDirection(faceDir);
 						ChangeState((int)PlayerState::ATTACK);
@@ -375,15 +408,16 @@ void Player::Update(float deltaTime)
 			// 도착 시 상호작용 처리
 			if (m_pendingInteractionTarget && m_pendingInteractionTarget->IsEnabled()) {
 				m_activeInteractionTarget = m_pendingInteractionTarget;
-				m_pendingInteractionTarget = nullptr;
-				// 방향 설정 (인라인화: SetDirectionToward)
+				m_pendingInteractionTarget = nullptr;			
+
+				// 방향 설정 
 				Direction dir;
 				if (std::abs(dx) > std::abs(dy))
 					dir = (dx > 0) ? DIR_RIGHT : DIR_LEFT;
 				else
 					dir = (dy > 0) ? DIR_DOWN : DIR_UP;
 				transform->SetDirection(dir);
-				// OnInteraction의 반환값을 확인하여 실패 시 IDLE 상태로 전환
+
 				if (!OnInteraction(m_activeInteractionTarget)) {
 					ChangeState((int)PlayerState::IDLE);
 				}
@@ -426,7 +460,6 @@ void Player::TryStartInteraction(float worldX, float worldY)
 		m_activeInteractionTarget = nullptr;
 		m_pendingInteractionTarget = nullptr;
 		ChangeState((int)PlayerState::IDLE);
-		transform->SetPivot(0.5f, transform->GetPivotY());
 	}
 
 	// 이동 중 대기 중인 상호작용 초기화
@@ -574,14 +607,14 @@ void Player::OnChopHit()
 
 	m_activeInteractionTarget->Damaged(m_damage);
 	Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
-	if (entity && entity->IsDead()) m_activeInteractionTarget = nullptr;
+	if (entity && entity->IsDead())
+		m_activeInteractionTarget = nullptr;
 }
 
 void Player::OnChopEnd()
 {
 	if (m_state != (int)PlayerState::CHOP) return;
 
-	transform->SetPivot(0.5f, transform->GetPivotY());
 	transform->SetDirection(DIR_DOWN);
 	m_activeInteractionTarget = nullptr;
 	m_pendingInteractionTarget = nullptr;
@@ -606,7 +639,6 @@ void Player::OnMineEnd()
 {
 	if (m_state != (int)PlayerState::MINE) return;
 
-	transform->SetPivot(0.5f, transform->GetPivotY());
 	transform->SetDirection(DIR_DOWN);
 	m_activeInteractionTarget = nullptr;
 	m_pendingInteractionTarget = nullptr;
@@ -739,8 +771,13 @@ void Player::HandleMovement()
 		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(sx, sy);
 		TryStartInteraction(worldPos.X, worldPos.Y);
 	}
-	else if (inputManager->IsRButtonClicked()) {
+	else if (inputManager->IsRButtonClicked()) 
+	{
+		// 우클릭 시 모든 상호작용 및 공격 대상 초기화
 		m_pendingInteractionTarget = nullptr;
+		m_attackTarget = nullptr;
+		m_activeInteractionTarget = nullptr;
+
 		POINT mousePos = inputManager->GetMousePos();
 		float sx = static_cast<float>(mousePos.x);
 		float sy = static_cast<float>(mousePos.y);
@@ -755,7 +792,7 @@ void Player::HandleMovement()
 			return;
 		}
 
-		if (m_state == PlayerState::ATTACK) {
+		if (m_state == (int)PlayerState::ATTACK) {
 			OnAttackEnd();
 		}
 

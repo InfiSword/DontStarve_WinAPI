@@ -48,7 +48,7 @@ public:
 	// UI 생성 헬퍼
 	UIButton* CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorX, float anchorY, float x, float y, std::function<void()> onClick);
 	UIImage*  CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorX, float anchorY, float x, float y);
-	UIText*   CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, float anchorX, float anchorY, float x, float y, float sortKey = 0 );
+	UIText*   CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorX, float anchorY, float x, float y, float sortKey = 0 );
 
 private:
 

@@ -15,10 +15,8 @@
     <ClCompile Include="02_GameObject\Item\Tool\Tool.cpp" />
     <ClCompile Include="03_Animation\AnimationClip.cpp" />
     <ClCompile Include="03_Animation\Animator.cpp" />
-    <ClCompile Include="03_Animation\SpriteSheet.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Rock.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Tree.cpp" />
-    <ClCompile Include="02_GameObject\Item\Ingredient.cpp" />
     <ClCompile Include="02_GameObject\Entity\Enviorment\Grass.cpp" />
     <ClCompile Include="01_Manager\RenderManager\RenderManager.cpp" />
     <ClCompile Include="02_GameObject\Building\PigHouse.cpp" />
@@ -72,6 +70,10 @@
     <ClCompile Include="01_Manager\SceneManager\ForestScene.cpp" />
     <ClCompile Include="02_GameObject\UI\HPUI.cpp" />
     <ClCompile Include="02_GameObject\UI\GameClearUI.cpp" />
+    <ClCompile Include="02_GameObject\Skill\IceProjectile.cpp" />
+    <ClCompile Include="02_GameObject\Skill\Projectile.cpp" />
+    <ClCompile Include="02_GameObject\Component\Sprite\SpriteSheet.cpp" />
+    <ClCompile Include="01_Manager\DataManager\DataManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -91,10 +93,8 @@
     <ClInclude Include="02_GameObject\Item\Tool\Tool.h" />
     <ClInclude Include="03_Animation\AnimationClip.h" />
     <ClInclude Include="03_Animation\Animator.h" />
-    <ClInclude Include="03_Animation\SpriteSheet.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Rock.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Tree.h" />
-    <ClInclude Include="02_GameObject\Item\Ingredient.h" />
     <ClInclude Include="02_GameObject\Entity\Enviorment\Grass.h" />
     <ClInclude Include="01_Manager\RenderManager\RenderManager.h" />
     <ClInclude Include="02_GameObject\Building\PigHouse.h" />
@@ -150,6 +150,10 @@
     <ClInclude Include="01_Manager\SceneManager\ForestScene.h" />
     <ClInclude Include="02_GameObject\UI\HPUI.h" />
     <ClInclude Include="02_GameObject\UI\GameClearUI.h" />
+    <ClInclude Include="02_GameObject\Skill\IceProjectile.h" />
+    <ClInclude Include="02_GameObject\Skill\Projectile.h" />
+    <ClInclude Include="02_GameObject\Component\Sprite\SpriteSheet.h" />
+    <ClInclude Include="01_Manager\DataManager\DataManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

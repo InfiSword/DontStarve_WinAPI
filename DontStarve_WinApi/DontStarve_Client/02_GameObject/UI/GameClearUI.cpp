@@ -31,7 +31,6 @@ GameClearUI::GameClearUI(float anchorMinX, float anchorMinY,
         m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
         m_rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
         m_rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
-        m_rectTransform->SetPivot(0.5f, 0.5f);
     }
     SetActive(false);
 }
@@ -63,7 +62,7 @@ void GameClearUI::Init()
     // 클리어 텍스트
     m_clearText = new UIText(
         GOID_NONE, 600.0f, 80.0f, L"GAME CLEAR!", Gdiplus::Color(255, 255, 215, 0), // Gold color
-        LAYER_UI_FOREGROUND, SORT_KEY + 1.0f, L"Arial", 48.0f,
+        LAYER_UI_FOREGROUND, SORT_KEY + 1.0f, L"Arial", 48.0f, Gdiplus::FontStyleRegular,
         Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
         anchorX, anchorY, anchorX, anchorY, centerX, centerY - 120.0f
     );
@@ -74,7 +73,7 @@ void GameClearUI::Init()
     // 시간 텍스트
     m_timeText = new UIText(
         GOID_NONE, 400.0f, 50.0f, L"Clear Time: 00:00", Gdiplus::Color(255, 255, 255, 255),
-        LAYER_UI_FOREGROUND, SORT_KEY + 1.0f, L"Arial", 24.0f,
+        LAYER_UI_FOREGROUND, SORT_KEY + 1.0f, L"Arial", 24.0f, Gdiplus::FontStyleRegular,
         Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
         anchorX, anchorY, anchorX, anchorY, centerX, centerY - 60.0f
     );
@@ -98,7 +97,7 @@ void GameClearUI::Init()
 
     m_btnToLobbyText = new UIText(
         GOID_NONE, 200.0f, 50.0f, L"Title", Gdiplus::Color(255, 255, 255, 255),
-        LAYER_UI_FOREGROUND, SORT_KEY + 3.0f, L"Arial", 24.0f,
+        LAYER_UI_FOREGROUND, SORT_KEY + 3.0f, L"Arial", 24.0f, Gdiplus::FontStyleRegular,
         Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
         anchorX, anchorY, anchorX, anchorY, centerX, centerY + 20.0f
     );
@@ -121,7 +120,7 @@ void GameClearUI::Init()
 
     m_btnQuitText = new UIText(
         GOID_NONE, 200.0f, 50.0f, L"Exit", Gdiplus::Color(255, 255, 255, 255),
-        LAYER_UI_FOREGROUND, SORT_KEY + 3.0f, L"Arial", 24.0f,
+        LAYER_UI_FOREGROUND, SORT_KEY + 3.0f, L"Arial", 24.0f, Gdiplus::FontStyleRegular,
         Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
         anchorX, anchorY, anchorX, anchorY, centerX, centerY + 85.0f
     );
@@ -163,7 +162,7 @@ void GameClearUI::Render()
     float screenW = static_cast<float>(WINCX);
     float screenH = static_cast<float>(WINCY);
     Gdiplus::RectF blockRect(0.0f, 0.0f, screenW, screenH);
-    pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(180, 0, 0, 0), LAYER_UI_FOREGROUND, SORT_KEY - 1.0f);
+    pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(180, 0, 0, 0), LAYER_UI_FOREGROUND, 0.0f, SORT_KEY - 1.0f);
 }
 
 void GameClearUI::Show()

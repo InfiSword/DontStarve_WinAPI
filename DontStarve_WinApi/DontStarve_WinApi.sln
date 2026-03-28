@@ -5,6 +5,7 @@ VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Header", "Header", "{7E58209F-9673-4C33-99C0-9C749D951B32}"
 	ProjectSection(SolutionItems) = preProject
+		Header\DataTable.h = Header\DataTable.h
 		Header\Define.h = Header\Define.h
 		Header\Enum.h = Header\Enum.h
 		Header\Extern.h = Header\Extern.h

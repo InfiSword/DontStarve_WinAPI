@@ -27,7 +27,6 @@ GameOverUI::GameOverUI(float anchorMinX, float anchorMinY,
         m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
         m_rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
         m_rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
-        m_rectTransform->SetPivot(0.5f, 0.5f);
     }
     SetActive(false);
 }
@@ -59,7 +58,7 @@ void GameOverUI::Init()
     // 패배 텍스트
     m_gameOverText = new UIText(
         GOID_NONE, 400.0f, 80.0f, L"Game Over", Gdiplus::Color(255, 255, 255, 255),
-        LAYER_UI_FOREGROUND, SORT_KEY + 1.0f, L"Arial", 48.0f,
+        LAYER_UI_FOREGROUND, SORT_KEY + 1.0f, L"Arial", 48.0f, Gdiplus::FontStyleRegular,
         Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
         anchorX, anchorY, anchorX, anchorY, centerX, centerY - 80.0f
     );
@@ -89,7 +88,7 @@ void GameOverUI::Init()
 
     m_btnToLobbyText = new UIText(
         GOID_NONE, 200.0f, 50.0f, L"Title", Gdiplus::Color(255, 255, 255, 255),
-        LAYER_UI_FOREGROUND, SORT_KEY + 3.0f, L"Arial", 24.0f,
+        LAYER_UI_FOREGROUND, SORT_KEY + 3.0f, L"Arial", 24.0f, Gdiplus::FontStyleRegular,
         Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
         anchorX, anchorY, anchorX, anchorY, centerX, centerY + 20.0f
     );
@@ -112,7 +111,7 @@ void GameOverUI::Init()
 
     m_btnQuitText = new UIText(
         GOID_NONE, 200.0f, 50.0f, L"Exit", Gdiplus::Color(255, 255, 255, 255),
-        LAYER_UI_FOREGROUND, SORT_KEY + 3.0f, L"Arial", 24.0f,
+        LAYER_UI_FOREGROUND, SORT_KEY + 3.0f, L"Arial", 24.0f, Gdiplus::FontStyleRegular,
         Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
         anchorX, anchorY, anchorX, anchorY, centerX, centerY + 85.0f
     );
@@ -153,7 +152,7 @@ void GameOverUI::Render()
     float screenH = static_cast<float>(WINCY);
     Gdiplus::RectF blockRect(0.0f, 0.0f, screenW, screenH);
     // SORT_KEY가 100.0f이므로, 99.0f 정도로 설정하여 자식 UI들(101.0f 이상)보다 뒤에 오도록 함
-    pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(150, 0, 0, 0), LAYER_UI_FOREGROUND, SORT_KEY - 1.0f);
+    pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(150, 0, 0, 0), LAYER_UI_FOREGROUND, 0.0f, SORT_KEY - 1.0f);
 }
 
 void GameOverUI::Show()

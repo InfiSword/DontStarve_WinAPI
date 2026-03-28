@@ -3,6 +3,8 @@
 #include "../../02_GameObject/UI/IntroNoticeUI.h"
 #include "../ObjectManager/ObjectManager.h"
 
+bool ForestScene::m_bIntroPlayed = false;
+
 ForestScene::ForestScene()
     : GameScene()
 {
@@ -16,10 +18,14 @@ void ForestScene::Init(const MapData* mapData)
 {
     GameScene::Init(mapData);
     
-    // ForestScene 전용 초기화 로직
-    IntroNoticeUI* introUI = new IntroNoticeUI();
-    introUI->Init();
-    ObjectManager::GetInstance()->AddGameObject(introUI);
+	if (!m_bIntroPlayed)
+		// ForestScene 전용 초기화 로직
+	{
+		introUI = new IntroNoticeUI();
+		introUI->Init();
+		ObjectManager::GetInstance()->AddGameObject(introUI);
+		m_bIntroPlayed = true;
+	}
 
     OutputDebugStringW(L"ForestScene: 초기화 완료\n");
 }

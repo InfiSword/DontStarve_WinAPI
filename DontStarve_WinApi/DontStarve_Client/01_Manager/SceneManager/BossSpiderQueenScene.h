@@ -38,6 +38,13 @@ private:
     void StartBossIntro();
 
 private:
+    enum class IntroStep {
+        MoveToBoss,
+        WaitTaunt,
+        WaitExtra,
+        ReturnToPlayer
+    };
+
     std::wstring m_bossName;
     class HPUI* m_bossHPUI;
     BossPhase m_currentPhase;
@@ -48,6 +55,8 @@ private:
     float m_introTimer;
     Gdiplus::PointF m_introTargetPos;
     Gdiplus::PointF m_introStartPos;
+    IntroStep m_introStep;
+    bool m_startedTaunt;
 
     GameObject* m_bossObject;
     std::vector<GameObject*> m_minionObjects;

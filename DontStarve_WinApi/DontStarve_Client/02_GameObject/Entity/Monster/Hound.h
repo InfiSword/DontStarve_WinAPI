@@ -26,6 +26,8 @@ public:
     virtual void Damaged(int damage) override;
     virtual bool OnInteraction(GameObject* obj) override;
 
+	bool GetHowled() const { return m_bHasHowled; }
+
 protected:
     virtual void UpdateAI(float deltaTime) override;
     virtual void UpdateMovement(float deltaTime) override;
@@ -39,6 +41,6 @@ protected:
     virtual void OnHitEnd() override;
     virtual void Die() override;
 
-private:
+protected:
     bool m_bHasHowled;
 };

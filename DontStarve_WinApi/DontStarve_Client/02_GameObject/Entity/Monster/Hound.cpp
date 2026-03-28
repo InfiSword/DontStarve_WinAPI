@@ -1,18 +1,19 @@
 #include "99_Default/pch.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
-#include "../../../03_Animation/SpriteSheet.h"
+#include "../../Component/Sprite/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
 #include "../../Component/Collider/BoxCollider.h"
 #include "Hound.h"
 
 Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
-             const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
 	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 	, m_bHasHowled(false)
 {
@@ -48,15 +49,15 @@ void Hound::Init()
 		m_targetY = this->transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>();
+	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
 	if (m_animator) {
-		ResourceManager* pRM = ResourceManager::GetInstance();
+		DataManager* pRM = DataManager::GetInstance();
 		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
 		if (objData) {
 			std::wstring base = objData->baseDir + L"\\";
-			float px = transform->GetPivotX();
-			float py = transform->GetPivotY();
-			
+			float px = objData->pivotX;
+			float py = objData->pivotY;
+
 			m_animator->RegisterAnimation((int)HoundState::IDLE, DIR_DOWN, base + L"Hound_hound_idle_down.png", 0, 0, 7, 20, px, py, true, 0.02f);
 			m_animator->RegisterAnimation((int)HoundState::IDLE, DIR_UP, base + L"Hound_hound_idle_up.png", 0, 0, 7, 20, px, py, true, 0.02f);
 			std::wstring idleSidePath = base + L"Hound_hound_idle_side.png";
@@ -89,40 +90,51 @@ void Hound::Init()
 
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::ATTACK, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
-					clip->AddEventFrame(17, L"attack_end"); // 마지막 프레임에 이벤트 등록
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"attack_hit") this->OnAttackHit();
-						else if (eventName == L"attack_end") this->OnAttackEnd();
+
+				clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
+				clip->AddEventFrame(17, L"attack_end"); // 마지막 프레임에 이벤트 등록
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"attack_hit") this->OnAttackHit();
+					else if (eventName == L"attack_end") this->OnAttackEnd();
 					});
-				}
+
 			}
 
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)HoundState::HIT, (Direction)dir, base + L"Hound_hound_hit_side.png", 0, 0, 7, 27, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::HIT, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(26, L"hit_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"hit_end") this->OnHitEnd();
+
+				clip->AddEventFrame(26, L"hit_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"hit_end") this->OnHitEnd();
 					});
-				}
+
 			}
 
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)HoundState::DEATH, (Direction)dir, base + L"Hound_hound_death.png", 0, 0, 7, 52, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::DEATH, (Direction)dir);
-				if (clip) {
-					clip->AddEventFrame(51, L"death_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"death_end") this->OnDeathEnd();
+
+				clip->AddEventFrame(51, L"death_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"death_end") this->OnDeathEnd();
 					});
-				}
 			}
 
-			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) 
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++)
+			{
 				m_animator->RegisterAnimation((int)HoundState::HOWL, (Direction)dir, base + L"Hound_hound_howl.png", 0, 0, 7, 47, px, py, false, 0.03f);
+				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::HOWL, (Direction)dir);
+
+				clip->AddEventFrame(46, L"howl_end"); // 47프레임이므로 마지막 인덱스는 46
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"howl_end")
+					{
+						m_bHasHowled = true;
+						ChangeState((int)HoundState::CHASE);
+					}
+					});
+			}
 		}
 		ChangeState(m_state);
 	}
@@ -143,12 +155,6 @@ void Hound::UpdateAI(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
 
-	// HOWL과 ATTACK_PRE는 애니메이션 종료 후 상태 전이가 일어나야 함
-	if (m_state == (int)HoundState::HOWL)
-	{
-		if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::CHASE);
-		return;
-	}
 	if (m_state == (int)HoundState::ATTACK_PRE)
 	{
 		if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::ATTACK);
@@ -171,7 +177,6 @@ int Hound::UpdateIdle(float deltaTime)
 
 	if (nextState == (int)HoundState::CHASE && !m_bHasHowled)
 	{
-		m_bHasHowled = true;
 		return (int)HoundState::HOWL;
 	}
 
@@ -189,7 +194,6 @@ int Hound::UpdateWalk(float deltaTime)
 
 	if (nextState == (int)HoundState::CHASE && !m_bHasHowled)
 	{
-		m_bHasHowled = true;
 		return (int)HoundState::HOWL;
 	}
 
@@ -217,9 +221,9 @@ void Hound::Damaged(int damage)
 	}
 }
 
-void Hound::OnAttackHit() 
-{ 
-	if (m_state == (int)HoundState::ATTACK) ProcessAttackHit(m_damage); 
+void Hound::OnAttackHit()
+{
+	if (m_state == (int)HoundState::ATTACK) ProcessAttackHit(m_damage);
 }
 
 void Hound::OnAttackEnd()

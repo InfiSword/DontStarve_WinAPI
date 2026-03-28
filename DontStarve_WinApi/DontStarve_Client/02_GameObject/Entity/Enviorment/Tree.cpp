@@ -46,7 +46,7 @@ bool Tree::OnInteraction(GameObject* obj)
 
 void Tree::Damaged(int damage)
 {
-	if (m_treeState != TreeState::IDLE) return;
+	if (m_treeState != TreeState::IDLE || !CanInteract()) return;
 
 	m_hp -= damage;
 

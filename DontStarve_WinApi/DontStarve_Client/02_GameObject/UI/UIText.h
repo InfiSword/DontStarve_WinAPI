@@ -14,6 +14,7 @@ public:
            const std::wstring& text, const Gdiplus::Color& color,
            RenderLayer layer, float sortKey, 
            const std::wstring& fontName = L"Arial", float fontSize = 16.0f,
+           Gdiplus::FontStyle fontStyle = Gdiplus::FontStyleRegular,
            Gdiplus::StringAlignment hAlign = Gdiplus::StringAlignmentCenter,
            Gdiplus::StringAlignment vAlign = Gdiplus::StringAlignmentCenter,
            float anchorMinX = 0.5f, float anchorMinY = 0.5f,
@@ -30,5 +31,6 @@ public:
 
     void SetText(const std::wstring& text);
     void SetColor(const Gdiplus::Color& color);
+    void SetFontStyle(const std::wstring& fontName, float fontSize, Gdiplus::FontStyle fontStyle);
     Text* GetTextComponent() const { return m_text; }
 };

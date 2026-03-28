@@ -26,7 +26,7 @@ using namespace std;
 using namespace Gdiplus; 
 
 #include <Extern.h>    
-#include <Enum.h>      
+#include <Enum.h>
 #include <Struct.h>
 #include <Define.h>    
 #include <Function.h>  

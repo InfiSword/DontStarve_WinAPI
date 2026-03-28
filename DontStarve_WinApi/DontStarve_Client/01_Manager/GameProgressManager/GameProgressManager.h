@@ -142,6 +142,9 @@ public:
 	// 런타임 게임 데이터 초기화 (타이틀로 복귀 시)
 	void ResetRuntimeData();
 
+	// 모든 게임 진행 상황 초기화 (저장된 캐릭터 해금 포함)
+	void ResetAllProgress();
+
 private:
 	GameProgress m_gameProgress;  // 게임 진행도 데이터
 

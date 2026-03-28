@@ -28,6 +28,8 @@ namespace ComponentElement
 		virtual void Init() override;
 		virtual void Release() override;
 
+		void Render();
+
 		Gdiplus::Bitmap* GetSprite() const { return m_sprite ? m_sprite->bitmap.get() : nullptr; }
 		std::shared_ptr<Sprite> GetSpriteHandle() const { return m_sprite; }
 		void SetSprite(const std::shared_ptr<Sprite>& sprite) { m_sprite = sprite; }
@@ -45,6 +47,11 @@ namespace ComponentElement
 		
 		// 알파값만 설정
 		void SetAlpha(BYTE alpha) { m_tintColor = Gdiplus::Color(alpha, m_tintColor.GetR(), m_tintColor.GetG(), m_tintColor.GetB()); }
+
+		// 피벗 제어 (Sprite 데이터에 직접 접근)
+		float GetPivotX() const { return m_sprite ? m_sprite->pivot.X : 0.5f; }
+		float GetPivotY() const { return m_sprite ? m_sprite->pivot.Y : 0.5f; }
+		void SetPivot(float x, float y) { if (m_sprite) { m_sprite->pivot.X = x; m_sprite->pivot.Y = y; } }
 
 		void ApplyStyle(const ImageStyle& style) { m_layer = style.layer; m_sortKey = style.sortKey; }
 

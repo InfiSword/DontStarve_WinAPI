@@ -18,4 +18,7 @@ public:
 private:
 	void OnStartButtonClicked();
 	void OnExitButtonClicked();
+	void OnResetButtonClicked();
+
+	class UIText* m_resetMessageText = nullptr;
 };

@@ -47,6 +47,16 @@ void Combatant::Release()
 	Entity::Release();
 }
 
+void Combatant::Damaged(int damage)
+{
+	Entity::Damaged(damage);
+
+	// 죽었을 때 공격 콜라이더도 즉시 비활성화
+	if (m_isDead && m_attackCollider) {
+		m_attackCollider->SetColliderEnabled(false);
+	}
+}
+
 bool Combatant::CheckSuperArmorHit()
 {
 	if (!m_bUseSuperArmor) return false;
@@ -156,13 +166,33 @@ void Combatant::ProcessAttackHit(int damage)
 	m_attackCollider->SetColliderEnabled(false);
 }
 
-void Combatant::ApplyAttackDamageToTarget(int damage)
+bool Combatant::ApplyAttackDamageToTarget(int damage)
 {
 	CameraManager* cameraManager = CameraManager::GetInstance();
-	if (!cameraManager || !m_attackCollider) return;
+	if (!cameraManager || !m_attackCollider) return false;
 
 	std::vector<GameObject*> hits;
 	cameraManager->FindObjectsIntersectingCollider(m_attackCollider, hits);
+
+	if (hits.empty()) return false;
+
+	// 나(공격자)와의 거리를 기준으로 정렬 (가장 가까운 적부터 처리)
+	Transform* myTr = transform;
+	if (!myTr) return false;
+
+	std::sort(hits.begin(), hits.end(), [myTr](GameObject* a, GameObject* b) {
+		Transform* ta = a->GetComponent<Transform>();
+		Transform* tb = b->GetComponent<Transform>();
+		if (!ta) return false;
+		if (!tb) return true;
+
+		float distSqA = (ta->GetX() - myTr->GetX()) * (ta->GetX() - myTr->GetX()) +
+			(ta->GetY() - myTr->GetY()) * (ta->GetY() - myTr->GetY());
+		float distSqB = (tb->GetX() - myTr->GetX()) * (tb->GetX() - myTr->GetX()) +
+			(tb->GetY() - myTr->GetY()) * (tb->GetY() - myTr->GetY());
+
+		return distSqA < distSqB;
+		});
 
 	for (GameObject* obj : hits) {
 		if (!obj || !obj->IsEnabled() || obj == this) continue;
@@ -172,8 +202,10 @@ void Combatant::ApplyAttackDamageToTarget(int damage)
 			continue;
 
 		obj->Damaged(damage);
-		break; // 첫 번째 대상만
+		return true; // 첫 번째(가장 가까운) 대상만 데미지 입힘
 	}
+
+	return false;
 }
 
 void Combatant::OnAttackEnd()

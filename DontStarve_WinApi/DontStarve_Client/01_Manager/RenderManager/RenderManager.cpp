@@ -8,7 +8,7 @@
 #include "../../02_GameObject/Component/Sprite/Image.h"
 #include "../../02_GameObject/Component/Text/Text.h"
 #include "../../03_Animation/Animator.h"
-#include "../../03_Animation/SpriteSheet.h"
+#include "../../02_GameObject/Component/Sprite/SpriteSheet.h"
 #include "../../02_GameObject/GameObject.h"
 
 RenderManager::RenderManager()
@@ -56,7 +56,7 @@ void RenderManager::Release()
 	if (m_pCachedAttr) { delete m_pCachedAttr; m_pCachedAttr = nullptr; }
 }
 
-void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)
+void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float yPos, float sortKey, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_IMAGE;
@@ -66,6 +66,7 @@ void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::Rect
 	cmd.srcUnit = srcUnit;
 	cmd.objectScreenPos = objectScreenPos;
 	cmd.layer = layer;
+	cmd.yPos = yPos;
 	cmd.sortKey = sortKey;
 	cmd.direction = direction;
 	cmd.tintColor = tintColor;
@@ -76,7 +77,7 @@ void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::Rect
 	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float sortKey, float rotation, const Gdiplus::PointF& rotationPivot)
+void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float yPos, float sortKey, float rotation, const Gdiplus::PointF& rotationPivot)
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_TEXT;
@@ -86,6 +87,7 @@ void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFon
 	cmd.pStringFormat = pStringFormat;
 	cmd.destRect = destRect;
 	cmd.layer = layer;
+	cmd.yPos = yPos;
 	cmd.sortKey = sortKey;
 	cmd.rotation = rotation;
 	cmd.objectScreenPos = rotationPivot;
@@ -93,7 +95,7 @@ void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFon
 	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::AddDrawRectCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey)
+void RenderManager::AddDrawRectCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float yPos, float sortKey)
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_RECTANGLE;
@@ -101,77 +103,23 @@ void RenderManager::AddDrawRectCommand(const Gdiplus::RectF& rect, const Gdiplus
 	cmd.color = color;
 	cmd.thickness = thickness;
 	cmd.layer = layer;
+	cmd.yPos = yPos;
 	cmd.sortKey = sortKey;
 
 	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float sortKey)
+void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float yPos, float sortKey)
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_FILL_RECTANGLE;
 	cmd.destRect = rect;
 	cmd.color = color;
 	cmd.layer = layer;
+	cmd.yPos = yPos;
 	cmd.sortKey = sortKey;
 
 	m_layerCommands[layer].push_back(cmd);
-}
-
-void RenderManager::AddDrawEllipseCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float sortKey)
-{
-	DrawCommand cmd;
-	cmd.type = DRAW_COMMAND_ELLIPSE;
-	cmd.destRect = rect;
-	cmd.color = color;
-	cmd.thickness = thickness;
-	cmd.layer = layer;
-	cmd.sortKey = sortKey;
-
-	m_layerCommands[layer].push_back(cmd);
-}
-
-void RenderManager::RenderSprite(Transform* pTransform, SpriteRenderer* pSpriteRenderer)
-{
-	if (!pTransform || !pSpriteRenderer) return;
-
-	CameraManager* pCam = CameraManager::GetInstance();
-	Gdiplus::PointF screenPos = pCam->WorldToScreen(pTransform->GetX(), pTransform->GetY());
-
-	auto spriteHandle = pSpriteRenderer->GetSpriteHandle();
-	if (!spriteHandle || !spriteHandle->bitmap) return;
-
-	RenderLayer layer = pSpriteRenderer->GetLayer();
-	float sortKey = pTransform->GetSortKey(layer);
-	Direction dir = pTransform->GetDirection();
-
-	// 스케일 적용하여 렌더링 크기 계산
-	float width = spriteHandle->sourceRect.Width * pTransform->GetScaleX();
-	float height = spriteHandle->sourceRect.Height * pTransform->GetScaleY();
-	float x = screenPos.X - width * pTransform->GetPivotX();
-	float y = screenPos.Y - height * pTransform->GetPivotY();
-
-	// 스프라이트 자체의 틴트 색상 사용
-	Gdiplus::Color tintColor = spriteHandle->tintColor;
-	bool hasTint = (tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
-
-	AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(x, y, width, height),
-		spriteHandle->sourceRect, Gdiplus::UnitPixel, screenPos,
-		layer, sortKey, dir, tintColor, hasTint);
-}
-
-void RenderManager::RenderAnimator(Transform* pTransform, Animator* pAnimator)
-{
-	if (!pTransform || !pAnimator) return;
-
-	CameraManager* pCam = CameraManager::GetInstance();
-	Gdiplus::PointF screenPos = pCam->WorldToScreen(pTransform->GetX(), pTransform->GetY());
-
-	RenderLayer layer = LAYER_WORLD_OBJECT; // 기본 레이어
-	float sortKey = pTransform->GetSortKey(layer);
-	Direction dir = pTransform->GetDirection();
-
-	pAnimator->Draw(nullptr, screenPos, 1.0f, dir, layer, sortKey);
 }
 
 void RenderManager::RenderImage(RectTransform* pRectTransform, ComponentElement::Image* pImage)
@@ -187,8 +135,8 @@ void RenderManager::RenderImage(RectTransform* pRectTransform, ComponentElement:
 	float x = pRectTransform->GetX();
 	float y = pRectTransform->GetY();
 
-	float renderX = x - (pRectTransform->GetPivotX() * width);
-	float renderY = y - (pRectTransform->GetPivotY() * height);
+	float renderX = x - (pImage->GetPivotX() * width);
+	float renderY = y - (pImage->GetPivotY() * height);
 
 	// Image 컴포넌트의 틴트 색상 사용 (UI 버튼 등에서 상태 표현에 사용됨)
 	Gdiplus::Color tintColor = pImage->GetTintColor();
@@ -196,7 +144,7 @@ void RenderManager::RenderImage(RectTransform* pRectTransform, ComponentElement:
 
 	AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(renderX, renderY, width, height),
 		spriteHandle->sourceRect, Gdiplus::UnitPixel, Gdiplus::PointF(x, y),
-		pImage->GetLayer(), pImage->GetSortKey(), DIR_DOWN,
+		pImage->GetLayer(), 0.0f, pImage->GetSortKey(), DIR_DOWN,
 		tintColor, hasTint);
 }
 
@@ -214,6 +162,7 @@ void RenderManager::RenderText(RectTransform* pRectTransform, Text* pText)
 			params.format,
 			params.destRect,
 			params.layer,
+			0.0f,
 			params.sortKey,
 			pRectTransform->GetRotation(),
 			Gdiplus::PointF(pRectTransform->GetX(), pRectTransform->GetY())
@@ -229,7 +178,7 @@ void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float
 	float renderX = screenPos.X - width * 0.5f;
 	float renderY = screenPos.Y - height * 0.5f;
 
-	AddDrawCommand(pTileBitmap, Gdiplus::RectF(renderX, renderY, width, height), Gdiplus::RectF(0, 0, (float)pTileBitmap->GetWidth(), (float)pTileBitmap->GetHeight()), Gdiplus::UnitPixel, screenPos, LAYER_TILE_BACKGROUND, worldY, DIR_DOWN);
+	AddDrawCommand(pTileBitmap, Gdiplus::RectF(renderX, renderY, width, height), Gdiplus::RectF(0, 0, (float)pTileBitmap->GetWidth(), (float)pTileBitmap->GetHeight()), Gdiplus::UnitPixel, screenPos, LAYER_TILE_BACKGROUND, worldY, 0.0f, DIR_DOWN);
 }
 
 void RenderManager::Clear()
@@ -293,14 +242,7 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 					m_pCachedBrush->SetColor(cmd.color);
 					pGraphics->FillRectangle(m_pCachedBrush, cmd.destRect);
 				}
-				break;
-			case DRAW_COMMAND_ELLIPSE:
-				if (m_pCachedPen) {
-					m_pCachedPen->SetColor(cmd.color);
-					m_pCachedPen->SetWidth(cmd.thickness);
-					pGraphics->DrawEllipse(m_pCachedPen, cmd.destRect);
-				}
-				break;
+				break;			
 			}
 
 			if (rotated) {

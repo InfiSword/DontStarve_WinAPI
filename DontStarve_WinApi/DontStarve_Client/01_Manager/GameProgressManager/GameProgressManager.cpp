@@ -186,3 +186,19 @@ void GameProgressManager::ResetRuntimeData()
 
 	OutputDebugStringW(L"GameProgressManager: 런타임 데이터 초기화 완료\n");
 }
+
+void GameProgressManager::ResetAllProgress()
+{
+	// 모든 데이터 초기 상태로 리셋
+	m_gameProgress = GameProgress();
+	
+	// 플레이어 상태 초기화
+	m_hasSavedPlayerState = false;
+	m_playerSnapshot = PlayerStateSnapshot();
+	m_totalGameTime = 0.0f;
+
+	// 초기화된 상태를 파일에 즉시 저장
+	SaveToFile(m_saveFilePath);
+
+	OutputDebugStringW(L"GameProgressManager: 모든 진행 상황 초기화 완료 및 저장됨\n");
+}

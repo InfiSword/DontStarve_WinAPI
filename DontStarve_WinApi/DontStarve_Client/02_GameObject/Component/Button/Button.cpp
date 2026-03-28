@@ -75,8 +75,8 @@ bool Button::IsPointInside(const RectTransform* rectTransform, ComponentElement:
 
 	float rectX = rectTransform->GetX();
 	float rectY = rectTransform->GetY();
-	float pivotX = rectTransform->GetPivotX();
-	float pivotY = rectTransform->GetPivotY();
+	float pivotX = image ? image->GetPivotX() : 0.5f;
+	float pivotY = image ? image->GetPivotY() : 0.5f;
 
 	float left = rectX - (width * pivotX);
 	float top = rectY - (height * pivotY);

@@ -38,6 +38,8 @@ public:
 
 	SpiderState GetSpiderState() const { return (SpiderState)m_state; }
 
+	bool GetTaunted() const { return m_bHasTaunted; }
+
 protected:
 	virtual void UpdateAI(float deltaTime) override;
 	virtual void UpdateMovement(float deltaTime) override;
@@ -54,8 +56,9 @@ protected:
     virtual void ResetAggroSession() override;
     virtual void ResolveWanderCenter(float& outX, float& outY) const override;
 
-private:
+protected:
     SpiderEgg* m_homeEgg;                // 소속 거미집
     float m_spawnRadius;                 // 거미집 주변 배회 반경
-	bool m_bHasTaunted;                  // 현재 어그로 세션에서 도발 수행 여부
+	bool m_bHasTaunted;
+
 };

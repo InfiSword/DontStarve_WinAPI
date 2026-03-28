@@ -5,6 +5,7 @@
 #include "../InputManager/InputManager.h"
 #include "../RenderManager/RenderManager.h"
 #include "../ResourceManager/ResourceManager.h"
+#include "../DataManager/DataManager.h"
 #include "../GameProgressManager/GameProgressManager.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
@@ -113,7 +114,7 @@ void CharacterSelectScene::Init(const MapData* mapData)
 		LAYER_UI_FOREGROUND,
 		6.0f,
 		L"맑은 고딕",
-		16.0f,
+		16.0f, Gdiplus::FontStyleRegular,
 		Gdiplus::StringAlignmentNear,
 		Gdiplus::StringAlignmentNear,
 		1.0f, 0.5f, 
@@ -152,7 +153,7 @@ void CharacterSelectScene::Init(const MapData* mapData)
 		LAYER_UI_FOREGROUND,
 		0.1f,
 		L"맑은 고딕",
-		16.0f,
+		16.0f, Gdiplus::FontStyleRegular,
 		Gdiplus::StringAlignmentCenter,
 		Gdiplus::StringAlignmentCenter,
 		1.0f, 0.5f,  
@@ -191,7 +192,7 @@ void CharacterSelectScene::Init(const MapData* mapData)
 		LAYER_UI_FOREGROUND,
 		0.1f,
 		L"맑은 고딕",
-		16.0f,
+		16.0f, Gdiplus::FontStyleRegular,
 		Gdiplus::StringAlignmentCenter,
 		Gdiplus::StringAlignmentCenter,
 		1.0f, 0.5f,  
@@ -243,7 +244,7 @@ void CharacterSelectScene::InitializeCharacters()
 	
 	// Willow 캐릭터 추가 (불타는 나무 클릭 시 해금)
 	ResourceManager* pRM = ResourceManager::GetInstance();
-	const ResourcePathUtils::ObjectResourceDef* willowData = pRM->GetObjectResourceInfo(GOID_PLAYER_WILLOW);
+	const ResourcePathUtils::ObjectResourceDef* willowData = DataManager::GetInstance()->GetObjectResourceInfo(GOID_PLAYER_WILLOW);
 	std::wstring willowPortraitPath;
 	std::wstring willowCharacterPath;
 	if (willowData) {
@@ -274,7 +275,7 @@ void CharacterSelectScene::InitializeCharacters()
 	);
 	
 	// Wolfgang 캐릭터 추가 (돌멩이 던지기 클릭 시 해금)
-	const ResourcePathUtils::ObjectResourceDef* wolfgangData = pRM->GetObjectResourceInfo(GOID_PLAYER_WOLFGANG);
+	const ResourcePathUtils::ObjectResourceDef* wolfgangData = DataManager::GetInstance()->GetObjectResourceInfo(GOID_PLAYER_WOLFGANG);
 	std::wstring wolfgangPortraitPath;
 	std::wstring wolfgangCharacterPath;
 	if (wolfgangData) {

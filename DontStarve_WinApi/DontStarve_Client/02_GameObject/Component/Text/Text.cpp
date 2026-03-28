@@ -1,6 +1,7 @@
 #include "99_Default/pch.h"
 #include "Text.h"
 #include "../Transform/RectTransform.h"
+#include  "../../GameObject.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 
 Text::Text(GameObject* owner,
@@ -12,6 +13,7 @@ Text::Text(GameObject* owner,
 	float sortKey,
 	const std::wstring& fontName,
 	float fontSize,
+	Gdiplus::FontStyle fontStyle,
 	Gdiplus::StringAlignment hAlign,
 	Gdiplus::StringAlignment vAlign)
 	: Component(owner),
@@ -19,12 +21,14 @@ Text::Text(GameObject* owner,
 	m_layer(layer),
 	m_sortKey(sortKey),
 	m_width(width),
-	m_height(height)
+	m_height(height),
+	m_pivotX(0.5f),
+	m_pivotY(0.5f)
 {
 	m_brush = std::make_unique<Gdiplus::SolidBrush>(color);
 	
 	// 폰트 생성
-	m_font = std::make_unique<Gdiplus::Font>(fontName.c_str(), fontSize, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
+	m_font = std::make_unique<Gdiplus::Font>(fontName.c_str(), fontSize, fontStyle, Gdiplus::UnitPoint);
 	
 	m_format = std::make_unique<Gdiplus::StringFormat>();
 	m_format->SetAlignment(hAlign);
@@ -47,6 +51,29 @@ void Text::Release()
 	m_format.reset();
 }
 
+void Text::Render()
+{
+	RectTransform* rt = GetOwner()->GetComponent<RectTransform>();
+	if (!rt) return;
+
+	TextRenderParams params = BuildRenderParams(rt);
+	if (params.textPtr && !params.textPtr->empty())
+	{
+		RenderManager::GetInstance()->AddTextCommand(
+			params.textPtr,
+			params.font,
+			params.brush,
+			params.format,
+			params.destRect,
+			params.layer,
+			0.0f,
+			params.sortKey,
+			rt->GetRotation(),
+			Gdiplus::PointF(rt->GetX(), rt->GetY())
+		);
+	}
+}
+
 void Text::SetText(const std::wstring& text)
 {
 	m_text = text;
@@ -55,6 +82,11 @@ void Text::SetText(const std::wstring& text)
 void Text::SetColor(const Gdiplus::Color& color)
 {
 	m_brush = std::make_unique<Gdiplus::SolidBrush>(color);
+}
+
+void Text::SetFontStyle(const std::wstring& fontName, float fontSize, Gdiplus::FontStyle fontStyle)
+{
+	m_font = std::make_unique<Gdiplus::Font>(fontName.c_str(), fontSize, fontStyle, Gdiplus::UnitPoint);
 }
 
 void Text::ApplyStyle(const TextStyle& style)
@@ -77,16 +109,14 @@ TextRenderParams Text::BuildRenderParams(const RectTransform* rectTransform)
 
 	float x = rectTransform->GetX();
 	float y = rectTransform->GetY();
-	float pivotX = rectTransform->GetPivotX();
-	float pivotY = rectTransform->GetPivotY();
 
 	params.textPtr = &m_text;
 	params.font = m_font.get();
 	params.brush = m_brush.get();
 	params.format = m_format.get();
 	params.destRect = Gdiplus::RectF(
-		x - (pivotX * m_width),
-		y - (pivotY * m_height),
+		x - (m_pivotX * m_width),
+		y - (m_pivotY * m_height),
 		m_width,
 		m_height
 	);

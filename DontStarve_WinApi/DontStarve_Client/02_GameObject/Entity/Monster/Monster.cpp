@@ -44,7 +44,7 @@ void Monster::SetupAggro(AggroType type, float aggroRadius, float deaggroRadius)
 
 void Monster::Damaged(int damage)
 {
-	Entity::Damaged(damage);
+	Combatant::Damaged(damage);
 
 	// ON_HIT_THEN_RANGE 타입: 피격 시 어그로 활성화
 	if (m_aggroType == AggroType::ON_HIT_THEN_RANGE && !m_hasBeenHit)
@@ -57,67 +57,45 @@ void Monster::Damaged(int damage)
 void Monster::Update(float deltaTime)
 {
 	Entity::Update(deltaTime);
+	if (m_isDead) return;
 
-	if (m_isDead)
-	{
-		return;
-	}
+	// 2. 타겟 존재 여부에 따른 연산 분리
+	if (m_attackTarget && m_attackTarget->IsEnabled()) {
+		Transform* tTr = m_attackTarget->GetComponent<Transform>();
+		float dx = tTr->GetX() - transform->GetX();
+		float dy = tTr->GetY() - transform->GetY();
+		m_distToPlayerSq = dx * dx + dy * dy;
 
-	const bool hadAggroTarget = (m_attackTarget && m_attackTarget->IsEnabled());
+		// 방향 벡터 정규화 (0 나누기 방지 1e-6f)
+		float invDist = 1.0f / (sqrtf(m_distToPlayerSq) + 1e-6f);
+		m_dirToPlayer.X = dx * invDist;
+		m_dirToPlayer.Y = dy * invDist;
 
-	// 1. 타겟 또는 플레이어와의 거리/방향 계산 (어그로 판정용)
-	Player* player = ObjectManager::GetInstance()->GetPlayer();
-	GameObject* targetToTrack = (m_attackTarget && m_attackTarget->IsEnabled()) ? m_attackTarget : player;
-
-	if (targetToTrack && targetToTrack->IsEnabled()) {
-		Transform* targetTr = targetToTrack->GetComponent<Transform>();
-		if (targetTr && transform) {
-			float dx = targetTr->GetX() - transform->GetX();
-			float dy = targetTr->GetY() - transform->GetY();
-			m_distToPlayerSq = dx * dx + dy * dy;
-			if (m_distToPlayerSq > 0.0001f) {
-				float invDist = 1.0f / sqrtf(m_distToPlayerSq);
-				m_dirToPlayer.X = dx * invDist;
-				m_dirToPlayer.Y = dy * invDist;
-			}
+		// 어그로 해제 판정
+		if (m_deaggroRadius > 0.0f && m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius)) {
+			m_attackTarget = nullptr;
+			ResetAggroSession();
 		}
 	}
 	else {
+		// 타겟이 없는 경우: 기본값 설정 및 신규 어그로 탐색 (ALWAYS는 이미 초기화 시점에 타겟을 잡았을 것이므로 제외)
 		m_distToPlayerSq = 1e10f;
 		m_dirToPlayer = { 0.0f, 0.0f };
-	}
 
-	// 2. 어그로 관리 (해제 및 시작)
-	if (m_attackTarget && m_attackTarget->IsEnabled()) {
-		// 어그로 해제 체크 (deaggroRadius가 설정된 경우)
-		if (m_deaggroRadius > 0.0f && m_distToPlayerSq > (m_deaggroRadius * m_deaggroRadius)) {
-			m_attackTarget = nullptr;
-		}
-	}
-	else if (player && player->IsEnabled()) {
-		// 어그로 시작 체크
-		if (m_aggroType == AggroType::ALWAYS) {
-			m_attackTarget = player;
-		}
-		else if (m_aggroType == AggroType::ON_RANGE ||
-			(m_aggroType == AggroType::ON_HIT_THEN_RANGE && m_hasBeenHit)) {
-			if (m_aggroRadius > 0.0f && m_distToPlayerSq <= (m_aggroRadius * m_aggroRadius)) {
-				m_attackTarget = player;
-			}
-		}
-	}
+		Player* p = ObjectManager::GetInstance()->GetPlayer();
+		if (p && p->IsEnabled() && m_aggroType != AggroType::ALWAYS) {
+			Transform* pTr = p->GetComponent<Transform>();
+			float dSq = powf(pTr->GetX() - transform->GetX(), 2) + powf(pTr->GetY() - transform->GetY(), 2);
 
-	const bool hasAggroTarget = (m_attackTarget && m_attackTarget->IsEnabled());
-	if (hadAggroTarget && !hasAggroTarget)
-	{
-		ResetAggroSession();
+			// 어그로 획득 조건 판정 (범위 내 또는 피격 후 범위 내)
+			bool canAggro = (m_aggroType == AggroType::ON_RANGE) || (m_aggroType == AggroType::ON_HIT_THEN_RANGE && m_hasBeenHit);
+			if (canAggro && dSq <= m_aggroRadius * m_aggroRadius)
+				m_attackTarget = p;
+		}
 	}
 
 	UpdateAI(deltaTime);
-
-	if (m_attackCooldownTimer > 0.0f)
-		m_attackCooldownTimer -= deltaTime;
-
+	m_attackCooldownTimer = (std::max)(0.0f, m_attackCooldownTimer - deltaTime);
 	UpdateMovement(deltaTime);
 }
 
@@ -170,7 +148,10 @@ int Monster::UpdateIdle(float deltaTime)
 	{
 		if (m_distToPlayerSq > (m_attackRange * m_attackRange))
 		{
-			return (int)CombatantState::CHASE;
+			if (m_bCanChase)
+			{
+				return (int)CombatantState::CHASE;
+			}
 		}
 		else if (m_attackCooldownTimer <= 0.0f)
 		{
@@ -197,7 +178,7 @@ int Monster::UpdateIdle(float deltaTime)
 
 int Monster::UpdateWalk(float deltaTime)
 {
-	if (m_attackTarget && m_attackTarget->IsEnabled())
+	if (m_attackTarget && m_attackTarget->IsEnabled() && (m_bCanChase || m_aggroType == AggroType::ALWAYS))
 	{
 		return (int)CombatantState::CHASE;
 	}

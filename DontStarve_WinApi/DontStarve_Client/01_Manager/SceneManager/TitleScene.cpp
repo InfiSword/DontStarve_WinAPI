@@ -4,11 +4,13 @@
 #include "../InputManager/InputManager.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../ObjectManager/ObjectManager.h"
+#include "../GameProgressManager/GameProgressManager.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
 #include "../../02_GameObject/UI/UIText.h"
 
 TitleScene::TitleScene()
+	: m_resetMessageText(nullptr)
 {
 }
 
@@ -89,7 +91,7 @@ void TitleScene::Init(const MapData* mapData)
 		LAYER_UI_FOREGROUND,
 		0.1f,
 		L"맑은 고딕",
-		16.0f,
+		16.0f, Gdiplus::FontStyleRegular,
 		Gdiplus::StringAlignmentCenter,
 		Gdiplus::StringAlignmentCenter,
 		0.5f, 0.5f,  // anchorMin (중앙)
@@ -132,7 +134,7 @@ void TitleScene::Init(const MapData* mapData)
 		LAYER_UI_FOREGROUND,
 		0.1f,
 		L"맑은 고딕",
-		16.0f,
+		16.0f, Gdiplus::FontStyleRegular,
 		Gdiplus::StringAlignmentCenter,
 		Gdiplus::StringAlignmentCenter,
 		0.5f, 0.5f,  // anchorMin (중앙)
@@ -140,6 +142,60 @@ void TitleScene::Init(const MapData* mapData)
 		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
 	);
 	objectManager->AddGameObject(exitButtonText);
+
+	// --- 진행상황 초기화 버튼 추가 (오른쪽 위) ---
+	UIButton* resetProgressButton = new UIButton(
+		static_cast<GameObjectID>(GOID_UI_BUTTON),
+		180.0f,
+		40.0f,
+		startNormalSprite, // 재사용
+		startHoverSprite,  // 재사용
+		1.0f, 0.0f,  // anchorMin (우측 상단)
+		1.0f, 0.0f,  // anchorMax (우측 상단)
+		-100.0f, 50.0f // anchoredPosition (우측에서 100px 좌측, 상단에서 50px 아래)
+	);
+	resetProgressButton->SetOnClickCallback([this]() {
+		OnResetButtonClicked();
+	});
+	objectManager->AddGameObject(resetProgressButton);
+
+	UIText* resetBtnText = new UIText(
+		static_cast<GameObjectID>(GOID_UI_TEXT),
+		180.0f,
+		40.0f,
+		L"진행상황 초기화",
+		Gdiplus::Color::DarkRed,
+		LAYER_UI_FOREGROUND,
+		0.1f,
+		L"맑은 고딕",
+		12.0f, Gdiplus::FontStyleRegular,
+		Gdiplus::StringAlignmentCenter,
+		Gdiplus::StringAlignmentCenter,
+		1.0f, 0.0f,
+		1.0f, 0.0f,
+		-100.0f, 50.0f
+	);
+	objectManager->AddGameObject(resetBtnText);
+
+	// 리셋 완료 메시지 텍스트 (초기에는 비활성)
+	m_resetMessageText = new UIText(
+		static_cast<GameObjectID>(GOID_UI_TEXT),
+		400.0f,
+		60.0f,
+		L"초기화 되었습니다!",
+		Gdiplus::Color::LimeGreen,
+		LAYER_UI_FOREGROUND,
+		0.0f, // 가장 앞에 렌더링 (sortKey가 작을수록 앞)
+		L"맑은 고딕",
+		24.0f, Gdiplus::FontStyleBold,
+		Gdiplus::StringAlignmentCenter,
+		Gdiplus::StringAlignmentCenter,
+		0.5f, 0.5f,  // anchorMin (중앙)
+		0.5f, 0.5f,  // anchorMax (중앙)
+		0.0f, 0.0f   // anchoredPosition (중앙)
+	);
+	m_resetMessageText->SetActive(false);
+	objectManager->AddGameObject(m_resetMessageText);
 }
 
 void TitleScene::Update(float deltaTime)
@@ -167,6 +223,7 @@ void TitleScene::Release()
 	// TitleScene에서 사용한 매니저/포인터 정리 (소멸자에서 호출)
 	ObjectManager::GetInstance()->Release();
 	InputManager::GetInstance()->Release();
+	m_resetMessageText = nullptr;
 }
 
 void TitleScene::OnStartButtonClicked()
@@ -177,4 +234,24 @@ void TitleScene::OnStartButtonClicked()
 void TitleScene::OnExitButtonClicked()
 {
 	PostQuitMessage(0);
+}
+
+void TitleScene::OnResetButtonClicked()
+{
+	GameProgressManager::GetInstance()->ResetAllProgress();
+	if (m_resetMessageText) {
+		m_resetMessageText->SetActive(true);
+		
+		// 2초 뒤에 메시지 숨기기 (코루틴 활용)
+		m_resetMessageText->StopAllCoroutines();
+		float timer = 0.0f;
+		m_resetMessageText->StartCoroutine([this, timer](float dt) mutable -> bool {
+			timer += dt;
+			if (timer >= 2.0f) {
+				m_resetMessageText->SetActive(false);
+				return false;
+			}
+			return true;
+		});
+	}
 }

@@ -4,6 +4,7 @@
 #include "../../GameObject.h"
 #include "../Transform/RectTransform.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../01_Manager/RenderManager/RenderManager.h"
 
 namespace ComponentElement {
 
@@ -25,6 +26,32 @@ void Image::Init()
 void Image::Release()
 {
 	m_sprite.reset();
+}
+
+void Image::Render()
+{
+	if (!m_sprite || !m_sprite->bitmap) return;
+
+	RectTransform* rt = GetOwner()->GetComponent<RectTransform>();
+	if (!rt) return;
+
+	Gdiplus::RectF destRect = rt->GetScreenBoundingBox();
+
+	RenderManager::GetInstance()->AddDrawCommand(
+		m_sprite->bitmap.get(),
+		destRect,
+		m_sprite->sourceRect,
+		Gdiplus::UnitPixel,
+		Gdiplus::PointF(rt->GetX(), rt->GetY()),
+		m_layer,
+		0.0f, // yPos (UI는 보통 0)
+		m_sortKey,
+		DIR_NONE,
+		m_tintColor,
+		(m_tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255)),
+		false,
+		rt->GetRotation()
+	);
 }
 
 void Image::LoadSprite(const std::wstring& fullPath)

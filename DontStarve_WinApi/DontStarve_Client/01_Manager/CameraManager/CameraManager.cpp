@@ -229,8 +229,10 @@ void CameraManager::TryAddToVisibleIfInViewport(GameObject* obj)
 
 GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float worldY)
 {
-	for (int i = (int)m_visibleObjects.size() - 1; i >= 0; --i) {
-		GameObject* obj = m_visibleObjects[i];
+	GameObject* bestTarget = nullptr;
+	float newYPos = -1e9f;
+
+	for (GameObject* obj : m_visibleObjects) {
 		if (!obj || !obj->IsEnabled() || !obj->CanInteract()) {
 			continue;
 		}
@@ -243,11 +245,23 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float worldX, float 
 				continue;
 			}
 			if (collider->ContainsPoint(worldX, worldY)) {
-				return obj;
+				Transform* t = obj->GetComponent<Transform>();
+				if (!t) continue;
+
+				SpriteRenderer* s = obj->GetComponent<SpriteRenderer>();
+				RenderLayer l = s->GetLayer();
+				float yPos = t->GetY();
+
+				if (!bestTarget || yPos > newYPos) {
+					bestTarget = obj;
+					newYPos = yPos;
+				}
+				// 이 오브젝트의 다른 콜라이더는 검사할 필요 없음
+				break; 
 			}
 		}
 	}
-	return nullptr;
+	return bestTarget;
 }
 
 void CameraManager::FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects)
@@ -283,6 +297,8 @@ Gdiplus::RectF CameraManager::GetSpriteBoundingBox(GameObject* obj) const
 	
 	float worldX = transform->GetX();
 	float worldY = transform->GetY();
+	float scaleX = transform->GetScaleX();
+	float scaleY = transform->GetScaleY();
 	float width = 0.0f;
 	float height = 0.0f;
 	float pivotX = 0.5f;
@@ -292,27 +308,29 @@ Gdiplus::RectF CameraManager::GetSpriteBoundingBox(GameObject* obj) const
 	Animator* animator = obj->GetComponent<Animator>();
 	if (animator && animator->GetClip()) {
 		const AnimationFrame& currentFrame = animator->GetCurrentFrame();
-		width = static_cast<float>(currentFrame.width);
-		height = static_cast<float>(currentFrame.height);
-		pivotX = currentFrame.pivotX;
-		pivotY = currentFrame.pivotY;
+		if (currentFrame.sprite) {
+			width = currentFrame.sprite->sourceRect.Width * scaleX;
+			height = currentFrame.sprite->sourceRect.Height * scaleY;
+			pivotX = currentFrame.sprite->pivot.X;
+			pivotY = currentFrame.sprite->pivot.Y;
+		}
 	}
 	// SpriteRenderer만 있으면 비트맵 크기 사용
 	else {
 		SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>();
-		if (spriteRenderer && spriteRenderer->GetSprite()) {
-			Gdiplus::Bitmap* bitmap = spriteRenderer->GetSprite();
-			width = static_cast<float>(bitmap->GetWidth());
-			height = static_cast<float>(bitmap->GetHeight());
-			pivotX = transform->GetPivotX();
-			pivotY = transform->GetPivotY();
+		if (spriteRenderer && spriteRenderer->GetSpriteHandle()) {
+			std::shared_ptr<Sprite> sprite = spriteRenderer->GetSpriteHandle();
+			width = sprite->sourceRect.Width * scaleX;
+			height = sprite->sourceRect.Height * scaleY;
+			pivotX = sprite->pivot.X;
+			pivotY = sprite->pivot.Y;
 		}
 		// 둘 다 없으면 기본값 사용 (fallback)
 		else {
-			width = 32.0f;  // 기본 크기
-			height = 32.0f;
-			pivotX = transform->GetPivotX();
-			pivotY = transform->GetPivotY();
+			width = 32.0f * scaleX;
+			height = 32.0f * scaleY;
+			pivotX = 0.5f;
+			pivotY = 0.5f;
 		}
 	}
 	
@@ -426,7 +444,7 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData)
 			Gdiplus::RectF sourceRect(0, 0, static_cast<float>(tileBitmap->GetWidth()), static_cast<float>(tileBitmap->GetHeight()));
 			Gdiplus::PointF screenPos(screenX, screenY);
 			
-			renderManager->AddDrawCommand(tileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, LAYER_WORLD_TILE, DIR_DOWN);
+			renderManager->AddDrawCommand(tileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, worldY, 0.0f, DIR_DOWN);
 		}
 	}
 }

@@ -1,11 +1,12 @@
 #include "99_Default/pch.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
+#include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
-#include "../../../03_Animation/SpriteSheet.h"
+#include "../../Component/Sprite/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
 #include "../../Component/Collider/BoxCollider.h"
 #include "../../Building/SpiderEgg.h"
@@ -47,91 +48,119 @@ void Spider::Init()
 		m_targetY = this->transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>();
-	if (m_animator) {
-		ResourceManager* pRM = ResourceManager::GetInstance();
-		if (m_id == GOID_MONSTER_SPIDER || m_id == GOID_MONSTER_WARRIOR_SPIDER)
+	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	DataManager* pRM = DataManager::GetInstance();
+
+	bool isWarrior = (m_id == GOID_MONSTER_WARRIOR_SPIDER);
+	m_hp = isWarrior ? 200 : 80;
+	m_maxHp = m_hp;
+	m_walkSpeed = isWarrior ? 80.0f : 60.0f;
+	m_runSpeed = isWarrior ? 180.0f : 150.0f;
+	m_attackRange = isWarrior ? 100.0f : 80.0f;
+	m_attackBoxWidth = isWarrior ? 72 : 60;
+	m_attackBoxHeight = isWarrior ? 48 : 40;
+
+	const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
+	if (objData)
+	{
+		std::wstring base = objData->baseDir + L"\\";
+		std::wstring prefix = isWarrior ? L"Warrior_spider_" : L"Spider_spider_";
+
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) m_animator->RegisterAnimation((int)SpiderState::IDLE, (Direction)dir, base + prefix + L"idle_01.png", 0, 0, 1, 1, objData->pivotX, objData->pivotY, true, 0.05f);
+
+		m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_DOWN, base + prefix + L"walk_loop_down.png", 0, 0, 7, 35, objData->pivotX, objData->pivotY, true, 0.02f);
+		m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_UP, base + prefix + L"walk_loop_up.png", 0, 0, 7, 35, objData->pivotX, objData->pivotY, true, 0.02f);
+		std::wstring walkSidePath = base + prefix + L"walk_loop_side.png";
+		m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_LEFT, walkSidePath, 0, 0, 7, 35, objData->pivotX, objData->pivotY, true, 0.02f, false);
+		m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_RIGHT, walkSidePath, 0, 0, 7, 35, objData->pivotX, objData->pivotY, true, 0.02f);
+
+		m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_DOWN, base + prefix + L"walk_loop_down.png", 0, 0, 7, 35, objData->pivotX, objData->pivotY, true, 0.015f); // 더 빠른 프레임
+		m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_UP, base + prefix + L"walk_loop_up.png", 0, 0, 7, 35, objData->pivotX, objData->pivotY, true, 0.015f);
+		m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_LEFT, walkSidePath, 0, 0, 7, 35, objData->pivotX, objData->pivotY, true, 0.015f, false);
+		m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_RIGHT, walkSidePath, 0, 0, 7, 35, objData->pivotX, objData->pivotY, true, 0.015f);
+
+		if (!isWarrior)
 		{
-			bool isWarrior = (m_id == GOID_MONSTER_WARRIOR_SPIDER);
-			m_hp = isWarrior ? 200 : 80;
-			m_maxHp = m_hp;
-			m_walkSpeed = isWarrior ? 80.0f : 60.0f;
-			m_runSpeed = isWarrior ? 180.0f : 150.0f;
-			m_attackRange = isWarrior ? 100.0f : 80.0f;
-			m_attackBoxWidth = isWarrior ? 72 : 60;
-			m_attackBoxHeight = isWarrior ? 48 : 40;
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_DOWN, base + prefix + L"atk_down.png", 0, 0, 7, 71, objData->pivotX, objData->pivotY, false, 0.02f);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_UP, base + prefix + L"atk_up.png", 0, 0, 7, 71, objData->pivotX, objData->pivotY, false, 0.02f);
+			std::wstring attackSidePath = base + prefix + L"atk_side.png";
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_LEFT, attackSidePath, 0, 0, 7, 71, objData->pivotX, objData->pivotY, false, 0.02f, false);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_RIGHT, attackSidePath, 0, 0, 7, 71, objData->pivotX, objData->pivotY, false, 0.02f);
+		}
+		else
+		{
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_DOWN, base + prefix + L"atk_down.png", 0, 0, 7, 57, objData->pivotX, objData->pivotY, false, 0.02f);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_UP, base + prefix + L"atk_up.png", 0, 0, 7, 57, objData->pivotX, objData->pivotY, false, 0.02f);
+			std::wstring attackSidePath = base + prefix + L"atk_side.png";
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_LEFT, attackSidePath, 0, 0, 7, 57, objData->pivotX, objData->pivotY, false, 0.02f, false);
+			m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_RIGHT, attackSidePath, 0, 0, 7, 57, objData->pivotX, objData->pivotY, false, 0.02f);
 
-			const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
-			if (objData) {
-				std::wstring base = objData->baseDir + L"\\";
-				std::wstring prefix = isWarrior ? L"Warrior_spider_" : L"Spider_spider_";
+		}
 
-				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) m_animator->RegisterAnimation((int)SpiderState::IDLE, (Direction)dir, base + prefix + L"idle_01.png", 0, 0, 1, 1, transform->GetPivotX(), transform->GetPivotY(), true, 0.05f);
+		if (!isWarrior)
+		{
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+				AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::ATTACK, (Direction)dir);
 
-				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_DOWN, base + prefix + L"walk_loop_down.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f);
-				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_UP, base + prefix + L"walk_loop_up.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f);
-				std::wstring walkSidePath = base + prefix + L"walk_loop_side.png";
-				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_LEFT, walkSidePath, 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f, false);
-				m_animator->RegisterAnimation((int)SpiderState::WALK, DIR_RIGHT, walkSidePath, 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.02f);
+				clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
+				clip->AddEventFrame(70, L"attack_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"attack_hit") this->OnAttackHit();
+					else if (eventName == L"attack_end") this->OnAttackEnd();
+					});
+			}
 
-				// CHASE 애니메이션도 WALK와 동일한 리소스를 사용하거나, 별도의 리소스가 있다면 그것을 사용 (거미는 WALK 리소스를 RUN 속도로 사용하거나 별도 리소스가 없으므로 일단 WALK 리소스를 CHASE에도 등록)
-				m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_DOWN, base + prefix + L"walk_loop_down.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.015f); // 더 빠른 프레임
-				m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_UP, base + prefix + L"walk_loop_up.png", 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.015f);
-				m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_LEFT, walkSidePath, 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.015f, false);
-				m_animator->RegisterAnimation((int)SpiderState::CHASE, DIR_RIGHT, walkSidePath, 0, 0, 7, 35, transform->GetPivotX(), transform->GetPivotY(), true, 0.015f);
+		}
+		else {
+			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+				AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::ATTACK, (Direction)dir);
 
-				m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_DOWN, base + prefix + L"atk_down.png", 0, 0, 7, 71, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
-				m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_UP, base + prefix + L"atk_up.png", 0, 0, 7, 71, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
-				std::wstring attackSidePath = base + prefix + L"atk_side.png";
-				m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_LEFT, attackSidePath, 0, 0, 7, 71, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f, false);
-				m_animator->RegisterAnimation((int)SpiderState::ATTACK, DIR_RIGHT, attackSidePath, 0, 0, 7, 71, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
-
-				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::ATTACK, (Direction)dir);
-					if (clip) {
-						clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
-						clip->AddEventFrame(70, L"attack_end");
-						clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-							if (eventName == L"attack_hit") this->OnAttackHit();
-							else if (eventName == L"attack_end") this->OnAttackEnd();
-							});
-					}
-				}
-
-				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-					m_animator->RegisterAnimation((int)SpiderState::HIT, (Direction)dir, base + prefix + L"hit.png", 0, 0, 7, 34, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
-					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::HIT, (Direction)dir);
-					if (clip) {
-						clip->AddEventFrame(33, L"hit_end");
-						clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-							if (eventName == L"hit_end") this->OnHitEnd();
-							});
-					}
-				}
-
-				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-					m_animator->RegisterAnimation((int)SpiderState::DEATH, (Direction)dir, base + prefix + L"death.png", 0, 0, 7, 56, transform->GetPivotX(), transform->GetPivotY(), false, 0.02f);
-					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::DEATH, (Direction)dir);
-					if (clip) {
-						clip->AddEventFrame(55, L"death_end");
-						clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-							if (eventName == L"death_end") this->OnDeathEnd();
-							});
-					}
-				}
-
-				for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-					m_animator->RegisterAnimation((int)SpiderState::TAUNT, (Direction)dir, base + prefix + L"taunt.png", 0, 0, 7, 64, transform->GetPivotX(), transform->GetPivotY(), false, 0.01f);
-					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::TAUNT, (Direction)dir);
-					if (clip) {
-						clip->AddEventFrame(63, L"taunt_end");
-						clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-							if (eventName == L"taunt_end") this->ChangeState((int)SpiderState::CHASE);
-							});
-					}
-				}
+				clip->AddEventFrame(m_attackHitFrame, L"attack_hit");
+				clip->AddEventFrame(56, L"attack_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"attack_hit") this->OnAttackHit();
+					else if (eventName == L"attack_end") this->OnAttackEnd();
+					});
 			}
 		}
+
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderState::HIT, (Direction)dir, base + prefix + L"hit.png", 0, 0, 7, 34, objData->pivotX, objData->pivotY, false, 0.02f);
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::HIT, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(33, L"hit_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"hit_end") this->OnHitEnd();
+					});
+			}
+		}
+
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderState::DEATH, (Direction)dir, base + prefix + L"death.png", 0, 0, 7, 56, objData->pivotX, objData->pivotY, false, 0.02f);
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::DEATH, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(55, L"death_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"death_end") this->OnDeathEnd();
+					});
+			}
+		}
+
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderState::TAUNT, (Direction)dir, base + prefix + L"taunt.png", 0, 0, 7, 64, objData->pivotX, objData->pivotY, false, 0.01f);
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::TAUNT, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(63, L"taunt_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"taunt_end")
+					{
+						m_bHasTaunted = true;
+						ChangeState((int)SpiderState::CHASE);
+					}
+					});
+			}
+		}
+
 		ChangeState(m_state);
 	}
 
@@ -139,6 +168,7 @@ void Spider::Init()
 	if (m_attackCollider) {
 		UpdateAttackBoxByDirection(DIR_DOWN);
 		m_attackCollider->SetColliderEnabled(false);
+
 	}
 }
 
@@ -164,7 +194,6 @@ void Spider::SetAggroTarget(GameObject* target)
 		if (!m_bHasTaunted)
 		{
 			ChangeState((int)SpiderState::TAUNT);
-			m_bHasTaunted = true;
 		}
 
 		Transform* targetTr = target->GetComponent<Transform>();
@@ -224,7 +253,6 @@ int Spider::UpdateIdle(float deltaTime)
 	// CHASE로 전환될 때 도발(TAUNT) 체크
 	if (nextState == (int)SpiderState::CHASE && !m_bHasTaunted)
 	{
-		m_bHasTaunted = true;
 		return (int)SpiderState::TAUNT;
 	}
 
@@ -238,7 +266,6 @@ int Spider::UpdateWalk(float deltaTime)
 	// CHASE로 전환될 때 도발(TAUNT) 체크
 	if (nextState == (int)SpiderState::CHASE && !m_bHasTaunted)
 	{
-		m_bHasTaunted = true;
 		return (int)SpiderState::TAUNT;
 	}
 

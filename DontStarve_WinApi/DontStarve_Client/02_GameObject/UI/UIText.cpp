@@ -8,6 +8,7 @@ UIText::UIText(GameObjectID id, float width, float height,
                const std::wstring& text, const Gdiplus::Color& color,
                RenderLayer layer, float sortKey,
                const std::wstring& fontName, float fontSize,
+               Gdiplus::FontStyle fontStyle,
                Gdiplus::StringAlignment hAlign, Gdiplus::StringAlignment vAlign,
                float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY,
                float anchoredPosX, float anchoredPosY)
@@ -19,8 +20,6 @@ UIText::UIText(GameObjectID id, float width, float height,
 	rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
 	rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
 	rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
-	rectTransform->SetPivot(0.5f, 0.5f);
-	
 	// Text 컴포넌트 추가
 	m_text = AddComponent<Text>(
 		text,
@@ -31,9 +30,14 @@ UIText::UIText(GameObjectID id, float width, float height,
 		sortKey,
 		fontName,
 		fontSize,
+		fontStyle,
 		hAlign,
 		vAlign
 	);
+
+	if (m_text) {
+		m_text->SetPivot(0.5f, 0.5f);
+	}
 }
 
 UIText::~UIText()
@@ -49,9 +53,9 @@ void UIText::Update(float deltaTime)
 
 void UIText::Render()
 {
-	if (!IsEnabled() || !m_text || !m_rectTransform) return;
+	if (!IsEnabled() || !m_text) return;
 	
-	RenderManager::GetInstance()->RenderText(m_rectTransform, m_text);
+	m_text->Render();
 }
 
 void UIText::SetText(const std::wstring& text)
@@ -65,6 +69,13 @@ void UIText::SetColor(const Gdiplus::Color& color)
 {
 	if (m_text) {
 		m_text->SetColor(color);
+	}
+}
+
+void UIText::SetFontStyle(const std::wstring& fontName, float fontSize, Gdiplus::FontStyle fontStyle)
+{
+	if (m_text) {
+		m_text->SetFontStyle(fontName, fontSize, fontStyle);
 	}
 }
 

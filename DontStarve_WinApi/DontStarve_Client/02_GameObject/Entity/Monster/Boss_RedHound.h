@@ -1,5 +1,5 @@
 #pragma once
-#include "Monster.h"
+#include "Hound.h"
 
 enum class BossRedHoundState {
 	IDLE = (int)CombatantState::IDLE,
@@ -11,10 +11,12 @@ enum class BossRedHoundState {
 	DEATH = (int)CombatantState::DEATH,
 
 	HOWL = (int)CombatantState::MAX_COMMON,
+	DASH_PRE,
+	DASH,
 	COUNT
 };
 
-class Boss_RedHound : public Monster
+class Boss_RedHound : public Hound
 {
 public:
 	Boss_RedHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
@@ -27,7 +29,7 @@ public:
 	virtual bool OnInteraction(GameObject* obj) override;
 
 	// 슈퍼아머 훅
-	virtual bool IsInAttackState() const override { return m_state == (int)BossRedHoundState::ATTACK || m_state == (int)BossRedHoundState::ATTACK_PRE; }
+	virtual bool IsInAttackState() const override { return m_state == (int)BossRedHoundState::ATTACK || m_state == (int)BossRedHoundState::ATTACK_PRE || m_state == (int)BossRedHoundState::DASH_PRE || m_state == (int)BossRedHoundState::DASH; }
 	virtual int GetHitState() const override { return (int)BossRedHoundState::HIT; }
 	virtual void TriggerAttackState() override { ChangeState((int)BossRedHoundState::ATTACK_PRE); }
 
@@ -45,5 +47,12 @@ protected:
 	virtual void Die() override;
 
 private:
-	bool m_bHasHowled;
+	float m_dashCooldown;
+	float m_dashCooldownTimer;
+	float m_dashSpeed;
+	float m_dashDistance;
+	float m_dashDuration;
+	float m_dashRemainingTime;
+	Gdiplus::PointF m_dashDir;
+	bool m_dashHitProcessed;
 };

@@ -34,9 +34,9 @@ void GameScene::Init(const MapData* mapData)
 		CameraManager::GetInstance()->SetWalkableBoundsFromMapData(m_mapData);
 	}
 
-	// 2. 월드 오브젝트 및 플레이어 생성
-	CreateGameObjectsFromMapData();
+	// 2. 플레이어 및 월드 오브젝트 생성
 	SpawnPlayer();
+	CreateGameObjectsFromMapData();
 
 	// 3. UI 생성 및 초기화
 	SceneType currentSceneType = GetSceneType();

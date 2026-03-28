@@ -7,12 +7,12 @@
 RectTransform::RectTransform(GameObject* owner, float x, float y,
 	float width, float height,
 	float scaleX, float scaleY, float anchorX, float anchorY,
-	float pivotX, float pivotY, float rotation)
+	float rotation)
 	: Component(owner), m_x(x), m_y(y), 
 	m_width(width), m_height(height),
 	m_scaleX(scaleX), m_scaleY(scaleY),
 	m_rotation(rotation),
-	m_anchorX(anchorX), m_anchorY(anchorY), m_pivotX(pivotX), m_pivotY(pivotY),
+	m_anchorX(anchorX), m_anchorY(anchorY),
 	m_anchorMin(anchorX, anchorY), m_anchorMax(anchorX, anchorY),
 	m_anchoredPosition(x, y), m_sizeDelta(0.0f, 0.0f),
 	m_parentWidth(static_cast<float>(WINCX)), m_parentHeight(static_cast<float>(WINCY))
@@ -81,8 +81,19 @@ Gdiplus::PointF RectTransform::GetOffsetMax() const
 	float actualWidth = m_width * m_scaleX;
 	float actualHeight = m_height * m_scaleY;
 	
-	float right = m_x + actualWidth * (1.0f - m_pivotX) - anchorWorldX;
-	float top = m_y + actualHeight * (1.0f - m_pivotY) - anchorWorldY;
+	float pivotX = 0.5f;
+	float pivotY = 0.5f;
+
+	if (m_owner) {
+		ComponentElement::Image* image = m_owner->GetComponent<ComponentElement::Image>();
+		if (image && image->GetSpriteHandle()) {
+			pivotX = image->GetPivotX();
+			pivotY = image->GetPivotY();
+		}
+	}
+
+	float right = m_x + actualWidth * (1.0f - pivotX) - anchorWorldX;
+	float top = m_y + actualHeight * (1.0f - pivotY) - anchorWorldY;
 	
 	return Gdiplus::PointF(right, top);
 }
@@ -114,8 +125,19 @@ void RectTransform::SetOffsetMax(float right, float top)
 	float actualWidth = m_width * m_scaleX;
 	float actualHeight = m_height * m_scaleY;
 	
-	m_x = anchorWorldX + right - actualWidth * (1.0f - m_pivotX);
-	m_y = anchorWorldY + top - actualHeight * (1.0f - m_pivotY);
+	float pivotX = 0.5f;
+	float pivotY = 0.5f;
+
+	if (m_owner) {
+		ComponentElement::Image* image = m_owner->GetComponent<ComponentElement::Image>();
+		if (image && image->GetSpriteHandle()) {
+			pivotX = image->GetPivotX();
+			pivotY = image->GetPivotY();
+		}
+	}
+
+	m_x = anchorWorldX + right - actualWidth * (1.0f - pivotX);
+	m_y = anchorWorldY + top - actualHeight * (1.0f - pivotY);
 	
 	m_anchoredPosition.X = m_x;
 	m_anchoredPosition.Y = m_y;
@@ -148,20 +170,27 @@ Gdiplus::RectF RectTransform::GetScreenBoundingBox() const
 	float actualWidth = m_width * m_scaleX;
 	float actualHeight = m_height * m_scaleY;
 	
+	float pivotX = 0.5f;
+	float pivotY = 0.5f;
+
 	// Sprite가 있으면 그 크기를 우선 사용 (기존 동작 유지)
 	if (m_owner) {
 		Gdiplus::Bitmap* bitmap = nullptr;
 		
 		// Image 컴포넌트 우선 확인 (UI)
 		ComponentElement::Image* image = m_owner->GetComponent<ComponentElement::Image>();
-		if (image && image->GetSprite()) {
-			bitmap = image->GetSprite();
+		if (image && image->GetSpriteHandle()) {
+			bitmap = image->GetSpriteHandle()->bitmap.get();
+			pivotX = image->GetPivotX();
+			pivotY = image->GetPivotY();
 		}
 		// SpriteRenderer 컴포넌트 확인 (월드 오브젝트)
 		else {
 			SpriteRenderer* spriteRenderer = m_owner->GetComponent<SpriteRenderer>();
-			if (spriteRenderer && spriteRenderer->GetSprite()) {
-				bitmap = spriteRenderer->GetSprite();
+			if (spriteRenderer && spriteRenderer->GetSpriteHandle()) {
+				bitmap = spriteRenderer->GetSpriteHandle()->bitmap.get();
+				pivotX = spriteRenderer->GetPivotX();
+				pivotY = spriteRenderer->GetPivotY();
 			}
 		}
 		
@@ -172,8 +201,8 @@ Gdiplus::RectF RectTransform::GetScreenBoundingBox() const
 	}
 	
 	return Gdiplus::RectF(
-		m_x - actualWidth * m_pivotX,
-		m_y - actualHeight * m_pivotY,
+		m_x - actualWidth * pivotX,
+		m_y - actualHeight * pivotY,
 		actualWidth,
 		actualHeight
 	);

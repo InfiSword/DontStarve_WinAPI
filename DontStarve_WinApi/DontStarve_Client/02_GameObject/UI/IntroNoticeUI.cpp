@@ -20,7 +20,7 @@ void IntroNoticeUI::Init()
     // 배경 이미지 생성 (중앙)
     UIImage* pBg = new UIImage(
         static_cast<GameObjectID>(GOID_UI_IMAGE),
-        600.0f, 400.0f,
+        700.0f, 550.0f,
         LAYER_UI_BACKGROUND,
         L"Resource/UI/EditorMenu.png",
         0.0f,
@@ -32,13 +32,14 @@ void IntroNoticeUI::Init()
     ObjectManager::GetInstance()->AddGameObject(pBg);
 
     // 텍스트 생성
-    float startY = -80.0f;
-    float lineSpacing = 40.0f;
+    float startY = -100.0f;
+    float lineSpacing = 50.0f;
 
     std::vector<std::wstring> introTexts = {
         L"안녕하세요! 돈스타브 세계에 오신걸 환영합니다.",
-        L"해당 게임의 최종 목표는 거미 여왕 보스를 클리어 하는 것을",
-        L"목표로 게임이 진행됩니다. 거미 여왕을 물리치고",
+        L"해당 게임의 최종 목표는",
+		L"거미 여왕 보스를 클리어 하는 것을 목표로",
+        L"게임이 진행됩니다. 거미 여왕을 물리치고",
         L"게임을 클리어 해 보세요!",
         L"",
         L"\"화면 아무곳이나 클릭하면 창이 닫힙니다\""
@@ -46,18 +47,19 @@ void IntroNoticeUI::Init()
 
     for (size_t i = 0; i < introTexts.size(); ++i)
     {
-        Gdiplus::Color textColor = (i == introTexts.size() - 1) ? Gdiplus::Color::DarkGray : Gdiplus::Color::Black;
-        float fontSize = (i == introTexts.size() - 1) ? 12.0f : 16.0f;
+        Gdiplus::Color textColor =  Gdiplus::Color::White;
+        float fontSize = 15.0f;
 
         UIText* pText = new UIText(
             static_cast<GameObjectID>(GOID_UI_TEXT),
-            550.0f, 30.0f,
+            600.0f, 40.0f,
             introTexts[i],
             textColor,
             LAYER_UI_FOREGROUND,
             0.1f,
             L"맑은 고딕",
             fontSize,
+            Gdiplus::FontStyleBold,
             Gdiplus::StringAlignmentCenter,
             Gdiplus::StringAlignmentCenter,
             0.5f, 0.5f,
@@ -73,7 +75,6 @@ void IntroNoticeUI::Update(float deltaTime)
 {
     if (InputManager::GetInstance()->IsLButtonClicked())
     {
-        // 클릭 시 모든 관리 객체 제거 예약
         ObjectManager* pOM = ObjectManager::GetInstance();
         for (auto obj : m_managedObjects)
         {
@@ -85,7 +86,5 @@ void IntroNoticeUI::Update(float deltaTime)
 
 void IntroNoticeUI::Release()
 {
-    // managedObjects는 ObjectManager가 관리하므로 여기서 직접 delete하지 않음
-    // 하지만 씬 전환 시 ObjectManager가 정리함
     m_managedObjects.clear();
 }

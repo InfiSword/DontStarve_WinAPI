@@ -25,15 +25,13 @@ HPUI::HPUI(Entity* target, const std::wstring& name,
 	, m_margin(margin), m_gap(gap), m_iconSize(iconSize)
 	, m_nameText(nullptr)
 	, m_lastHp(-1), m_lastMaxHp(-1)
-{
+	{
 	if (m_rectTransform) {
 		m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
 		m_rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
 		m_rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
-		m_rectTransform->SetPivot(0.5f, 0.5f);
 	}
-}
-
+	}
 HPUI::~HPUI()
 {
 	Release();
@@ -50,21 +48,26 @@ void HPUI::Init()
 	float textPosX = m_rectTransform->GetAnchoredPosition().X;
 	float textPosY = m_rectTransform->GetAnchoredPosition().Y;
 
-	// 보스용인 경우 텍스트를 바 위로 올림
+	Gdiplus::StringAlignment hAlign = Gdiplus::StringAlignmentCenter;
+
+	// 보스용인 경우 텍스트를 바 위로 올리고, 오른쪽 끝에 맞춤
 	if (!m_numericValue) {
 		textPosY -= (m_barHeight * 0.5f + 25.0f);
+		textPosX += (m_barWidth * 0.5f); // 바의 오른쪽 끝 지점
+		hAlign = Gdiplus::StringAlignmentFar; // 그 지점을 기준으로 왼쪽으로(안쪽으로) 정렬
 	}
 
 	m_nameText = new UIText(
 		GOID_NONE,
-		m_barWidth,
-		m_barHeight,
+		m_barWidth, // 바 너비만큼의 영역 내에서 정렬
+		m_barHeight + 50.0f,
 		m_name,
 		m_nameColor,
 		LAYER_UI_FOREGROUND,
 		m_textSortKey,
-		L"Arial", 16.0f,
-		Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter,
+		L"맑은 고딕", 18.0f, Gdiplus::FontStyleBold,
+		hAlign, 
+		Gdiplus::StringAlignmentCenter,
 		m_rectTransform->GetAnchorMin().X, m_rectTransform->GetAnchorMin().Y,
 		m_rectTransform->GetAnchorMax().X, m_rectTransform->GetAnchorMax().Y,
 		textPosX, textPosY
@@ -80,13 +83,18 @@ void HPUI::Update(float deltaTime)
 {
 	UIElement::Update(deltaTime);
 
-	if (m_nameText && m_nameText->IsEnabled() != IsEnabled())
-		m_nameText->SetActive(IsEnabled());
+	bool shouldBeActive = IsEnabled();
+	if (m_target && !m_target->IsEnabled()) {
+		shouldBeActive = false;
+	}
 
-	if (m_target && m_target->IsEnabled()) {
+	if (m_nameText && m_nameText->IsEnabled() != shouldBeActive)
+		m_nameText->SetActive(shouldBeActive);
+
+	if (shouldBeActive && m_target) {
 		UpdateHPDisplay();
 	}
-	else if (m_target && !m_target->IsEnabled()) {
+	else if (!shouldBeActive && IsEnabled()) {
 		SetActive(false);
 	}
 }
@@ -110,6 +118,7 @@ void HPUI::UpdateHPDisplay()
 	}
 	else {
 		m_nameText->SetText(m_name);
+		// OutputDebugStringW((L"HPUI: Updating boss name: " + m_name + L"\n").c_str());
 	}
 }
 
@@ -125,8 +134,10 @@ void HPUI::Render()
 	float barW = m_barWidth;
 	float barH = m_barHeight;
 
-	float barLeft = barX - barW * m_rectTransform->GetPivotX();
-	float barTop = barY - barH * m_rectTransform->GetPivotY();
+	float barLeft = barX - barW * 0.5f;
+	float barTop = barY - barH * 0.5f;
+
+	// OutputDebugStringW((L"HPUI: Rendering at " + std::to_wstring(barX) + L", " + std::to_wstring(barY) + L"\n").c_str());
 
 	if (m_showIcon && m_hpIconSprite && m_hpIconSprite->bitmap) {
 		float iconX = barLeft - m_gap - m_iconSize;
@@ -140,12 +151,12 @@ void HPUI::Render()
 			Gdiplus::UnitPixel,
 			Gdiplus::PointF(iconX + m_iconSize * 0.5f, iconY + m_iconSize * 0.5f),
 			LAYER_UI_FOREGROUND,
+			0.0f,
 			10.0f,
 			DIR_DOWN
-		);
-	}
+		);	}
 
-	pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, barW, barH), m_bgColor, LAYER_UI_FOREGROUND, m_barSortKey);
+	pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, barW, barH), m_bgColor, LAYER_UI_FOREGROUND, 0.0f, m_barSortKey);
 
 	if (m_target) {
 		int hp = m_target->GetHp();
@@ -156,7 +167,7 @@ void HPUI::Render()
 
 		float fillWidth = barW * ratio;
 		if (fillWidth > 0.01f) {
-			pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, fillWidth, barH), m_fillColor, LAYER_UI_FOREGROUND, m_barSortKey + 0.05f);
+			pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, fillWidth, barH), m_fillColor, LAYER_UI_FOREGROUND, 0.0f, m_barSortKey + 0.05f);
 		}
 	}
 }

@@ -52,6 +52,9 @@ public:
     virtual void Init() override;
     virtual void Release() override;
 
+    // 데미지 처리 (죽었을 때 공격 콜라이더 비활성화 로직 추가)
+    virtual void Damaged(int damage) override;
+
     // 공격 관련 공통 메서드
     void SetupAttackBox(int width, int height, int offsetX = 0, int offsetY = 0);
     
@@ -79,5 +82,5 @@ public:
 
 protected:
     void UpdateAttackBoxByDirection(Direction dir);
-    void ApplyAttackDamageToTarget(int damage);
+    bool ApplyAttackDamageToTarget(int damage);
 };

@@ -13,12 +13,12 @@ UIImage::UIImage(GameObjectID id, float width, float height, RenderLayer layer, 
 	m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
 	m_rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
 	m_rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
-	m_rectTransform->SetPivot(0.5f, 0.5f);
 
 	m_image = AddComponent<ComponentElement::Image>();
 	m_image->SetLayer(layer);
 	m_image->SetSortKey(sortKey);
 	m_image->LoadSprite(imagePath);
+	m_image->SetPivot(0.5f, 0.5f);
 
 	Gdiplus::Bitmap* bitmap = m_image->GetSprite();
 	if (bitmap) 
@@ -49,9 +49,9 @@ void UIImage::Update(float deltaTime)
 
 void UIImage::Render()
 {
-    if (!IsEnabled() || !m_image || !m_rectTransform) return;
+    if (!IsEnabled() || !m_image) return;
 
-	RenderManager::GetInstance()->RenderImage(m_rectTransform, m_image);
+	m_image->Render();
 }
 
 Gdiplus::Bitmap* UIImage::GetBitmap() const

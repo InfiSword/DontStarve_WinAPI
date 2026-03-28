@@ -24,14 +24,14 @@ void EditorResourceManager::LoadResources()
 	OutputDebugStringW(L"=== Editor: Loading resources from code ===\n");
 
 	// 타일 리소스 로드
-	for (size_t i = 0; i < ResourcePathUtils::TileResourceCount; ++i) {
-		const auto& def = ResourcePathUtils::TileResourceTable[i];
+	for (size_t i = 0; i < DataTable::TileResourceCount; ++i) {
+		const auto& def = DataTable::TileResourceTable[i];
 		m_tileVariants[def.type][def.id] = ResourcePathUtils::TileResourceDef(def.type, def.id, def.baseDir, def.imageName);
 	}
 
 	// 오브젝트 리소스 로드 (flat map 구조)
-	for (size_t i = 0; i < ResourcePathUtils::ObjectResourceCount; ++i) {
-		const auto& def = ResourcePathUtils::ObjectResourceTable[i];
+	for (size_t i = 0; i < DataTable::ObjectResourceCount; ++i) {
+		const auto& def = DataTable::ObjectResourceTable[i];
 		// Wilson 플레이어만 포함하고 나머지 플레이어는 제외
 		if (def.id >= 1000 && def.id < 2000 && def.id != GOID_PLAYER_WILSON) continue; 
 

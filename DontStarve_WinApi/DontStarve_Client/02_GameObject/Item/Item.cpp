@@ -15,10 +15,9 @@ Item::Item(GameObjectID id, const std::wstring& name, const std::wstring& desc,
 {
     m_type = GO_TYPE_ITEM;
     
-    // Transform 컴포넌트 추가 (Entity와 동일한 방식)
+    // Transform 컴포넌트 추가
     m_transform = AddComponent<Transform>();
     m_transform->SetPosition(x, y);
-    m_transform->SetPivot(pivotX, pivotY);
     m_transform->SetDirection(_dir);
 
     // SpriteRenderer 컴포넌트 추가
@@ -30,7 +29,8 @@ Item::Item(GameObjectID id, const std::wstring& name, const std::wstring& desc,
         ResourceManager* pRM = ResourceManager::GetInstance();
         std::wstring fullPath = ResourcePathUtils::BuildResourcePath(baseDir, imageName);
         if (!fullPath.empty()) {
-            if (auto sprite = pRM->LoadSprite(fullPath)) {
+            // 로드 시점에 피벗 전달
+            if (auto sprite = pRM->LoadSprite(fullPath, { pivotX, pivotY })) {
                 m_spriteRenderer->SetSprite(sprite);
             }
         }
@@ -58,9 +58,8 @@ void Item::Render()
 {
     if (!IsEnabled() || !m_transform) return;
 
-    RenderManager* pRM = RenderManager::GetInstance();
     if (m_spriteRenderer && m_spriteRenderer->IsEnabled()) {
-        pRM->RenderSprite(m_transform, m_spriteRenderer);
+        m_spriteRenderer->Render();
     }
 }
 

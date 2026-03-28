@@ -84,12 +84,14 @@ RECT BoxCollider::GetWorldBoundingBox() const
 
 	float ox = transform ? transform->GetX() : 0.0f;
 	float oy = transform ? transform->GetY() : 0.0f;
+	float sx = transform ? transform->GetScaleX() : 1.0f;
+	float sy = transform ? transform->GetScaleY() : 1.0f;
 
 	RECT worldBox;
-	worldBox.left   = static_cast<LONG>(ox + static_cast<float>(m_boundingBox.left));
-	worldBox.top    = static_cast<LONG>(oy + static_cast<float>(m_boundingBox.top));
-	worldBox.right  = static_cast<LONG>(ox + static_cast<float>(m_boundingBox.right));
-	worldBox.bottom = static_cast<LONG>(oy + static_cast<float>(m_boundingBox.bottom));
+	worldBox.left   = static_cast<LONG>(ox + static_cast<float>(m_boundingBox.left) * sx);
+	worldBox.top    = static_cast<LONG>(oy + static_cast<float>(m_boundingBox.top) * sy);
+	worldBox.right  = static_cast<LONG>(ox + static_cast<float>(m_boundingBox.right) * sx);
+	worldBox.bottom = static_cast<LONG>(oy + static_cast<float>(m_boundingBox.bottom) * sy);
 
 	return worldBox;
 }
@@ -110,6 +112,6 @@ void BoxCollider::RenderGizmo()
 	Gdiplus::PointF screenTopLeft = cameraManager->WorldToScreen((float)worldBox.left, (float)worldBox.top);
 	Gdiplus::PointF screenBottomRight = cameraManager->WorldToScreen((float)worldBox.right, (float)worldBox.bottom);
 
-	renderManager->AddDrawRectCommand(Gdiplus::RectF(screenTopLeft.X, screenTopLeft.Y, screenBottomRight.X - screenTopLeft.X, screenBottomRight.Y - screenTopLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 10.0f);
+	renderManager->AddDrawRectCommand(Gdiplus::RectF(screenTopLeft.X, screenTopLeft.Y, screenBottomRight.X - screenTopLeft.X, screenBottomRight.Y - screenTopLeft.Y), Gdiplus::Color(255, 0, 0), 2.0f, LAYER_DEBUG_OVERLAY, 0.0f, 10.0f);
 
 }
