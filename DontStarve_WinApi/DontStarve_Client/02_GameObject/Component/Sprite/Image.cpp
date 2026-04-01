@@ -35,22 +35,19 @@ void Image::Render()
 	RectTransform* rt = GetOwner()->GetComponent<RectTransform>();
 	if (!rt) return;
 
-	Gdiplus::RectF destRect = rt->GetScreenBoundingBox();
-
 	bool hasTint = (m_tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
 
-	RenderManager::GetInstance()->AddDrawCommand(
+	// RenderManager에 화면 좌표와 변환 정보 전달
+	RenderManager::GetInstance()->AddUICommand(
 		m_sprite->bitmap.get(),
-		destRect,
 		m_sprite->sourceRect,
-		Gdiplus::UnitPixel,
-		Gdiplus::PointF(rt->GetX(), rt->GetY()),
+		rt->GetX(), rt->GetY(),
+		rt->GetScaleX(), rt->GetScaleY(),
+		m_pivotX, m_pivotY,
 		m_layer,
 		m_sortKey,
-		DIR_NONE,
 		m_tintColor,
 		hasTint,
-		false,
 		rt->GetRotation()
 	);
 }

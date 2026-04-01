@@ -136,27 +136,47 @@ struct PaletteItem
 // ====================== 렌더 명령 구조체 =======================
 
 struct DrawCommand {
-	DrawCommandType type = DRAW_COMMAND_IMAGE;
-	Gdiplus::Bitmap* pBitmap = nullptr;
-	Gdiplus::RectF destRect = Gdiplus::RectF(0, 0, 0, 0);
-	Gdiplus::RectF sourceRect = Gdiplus::RectF(0, 0, 0, 0);
-	Gdiplus::Unit srcUnit = Gdiplus::UnitPixel;
-	Gdiplus::PointF objectScreenPos = Gdiplus::PointF(0, 0);
+	DrawCommandType type;
+	RenderLayer layer;
+	float zOrder;
+	Gdiplus::RectF destRect;
+	Gdiplus::PointF rotationPivot; // Rotation center (Screen space)
+	float rotation;
 
-	RenderLayer layer = LAYER_NONE;
-	float zOrder = 0.0f;
-	Direction direction = DIR_DOWN;
-	const std::wstring* textPtr = nullptr;
-	Gdiplus::Font* pFont = nullptr;
-	Gdiplus::Brush* pBrush = nullptr;
-	Gdiplus::StringFormat* pStringFormat = nullptr;
+	struct SpriteData {
+		Gdiplus::Bitmap* pBitmap;
+		Gdiplus::RectF sourceRect;
+		Gdiplus::Unit srcUnit;
+		Direction direction;
+		Gdiplus::Color tintColor;
+		bool hasTint;
+		bool preFlipped;
+	};
 
-	Gdiplus::Color color = Gdiplus::Color(0, 0, 0, 0);
-	float thickness = 0.0f;
-	Gdiplus::Color tintColor = Gdiplus::Color(255, 255, 255, 255);
-	bool hasTint = false;
-	bool preFlipped = false;
-	float rotation = 0.0f;
+	struct TextData {
+		const std::wstring* textPtr;
+		Gdiplus::Font* pFont;
+		Gdiplus::Brush* pBrush;
+		Gdiplus::StringFormat* pStringFormat;
+	};
+
+	struct PrimitiveData {
+		Gdiplus::Color color;
+		float thickness;
+		bool isFilled;
+	};
+
+	union {
+		SpriteData sprite;
+		TextData text;
+		PrimitiveData primitive;
+	};
+
+	DrawCommand() : type(DRAW_COMMAND_ENTITY), layer(LAYER_NONE), zOrder(0.0f), rotation(0.0f)
+	{
+		destRect = Gdiplus::RectF(0, 0, 0, 0);
+		rotationPivot = Gdiplus::PointF(0, 0);
+	}
 };
 
 // ====================== 플레이어 스폰 데이터 구조체 =======================

@@ -116,13 +116,11 @@ void Entity::Render()
 {
 	if (!IsEnabled() || !transform) return;
 
-	// 모든 활성화된 SpriteRenderer 렌더링 (Animator가 업데이트한 프레임 포함)
-	std::vector<SpriteRenderer*> srs = GetComponents<SpriteRenderer>();
-	for (SpriteRenderer* sr : srs) {
-		if (sr && sr->IsEnabled()) {
-			sr->Render();
-		}
+	if (spriteRenderer && spriteRenderer->IsEnabled()) 
+	{
+		spriteRenderer->Render();
 	}
+
 }
 
 void Entity::Update(float deltaTime)

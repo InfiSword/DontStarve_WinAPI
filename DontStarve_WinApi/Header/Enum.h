@@ -149,10 +149,12 @@ enum Time
 // 렌더링 명령 종류
 enum DrawCommandType 
 {
-	DRAW_COMMAND_IMAGE,
-	DRAW_COMMAND_TEXT,
-	DRAW_COMMAND_RECTANGLE,
-	DRAW_COMMAND_FILL_RECTANGLE
+	DRAW_COMMAND_ENTITY,          // 월드 오브젝트 전용
+	DRAW_COMMAND_UI_IMAGE,        // UI 이미지 전용
+	DRAW_COMMAND_TEXT,            // 텍스트 전용 (UI/Text)
+	DRAW_COMMAND_RECTANGLE,       // 테두리 사각형 (디버그/UI)
+	DRAW_COMMAND_FILL_RECTANGLE,  // 채워진 사각형 (UI 바 등)
+	DRAW_COMMAND_HIGHLIGHT,       // 하이라이트 및 기타 특수 효과
 };
 
 // 콜라이더 타입 정의

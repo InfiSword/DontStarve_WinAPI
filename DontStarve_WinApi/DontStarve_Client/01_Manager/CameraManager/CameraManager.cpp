@@ -432,19 +432,11 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData)
 				}
 			}
 
-			// 성능 최적화: WorldToScreen 변환을 직접 계산 (함수 호출 오버헤드 제거)
 			float worldX = x * TILE_SIZE + TILE_SIZE / 2.0f;
-			float screenX = worldX - cameraPos.X + halfScreenWidth;
-			float screenY = screenYBase;
 			
-			// RenderManager에 직접 명령 추가 (RenderTile 함수 호출 오버헤드 제거)
-			float renderX = screenX - TILE_SIZE * 0.5f;
-			float renderY = screenY - TILE_SIZE * 0.5f;
-			Gdiplus::RectF destRect(renderX, renderY, TILE_SIZE, TILE_SIZE);
-			Gdiplus::RectF sourceRect(0, 0, static_cast<float>(tileBitmap->GetWidth()), static_cast<float>(tileBitmap->GetHeight()));
-			Gdiplus::PointF screenPos(screenX, screenY);
-			
-			renderManager->AddDrawCommand(tileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, worldY, DIR_DOWN);
+			Gdiplus::RectF sourceRect(0.0f, 0.0f, static_cast<float>(tileBitmap->GetWidth()), static_cast<float>(tileBitmap->GetHeight()));
+			// RenderManager에 직접 월드 좌표를 전달 (좌표 변환은 RenderManager가 수행)
+			renderManager->AddWorldEntityCommand(tileBitmap, sourceRect, worldX, worldY, 1.0f, 1.0f, 0.5f, 0.5f, LAYER_WORLD_TILE, worldY);
 		}
 	}
 }

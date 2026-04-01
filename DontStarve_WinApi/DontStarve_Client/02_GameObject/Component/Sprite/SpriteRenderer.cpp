@@ -26,29 +26,27 @@ void SpriteRenderer::Render()
 	auto pTransform = m_owner->GetComponent<Transform>();
 	if (!pTransform || !m_sprite || !m_sprite->bitmap) return;
 
-	CameraManager* pCam = CameraManager::GetInstance();
-	Gdiplus::PointF screenPos = pCam->WorldToScreen(pTransform->GetX(), pTransform->GetY());
-
-	RenderLayer layer = m_layer;
-	float yPos = pTransform->GetY();
-	Direction dir = pTransform->GetDirection();
-
-	// 스케일 적용하여 렌더링 크기 계산
-	float width = m_sprite->sourceRect.Width * pTransform->GetScaleX();
+	float worldX = pTransform->GetX();
+	float worldY = pTransform->GetY();
+	
+	// 정렬 기준점 계산 (피벗 고려)
 	float height = m_sprite->sourceRect.Height * pTransform->GetScaleY();
-	float x = screenPos.X - width * m_sprite->pivot.X;
-	float y = screenPos.Y - height * m_sprite->pivot.Y;
-
-	// Y-Sorting: 항상 스프라이트의 최하단(발밑) 좌표를 기준으로 정렬
-	float sortingY = yPos + (1.0f - m_sprite->pivot.Y) * height;
-
+	float sortingY = worldY + (1.0f - m_sprite->pivot.Y) * height;
 
 	Gdiplus::Color tintColor = m_sprite->tintColor;
 	bool hasTint = (tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
 
-	RenderManager::GetInstance()->AddDrawCommand(m_sprite->bitmap.get(), Gdiplus::RectF(x, y, width, height),
-		m_sprite->sourceRect, Gdiplus::UnitPixel, screenPos,
-		layer, sortingY, dir, tintColor, hasTint, m_preFlipped);
+	// RenderManager에 월드 좌표와 변환 정보 전달
+	RenderManager::GetInstance()->AddWorldEntityCommand(
+		m_sprite->bitmap.get(), 
+		m_sprite->sourceRect, 
+		worldX, worldY, 
+		pTransform->GetScaleX(), pTransform->GetScaleY(),
+		m_sprite->pivot.X, m_sprite->pivot.Y,
+		m_layer, sortingY, 
+		pTransform->GetDirection(), 
+		tintColor, hasTint, m_preFlipped
+	);
 }
 
 void SpriteRenderer::Release()

@@ -56,22 +56,55 @@ void RenderManager::Release()
 	if (m_pCachedAttr) { delete m_pCachedAttr; m_pCachedAttr = nullptr; }
 }
 
-void RenderManager::AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float zOrder, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)
+void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float worldX, float worldY, float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)
 {
+	// 월드 좌표를 화면 좌표로 변환 (RenderManager가 전담)
+	Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(worldX, worldY);
+
+	float width = sourceRect.Width * scaleX;
+	float height = sourceRect.Height * scaleY;
+	float renderX = screenPos.X - width * pivotX;
+	float renderY = screenPos.Y - height * pivotY;
+
 	DrawCommand cmd;
-	cmd.type = DRAW_COMMAND_IMAGE;
-	cmd.pBitmap = pBitmap;
-	cmd.destRect = destRect;
-	cmd.sourceRect = sourceRect;
-	cmd.srcUnit = srcUnit;
-	cmd.objectScreenPos = objectScreenPos;
+	cmd.type = DRAW_COMMAND_ENTITY;
+	cmd.destRect = Gdiplus::RectF(renderX, renderY, width, height);
+	cmd.rotationPivot = screenPos; // 피벗 위치가 회전 중심
 	cmd.layer = layer;
 	cmd.zOrder = zOrder;
-	cmd.direction = direction;
-	cmd.tintColor = tintColor;
-	cmd.hasTint = hasTint;
-	cmd.preFlipped = preFlipped;
 	cmd.rotation = rotation;
+
+	cmd.sprite.pBitmap = pBitmap;
+	cmd.sprite.sourceRect = sourceRect;
+	cmd.sprite.srcUnit = Gdiplus::UnitPixel;
+	cmd.sprite.direction = direction;
+	cmd.sprite.tintColor = tintColor;
+	cmd.sprite.hasTint = hasTint;
+	cmd.sprite.preFlipped = preFlipped;
+
+	m_layerCommands[layer].push_back(cmd);
+}
+
+void RenderManager::AddUICommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float screenX, float screenY, float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder, const Gdiplus::Color& tintColor, bool hasTint, float rotation)
+{
+	float width = sourceRect.Width * scaleX;
+	float height = sourceRect.Height * scaleY;
+	float renderX = screenX - width * pivotX;
+	float renderY = screenY - height * pivotY;
+
+	DrawCommand cmd;
+	cmd.type = DRAW_COMMAND_UI_IMAGE;
+	cmd.destRect = Gdiplus::RectF(renderX, renderY, width, height);
+	cmd.rotationPivot = Gdiplus::PointF(screenX, screenY);
+	cmd.layer = layer;
+	cmd.zOrder = zOrder;
+	cmd.rotation = rotation;
+
+	cmd.sprite.pBitmap = pBitmap;
+	cmd.sprite.sourceRect = sourceRect;
+	cmd.sprite.srcUnit = Gdiplus::UnitPixel;
+	cmd.sprite.tintColor = tintColor;
+	cmd.sprite.hasTint = hasTint;
 
 	m_layerCommands[layer].push_back(cmd);
 }
@@ -80,15 +113,16 @@ void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFon
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_TEXT;
-	cmd.textPtr = text;
-	cmd.pFont = pFont;
-	cmd.pBrush = pBrush;
-	cmd.pStringFormat = pStringFormat;
 	cmd.destRect = destRect;
 	cmd.layer = layer;
 	cmd.zOrder = zOrder;
 	cmd.rotation = rotation;
-	cmd.objectScreenPos = rotationPivot;
+	cmd.rotationPivot = rotationPivot;
+
+	cmd.text.textPtr = text;
+	cmd.text.pFont = pFont;
+	cmd.text.pBrush = pBrush;
+	cmd.text.pStringFormat = pStringFormat;
 
 	m_layerCommands[layer].push_back(cmd);
 }
@@ -98,10 +132,12 @@ void RenderManager::AddDrawRectCommand(const Gdiplus::RectF& rect, const Gdiplus
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_RECTANGLE;
 	cmd.destRect = rect;
-	cmd.color = color;
-	cmd.thickness = thickness;
 	cmd.layer = layer;
 	cmd.zOrder = zOrder;
+
+	cmd.primitive.color = color;
+	cmd.primitive.thickness = thickness;
+	cmd.primitive.isFilled = false;
 
 	m_layerCommands[layer].push_back(cmd);
 }
@@ -111,69 +147,14 @@ void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gd
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_FILL_RECTANGLE;
 	cmd.destRect = rect;
-	cmd.color = color;
 	cmd.layer = layer;
 	cmd.zOrder = zOrder;
 
+	cmd.primitive.color = color;
+	cmd.primitive.thickness = 0.0f;
+	cmd.primitive.isFilled = true;
+
 	m_layerCommands[layer].push_back(cmd);
-}
-
-void RenderManager::RenderImage(RectTransform* pRectTransform, ComponentElement::Image* pImage)
-{
-	if (!pRectTransform || !pImage) return;
-
-	auto spriteHandle = pImage->GetSpriteHandle();
-	if (!spriteHandle || !spriteHandle->bitmap) return;
-
-	// UI는 화면 좌표계에서 직접 계산
-	float width = spriteHandle->sourceRect.Width * pRectTransform->GetScaleX();
-	float height = spriteHandle->sourceRect.Height * pRectTransform->GetScaleY();
-	float x = pRectTransform->GetX();
-	float y = pRectTransform->GetY();
-
-	float renderX = x - (pImage->GetPivotX() * width);
-	float renderY = y - (pImage->GetPivotY() * height);
-
-	// Image 컴포넌트의 틴트 색상 사용 (UI 버튼 등에서 상태 표현에 사용됨)
-	Gdiplus::Color tintColor = pImage->GetTintColor();
-	bool hasTint = (tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
-
-	AddDrawCommand(spriteHandle->bitmap.get(), Gdiplus::RectF(renderX, renderY, width, height),
-		spriteHandle->sourceRect, Gdiplus::UnitPixel, Gdiplus::PointF(x, y),
-		pImage->GetLayer(), pImage->GetSortKey(), DIR_DOWN,
-		tintColor, hasTint);
-}
-
-void RenderManager::RenderText(RectTransform* pRectTransform, Text* pText)
-{
-	if (!pRectTransform || !pText) return;
-
-	auto params = pText->BuildRenderParams(pRectTransform);
-	if (params.textPtr && !params.textPtr->empty())
-	{
-		AddTextCommand(
-			params.textPtr,
-			params.font,
-			params.brush,
-			params.format,
-			params.destRect,
-			params.layer,
-			params.sortKey,
-			pRectTransform->GetRotation(),
-			Gdiplus::PointF(pRectTransform->GetX(), pRectTransform->GetY())
-		);
-	}
-}
-
-void RenderManager::RenderTile(Gdiplus::Bitmap* pTileBitmap, float worldX, float worldY, float width, float height)
-{
-	if (!pTileBitmap) return;
-
-	Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(worldX, worldY);
-	float renderX = screenPos.X - width * 0.5f;
-	float renderY = screenPos.Y - height * 0.5f;
-
-	AddDrawCommand(pTileBitmap, Gdiplus::RectF(renderX, renderY, width, height), Gdiplus::RectF(0, 0, (float)pTileBitmap->GetWidth(), (float)pTileBitmap->GetHeight()), Gdiplus::UnitPixel, screenPos, LAYER_TILE_BACKGROUND, worldY, DIR_DOWN);
 }
 
 void RenderManager::Clear()
@@ -187,7 +168,7 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 {
 	if (!pGraphics) return;
 
-	for (int i = 0; i < LAYER_COUNT; ++i) {
+	for (int i = LAYER_TILE_BACKGROUND; i < LAYER_COUNT; ++i) {
 		if (m_layerCommands[i].empty()) continue;
 		
 		std::sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), CompareDrawCommands);
@@ -198,43 +179,31 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 			
 			if (rotated) {
 				state = pGraphics->Save();
-				pGraphics->TranslateTransform(cmd.objectScreenPos.X, cmd.objectScreenPos.Y);
+				pGraphics->TranslateTransform(cmd.rotationPivot.X, cmd.rotationPivot.Y);
 				pGraphics->RotateTransform(cmd.rotation);
-				pGraphics->TranslateTransform(-cmd.objectScreenPos.X, -cmd.objectScreenPos.Y);
+				pGraphics->TranslateTransform(-cmd.rotationPivot.X, -cmd.rotationPivot.Y);
 			}
 
 			switch (cmd.type) {
-			case DRAW_COMMAND_IMAGE:
-				if (cmd.pBitmap) {
-					if (cmd.hasTint && m_pCachedAttr) {
-						float r = cmd.tintColor.GetR() / 255.0f;
-						float g = cmd.tintColor.GetG() / 255.0f;
-						float b = cmd.tintColor.GetB() / 255.0f;
-						float a = cmd.tintColor.GetA() / 255.0f;
-						Gdiplus::ColorMatrix matrix = { r,0,0,0,0, 0,g,0,0,0, 0,0,b,0,0, 0,0,0,a,0, 0,0,0,0,1 };
-						m_pCachedAttr->SetColorMatrix(&matrix);
-						pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y, cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit, m_pCachedAttr);
-					}
-					else {
-						pGraphics->DrawImage(cmd.pBitmap, cmd.destRect, cmd.sourceRect.X, cmd.sourceRect.Y, cmd.sourceRect.Width, cmd.sourceRect.Height, cmd.srcUnit);
-					}
-				}
+			case DRAW_COMMAND_ENTITY:
+			case DRAW_COMMAND_UI_IMAGE:
+				RenderSprite(pGraphics, cmd.sprite, cmd.destRect);
 				break;
 			case DRAW_COMMAND_TEXT:
-				if (cmd.textPtr && cmd.pBrush) {
-					pGraphics->DrawString(cmd.textPtr->c_str(), -1, cmd.pFont, cmd.destRect, cmd.pStringFormat, cmd.pBrush);
+				if (cmd.text.textPtr && cmd.text.pBrush) {
+					pGraphics->DrawString(cmd.text.textPtr->c_str(), -1, cmd.text.pFont, cmd.destRect, cmd.text.pStringFormat, cmd.text.pBrush);
 				}
 				break;
 			case DRAW_COMMAND_RECTANGLE:
 				if (m_pCachedPen) {
-					m_pCachedPen->SetColor(cmd.color);
-					m_pCachedPen->SetWidth(cmd.thickness);
+					m_pCachedPen->SetColor(cmd.primitive.color);
+					m_pCachedPen->SetWidth(cmd.primitive.thickness);
 					pGraphics->DrawRectangle(m_pCachedPen, cmd.destRect);
 				}
 				break;
 			case DRAW_COMMAND_FILL_RECTANGLE:
 				if (m_pCachedBrush) {
-					m_pCachedBrush->SetColor(cmd.color);
+					m_pCachedBrush->SetColor(cmd.primitive.color);
 					pGraphics->FillRectangle(m_pCachedBrush, cmd.destRect);
 				}
 				break;			
@@ -245,5 +214,23 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 			}
 		}
 		m_layerCommands[i].clear();
+	}
+}
+
+void RenderManager::RenderSprite(Gdiplus::Graphics* pGraphics, const DrawCommand::SpriteData& data, const Gdiplus::RectF& destRect)
+{
+	if (!data.pBitmap) return;
+
+	if (data.hasTint && m_pCachedAttr) {
+		float r = data.tintColor.GetR() / 255.0f;
+		float g = data.tintColor.GetG() / 255.0f;
+		float b = data.tintColor.GetB() / 255.0f;
+		float a = data.tintColor.GetA() / 255.0f;
+		Gdiplus::ColorMatrix matrix = { r,0,0,0,0, 0,g,0,0,0, 0,0,b,0,0, 0,0,0,a,0, 0,0,0,0,1 };
+		m_pCachedAttr->SetColorMatrix(&matrix);
+		pGraphics->DrawImage(data.pBitmap, destRect, data.sourceRect.X, data.sourceRect.Y, data.sourceRect.Width, data.sourceRect.Height, data.srcUnit, m_pCachedAttr);
+	}
+	else {
+		pGraphics->DrawImage(data.pBitmap, destRect, data.sourceRect.X, data.sourceRect.Y, data.sourceRect.Width, data.sourceRect.Height, data.srcUnit);
 	}
 }
