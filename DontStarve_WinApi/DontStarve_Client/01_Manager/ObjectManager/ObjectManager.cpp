@@ -20,6 +20,7 @@
 #include "../../02_GameObject/Entity/Monster/Boss_IceHound.h"
 #include "../../02_GameObject/Building/PigHouse.h"
 #include "../../02_GameObject/Building/SpiderEgg.h"
+#include "../../02_GameObject/Building/BossSpiderEgg.h"
 #include "../../02_GameObject/Item/Item.h"
 #include "../../02_GameObject/UI/MenuUI.h"
 #include "../../02_GameObject/UI/UIImage.h"
@@ -275,6 +276,9 @@ void ObjectManager::InitializeFactories()
 	registerBuildingIds({ GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG, GOID_BUILDING_SPIDER_SACEGG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Building* {
 		return new SpiderEgg(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
 		});
+	m_buildingFactories[GOID_BUILDING_BOSS_SPIDER_EGG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Building* {
+		return new BossSpiderEgg(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
+		};
 
 	// 아이템
 	auto itemFactory = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {

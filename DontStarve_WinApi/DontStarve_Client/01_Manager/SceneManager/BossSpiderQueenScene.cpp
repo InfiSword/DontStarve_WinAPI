@@ -96,10 +96,11 @@ void BossSpiderQueenScene::Init(const MapData* mapData)
 	{
 		m_bossHPUI = new HPUI(dynamic_cast<Entity*>(m_bossObject), m_bossName, 600.0f, 25.0f,
 			Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 255, 255, 255),
-			0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 60.0f,
+			0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 80.0f,
 			1000.0f, 1002.0f, false, false);
+		m_bossHPUI->Init();
 		m_bossHPUI->SetActive(false);
-		objMgr->AddGameObject(m_bossHPUI);
+		ObjectManager::GetInstance()->AddGameObject(m_bossHPUI);
 	}
 
 	OutputDebugStringW(L"BossSpiderQueenScene: Initialized. Trees disabled.\n");

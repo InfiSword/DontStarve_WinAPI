@@ -2,16 +2,12 @@
 #include "Boss_SpiderQueen.h"
 #include "Spider.h"
 #include "../Player/Player.h"
-#include "../../../01_Manager/CameraManager/CameraManager.h"
-#include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
-#include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
-#include "../../../01_Manager/SceneManager/SceneManager.h"
+#include  "../../Building/BossSpiderEgg.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
-#include "../../Component/Sprite/SpriteSheet.h"
 #include "../../Component/Transform/Transform.h"
 #include "../../Component/Collider/BoxCollider.h"
 
@@ -20,6 +16,10 @@ Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivo
 	: Spider(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 	, m_bossPhase(1)
 	, m_specialAttackCooldown(0.0f)
+	, m_comboAttackCooldown(5.0f)
+	, m_comboCount(0)
+	, m_poopCooldown(15.0f)
+	, m_poopCount(0)
 	, m_idleTimer(0.0f)
 	, m_idleDuration(2.0f)
     , m_hasTriggeredCocoon(false)
@@ -35,12 +35,12 @@ Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivo
 	m_type = GO_TYPE_MONSTER;
 	m_walkSpeed = 50.0f;
 	m_runSpeed = 120.0f;
-	m_attackRange = 70.0f;
+	m_attackRange = 130.0f;
 	m_attackCooldown = 1.5f;
 	m_attackHitFrame = 28;
 	m_damage = 25;
-	m_attackBoxWidth = 70;
-	m_attackBoxHeight = 50;
+	m_attackBoxWidth = 110;
+	m_attackBoxHeight = 80;
 }
 
 Boss_SpiderQueen::~Boss_SpiderQueen() {}
@@ -87,6 +87,20 @@ void Boss_SpiderQueen::Init()
 				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 					if (eventName == L"attack_hit") this->OnAttackHit();
 					else if (eventName == L"attack_end") this->OnAttackEnd();
+					});
+			}
+		}
+
+		// 3콤보 공격 애니메이션 (기존 Attack 리소스 재사용)
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::COMBO_ATTACK, (Direction)dir, attackPath, 0, 0, 7, 53, px, py, false, 0.015f); // 콤보는 약간 더 빠르게
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::COMBO_ATTACK, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(m_attackHitFrame, L"combo_hit");
+				clip->AddEventFrame(52, L"combo_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"combo_hit") this->OnComboAttackHit();
+					else if (eventName == L"combo_end") this->OnComboAttackEnd();
 					});
 			}
 		}
@@ -162,11 +176,39 @@ void Boss_SpiderQueen::Init()
 						m_bCanChase = false;
 						ChangeState((int)SpiderQueenState::IDLE);
 					}
-					});
+				});
 			}
-		}
+        }
 
-        // FX 등록
+					// POOP_PRE 애니메이션
+					for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+					m_animator->RegisterAnimation((int)SpiderQueenState::POOP_PRE, (Direction)dir, base + L"Queen_spider_queen_poop_pre.png", 0, 0, 7, 13, px, py, false, 0.03f);
+					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::POOP_PRE, (Direction)dir);
+					if (clip) {
+					clip->AddEventFrame(12, L"poop_pre_end");
+					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"poop_pre_end") this->ChangeState((int)SpiderQueenState::POOP_LOOP);
+					});
+					}
+					}
+
+					// POOP_LOOP 애니메이션 (알 3개 낳기)
+					for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+					m_animator->RegisterAnimation((int)SpiderQueenState::POOP_LOOP, (Direction)dir, base + L"Queen_spider_queen_poop_loop.png", 0, 0, 7, 50, px, py, false, 0.03f);
+					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::POOP_LOOP, (Direction)dir);
+					if (clip) {
+					clip->AddEventFrame(10, L"poop_egg");
+					clip->AddEventFrame(25, L"poop_egg");
+					clip->AddEventFrame(40, L"poop_egg");
+					clip->AddEventFrame(49, L"poop_end");
+					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+					if (eventName == L"poop_egg") this->OnPoopEgg();
+					else if (eventName == L"poop_end") this->OnPoopEnd();
+					});
+					}
+					}
+
+					// FX 등록
         // 1. Heal Buff FX (루프)
         m_healFxAnimator->RegisterAnimation(0, DIR_DOWN, base + L"Queen_heal_fx_heal_buff.png", 0, 0, 7, 65, px, py, true, 0.02f);
         
@@ -229,7 +271,18 @@ void Boss_SpiderQueen::UpdateAI(float deltaTime)
 		}
 		break;
 
+	case SpiderQueenState::COMBO_ATTACK:
+		// 콤보 공격 중에는 별도 AI 로직 없음 (애니메이션 이벤트로 처리)
+		break;
+
+	case SpiderQueenState::POOP_PRE:
+	case SpiderQueenState::POOP_LOOP:
+		// 알 낳기 중에는 별도 AI 로직 없음
+		break;
+
 	default:
+		if (m_comboAttackCooldown > 0.0f) m_comboAttackCooldown -= deltaTime;
+		if (m_poopCooldown > 0.0f) m_poopCooldown -= deltaTime;
 		Monster::UpdateAI(deltaTime);
 		break;
 	}
@@ -245,6 +298,9 @@ void Boss_SpiderQueen::UpdateMovement(float deltaTime)
 	case SpiderQueenState::BIRTH:
 	case SpiderQueenState::COCOON_PRE:
 	case SpiderQueenState::TAUNT:
+	case SpiderQueenState::COMBO_ATTACK:
+	case SpiderQueenState::POOP_PRE:
+	case SpiderQueenState::POOP_LOOP:
 		break;
 	default:
 		Monster::UpdateMovement(deltaTime);
@@ -278,6 +334,19 @@ int Boss_SpiderQueen::UpdateWalk(float deltaTime)
 
 int Boss_SpiderQueen::UpdateChase(float deltaTime)
 {
+	if (m_poopCooldown <= 0.0f)
+	{
+		m_poopCooldown = 20.0f; // 사용 후 20초 쿨타임
+		return (int)SpiderQueenState::POOP_PRE;
+	}
+
+	if (m_comboAttackCooldown <= 0.0f && m_distToPlayerSq <= m_attackRange * m_attackRange * 2.25f) // 약간 더 먼 거리에서도 발동 가능
+	{
+		m_comboCount = 0;
+		m_comboAttackCooldown = 8.0f; // 사용 후 8초 쿨타임
+		return (int)SpiderQueenState::COMBO_ATTACK;
+	}
+
 	return Monster::UpdateChase(deltaTime);
 }
 
@@ -289,6 +358,87 @@ void Boss_SpiderQueen::OnAttackEnd()
 	
 	HandleAttackEndSuperArmor();
 
+	ChangeState((int)SpiderQueenState::CHASE);
+}
+
+void Boss_SpiderQueen::OnComboAttackHit()
+{
+	if (m_state != (int)SpiderQueenState::COMBO_ATTACK) return;
+
+	// 플레이어 방향으로 전진 (약 40픽셀)
+	if (transform)
+	{
+		float moveDist = 40.0f;
+		float nx = transform->GetX() + m_dirToPlayer.X * moveDist;
+		float ny = transform->GetY() + m_dirToPlayer.Y * moveDist;
+		transform->SetPosition(nx, ny);
+		ClampPositionToMapBounds();
+	}
+
+	ProcessAttackHit(m_damage);
+}
+
+void Boss_SpiderQueen::OnComboAttackEnd()
+{
+	if (m_state != (int)SpiderQueenState::COMBO_ATTACK) return;
+
+	m_comboCount++;
+	if (m_comboCount < 3)
+	{
+		// 애니메이션 재시작 (콤보 연결)
+		ChangeState((int)SpiderQueenState::COMBO_ATTACK, true);
+	}
+	else
+	{
+		m_comboCount = 0;
+		HandleAttackEndSuperArmor();
+		ChangeState((int)SpiderQueenState::CHASE);
+	}
+}
+
+void Boss_SpiderQueen::OnPoopEgg()
+{
+	if (m_state != (int)SpiderQueenState::POOP_LOOP) return;
+
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	if (!objectManager || !transform) return;
+
+	// 무작위 3개 알 생성 (이벤트 콜백이 3번 호출됨)
+	float angle = (rand() / (float)RAND_MAX) * 6.283185f;
+	float dist = 100.0f + (rand() / (float)RAND_MAX) * 100.0f;
+	float ex = transform->GetX() + cosf(angle) * dist;
+	float ey = transform->GetY() + sinf(angle) * dist;
+
+	Building* eggObj = objectManager->CreateBuilding(GOID_BUILDING_BOSS_SPIDER_EGG, ex, ey);
+	if (eggObj)
+	{
+		BossSpiderEgg* egg = dynamic_cast<BossSpiderEgg*>(eggObj);
+		if (egg)
+		{
+			// 알 종류 결정 (Small 50%, Medium 35%, Tall 15%)
+			int roll = rand() % 100;
+			if (roll < 50) egg->SetEggStage(EggStage::Small);
+			else if (roll < 85) egg->SetEggStage(EggStage::Medium);
+			else egg->SetEggStage(EggStage::Large); // Tall
+
+			// 현재 단계에 맞게 애니메이션 초기화 (SpiderEgg::Init에서 stage에 따라 달라짐)
+			// 여기서는 stage를 강제로 바꾸었으므로 애니메이션 상태도 맞춰줘야 함
+			int animState = EGG_STATE_IDLE_SMALL;
+			if (egg->GetEggStage() == EggStage::Medium) animState = EGG_STATE_IDLE_MEDIUM;
+			else if (egg->GetEggStage() == EggStage::Large) animState = EGG_STATE_IDLE_LARGE;
+			
+			// egg->ChangeState는 protected이므로 public 인터페이스가 필요할 수 있음. 
+			// 하지만 SpiderEgg::Update에서 매 틱마다 stage에 맞춰 visibility를 조절하고 있으므로
+			// 일단 stage 설정만으로 충분할 가능성이 높음. (SpiderEgg.cpp 확인 결과 Init에서만 초기 Idle 설정)
+			// 원활한 렌더링을 위해 Animator의 SetState를 직접 호출하거나 SpiderEgg를 수정해야 할 수 있음.
+		}
+	}
+}
+
+void Boss_SpiderQueen::OnPoopEnd()
+{
+	if (m_state != (int)SpiderQueenState::POOP_LOOP) return;
+	HandleAttackEndSuperArmor();
 	ChangeState((int)SpiderQueenState::CHASE);
 }
 
