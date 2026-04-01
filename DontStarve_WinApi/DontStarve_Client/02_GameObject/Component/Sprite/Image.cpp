@@ -37,6 +37,8 @@ void Image::Render()
 
 	Gdiplus::RectF destRect = rt->GetScreenBoundingBox();
 
+	bool hasTint = (m_tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
+
 	RenderManager::GetInstance()->AddDrawCommand(
 		m_sprite->bitmap.get(),
 		destRect,
@@ -44,11 +46,10 @@ void Image::Render()
 		Gdiplus::UnitPixel,
 		Gdiplus::PointF(rt->GetX(), rt->GetY()),
 		m_layer,
-		0.0f, // yPos (UI는 보통 0)
 		m_sortKey,
 		DIR_NONE,
 		m_tintColor,
-		(m_tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255)),
+		hasTint,
 		false,
 		rt->GetRotation()
 	);

@@ -444,7 +444,7 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData)
 			Gdiplus::RectF sourceRect(0, 0, static_cast<float>(tileBitmap->GetWidth()), static_cast<float>(tileBitmap->GetHeight()));
 			Gdiplus::PointF screenPos(screenX, screenY);
 			
-			renderManager->AddDrawCommand(tileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, worldY, 0.0f, DIR_DOWN);
+			renderManager->AddDrawCommand(tileBitmap, destRect, sourceRect, Gdiplus::UnitPixel, screenPos, LAYER_WORLD_TILE, worldY, DIR_DOWN);
 		}
 	}
 }

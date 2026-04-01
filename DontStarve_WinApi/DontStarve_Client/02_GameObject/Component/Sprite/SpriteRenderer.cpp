@@ -48,7 +48,7 @@ void SpriteRenderer::Render()
 
 	RenderManager::GetInstance()->AddDrawCommand(m_sprite->bitmap.get(), Gdiplus::RectF(x, y, width, height),
 		m_sprite->sourceRect, Gdiplus::UnitPixel, screenPos,
-		layer, sortingY, 0, dir, tintColor, hasTint, m_preFlipped);
+		layer, sortingY, dir, tintColor, hasTint, m_preFlipped);
 }
 
 void SpriteRenderer::Release()
