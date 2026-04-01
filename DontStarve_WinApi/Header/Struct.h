@@ -144,8 +144,7 @@ struct DrawCommand {
 	Gdiplus::PointF objectScreenPos = Gdiplus::PointF(0, 0);
 
 	RenderLayer layer = LAYER_NONE;
-	float yPos = 0.0f;
-	float sortKey = 0.0f;
+	float zOrder = 0.0f;
 	Direction direction = DIR_DOWN;
 	const std::wstring* textPtr = nullptr;
 	Gdiplus::Font* pFont = nullptr;

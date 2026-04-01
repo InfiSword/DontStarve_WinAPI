@@ -121,7 +121,7 @@ void CircleCollider::RenderGizmo()
 	Gdiplus::Color gizmoColor(255, 255, 0, 0); 
 	Gdiplus::Color bgColor(30, 255, 0, 0); 
 
-	renderManager->AddFillRectangleCommand(gizmoRect, bgColor, LAYER_DEBUG_OVERLAY, 0.0f, 9998.0f);
+	renderManager->AddFillRectangleCommand(gizmoRect, bgColor, LAYER_DEBUG_OVERLAY, 9998.0f);
 
-	renderManager->AddDrawRectCommand(gizmoRect, gizmoColor, 2.0f, LAYER_DEBUG_OVERLAY, 0.0f, 9999.0f);
+	renderManager->AddDrawRectCommand(gizmoRect, gizmoColor, 2.0f, LAYER_DEBUG_OVERLAY, 9999.0f);
 }

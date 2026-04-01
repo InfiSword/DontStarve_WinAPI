@@ -162,7 +162,7 @@ void GameClearUI::Render()
     float screenW = static_cast<float>(WINCX);
     float screenH = static_cast<float>(WINCY);
     Gdiplus::RectF blockRect(0.0f, 0.0f, screenW, screenH);
-    pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(180, 0, 0, 0), LAYER_UI_FOREGROUND, 0.0f, SORT_KEY - 1.0f);
+    pRM->AddFillRectangleCommand(blockRect, Gdiplus::Color(180, 0, 0, 0), LAYER_UI_FOREGROUND, SORT_KEY - 1.0f);
 }
 
 void GameClearUI::Show()

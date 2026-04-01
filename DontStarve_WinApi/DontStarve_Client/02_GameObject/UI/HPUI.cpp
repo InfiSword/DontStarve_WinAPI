@@ -142,7 +142,7 @@ void HPUI::Render()
 	if (m_showIcon && m_hpIconSprite && m_hpIconSprite->bitmap) {
 		float iconX = barLeft - m_gap - m_iconSize;
 		float iconY = barTop + (barH - m_iconSize) * 0.5f;
-		
+
 		Gdiplus::Bitmap* bmp = m_hpIconSprite->bitmap.get();
 		pRM->AddDrawCommand(
 			bmp,
@@ -151,12 +151,11 @@ void HPUI::Render()
 			Gdiplus::UnitPixel,
 			Gdiplus::PointF(iconX + m_iconSize * 0.5f, iconY + m_iconSize * 0.5f),
 			LAYER_UI_FOREGROUND,
-			0.0f,
 			10.0f,
 			DIR_DOWN
 		);	}
 
-	pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, barW, barH), m_bgColor, LAYER_UI_FOREGROUND, 0.0f, m_barSortKey);
+	pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, barW, barH), m_bgColor, LAYER_UI_FOREGROUND, m_barSortKey);
 
 	if (m_target) {
 		int hp = m_target->GetHp();
@@ -167,10 +166,9 @@ void HPUI::Render()
 
 		float fillWidth = barW * ratio;
 		if (fillWidth > 0.01f) {
-			pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, fillWidth, barH), m_fillColor, LAYER_UI_FOREGROUND, 0.0f, m_barSortKey + 0.05f);
+			pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, fillWidth, barH), m_fillColor, LAYER_UI_FOREGROUND, m_barSortKey + 0.05f);
 		}
-	}
-}
+	}}
 
 void HPUI::Release()
 {
