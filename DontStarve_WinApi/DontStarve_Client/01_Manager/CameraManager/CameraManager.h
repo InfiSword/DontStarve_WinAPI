@@ -59,7 +59,7 @@ private:
 	std::vector<GameObject*> m_visibleObjects;
 	Gdiplus::RectF m_lastViewportRect = { 0, 0, 0, 0 };
 
-	std::map<UINT, TileCacheData> m_tileCache;
+	std::unordered_map<UINT, TileCacheData> m_tileCache;
 	int m_lastStartTileX = -1, m_lastStartTileY = -1, m_lastEndTileX = -1, m_lastEndTileY = -1;
 
 	bool IsObjectInViewport(GameObject* obj) const;

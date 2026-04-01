@@ -75,13 +75,13 @@ void MenuUI::CreateMenuBar()
     const float iconX = 40.0f;
     auto* objMgr = ObjectManager::GetInstance();
 
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CraftIcon.png", L"Resource/UI/CraftIcon.png", 0.0f, 0.5f, iconX, m_menuIconY[4], [this]() { ToggleToolList(); }));
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize + 20, m_iconSize + 20, L"Resource/UI/CreateIcon.png", L"Resource/UI/CreateIcon.png", 0.0f, 0.5f, iconX, m_menuIconY[3], [this]() { ToggleCreateList(); }));
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CookIcon.png", L"Resource/UI/CookIcon.png", 0.0f, 0.5f, iconX, m_menuIconY[2], [this]() { ToggleCookList(); }));
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/BattleIcon.png", L"Resource/UI/BattleIcon.png", 0.0f, 0.5f, iconX, m_menuIconY[1], [this]() { ToggleBossPanel(); }));
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/EditIcon.png", L"Resource/UI/EditIcon.png", 0.0f, 0.5f, iconX, m_menuIconY[0], [this]() { ToggleEditPanel(); }));
+    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CraftIcon.png", L"Resource/UI/CraftIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[4], [this]() { ToggleToolList(); }));
+    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize + 20, m_iconSize + 20, L"Resource/UI/CreateIcon.png", L"Resource/UI/CreateIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[3], [this]() { ToggleCreateList(); }));
+    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CookIcon.png", L"Resource/UI/CookIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[2], [this]() { ToggleCookList(); }));
+    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/BattleIcon.png", L"Resource/UI/BattleIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[1], [this]() { ToggleBossPanel(); }));
+    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/EditIcon.png", L"Resource/UI/EditIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[0], [this]() { ToggleEditPanel(); }));
 
-    AddManaged(objMgr->CreateImage(GOID_UI_MENU, m_craftBarWidth, m_craftBarHeight, LAYER_UI_BACKGROUND, L"Resource/UI/CraftBar.png", 0.0f, 0.0f, 0.5f, 50.0f, 0.0f));
+    AddManaged(objMgr->CreateImage(GOID_UI_MENU, m_craftBarWidth, m_craftBarHeight, LAYER_UI_BACKGROUND, L"Resource/UI/CraftBar.png", 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 50.0f, 0.0f));
 }
 
 void MenuUI::CreatePalettes()
@@ -95,7 +95,7 @@ void MenuUI::CreatePalettes()
             float x = startX + (i % m_columnsPerRow) * (m_toolButtonSize + m_toolButtonSpacing);
             float y = startY + (i / m_columnsPerRow) * (m_toolButtonSize + m_toolButtonSpacing);
             std::wstring path = ResourceUtils::GetResourceImagePath(items[i]);
-            UIButton* btn = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_toolButtonSize, m_toolButtonSize, path, path, 0.0f, 0.5f, x, y, [this, id = items[i]]() { SelectCraftItem(id); }));
+            UIButton* btn = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_toolButtonSize, m_toolButtonSize, path, path, 0.0f, 0.5f, 0.0f, 0.5f, x, y, [this, id = items[i]]() { SelectCraftItem(id); }));
             if (btn) {
                 if (auto* img = btn->GetImageComponent()) img->SetDisplaySizeProportional(m_toolButtonSize);
                 group.push_back(btn);
@@ -115,7 +115,7 @@ void MenuUI::CreatePalettes()
     const float toolPanelCX = m_craftBarWidth + toolPanelW * 0.5f - palettePadding;
     const float toolPanelCY = toolButtonStartY + toolPanelH * 0.5f - palettePadding;
 
-    m_toolPanelBg = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, toolPanelW, toolPanelH, LAYER_UI_BACKGROUND, L"Resource/UI/CraftUI_PaletteBG.png", -0.05f, 0.0f, 0.5f, toolPanelCX + 20.0f, toolPanelCY - 30.0f));
+    m_toolPanelBg = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, toolPanelW, toolPanelH, LAYER_UI_BACKGROUND, L"Resource/UI/CraftUI_PaletteBG.png", -0.05f, 0.0f, 0.5f, 0.0f, 0.5f, toolPanelCX + 20.0f, toolPanelCY - 30.0f));
 }
 
 void MenuUI::CreateIngredientUI()
@@ -128,24 +128,24 @@ void MenuUI::CreateIngredientUI()
     const float ingPanelH = ingBot - ingTop;
     auto* objMgr = ObjectManager::GetInstance();
 
-    m_ingredientPanelBg = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, ingPanelW, ingPanelH, LAYER_UI_BACKGROUND, L"Resource/UI/CraftUI_IngredientBG.png", -0.05f, 0.0f, 0.5f, m_ingredientPanelCenterX, ingTop + ingPanelH * 0.5f));
+    m_ingredientPanelBg = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, ingPanelW, ingPanelH, LAYER_UI_BACKGROUND, L"Resource/UI/CraftUI_IngredientBG.png", -0.05f, 0.0f, 0.5f, 0.0f, 0.5f, m_ingredientPanelCenterX, ingTop + ingPanelH * 0.5f));
     
-    m_craftingItemNameText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 250.0f, 30.0f, L"", Gdiplus::Color::White, 18.0f, Gdiplus::FontStyleRegular, 0.0f, 0.5f, m_ingredientPanelCenterX, m_ingredientStartY - m_ingredientImageSize * 0.5f));
+    m_craftingItemNameText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 250.0f, 30.0f, L"", Gdiplus::Color::White, 18.0f, Gdiplus::FontStyleRegular, 0.0f, 0.5f, 0.0f, 0.5f, m_ingredientPanelCenterX, m_ingredientStartY - m_ingredientImageSize * 0.5f));
     m_ingredientGroup.push_back(m_craftingItemNameText);
 
     for (int i = 0; i < 2; ++i) {
         float x = m_ingredientPanelCenterX + (i - 0.5f) * (m_ingredientImageSize + m_ingredientSpacing);
-        m_ingredientSlots[i].image = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, m_ingredientImageSize, m_ingredientImageSize, LAYER_UI_FOREGROUND, L"", 0.1f, 0.0f, 0.5f, x, m_ingredientStartY));
-        m_ingredientSlots[i].text = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 150.0f, 28.0f, L"", Gdiplus::Color::White, 13.0f, Gdiplus::FontStyleRegular, 0.0f, 0.5f, x, m_ingredientStartY + m_ingredientImageSize * 0.5f + 14.0f));
+        m_ingredientSlots[i].image = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, m_ingredientImageSize, m_ingredientImageSize, LAYER_UI_FOREGROUND, L"", 0.1f, 0.0f, 0.5f, 0.0f, 0.5f, x, m_ingredientStartY));
+        m_ingredientSlots[i].text = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 150.0f, 28.0f, L"", Gdiplus::Color::White, 13.0f, Gdiplus::FontStyleRegular, 0.0f, 0.5f, 0.0f, 0.5f, x, m_ingredientStartY + m_ingredientImageSize * 0.5f + 14.0f));
         m_ingredientGroup.push_back(m_ingredientSlots[i].image);
         m_ingredientGroup.push_back(m_ingredientSlots[i].text);
     }
 
-    m_craftButton = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, 120.0f, 40.0f, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.0f, 0.5f, m_ingredientPanelCenterX, craftButtonY, [this]() {
+    m_craftButton = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, 120.0f, 40.0f, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.0f, 0.5f, 0.0f, 0.5f, m_ingredientPanelCenterX, craftButtonY, [this]() {
         Player* player = ObjectManager::GetInstance()->GetPlayer();
         if (player) TryCraftSelectedItem(player);
     }));
-    m_craftButtonText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 120.0f, 40.0f, L"제작하기", Gdiplus::Color::Black, 14.0f, Gdiplus::FontStyleRegular, 0.0f, 0.5f, m_ingredientPanelCenterX, craftButtonY, 100.0f));
+    m_craftButtonText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 120.0f, 40.0f, L"제작하기", Gdiplus::Color::Black, 14.0f, Gdiplus::FontStyleRegular, 0.0f, 0.5f, 0.0f, 0.5f, m_ingredientPanelCenterX, craftButtonY, 100.0f));
     m_ingredientGroup.push_back(m_craftButton);
     m_ingredientGroup.push_back(m_craftButtonText);
 }
@@ -153,14 +153,14 @@ void MenuUI::CreateIngredientUI()
 void MenuUI::CreateBossChallengeUI()
 {
     auto* objMgr = ObjectManager::GetInstance();
-    m_bossOverlay = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, 1920.0f, 1080.0f, LAYER_UI_BACKGROUND, L"Resource/UI/frontscreen.png", -0.1f, 0.5f, 0.5f, 0.0f, 0.0f));
+    m_bossOverlay = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, 1920.0f, 1080.0f, LAYER_UI_BACKGROUND, L"Resource/UI/frontscreen.png", -0.1f, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f));
     m_bossOverlay->SetTintColor(0, 0, 0, 180);
     m_bossGroup.push_back(m_bossOverlay);
 
     auto SetupBossPanel = [&](int idx, GameObjectID bossID, const std::wstring& spritePath, float x) {
         m_bossPanels[idx].id = bossID;
-        m_bossPanels[idx].panel = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, 300.0f, 400.0f, spritePath, spritePath, 0.5f, 0.5f, x, 0.0f, [this, bossID]() { SelectBoss(bossID); }));
-        m_bossPanels[idx].clearText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 300.0f, 60.0f, L"CLEAR", Gdiplus::Color::Red, 48.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, x, 0.0f));
+        m_bossPanels[idx].panel = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, 300.0f, 400.0f, spritePath, spritePath, 0.5f, 0.5f, 0.5f, 0.5f, x, 0.0f, [this, bossID]() { SelectBoss(bossID); }));
+        m_bossPanels[idx].clearText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 300.0f, 60.0f, L"CLEAR", Gdiplus::Color::Red, 48.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, 0.5f, 0.5f, x, 0.0f));
         m_bossPanels[idx].clearText->GetRectTransform()->SetRotation(-25.0f);
         m_bossGroup.push_back(m_bossPanels[idx].panel);
         m_bossGroup.push_back(m_bossPanels[idx].clearText);
@@ -169,8 +169,8 @@ void MenuUI::CreateBossChallengeUI()
     SetupBossPanel(0, GOID_MONSTER_HOUNDDOG, L"Resource/UI/BossBattleHound.png", -200.0f);
     SetupBossPanel(1, GOID_MONSTER_QUEEN_SPIDER, L"Resource/UI/BossBattleSpiderQueen.png", 200.0f);
 
-    m_bossChallengeButton = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, 200.0f, 60.0f, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.5f, 0.5f, 0.0f, 280.0f, [this]() { TryChallengeBoss(); }));
-    m_bossChallengeButtonText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 200.0f, 60.0f, L"보스 도전", Gdiplus::Color::Black, 18.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, 0.0f, 280.0f, 100.0f));
+    m_bossChallengeButton = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, 200.0f, 60.0f, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 280.0f, [this]() { TryChallengeBoss(); }));
+    m_bossChallengeButtonText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 200.0f, 60.0f, L"보스 도전", Gdiplus::Color::Black, 18.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 280.0f, 100.0f));
     m_bossGroup.push_back(m_bossChallengeButton);
     m_bossGroup.push_back(m_bossChallengeButtonText);
 }
@@ -303,7 +303,7 @@ void MenuUI::CreateEditUI()
     // Edit 메뉴 배경 (화면 중앙)
     float bgX = 0.0f;
     float bgY = 0.0f;
-    UIImage* editBg = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, 400.0f, 500.0f, LAYER_UI_BACKGROUND, L"Resource/UI/EditorMenu.png", -0.05f, 0.5f, 0.5f, bgX, bgY));
+    UIImage* editBg = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, 400.0f, 500.0f, LAYER_UI_BACKGROUND, L"Resource/UI/EditorMenu.png", -0.05f, 0.5f, 0.5f, 0.5f, 0.5f, bgX, bgY));
     m_editGroup.push_back(editBg);
 
     float btnW = 260.0f;
@@ -312,26 +312,26 @@ void MenuUI::CreateEditUI()
     float spacingY = 100.0f;
 
     // 타이틀 화면으로
-    UIButton* titleBtn = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, btnW, btnH, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.5f, 0.5f, bgX, startY + 50.f, []() {
+    UIButton* titleBtn = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, btnW, btnH, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.5f, 0.5f, 0.5f, 0.5f, bgX, startY + 50.f, []() {
         SceneManager::GetInstance()->LoadTitleScene();
     }));
-    UIText* titleText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, btnW, btnH, L"타이틀 화면으로", Gdiplus::Color::Black, 20.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, bgX, startY + 50.f, 100.0f));
+    UIText* titleText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, btnW, btnH, L"타이틀 화면으로", Gdiplus::Color::Black, 20.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, 0.5f, 0.5f, bgX, startY + 50.f, 100.0f));
     m_editGroup.push_back(titleBtn);
     m_editGroup.push_back(titleText);
 
     // 적 디버그 표시 체크박스
-    UIButton* debugBtn = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, btnW, btnH, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.5f, 0.5f, bgX, startY - spacingY, [this]() {
+    UIButton* debugBtn = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, btnW, btnH, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.5f, 0.5f, 0.5f, 0.5f, bgX, startY - spacingY, [this]() {
         Combatant::s_bShowAttackGizmo = !Combatant::s_bShowAttackGizmo;
         if (m_debugToggleStatusText) {
             m_debugToggleStatusText->SetText(Combatant::s_bShowAttackGizmo ? L"On" : L"Off");
             m_debugToggleStatusText->SetColor(Combatant::s_bShowAttackGizmo ? Gdiplus::Color::Green : Gdiplus::Color::Red);
         }
     }));
-    UIText* debugText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, btnW, btnH, L"공격 범위 표시 ", Gdiplus::Color::Black, 18.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, bgX, startY - spacingY, 100.0f));
+    UIText* debugText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, btnW, btnH, L"공격 범위 표시 ", Gdiplus::Color::Black, 18.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, 0.5f, 0.5f, bgX, startY - spacingY, 100.0f));
     
     // On/Off 상태 텍스트
-	m_debugToggleStatusBG = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, 60.0f, 30.0f, LAYER_UI_FOREGROUND, L"Resource/UI/frontscreen.png", 0.1f, 0.5f, 0.5f, bgX, startY - spacingY + 50.f));
-    m_debugToggleStatusText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 80.0f, btnH, Combatant::s_bShowAttackGizmo ? L"On" : L"Off", Combatant::s_bShowAttackGizmo ? Gdiplus::Color::Green : Gdiplus::Color::Red, 20.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, bgX, startY - spacingY + 50.f, 100.0f));
+	m_debugToggleStatusBG = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, 60.0f, 30.0f, LAYER_UI_FOREGROUND, L"Resource/UI/frontscreen.png", 0.1f, 0.5f, 0.5f, 0.5f, 0.5f, bgX, startY - spacingY + 50.f));
+    m_debugToggleStatusText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 80.0f, btnH, Combatant::s_bShowAttackGizmo ? L"On" : L"Off", Combatant::s_bShowAttackGizmo ? Gdiplus::Color::Green : Gdiplus::Color::Red, 20.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, 0.5f, 0.5f, bgX, startY - spacingY + 50.f, 100.0f));
     
     m_editGroup.push_back(debugBtn);
     m_editGroup.push_back(debugText);
@@ -339,10 +339,10 @@ void MenuUI::CreateEditUI()
 	m_editGroup.push_back(m_debugToggleStatusBG);
 
     // 닫기 버튼
-    UIButton* closeBtn = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, btnW/2, btnH/2, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.5f, 0.5f, bgX, startY - spacingY * 2, [this]() {
+    UIButton* closeBtn = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, btnW/2, btnH/2, L"Resource/UI/frontscreen.png", L"Resource/UI/HighLight_frontscreen.png", 0.5f, 0.5f, 0.5f, 0.5f, bgX, startY - spacingY * 2, [this]() {
         ToggleEditPanel();
     }));
-    UIText* closeText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, btnW/2, btnH/2, L"닫기", Gdiplus::Color::Black, 20.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, bgX, startY - spacingY * 2, 100.0f));
+    UIText* closeText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, btnW/2, btnH/2, L"닫기", Gdiplus::Color::Black, 20.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, 0.5f, 0.5f, bgX, startY - spacingY * 2, 100.0f));
     m_editGroup.push_back(closeBtn);
     m_editGroup.push_back(closeText);
 }

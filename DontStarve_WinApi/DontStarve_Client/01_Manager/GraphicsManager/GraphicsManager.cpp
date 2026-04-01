@@ -1,22 +1,5 @@
 #include "99_Default/pch.h"
 #include "GraphicsManager.h"
-#include <chrono>
-#include <fstream>
-#include <windows.h>
-
-// #region agent log helper
-static std::wstring GetLogPath() {
-	wchar_t exePath[MAX_PATH];
-	GetModuleFileNameW(NULL, exePath, MAX_PATH);
-	std::wstring path(exePath);
-	size_t pos = path.find_last_of(L"\\");
-	if (pos != std::wstring::npos) {
-		path = path.substr(0, pos); // 실행 파일 디렉토리
-	}
-	// 실행 파일과 같은 디렉토리에 로그 파일 생성
-	return path + L"\\debug.log";
-}
-// #endregion
 
 GraphicsManager::GraphicsManager()
     : m_pGraphics(nullptr), m_pDoubleBufferBitmap(nullptr), m_clientRect({ 0,0,0,0 })
@@ -39,7 +22,6 @@ void GraphicsManager::Init() {
     m_pDoubleBufferBitmap = new Gdiplus::Bitmap(width, height, PixelFormat32bppARGB);
     m_pGraphics = Gdiplus::Graphics::FromImage(m_pDoubleBufferBitmap);
 
-	// 렌더링 품질 대신 성능 우선 설정 (런타임 전용)
     m_pGraphics->SetInterpolationMode(Gdiplus::InterpolationModeNearestNeighbor);
     m_pGraphics->SetSmoothingMode(Gdiplus::SmoothingModeHighSpeed);
     m_pGraphics->SetPixelOffsetMode(Gdiplus::PixelOffsetModeNone);

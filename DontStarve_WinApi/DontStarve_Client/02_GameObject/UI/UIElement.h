@@ -18,8 +18,11 @@ public:
 	virtual ~UIElement();
 
 	virtual void Update(float deltaTime) override;
-	virtual void Render() {}
+	virtual void Render() override {}
 	virtual void Release() override;
+
+	// UI 여부 반환 (dynamic_cast 대체용)
+	virtual bool IsUI() const override { return true; }
 
 	// RectTransform 접근
 	RectTransform* GetRectTransform() const { return m_rectTransform; }

@@ -20,7 +20,9 @@ void CameraManager::Init() {
 }
 
 void CameraManager::Update(float deltaTime) {
-    if (m_followMode && m_target) FollowTarget();
+    if (m_followMode && m_target) 
+		FollowTarget();
+
     UpdateVisibleObjects();
 }
 
@@ -52,7 +54,7 @@ void CameraManager::FollowTarget() {
 }
 
 bool CameraManager::IsObjectInViewport(GameObject* obj) const {
-    if (!obj || !obj->IsEnabled()) return false;
+    if (!obj || !obj->IsEnabled() || obj->IsUI()) return false;
     Gdiplus::RectF bounds = GetSpriteBoundingBox(obj);
     Gdiplus::RectF vp = GetViewportWorldRect();
     const float M = 200.0f;
@@ -63,7 +65,10 @@ bool CameraManager::IsObjectInViewport(GameObject* obj) const {
 void CameraManager::UpdateVisibleObjects() {
     m_visibleObjects.clear();
     for (auto* obj : ObjectManager::GetInstance()->GetGameObjects())
+    {
+        if (obj->IsUI()) continue;
         if (IsObjectInViewport(obj)) m_visibleObjects.push_back(obj);
+    }
 }
 
 void CameraManager::RemoveFromVisibleObjects(GameObject* obj) {
@@ -152,7 +157,8 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData) {
 }
 
 void CameraManager::RenderVisibleGameObjects() {
-    for (auto* obj : m_visibleObjects) { obj->Render(); obj->RenderDebugOverlay(); }
+    for (auto* obj : m_visibleObjects)
+		{ obj->Render(); obj->RenderDebugOverlay(); }
 }
 
 void CameraManager::CleanupUnusedTileCache(const MapData* md, int sx, int ex, int sy, int ey) {

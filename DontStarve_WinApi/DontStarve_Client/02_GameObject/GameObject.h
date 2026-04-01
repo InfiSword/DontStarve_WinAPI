@@ -51,6 +51,9 @@ public:
 	virtual void Render() {}
 	virtual void Release();
 
+	// UI 여부 반환 (dynamic_cast 대체용)
+	virtual bool IsUI() const { return false; }
+
 	// 코루틴 시스템
 	void StartCoroutine(CoroutineHandle coroutine);
 	void StopAllCoroutines();

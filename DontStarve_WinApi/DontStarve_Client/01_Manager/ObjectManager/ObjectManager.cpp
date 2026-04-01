@@ -86,20 +86,18 @@ void ObjectManager::LateUpdate()
 
 void ObjectManager::Render()
 {
-	// 카메라에 보이는 게임오브젝트 렌더링
+	// 1. 카메라에 보이는 월드 게임오브젝트 렌더링
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (cameraManager) {
 		cameraManager->RenderVisibleGameObjects();
 	}
 
-	// UI 렌더링 (월드 오브젝트는 카메라가 처리)
-	//for (GameObject* obj : m_gameObjects) {
-	//	UIElement* ui = dynamic_cast<UIElement*>(obj);
-	//	if (ui && ui->IsEnabled()) {
-	//		ui->Render();
-	//	}
-	//}
-
+	// 2. UI 렌더링 (월드 오브젝트는 카메라가 처리, UI는 여기서 처리)
+	for (GameObject* obj : m_gameObjects) {
+		if (obj->IsUI() && obj->IsEnabled()) {
+			obj->Render();
+		}
+	}
 }
 
 void ObjectManager::Release()
@@ -122,14 +120,14 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 	m_gameObjects.push_back(pObj);
 
 	// UI는 스크린 공간이므로 카메라 가시 목록에 넣지 않음
-	if (!dynamic_cast<UIElement*>(pObj)) {
+	if (!pObj->IsUI()) {
 		CameraManager* cam = CameraManager::GetInstance();
 		if (cam) cam->TryAddToVisibleIfInViewport(pObj);
-	}
-
-	Player* player = dynamic_cast<Player*>(pObj);
-	if (player) {
-		m_cachedPlayer = player;
+		
+		// 플레이어 캐싱
+		if (pObj->GetType() == GO_TYPE_PLAYER) {
+			m_cachedPlayer = static_cast<Player*>(pObj);
+		}
 	}
 }
 
@@ -142,18 +140,20 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 
 	pObj->SetActive(false);
 
-	CameraManager* cam = CameraManager::GetInstance();
-	if (cam) cam->RemoveFromVisibleObjects(pObj);
+	if (!pObj->IsUI()) {
+		CameraManager* cam = CameraManager::GetInstance();
+		if (cam) cam->RemoveFromVisibleObjects(pObj);
+	}
 	m_pendingDeletions.push_back(pObj);
 }
 
 bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
 {
-
 	// 활성화된 UIElement의 RectTransform 바운딩 박스 검사
 	for (const GameObject* obj : m_gameObjects) {
-		const UIElement* element = dynamic_cast<const UIElement*>(obj);
-		if (!element || !element->IsEnabled()) continue;
+		if (!obj->IsUI() || !obj->IsEnabled()) continue;
+
+		const UIElement* element = static_cast<const UIElement*>(obj);
 		RectTransform* rt = element->GetRectTransform();
 		if (!rt) continue;
 		Gdiplus::RectF bounds = rt->GetScreenBoundingBox();
@@ -181,7 +181,10 @@ void ObjectManager::ProcessPendingDeletions()
 				if (obj == m_cachedPlayer) m_cachedPlayer = nullptr;
 				(*it)->Release();
 				Utils::SafeDelete(*it);
-				m_gameObjects.erase(it);
+				
+				// Swap and Pop 최적화: 순서가 상관없으므로 마지막 요소와 교체 후 pop
+				*it = m_gameObjects.back();
+				m_gameObjects.pop_back();
 			}
 		}
 		m_pendingDeletions.clear();
@@ -473,5 +476,3 @@ IntroNoticeUI* ObjectManager::CreateIntroNoticeUI()
 	}
 	return ui;
 }
-
-

@@ -183,20 +183,6 @@ void CharacterSelectScene::Init(const MapData* mapData)
 	OutputDebugStringW(L"CharacterSelectScene: 초기화 완료\n");
 }
 
-	// 캐릭터 버튼들 생성
-	CreateCharacterButtons();
-
-	OutputDebugStringW(L"CharacterSelectScene: UI 생성 완료\n");
-	
-	// 초기 상태 설정
-	m_currentState = CharacterSelectionState::BROWSING;
-	m_selectedCharacterIndex = -1;
-	m_isLockedCharacterSelected = false;
-	m_isSelectButtonDisabled = true;
-	
-	OutputDebugStringW(L"CharacterSelectScene: 초기화 완료\n");
-}
-
 
 void CharacterSelectScene::InitializeCharacters()
 {

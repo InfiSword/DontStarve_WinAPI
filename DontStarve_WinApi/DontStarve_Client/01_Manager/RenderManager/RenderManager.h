@@ -46,6 +46,8 @@ private:
 	Gdiplus::SolidBrush* m_pCachedBrush = nullptr;
 	Gdiplus::ImageAttributes* m_pCachedAttr = nullptr;
 
+	Gdiplus::PointF m_cameraPos = { 0, 0 };
+
 	void RenderSprite(Gdiplus::Graphics* pGraphics, const DrawCommand::SpriteData& data, const Gdiplus::RectF& destRect);
 
 	static bool CompareDrawCommands(const DrawCommand& a, const DrawCommand& b)

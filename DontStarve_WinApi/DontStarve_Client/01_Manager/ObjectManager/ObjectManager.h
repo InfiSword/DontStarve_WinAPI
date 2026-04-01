@@ -39,7 +39,13 @@ public:
 	// ID로 오브젝트 찾기 
 	GameObject* FindGameObject(GameObjectID id);
 	template <typename T>
-	T* FindGameObject(GameObjectID id) { return dynamic_cast<T*>(FindGameObject(id)); }
+	T* FindGameObject(GameObjectID id) { 
+		GameObject* obj = FindGameObject(id);
+		if (!obj) return nullptr;
+		// dynamic_cast 대신 static_cast를 쓰기 위해 호출 측에서 타입을 확신할 때 사용하거나, 
+		// 안전을 위해 여기서 간단한 타입 체크를 수행할 수 있습니다.
+		return static_cast<T*>(obj); 
+	}
 
 	Player* GetPlayer() const;
 	const std::vector<GameObject*>& GetGameObjects() const { return m_gameObjects; }
@@ -90,6 +96,3 @@ private:
 	void ProcessPendingDeletions();
 
 };
-
-
-

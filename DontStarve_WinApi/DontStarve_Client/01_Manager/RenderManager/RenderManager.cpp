@@ -40,6 +40,7 @@ void RenderManager::LateInit()
 
 void RenderManager::Update(float deltaTime)
 {
+	m_cameraPos = CameraManager::GetInstance()->GetCameraPos();
 }
 
 void RenderManager::LateUpdate()
@@ -58,8 +59,10 @@ void RenderManager::Release()
 
 void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float worldX, float worldY, float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)
 {
-	// 월드 좌표를 화면 좌표로 변환 (RenderManager가 전담)
-	Gdiplus::PointF screenPos = CameraManager::GetInstance()->WorldToScreen(worldX, worldY);
+	// 월드 좌표를 화면 좌표로 변환 (RenderManager가 캐싱된 카메라 좌표를 사용하여 직접 계산)
+	float screenX = worldX - m_cameraPos.X + (float)WINCX * 0.5f;
+	float screenY = worldY - m_cameraPos.Y + (float)WINCY * 0.5f;
+	Gdiplus::PointF screenPos(screenX, screenY);
 
 	float width = sourceRect.Width * scaleX;
 	float height = sourceRect.Height * scaleY;
