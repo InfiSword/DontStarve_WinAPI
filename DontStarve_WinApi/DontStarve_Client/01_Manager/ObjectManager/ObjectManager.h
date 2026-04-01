@@ -9,6 +9,10 @@ class UIImage;
 class UIButton;
 class UIText;
 class MenuUI;
+class HPUI;
+class GameOverUI;
+class GameClearUI;
+class IntroNoticeUI;
 
 namespace ResourcePathUtils { struct ObjectResourceDef; }  // 전방 선언
 
@@ -46,9 +50,16 @@ public:
 	Building* CreateBuilding(GameObjectID id, float x, float y);
 
 	// UI 생성 헬퍼
-	UIButton* CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorX, float anchorY, float x, float y, std::function<void()> onClick);
-	UIImage*  CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorX, float anchorY, float x, float y);
-	UIText*   CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorX, float anchorY, float x, float y, float sortKey = 0 );
+	UIButton* CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, std::function<void()> onClick);
+	UIImage*  CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y);
+	UIText*   CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, float sortKey = 0 );
+
+	// 특수 UI 생성 헬퍼
+	MenuUI* CreateMenuUI();
+	HPUI*   CreateHPUI(Entity* pTarget, const std::wstring& name, float width, float height, Gdiplus::Color bgColor, Gdiplus::Color barColor, Gdiplus::Color nameColor, float anchorX, float anchorY, float pivotX, float pivotY, float x, float y, float bgSortKey, float barSortKey, bool usePortrait, bool useName);
+	GameOverUI* CreateGameOverUI();
+	GameClearUI* CreateGameClearUI();
+	IntroNoticeUI* CreateIntroNoticeUI();
 
 private:
 

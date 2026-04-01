@@ -56,14 +56,11 @@ void BossSpiderQueenScene::Init(const MapData* mapData)
 	m_bossHPUI = nullptr;
 	m_gameClearUI = nullptr;
 
-	ObjectManager* uiMgr = ObjectManager::GetInstance();
+	ObjectManager* objMgr = ObjectManager::GetInstance();
 
 	// 게임 클리어 UI 생성
-	m_gameClearUI = new GameClearUI();
-	m_gameClearUI->Init();
-	uiMgr->AddGameObject(m_gameClearUI);
+	m_gameClearUI = objMgr->CreateGameClearUI();
 
-	ObjectManager* objMgr = ObjectManager::GetInstance();
 	const auto& objects = objMgr->GetGameObjects();
 
 	for (auto* obj : objects)
@@ -94,13 +91,11 @@ void BossSpiderQueenScene::Init(const MapData* mapData)
 	// 보스 HP UI 미리 생성
 	if (m_bossObject)
 	{
-		m_bossHPUI = new HPUI(dynamic_cast<Entity*>(m_bossObject), m_bossName, 600.0f, 25.0f,
+		m_bossHPUI = objMgr->CreateHPUI(dynamic_cast<Entity*>(m_bossObject), m_bossName, 600.0f, 25.0f,
 			Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 255, 255, 255),
 			0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 80.0f,
 			1000.0f, 1002.0f, false, false);
-		m_bossHPUI->Init();
-		m_bossHPUI->SetActive(false);
-		ObjectManager::GetInstance()->AddGameObject(m_bossHPUI);
+		if (m_bossHPUI) m_bossHPUI->SetActive(false);
 	}
 
 	OutputDebugStringW(L"BossSpiderQueenScene: Initialized. Trees disabled.\n");

@@ -165,12 +165,14 @@ void HPUI::Render()
 		float iconY = barTop + (barH - m_iconSize) * 0.5f;
 
 		Gdiplus::Bitmap* bmp = m_hpIconSprite->bitmap.get();
-		pRM->AddUIImageCommand(
+		Gdiplus::RectF sourceRect(0, 0, (float)bmp->GetWidth(), (float)bmp->GetHeight());
+		pRM->AddUICommand(
 			bmp,
-			Gdiplus::RectF(iconX, iconY, m_iconSize, m_iconSize),
-			Gdiplus::RectF(0, 0, (float)bmp->GetWidth(), (float)bmp->GetHeight()),
-			Gdiplus::UnitPixel,
-			Gdiplus::PointF(iconX + m_iconSize * 0.5f, iconY + m_iconSize * 0.5f),
+			sourceRect,
+			iconX, iconY,
+			m_iconSize / sourceRect.Width,
+			m_iconSize / sourceRect.Height,
+			0.0f, 0.0f,
 			LAYER_UI_FOREGROUND,
 			10.0f
 		);

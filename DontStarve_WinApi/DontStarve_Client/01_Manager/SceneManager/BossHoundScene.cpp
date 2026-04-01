@@ -56,16 +56,13 @@ void BossHoundScene::Init(const MapData* mapData)
 	m_iceBossHPUI = nullptr;
 	m_redBossHPUI = nullptr;
 
-	ObjectManager* uiMgr = ObjectManager::GetInstance();
+	ObjectManager* objMgr = ObjectManager::GetInstance();
 	// 클리어 UI 생성
-	m_gameClearUI = new GameClearUI();
-	m_gameClearUI->SetType(GameClearUIType::NoButtons);
-	m_gameClearUI->Init();
-	uiMgr->AddGameObject(m_gameClearUI);
+	m_gameClearUI = objMgr->CreateGameClearUI();
+	if (m_gameClearUI) m_gameClearUI->SetType(GameClearUIType::NoButtons);
 
 	// 맵 데이터에서 생성된 보스들을 찾아 비활성화 (전투 준비 단계)
 	// 연출 순서 보장을 위해 순서대로 찾음 (Ice -> Red)
-	ObjectManager* objMgr = ObjectManager::GetInstance();
 	const auto& objects = objMgr->GetGameObjects();
 
 	GameObject* iceBoss = nullptr;
@@ -84,24 +81,20 @@ void BossHoundScene::Init(const MapData* mapData)
 	// 보스 HP UI 미리 생성 (Order: Ice -> Red)
 	if (iceBoss)
 	{
-		m_iceBossHPUI = new HPUI(dynamic_cast<Entity*>(iceBoss), L"얼음 하운드", 600.0f, 25.0f,
+		m_iceBossHPUI = objMgr->CreateHPUI(dynamic_cast<Entity*>(iceBoss), L"얼음 하운드", 600.0f, 25.0f,
 			Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 100, 150, 255),
 			0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 60.0f,
 			1000.0f, 1002.0f, false, false);
-		m_iceBossHPUI->Init();
-		m_iceBossHPUI->SetActive(false);
-		uiMgr->AddGameObject(m_iceBossHPUI);
+		if (m_iceBossHPUI) m_iceBossHPUI->SetActive(false);
 	}
 
 	if (redBoss)
 	{
-		m_redBossHPUI = new HPUI(dynamic_cast<Entity*>(redBoss), L"레드 하운드", 600.0f, 25.0f,
+		m_redBossHPUI = objMgr->CreateHPUI(dynamic_cast<Entity*>(redBoss), L"레드 하운드", 600.0f, 25.0f,
 			Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 255, 100, 100),
 			0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 150.0f,
 			1000.0f, 1002.0f, false, false);
-		m_redBossHPUI->Init();
-		m_redBossHPUI->SetActive(false);
-		uiMgr->AddGameObject(m_redBossHPUI);
+		if (m_redBossHPUI) m_redBossHPUI->SetActive(false);
 	}
 
 

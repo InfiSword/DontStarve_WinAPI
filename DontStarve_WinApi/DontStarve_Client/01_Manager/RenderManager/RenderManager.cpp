@@ -171,7 +171,7 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 	for (int i = LAYER_TILE_BACKGROUND; i < LAYER_COUNT; ++i) {
 		if (m_layerCommands[i].empty()) continue;
 		
-		std::sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), CompareDrawCommands);
+		std::stable_sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), CompareDrawCommands);
 		
 		for (const auto& cmd : m_layerCommands[i]) {
 			Gdiplus::GraphicsState state;

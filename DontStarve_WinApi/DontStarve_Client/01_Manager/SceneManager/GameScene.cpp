@@ -27,7 +27,8 @@ GameScene::~GameScene()
 void GameScene::Init(const MapData* mapData)
 {
 	// 1. 씬 상태 초기화 (카메라 리셋 및 이동 제한 영역 설정)
-	ObjectManager::GetInstance()->Init();
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	objectManager->Init();
 	CameraManager::GetInstance()->Init();
 	m_mapData = mapData;
 	if (m_mapData) {
@@ -45,28 +46,20 @@ void GameScene::Init(const MapData* mapData)
 
 	if (!isBossScene) {
 		if (!m_craftingUI) {
-			m_craftingUI = new MenuUI();
-			m_craftingUI->Init();
-			ObjectManager::GetInstance()->AddGameObject(m_craftingUI);
+			m_craftingUI = objectManager->CreateMenuUI();
 		}
 	}
 
 	if (!m_playerHPUI) {
-		Player* player = ObjectManager::GetInstance()->GetPlayer();
-		m_playerHPUI = new HPUI(player, L"", 220.f, 28.0f,
+		Player* player = objectManager->GetPlayer();
+		m_playerHPUI = objectManager->CreateHPUI(player, L"", 220.f, 28.0f,
 			Gdiplus::Color(255, 60, 0, 0), Gdiplus::Color(255, 255, 0, 0), Gdiplus::Color(255, 255, 255, 255),
 			1.0f, 0.0f, 1.0f, 0.0f, -120.f, 34.0f,
 			10.1f, 10.2f, true, true);
 	}
-	if (m_playerHPUI) {
-		m_playerHPUI->Init();
-		ObjectManager::GetInstance()->AddGameObject(m_playerHPUI);
-	}
 
-	if (!m_gameOverUI) m_gameOverUI = new GameOverUI();
-	if (m_gameOverUI) {
-		m_gameOverUI->Init();
-		ObjectManager::GetInstance()->AddGameObject(m_gameOverUI);
+	if (!m_gameOverUI) {
+		m_gameOverUI = objectManager->CreateGameOverUI();
 	}
 }
 
@@ -136,9 +129,7 @@ void GameScene::CreateGameObjectsFromMapData()
 		else if (id >= 3000) {
 			if (id == GOID_UI_MENU && !m_craftingUI)
 			{
-				m_craftingUI = new MenuUI();
-				m_craftingUI->Init();
-				objectManager->AddGameObject(m_craftingUI);
+				m_craftingUI = objectManager->CreateMenuUI();
 			}
 		}
 	}

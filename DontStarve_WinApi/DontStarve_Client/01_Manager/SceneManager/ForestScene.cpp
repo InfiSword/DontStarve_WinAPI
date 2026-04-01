@@ -21,9 +21,7 @@ void ForestScene::Init(const MapData* mapData)
 	if (!m_bIntroPlayed)
 		// ForestScene 전용 초기화 로직
 	{
-		introUI = new IntroNoticeUI();
-		introUI->Init();
-		ObjectManager::GetInstance()->AddGameObject(introUI);
+		introUI = ObjectManager::GetInstance()->CreateIntroNoticeUI();
 		m_bIntroPlayed = true;
 	}
 

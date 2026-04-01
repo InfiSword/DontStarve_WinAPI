@@ -30,7 +30,7 @@ void TitleScene::Init(const MapData* mapData)
 	ResourceManager* resourceManager = ResourceManager::GetInstance();
 
 	// 배경 이미지 생성 (전체 화면)
-	UIImage* backgroundImage = new UIImage(
+	objectManager->CreateImage(
 		static_cast<GameObjectID>(GOID_UI_IMAGE),
 		static_cast<float>(WINCX),
 		static_cast<float>(WINCY),
@@ -41,10 +41,9 @@ void TitleScene::Init(const MapData* mapData)
 		1.0f, 1.0f,  // anchorMax
 		0.0f, 0.0f    // anchoredPosition
 	);
-	objectManager->AddGameObject(backgroundImage);
 
 	// 로고 이미지 생성 (화면 상단 중앙)
-	UIImage* logoImage = new UIImage(
+	objectManager->CreateImage(
 		static_cast<GameObjectID>(GOID_UI_IMAGE),
 		400.0f,
 		200.0f,
@@ -55,147 +54,113 @@ void TitleScene::Init(const MapData* mapData)
 		0.5f, 0.0f,  // anchorMax (상단 중앙)
 		0.0f, 200.0f // anchoredPosition (상단에서 아래로 200px)
 	);
-	objectManager->AddGameObject(logoImage);
 
 	// 게임시작 버튼 생성 (화면 중앙 기준 아래로 100px)
-	std::shared_ptr<Sprite> startNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
-	std::shared_ptr<Sprite> startHoverSprite = resourceManager->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
-	UIButton* startButton = new UIButton(
+	UIButton* startButton = objectManager->CreateButton(
 		static_cast<GameObjectID>(GOID_UI_BUTTON),
 		200.0f,
 		60.0f,
-		startNormalSprite,
-		startHoverSprite,
+		L"Resource/UI/frontscreen.png",
+		L"Resource/UI/HighLight_frontscreen.png",
 		0.5f, 0.5f,  // anchorMin (중앙)
 		0.5f, 0.5f,  // anchorMax (중앙)
-		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
+		0.0f, 100.0f, // anchoredPosition (중앙에서 아래로 100px)
+		[this]() { OnStartButtonClicked(); }
 	);
 
-	// Hover 시 밝게 빛나는 효과 설정
-	startButton->SetNormalColor(Gdiplus::Color(255, 255, 255, 255));  // 완전 흰색 (밝게)
-	startButton->SetHoverColor(Gdiplus::Color(255, 220, 220, 220)); // 기본 (약간 어둡게)
-
-	// 게임시작 버튼 콜백 설정
-	startButton->SetOnClickCallback([this]() {
-		OnStartButtonClicked();
-		});
-	objectManager->AddGameObject(startButton);
+	if (startButton) {
+		// Hover 시 밝게 빛나는 효과 설정
+		startButton->SetNormalColor(Gdiplus::Color(255, 255, 255, 255));  // 완전 흰색 (밝게)
+		startButton->SetHoverColor(Gdiplus::Color(255, 220, 220, 220)); // 기본 (약간 어둡게)
+	}
 
 	// 게임시작 버튼 텍스트 생성 (버튼과 동일한 anchor)
-	UIText* startButtonText = new UIText(
+	objectManager->CreateText(
 		static_cast<GameObjectID>(GOID_UI_TEXT),
 		200.0f,
 		60.0f,
 		L"게임시작",
 		Gdiplus::Color::Black,
-		LAYER_UI_FOREGROUND,
-		0.1f,
-		L"맑은 고딕",
 		16.0f, Gdiplus::FontStyleRegular,
-		Gdiplus::StringAlignmentCenter,
-		Gdiplus::StringAlignmentCenter,
 		0.5f, 0.5f,  // anchorMin (중앙)
 		0.5f, 0.5f,  // anchorMax (중앙)
-		0.0f, 100.0f // anchoredPosition (중앙에서 아래로 100px)
+		0.0f, 100.0f, // anchoredPosition (중앙에서 아래로 100px)
+		0.1f // sortKey
 	);
-	objectManager->AddGameObject(startButtonText);
 
 	// 종료 버튼 생성 (화면 중앙 기준 아래로 200px)
-	std::shared_ptr<Sprite> exitNormalSprite = resourceManager->LoadSprite(L"Resource/UI/frontscreen.png");
-	std::shared_ptr<Sprite> exitHoverSprite = resourceManager->LoadSprite(L"Resource/UI/HighLight_frontscreen.png");
-	UIButton* exitButton = new UIButton(
+	UIButton* exitButton = objectManager->CreateButton(
 		static_cast<GameObjectID>(GOID_UI_BUTTON),
 		200.0f,
 		60.0f,
-		exitNormalSprite,
-		exitHoverSprite,
+		L"Resource/UI/frontscreen.png",
+		L"Resource/UI/HighLight_frontscreen.png",
 		0.5f, 0.5f,  // anchorMin (중앙)
 		0.5f, 0.5f,  // anchorMax (중앙)
-		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
+		0.0f, 200.0f, // anchoredPosition (중앙에서 아래로 200px)
+		[this]() { OnExitButtonClicked(); }
 	);
 
-	// Hover 시 밝게 빛나는 효과 설정
-	exitButton->SetNormalColor(Gdiplus::Color(255, 255, 255, 255));  // 완전 흰색 (밝게)
-	exitButton->SetHoverColor(Gdiplus::Color(255, 220, 220, 220)); // 기본 (약간 어둡게)
-
-	// 종료 버튼 콜백 설정
-	exitButton->SetOnClickCallback([this]() {
-		OnExitButtonClicked();
-		});
-	objectManager->AddGameObject(exitButton);
+	if (exitButton) {
+		// Hover 시 밝게 빛나는 효과 설정
+		exitButton->SetNormalColor(Gdiplus::Color(255, 255, 255, 255));  // 완전 흰색 (밝게)
+		exitButton->SetHoverColor(Gdiplus::Color(255, 220, 220, 220)); // 기본 (약간 어둡게)
+	}
 
 	// 종료 버튼 텍스트 생성 (버튼과 동일한 anchor)
-	UIText* exitButtonText = new UIText(
+	objectManager->CreateText(
 		static_cast<GameObjectID>(GOID_UI_TEXT),
 		200.0f,
 		60.0f,
 		L"종료",
 		Gdiplus::Color::Black,
-		LAYER_UI_FOREGROUND,
-		0.1f,
-		L"맑은 고딕",
 		16.0f, Gdiplus::FontStyleRegular,
-		Gdiplus::StringAlignmentCenter,
-		Gdiplus::StringAlignmentCenter,
 		0.5f, 0.5f,  // anchorMin (중앙)
 		0.5f, 0.5f,  // anchorMax (중앙)
-		0.0f, 200.0f // anchoredPosition (중앙에서 아래로 200px)
+		0.0f, 200.0f, // anchoredPosition (중앙에서 아래로 200px)
+		0.1f // sortKey
 	);
-	objectManager->AddGameObject(exitButtonText);
 
 	// --- 진행상황 초기화 버튼 추가 (오른쪽 위) ---
-	UIButton* resetProgressButton = new UIButton(
+	objectManager->CreateButton(
 		static_cast<GameObjectID>(GOID_UI_BUTTON),
 		180.0f,
 		40.0f,
-		startNormalSprite, // 재사용
-		startHoverSprite,  // 재사용
+		L"Resource/UI/frontscreen.png",
+		L"Resource/UI/HighLight_frontscreen.png",
 		1.0f, 0.0f,  // anchorMin (우측 상단)
 		1.0f, 0.0f,  // anchorMax (우측 상단)
-		-100.0f, 50.0f // anchoredPosition (우측에서 100px 좌측, 상단에서 50px 아래)
+		-100.0f, 50.0f, // anchoredPosition (우측에서 100px 좌측, 상단에서 50px 아래)
+		[this]() { OnResetButtonClicked(); }
 	);
-	resetProgressButton->SetOnClickCallback([this]() {
-		OnResetButtonClicked();
-	});
-	objectManager->AddGameObject(resetProgressButton);
 
-	UIText* resetBtnText = new UIText(
+	objectManager->CreateText(
 		static_cast<GameObjectID>(GOID_UI_TEXT),
 		180.0f,
 		40.0f,
 		L"진행상황 초기화",
 		Gdiplus::Color::DarkRed,
-		LAYER_UI_FOREGROUND,
-		0.1f,
-		L"맑은 고딕",
 		12.0f, Gdiplus::FontStyleRegular,
-		Gdiplus::StringAlignmentCenter,
-		Gdiplus::StringAlignmentCenter,
 		1.0f, 0.0f,
 		1.0f, 0.0f,
-		-100.0f, 50.0f
+		-100.0f, 50.0f,
+		0.1f
 	);
-	objectManager->AddGameObject(resetBtnText);
 
 	// 리셋 완료 메시지 텍스트 (초기에는 비활성)
-	m_resetMessageText = new UIText(
+	m_resetMessageText = objectManager->CreateText(
 		static_cast<GameObjectID>(GOID_UI_TEXT),
 		400.0f,
 		60.0f,
 		L"초기화 되었습니다!",
 		Gdiplus::Color::LimeGreen,
-		LAYER_UI_FOREGROUND,
-		0.0f, // 가장 앞에 렌더링 (sortKey가 작을수록 앞)
-		L"맑은 고딕",
 		24.0f, Gdiplus::FontStyleBold,
-		Gdiplus::StringAlignmentCenter,
-		Gdiplus::StringAlignmentCenter,
 		0.5f, 0.5f,  // anchorMin (중앙)
 		0.5f, 0.5f,  // anchorMax (중앙)
-		0.0f, 0.0f   // anchoredPosition (중앙)
+		0.0f, 0.0f,   // anchoredPosition (중앙)
+		0.0f // sortKey (가장 앞에 렌더링)
 	);
-	m_resetMessageText->SetActive(false);
-	objectManager->AddGameObject(m_resetMessageText);
+	if (m_resetMessageText) m_resetMessageText->SetActive(false);
 }
 
 void TitleScene::Update(float deltaTime)

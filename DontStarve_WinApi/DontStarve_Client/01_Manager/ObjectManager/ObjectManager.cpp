@@ -21,11 +21,14 @@
 #include "../../02_GameObject/Building/PigHouse.h"
 #include "../../02_GameObject/Building/SpiderEgg.h"
 #include "../../02_GameObject/Building/BossSpiderEgg.h"
-#include "../../02_GameObject/Item/Item.h"
 #include "../../02_GameObject/UI/MenuUI.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
 #include "../../02_GameObject/UI/UIText.h"
+#include "../../02_GameObject/UI/HPUI.h"
+#include "../../02_GameObject/UI/GameOverUI.h"
+#include "../../02_GameObject/UI/GameClearUI.h"
+#include "../../02_GameObject/UI/IntroNoticeUI.h"
 #include "../../02_GameObject/UI/UIElement.h"
 #include "../../02_GameObject/Component/Transform/RectTransform.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
@@ -90,12 +93,12 @@ void ObjectManager::Render()
 	}
 
 	// UI 렌더링 (월드 오브젝트는 카메라가 처리)
-	for (GameObject* obj : m_gameObjects) {
-		UIElement* ui = dynamic_cast<UIElement*>(obj);
-		if (ui && ui->IsEnabled()) {
-			ui->Render();
-		}
-	}
+	//for (GameObject* obj : m_gameObjects) {
+	//	UIElement* ui = dynamic_cast<UIElement*>(obj);
+	//	if (ui && ui->IsEnabled()) {
+	//		ui->Render();
+	//	}
+	//}
 
 }
 
@@ -383,39 +386,92 @@ Building* ObjectManager::CreateBuilding(GameObjectID id, float x, float y)
 	return nullptr;
 }
 
-UIButton* ObjectManager::CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorX, float anchorY, float x, float y, std::function<void()> onClick)
+UIButton* ObjectManager::CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, std::function<void()> onClick)
 {
 	auto* resMgr = ResourceManager::GetInstance();
 	auto normalSprite = resMgr->LoadSprite(normalPath);
 	auto hoverSprite = resMgr->LoadSprite(hoverPath);
 
-	UIButton* button = new UIButton(id, width, height, normalSprite, hoverSprite, anchorX, anchorY, anchorX, anchorY, x, y);
+	UIButton* button = new UIButton(id, width, height, normalSprite, hoverSprite, anchorMinX, anchorMinY, anchorMaxX, anchorMaxY, x, y);
 	if (button) {
 		button->SetOnClickCallback(onClick);
 		AddGameObject(button);
+		button->Init();
 	}
 	return button;
 }
 
-UIImage* ObjectManager::CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorX, float anchorY, float x, float y)
+UIImage* ObjectManager::CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y)
 {
-	UIImage* image = new UIImage(id, width, height, layer, path, depth, anchorX, anchorY, anchorX, anchorY, x, y);
+	UIImage* image = new UIImage(id, width, height, layer, path, depth, anchorMinX, anchorMinY, anchorMaxX, anchorMaxY, x, y);
 	if (image) {
 		AddGameObject(image);
+		image->Init();
 	}
 	return image;
 }
 
-UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorX, float anchorY, float x, float y, float sortKey)
+UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, float sortKey)
 {
 	RenderLayer layer = LAYER_UI_FOREGROUND;
 	std::wstring fontName = L"Arial";
 
-	UIText* uiText = new UIText(id, width, height, text, color, layer, sortKey, fontName, fontSize, fontStyle, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, anchorX, anchorY, anchorX, anchorY, x, y);
+	UIText* uiText = new UIText(id, width, height, text, color, layer, sortKey, fontName, fontSize, fontStyle, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, anchorMinX, anchorMinY, anchorMaxX, anchorMaxY, x, y);
 	if (uiText) {
 		AddGameObject(uiText);
+		uiText->Init();
 	}
 	return uiText;
+}
+
+MenuUI* ObjectManager::CreateMenuUI()
+{
+	MenuUI* ui = new MenuUI();
+	if (ui) {
+		AddGameObject(ui);
+		ui->Init();
+	}
+	return ui;
+}
+
+HPUI* ObjectManager::CreateHPUI(Entity* pTarget, const std::wstring& name, float width, float height, Gdiplus::Color bgColor, Gdiplus::Color barColor, Gdiplus::Color nameColor, float anchorX, float anchorY, float pivotX, float pivotY, float x, float y, float bgSortKey, float barSortKey, bool usePortrait, bool useName)
+{
+	HPUI* ui = new HPUI(pTarget, name, width, height, bgColor, barColor, nameColor, anchorX, anchorY, pivotX, pivotY, x, y, bgSortKey, barSortKey, usePortrait, useName);
+	if (ui) {
+		AddGameObject(ui);
+		ui->Init();
+	}
+	return ui;
+}
+
+GameOverUI* ObjectManager::CreateGameOverUI()
+{
+	GameOverUI* ui = new GameOverUI();
+	if (ui) {
+		AddGameObject(ui);
+		ui->Init();
+	}
+	return ui;
+}
+
+GameClearUI* ObjectManager::CreateGameClearUI()
+{
+	GameClearUI* ui = new GameClearUI();
+	if (ui) {
+		AddGameObject(ui);
+		ui->Init();
+	}
+	return ui;
+}
+
+IntroNoticeUI* ObjectManager::CreateIntroNoticeUI()
+{
+	IntroNoticeUI* ui = new IntroNoticeUI();
+	if (ui) {
+		AddGameObject(ui);
+		ui->Init();
+	}
+	return ui;
 }
 
 

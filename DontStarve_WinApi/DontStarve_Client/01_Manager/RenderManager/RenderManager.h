@@ -42,12 +42,10 @@ public:
 private:
 	std::vector<DrawCommand> m_layerCommands[LAYER_COUNT];
 
-	// 캐싱된 GDI+ 객체 (성능 최적화)
 	Gdiplus::Pen* m_pCachedPen = nullptr;
 	Gdiplus::SolidBrush* m_pCachedBrush = nullptr;
 	Gdiplus::ImageAttributes* m_pCachedAttr = nullptr;
 
-	// 내부 헬퍼 렌더 함수
 	void RenderSprite(Gdiplus::Graphics* pGraphics, const DrawCommand::SpriteData& data, const Gdiplus::RectF& destRect);
 
 	static bool CompareDrawCommands(const DrawCommand& a, const DrawCommand& b)

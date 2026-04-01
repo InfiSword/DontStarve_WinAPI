@@ -43,7 +43,7 @@ void Image::Render()
 		m_sprite->sourceRect,
 		rt->GetX(), rt->GetY(),
 		rt->GetScaleX(), rt->GetScaleY(),
-		m_pivotX, m_pivotY,
+		GetPivotX(), GetPivotY(),
 		m_layer,
 		m_sortKey,
 		m_tintColor,
