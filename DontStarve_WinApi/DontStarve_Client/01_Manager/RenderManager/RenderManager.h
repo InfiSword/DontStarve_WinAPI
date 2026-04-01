@@ -26,9 +26,12 @@ public:
 
 	// 기본 렌더 명령 등록
 	void AddDrawCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& destRect, const Gdiplus::RectF& sourceRect, Gdiplus::Unit srcUnit, const Gdiplus::PointF& objectScreenPos, RenderLayer layer, float zOrder = 0.0f, Direction direction = DIR_DOWN, const Gdiplus::Color& tintColor = Gdiplus::Color(255, 255, 255, 255), bool hasTint = false, bool preFlipped = false, float rotation = 0.0f);
+	
 	void AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float zOrder = 0.0f, float rotation = 0.0f, const Gdiplus::PointF& rotationPivot = Gdiplus::PointF(0, 0));
+	
 	void AddDrawRectCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, float thickness, RenderLayer layer, float zOrder = 0.0f);
-	void AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float zOrder = 0.0f);  // 채워진 사각형 명령
+
+	void AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float zOrder = 0.0f); 
 
 	// 컴포넌트 기반 고수준 렌더링 인터페이스
 	void RenderImage(RectTransform* pRectTransform, ComponentElement::Image* pImage);
