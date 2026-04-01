@@ -35,7 +35,8 @@ private:
 	bool m_numericValue; 
 
 	std::shared_ptr<Sprite> m_hpIconSprite;
-	UIText* m_nameText;  
+	UIText* m_hpText;  
+	UIText* m_nameText;
 
 	int m_lastHp;
 	int m_lastMaxHp;

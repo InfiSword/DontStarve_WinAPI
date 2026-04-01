@@ -23,15 +23,16 @@ HPUI::HPUI(Entity* target, const std::wstring& name,
 	, m_barSortKey(barSortKey), m_textSortKey(textSortKey)
 	, m_showIcon(showIcon), m_numericValue(numericValue)
 	, m_margin(margin), m_gap(gap), m_iconSize(iconSize)
+	, m_hpText(nullptr)
 	, m_nameText(nullptr)
 	, m_lastHp(-1), m_lastMaxHp(-1)
-	{
+{
 	if (m_rectTransform) {
 		m_rectTransform->SetAnchorMin(anchorMinX, anchorMinY);
 		m_rectTransform->SetAnchorMax(anchorMaxX, anchorMaxY);
 		m_rectTransform->SetAnchoredPosition(anchoredPosX, anchoredPosY);
 	}
-	}
+}
 HPUI::~HPUI()
 {
 	Release();
@@ -45,35 +46,57 @@ void HPUI::Init()
 		m_hpIconSprite = ResourceManager::GetInstance()->LoadSprite(L"Resource\\UI\\HP.png");
 	}
 
-	float textPosX = m_rectTransform->GetAnchoredPosition().X;
-	float textPosY = m_rectTransform->GetAnchoredPosition().Y;
+	float anchoredPosX = m_rectTransform->GetAnchoredPosition().X;
+	float anchoredPosY = m_rectTransform->GetAnchoredPosition().Y;
 
-	Gdiplus::StringAlignment hAlign = Gdiplus::StringAlignmentCenter;
+	float hpTextPosY = anchoredPosY;
+	float nameTextPosY = anchoredPosY;
+	float nameTextPosX = anchoredPosX - (m_barWidth * 0.5f);
 
-	// 보스용인 경우 텍스트를 바 위로 올리고, 오른쪽 끝에 맞춤
+	// 보스용인 경우 텍스트를 바 위로 올림
 	if (!m_numericValue) {
-		textPosY -= (m_barHeight * 0.5f + 25.0f);
-		textPosX += (m_barWidth * 0.5f); // 바의 오른쪽 끝 지점
-		hAlign = Gdiplus::StringAlignmentFar; // 그 지점을 기준으로 왼쪽으로(안쪽으로) 정렬
+		hpTextPosY -= (m_barHeight * 0.5f + 25.0f);
+		nameTextPosY -= (m_barHeight * 0.5f + 25.0f);
 	}
 
+	// HP 텍스트: 중앙 정렬
+	m_hpText = new UIText(
+		GOID_NONE,
+		m_barWidth,
+		m_barHeight + 50.0f,
+		L"",
+		m_nameColor,
+		LAYER_UI_FOREGROUND,
+		m_textSortKey,
+		L"맑은 고딕", 16.0f, Gdiplus::FontStyleBold,
+		Gdiplus::StringAlignmentCenter,
+		Gdiplus::StringAlignmentCenter,
+		m_rectTransform->GetAnchorMin().X, m_rectTransform->GetAnchorMin().Y,
+		m_rectTransform->GetAnchorMax().X, m_rectTransform->GetAnchorMax().Y,
+		anchoredPosX, hpTextPosY
+	);
+
+	// 이름 텍스트: 왼쪽 정렬
 	m_nameText = new UIText(
 		GOID_NONE,
-		m_barWidth, // 바 너비만큼의 영역 내에서 정렬
+		m_barWidth,
 		m_barHeight + 50.0f,
 		m_name,
 		m_nameColor,
 		LAYER_UI_FOREGROUND,
 		m_textSortKey,
-		L"맑은 고딕", 18.0f, Gdiplus::FontStyleBold,
-		hAlign, 
+		L"맑은 고딕", 16.0f, Gdiplus::FontStyleBold,
+		Gdiplus::StringAlignmentNear, // 왼쪽 정렬
 		Gdiplus::StringAlignmentCenter,
 		m_rectTransform->GetAnchorMin().X, m_rectTransform->GetAnchorMin().Y,
 		m_rectTransform->GetAnchorMax().X, m_rectTransform->GetAnchorMax().Y,
-		textPosX, textPosY
+		nameTextPosX, nameTextPosY
 	);
 
+	m_hpText->Init();
 	m_nameText->Init();
+
+	ObjectManager::GetInstance()->AddGameObject(m_hpText);
 	ObjectManager::GetInstance()->AddGameObject(m_nameText);
 
 	UpdateHPDisplay();
@@ -88,6 +111,9 @@ void HPUI::Update(float deltaTime)
 		shouldBeActive = false;
 	}
 
+	if (m_hpText && m_hpText->IsEnabled() != shouldBeActive)
+		m_hpText->SetActive(shouldBeActive);
+
 	if (m_nameText && m_nameText->IsEnabled() != shouldBeActive)
 		m_nameText->SetActive(shouldBeActive);
 
@@ -101,7 +127,7 @@ void HPUI::Update(float deltaTime)
 
 void HPUI::UpdateHPDisplay()
 {
-	if (!m_target || !m_nameText) return;
+	if (!m_target || !m_hpText || !m_nameText) return;
 
 	int currentHp = m_target->GetHp();
 	int maxHp = m_target->GetMaxHp();
@@ -112,14 +138,9 @@ void HPUI::UpdateHPDisplay()
 	m_lastHp = currentHp;
 	m_lastMaxHp = maxHp;
 
-	if (m_numericValue) {
-		std::wstring str = std::to_wstring(currentHp) + L"/" + std::to_wstring(maxHp);
-		m_nameText->SetText(str);
-	}
-	else {
-		m_nameText->SetText(m_name);
-		// OutputDebugStringW((L"HPUI: Updating boss name: " + m_name + L"\n").c_str());
-	}
+	std::wstring str = std::to_wstring(currentHp) + L" / " + std::to_wstring(maxHp);
+	m_hpText->SetText(str);
+	m_nameText->SetText(m_name);
 }
 
 void HPUI::Render()
@@ -142,7 +163,7 @@ void HPUI::Render()
 	if (m_showIcon && m_hpIconSprite && m_hpIconSprite->bitmap) {
 		float iconX = barLeft - m_gap - m_iconSize;
 		float iconY = barTop + (barH - m_iconSize) * 0.5f;
-		
+
 		Gdiplus::Bitmap* bmp = m_hpIconSprite->bitmap.get();
 		pRM->AddDrawCommand(
 			bmp,
@@ -154,7 +175,8 @@ void HPUI::Render()
 			0.0f,
 			10.0f,
 			DIR_DOWN
-		);	}
+		);
+	}
 
 	pRM->AddFillRectangleCommand(Gdiplus::RectF(barLeft, barTop, barW, barH), m_bgColor, LAYER_UI_FOREGROUND, 0.0f, m_barSortKey);
 
@@ -174,6 +196,10 @@ void HPUI::Render()
 
 void HPUI::Release()
 {
+	if (m_hpText) {
+		ObjectManager::GetInstance()->RemoveGameObject(m_hpText);
+		m_hpText = nullptr;
+	}
 	if (m_nameText) {
 		ObjectManager::GetInstance()->RemoveGameObject(m_nameText);
 		m_nameText = nullptr;

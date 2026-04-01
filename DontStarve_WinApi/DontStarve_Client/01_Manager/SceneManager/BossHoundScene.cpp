@@ -88,6 +88,7 @@ void BossHoundScene::Init(const MapData* mapData)
 			Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 100, 150, 255),
 			0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 60.0f,
 			1000.0f, 1002.0f, false, false);
+		m_iceBossHPUI->Init();
 		m_iceBossHPUI->SetActive(false);
 		uiMgr->AddGameObject(m_iceBossHPUI);
 	}
@@ -98,6 +99,7 @@ void BossHoundScene::Init(const MapData* mapData)
 			Gdiplus::Color(200, 40, 0, 0), Gdiplus::Color(255, 200, 0, 0), Gdiplus::Color(255, 255, 100, 100),
 			0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 150.0f,
 			1000.0f, 1002.0f, false, false);
+		m_redBossHPUI->Init();
 		m_redBossHPUI->SetActive(false);
 		uiMgr->AddGameObject(m_redBossHPUI);
 	}

@@ -15,6 +15,9 @@ enum class SpiderQueenState
 	COCOON,
 	COCOON_HIT,
 	COCOON_PRE,
+	COMBO_ATTACK,
+	POOP_PRE,
+	POOP_LOOP,
 	COUNT
 };
 
@@ -33,7 +36,7 @@ public:
 	virtual void Damaged(int damage) override;
 
 	// 슈퍼아머 훅
-	virtual bool IsInAttackState() const override { return m_state == (int)SpiderQueenState::ATTACK; }
+	virtual bool IsInAttackState() const override { return m_state == (int)SpiderQueenState::ATTACK || m_state == (int)SpiderQueenState::COMBO_ATTACK || m_state == (int)SpiderQueenState::POOP_PRE || m_state == (int)SpiderQueenState::POOP_LOOP; }
 	virtual int GetHitState() const override { return (int)SpiderQueenState::HIT; }
 	virtual void TriggerAttackState() override { ChangeState((int)SpiderQueenState::ATTACK); }
 
@@ -47,6 +50,13 @@ protected:
 
 	virtual void OnAttackHit() override;
 	virtual void OnAttackEnd() override;
+
+	virtual void OnComboAttackHit();
+	virtual void OnComboAttackEnd();
+
+	virtual void OnPoopEgg();
+	virtual void OnPoopEnd();
+
 	virtual void OnHitEnd() override;
 
 	// 애니메이션 이벤트 콜백
@@ -61,6 +71,12 @@ private:
 private:
 	int m_bossPhase;
 	float m_specialAttackCooldown;
+
+	float m_comboAttackCooldown;
+	int m_comboCount;
+
+	float m_poopCooldown;
+	int m_poopCount;
 
 	float m_idleTimer;
 	float m_idleDuration;
