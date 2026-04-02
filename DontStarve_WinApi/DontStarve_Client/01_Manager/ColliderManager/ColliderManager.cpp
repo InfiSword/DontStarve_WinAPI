@@ -1,8 +1,11 @@
 #include "99_Default/pch.h"
 #include "ColliderManager.h"
+#include "../ObjectManager/ObjectManager.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Component/Collider/Collider.h"
+#include "../../02_GameObject/Component/Collider/BoxCollider.h"
+#include "../../02_GameObject/Component/Collider/CircleCollider.h"
 #include <Enum.h>
 
 ColliderManager::ColliderManager()
@@ -31,7 +34,37 @@ void ColliderManager::Update(float deltaTime)
 
 void ColliderManager::LateUpdate()
 {
-    // 모든 게임오브젝트의 충돌 검사 처리 
+	// 모든 활성 콜라이더 간의 충돌 검사를 공간 분할 그리드를 활용해 수행
+	ObjectManager* objMgr = ObjectManager::GetInstance();
+	if (!objMgr) return;
+
+	for (size_t i = 0; i < m_colliders.size(); ++i) {
+		Collider* pSrc = m_colliders[i];
+		if (!pSrc || !pSrc->IsEnabled()) continue;
+
+		GameObject* pSrcOwner = pSrc->GetOwner();
+		if (!pSrcOwner || !pSrcOwner->IsEnabled()) continue;
+
+		// 현재 콜라이더의 영역을 기준으로 주변 객체들만 쿼리
+		Gdiplus::RectF srcRect = pSrc->GetWorldRect();
+		std::vector<GameObject*> potentialTargets;
+		objMgr->GetObjectsInRect(srcRect, potentialTargets);
+
+		for (GameObject* pDstOwner : potentialTargets) {
+			if (!pDstOwner || pDstOwner == pSrcOwner || !pDstOwner->IsEnabled()) continue;
+
+			// 대상 객체의 모든 콜라이더와 검사
+			std::vector<Collider*> dstColliders = pDstOwner->GetComponents<Collider>();
+			for (Collider* pDst : dstColliders) {
+				if (!pDst || !pDst->IsEnabled()) continue;
+
+				// 실제 정밀 충돌 검사
+				if (Intersects(pSrc, pDst)) {
+					pSrcOwner->OnCollision(pDstOwner);
+				}
+			}
+		}
+	}
 }
 
 void ColliderManager::Release()
@@ -69,22 +102,63 @@ bool ColliderManager::CheckCollision(GameObject* obj1, GameObject* obj2)
         return false;
     }
 
-    // 두 게임오브젝트의 Collider Component 가져오기
-    Collider* collider1 = obj1->GetComponent<Collider>();
-    Collider* collider2 = obj2->GetComponent<Collider>();
+    // 두 게임오브젝트의 모든 Collider Component 가져오기
+    std::vector<Collider*> colliders1 = obj1->GetComponents<Collider>();
+    std::vector<Collider*> colliders2 = obj2->GetComponents<Collider>();
 
-    // 두 게임오브젝트 모두 Collider가 있어야 충돌 검사 가능
-    if (!collider1 || !collider2) {
-        return false;
+    // 각 게임오브젝트의 모든 콜라이더 쌍에 대해 충돌 검사 수행
+    for (Collider* c1 : colliders1) {
+        if (!c1->IsEnabled()) continue;
+        for (Collider* c2 : colliders2) {
+            if (!c2->IsEnabled()) continue;
+            if (Intersects(c1, c2)) {
+                return true;
+            }
+        }
     }
 
-    // 각 콜라이더 간의 충돌 검사 (실제로는 각 게임오브젝트에서 처리)
-    return collider1->IntersectsCollider(collider2);
+    return false;
 }
 
 bool ColliderManager::Intersects(Collider* a, Collider* b)
 {
 	if (!a || !b) return false;
 	if (!a->IsEnabled() || !b->IsEnabled()) return false;
-	return a->IntersectsCollider(b);
+
+	ColliderType typeA = a->GetColliderType();
+	ColliderType typeB = b->GetColliderType();
+
+	if (typeA == COLLIDER_BOX && typeB == COLLIDER_BOX) {
+		BoxCollider* boxA = static_cast<BoxCollider*>(a);
+		BoxCollider* boxB = static_cast<BoxCollider*>(b);
+		RECT rectA = boxA->GetWorldBoundingBox();
+		RECT rectB = boxB->GetWorldBoundingBox();
+		return !(rectA.right < rectB.left || rectA.left > rectB.right ||
+			rectA.bottom < rectB.top || rectA.top > rectB.bottom);
+	}
+	else if (typeA == COLLIDER_CIRCLE && typeB == COLLIDER_CIRCLE) {
+		CircleCollider* circleA = static_cast<CircleCollider*>(a);
+		CircleCollider* circleB = static_cast<CircleCollider*>(b);
+		float cxA, cyA, rA; circleA->GetWorldCircle(cxA, cyA, rA);
+		float cxB, cyB, rB; circleB->GetWorldCircle(cxB, cyB, rB);
+		float dx = cxA - cxB; float dy = cyA - cyB;
+		float distSq = dx * dx + dy * dy;
+		float rSum = rA + rB;
+		return distSq <= (rSum * rSum);
+	}
+	else if ((typeA == COLLIDER_BOX && typeB == COLLIDER_CIRCLE) || (typeA == COLLIDER_CIRCLE && typeB == COLLIDER_BOX)) {
+		BoxCollider* box = (typeA == COLLIDER_BOX) ? static_cast<BoxCollider*>(a) : static_cast<BoxCollider*>(b);
+		CircleCollider* circle = (typeA == COLLIDER_CIRCLE) ? static_cast<CircleCollider*>(a) : static_cast<CircleCollider*>(b);
+
+		RECT rect = box->GetWorldBoundingBox();
+		float cx, cy, r; circle->GetWorldCircle(cx, cy, r);
+
+		float closestX = (std::max)((float)rect.left, (std::min)(cx, (float)rect.right));
+		float closestY = (std::max)((float)rect.top, (std::min)(cy, (float)rect.bottom));
+
+		float dx = cx - closestX; float dy = cy - closestY;
+		return (dx * dx + dy * dy) <= (r * r);
+	}
+
+	return false;
 }

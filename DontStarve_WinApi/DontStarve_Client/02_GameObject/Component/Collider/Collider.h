@@ -17,15 +17,27 @@ public:
     void SetColliderEnabled(bool enabled) { SetActive(enabled); }
     bool IsColliderEnabled() const { return IsEnabled(); }
 
+    void SetIsInteractionCollider(bool isInteraction) { m_isInteractionCollider = isInteraction; }
+    bool IsInteractionCollider() const { return m_isInteractionCollider; }
+
+    void SetIsPhysicalCollider(bool isPhysical) { m_isPhysicalCollider = isPhysical; }
+    bool IsPhysicalCollider() const { return m_isPhysicalCollider; }
+
     virtual bool IntersectsCollider(const Collider* other) const = 0;  
+
+    virtual ColliderType GetColliderType() const = 0;
 
     // 월드 좌표 점이 콜라이더 내부에 있는지 (상호작용 범위 판정 등에 사용)
     virtual bool ContainsPoint(float worldX, float worldY) const = 0;
     // 콜라이더의 월드 좌표 중심 (이동 목표 등에 사용)
     virtual void GetCenterWorld(float& outX, float& outY) const = 0;
 
+    // 월드 좌표 기준 바운딩 박스 (Gdiplus::RectF)
+    virtual Gdiplus::RectF GetWorldRect() const = 0;
+
     virtual void RenderGizmo() = 0;
 
 protected:
     bool m_isInteractionCollider = true;
+    bool m_isPhysicalCollider = true;
 };

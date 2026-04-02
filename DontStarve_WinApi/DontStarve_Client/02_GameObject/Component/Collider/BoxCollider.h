@@ -14,9 +14,13 @@ public:
     // 충돌 검사 메서드 구현
     virtual bool IntersectsCollider(const Collider* other) const override;
     
+    virtual ColliderType GetColliderType() const override { return COLLIDER_BOX; }
+
     virtual bool ContainsPoint(float worldX, float worldY) const override;
     virtual void GetCenterWorld(float& outX, float& outY) const override;
     
+    virtual Gdiplus::RectF GetWorldRect() const override;
+
     // 오브젝트(사각형) 콜라이더 설정
     void SetObjectCollider(int offsetX, int offsetY, int width, int height);
 

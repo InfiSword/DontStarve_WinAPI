@@ -22,8 +22,6 @@ public:
 	void Update(float deltaTime);
 	void Release();
 
-	Gdiplus::PointF WorldToScreen(float worldX, float worldY) const;
-	Gdiplus::PointF ScreenToWorld(float screenX, float screenY) const;
 	Gdiplus::RectF GetViewportWorldRect() const;
 	Gdiplus::PointF GetCameraPos() const { return m_cameraPos; }
 	void SetCameraPos(float x, float y) { m_cameraPos = { x, y }; }
@@ -38,8 +36,7 @@ public:
 	void TryAddToVisibleIfInViewport(GameObject* obj);
 	
 	GameObject* FindInteractableObjectAtPosition(float worldX, float worldY);
-	void FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects);
-	Gdiplus::RectF GetSpriteBoundingBox(GameObject* obj) const;
+	void FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects, bool onlyInteraction = false);
 
 	void RenderVisibleTiles(const MapData* mapData);
 	void RenderVisibleGameObjects();
@@ -47,6 +44,9 @@ public:
 
 	void SetWalkableBoundsFromMapData(const MapData* mapData);
 	void SetWalkableBounds(float minX, float minY, float maxX, float maxY);
+
+	Gdiplus::PointF WorldToScreen(float worldX, float worldY) const;
+	Gdiplus::PointF ScreenToWorld(float screenX, float screenY) const;
 
 private:
 	GameObject* m_target = nullptr;

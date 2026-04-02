@@ -31,14 +31,6 @@ void CameraManager::Release() {
     ClearTileCache();
 }
 
-Gdiplus::PointF CameraManager::WorldToScreen(float x, float y) const {
-    return { x - m_cameraPos.X + WINCX * 0.5f, y - m_cameraPos.Y + WINCY * 0.5f };
-}
-
-Gdiplus::PointF CameraManager::ScreenToWorld(float x, float y) const {
-    return { x + m_cameraPos.X - WINCX * 0.5f, y + m_cameraPos.Y - WINCY * 0.5f };
-}
-
 Gdiplus::RectF CameraManager::GetViewportWorldRect() const {
     return { m_cameraPos.X - WINCX * 0.5f, m_cameraPos.Y - WINCY * 0.5f, (float)WINCX, (float)WINCY };
 }
@@ -55,7 +47,7 @@ void CameraManager::FollowTarget() {
 
 bool CameraManager::IsObjectInViewport(GameObject* obj) const {
     if (!obj || !obj->IsEnabled() || obj->IsUI()) return false;
-    Gdiplus::RectF bounds = GetSpriteBoundingBox(obj);
+    Gdiplus::RectF bounds = obj->GetBounds();
     Gdiplus::RectF vp = GetViewportWorldRect();
     const float M = 200.0f;
     return bounds.X < vp.X + vp.Width + M && bounds.X + bounds.Width > vp.X - M &&
@@ -64,29 +56,55 @@ bool CameraManager::IsObjectInViewport(GameObject* obj) const {
 
 void CameraManager::UpdateVisibleObjects() {
     m_visibleObjects.clear();
-    for (auto* obj : ObjectManager::GetInstance()->GetGameObjects())
+    Gdiplus::RectF vp = GetViewportWorldRect();
+    const float M = 200.0f;
+    Gdiplus::RectF queryRect(vp.X - M, vp.Y - M, vp.Width + 2 * M, vp.Height + 2 * M);
+
+    std::vector<GameObject*> potentialObjects;
+    ObjectManager::GetInstance()->GetObjectsInRect(queryRect, potentialObjects);
+
+    for (auto* obj : potentialObjects)
     {
-        if (obj->IsUI()) continue;
-        if (IsObjectInViewport(obj)) m_visibleObjects.push_back(obj);
+        if (IsObjectInViewport(obj)) {
+            // 중복 방지 (객체가 여러 셀에 걸쳐 있을 수 있으나 현재 구현은 중심점 기반 한 셀에만 존재)
+            m_visibleObjects.push_back(obj);
+        }
     }
 }
 
 void CameraManager::RemoveFromVisibleObjects(GameObject* obj) {
     auto it = std::find(m_visibleObjects.begin(), m_visibleObjects.end(), obj);
-    if (it != m_visibleObjects.end()) m_visibleObjects.erase(it);
+    if (it != m_visibleObjects.end()) {
+        *it = m_visibleObjects.back();
+        m_visibleObjects.pop_back();
+    }
 }
 
 void CameraManager::TryAddToVisibleIfInViewport(GameObject* obj) {
-    if (IsObjectInViewport(obj)) m_visibleObjects.push_back(obj);
+    if (IsObjectInViewport(obj)) {
+        auto it = std::find(m_visibleObjects.begin(), m_visibleObjects.end(), obj);
+        if (it == m_visibleObjects.end())
+            m_visibleObjects.push_back(obj);
+    }
 }
 
 GameObject* CameraManager::FindInteractableObjectAtPosition(float x, float y) {
     GameObject* best = nullptr; float maxY = -1e9f;
-    for (auto* obj : m_visibleObjects) {
-        if (!obj->CanInteract()) continue;
+    
+    // 마우스 위치 주변의 객체들만 쿼리 (그리드 최적화 활용)
+    float range = 100.0f;
+    Gdiplus::RectF queryRect(x - range, y - range, range * 2, range * 2);
+    std::vector<GameObject*> potentialObjects;
+    ObjectManager::GetInstance()->GetObjectsInRect(queryRect, potentialObjects);
+
+    for (auto* obj : potentialObjects) {
+        if (!obj->CanInteract() || !obj->IsEnabled()) continue;
+        
+        // 해당 객체의 모든 콜라이더 중 '상호작용용'이고 '포인터를 포함'하는 것이 있는지 체크
         for (auto* col : obj->GetComponents<Collider>()) {
-            if (col->IsEnabled() && col->ContainsPoint(x, y)) {
+            if (col->IsEnabled() && col->IsInteractionCollider() && col->ContainsPoint(x, y)) {
                 float curY = obj->GetComponent<Transform>()->GetY();
+                // 여러 객체가 겹쳐있을 경우 Y값이 큰(아래쪽에 있는) 객체를 우선순위로 선택 (Top-Down 뷰 특성)
                 if (!best || curY > maxY) { best = obj; maxY = curY; }
                 break;
             }
@@ -95,34 +113,28 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float x, float y) {
     return best;
 }
 
-void CameraManager::FindObjectsIntersectingCollider(Collider* pCol, std::vector<GameObject*>& out) {
+void CameraManager::FindObjectsIntersectingCollider(Collider* pCol, std::vector<GameObject*>& out, bool onlyInteraction) {
     out.clear();
-    for (auto* obj : m_visibleObjects) {
+    if (!pCol) return;
+
+    GameObject* owner = pCol->GetOwner();
+    Gdiplus::RectF bounds = pCol->GetWorldRect();
+
+    std::vector<GameObject*> potentialObjects;
+    ObjectManager::GetInstance()->GetObjectsInRect(bounds, potentialObjects);
+
+    for (auto* obj : potentialObjects) {
+        if (!obj->IsEnabled() || obj == owner) continue; // 자기 자신 제외
+
         for (auto* col : obj->GetComponents<Collider>()) {
-            if (col->IsEnabled() && ColliderManager::GetInstance()->Intersects(pCol, col)) {
-                out.push_back(obj); break;
+            if (col->IsEnabled() && (!onlyInteraction || col->IsInteractionCollider())) {
+                if (ColliderManager::GetInstance()->Intersects(pCol, col)) {
+                    out.push_back(obj); 
+                    break; 
+                }
             }
         }
     }
-}
-
-Gdiplus::RectF CameraManager::GetSpriteBoundingBox(GameObject* obj) const {
-    Transform* t = obj->GetComponent<Transform>();
-    if (!t) return {0,0,0,0};
-    float w = 32, h = 32, px = 0.5f, py = 0.5f;
-    if (auto* anim = obj->GetComponent<Animator>()) {
-        if (auto sprite = anim->GetCurrentFrame().sprite) {
-            w = sprite->sourceRect.Width; h = sprite->sourceRect.Height;
-            px = sprite->pivot.X; py = sprite->pivot.Y;
-        }
-    } else if (auto* sr = obj->GetComponent<SpriteRenderer>()) {
-        if (auto sprite = sr->GetSpriteHandle()) {
-            w = sprite->sourceRect.Width; h = sprite->sourceRect.Height;
-            px = sprite->pivot.X; py = sprite->pivot.Y;
-        }
-    }
-    w *= t->GetScaleX(); h *= t->GetScaleY();
-    return { t->GetX() - w * px, t->GetY() - h * py, w, h };
 }
 
 void CameraManager::RenderVisibleTiles(const MapData* mapData) {
@@ -191,6 +203,16 @@ void CameraManager::SetWalkableBoundsFromMapData(const MapData* md) {
 
 void CameraManager::SetWalkableBounds(float minX, float minY, float maxX, float maxY) {
     m_hasWalkableBounds = true; m_walkableMinX = minX; m_walkableMinY = minY; m_walkableMaxX = maxX; m_walkableMaxY = maxY;
+}
+
+Gdiplus::PointF CameraManager::WorldToScreen(float worldX, float worldY) const {
+    Gdiplus::RectF vp = GetViewportWorldRect();
+    return { worldX - vp.X, worldY - vp.Y };
+}
+
+Gdiplus::PointF CameraManager::ScreenToWorld(float screenX, float screenY) const {
+    Gdiplus::RectF vp = GetViewportWorldRect();
+    return { screenX + vp.X, screenY + vp.Y };
 }
 
 void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& td, TileCacheData& cd) {

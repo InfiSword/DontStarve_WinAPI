@@ -33,6 +33,14 @@ protected:
     // 컴포넌트 관리					
     std::vector<Component*> m_components;
 
+	// 캐싱된 바운딩 박스 (성능 최적화용)
+	Gdiplus::RectF m_cachedBounds = { 0, 0, 0, 0 };
+	bool m_isBoundsDirty = true;
+
+	// 공간 분할용 그리드 좌표
+	int m_gridCellX = -1;
+	int m_gridCellY = -1;
+
 private:
 	std::vector<CoroutineHandle> m_coroutines;
 
@@ -54,6 +62,11 @@ public:
 	// UI 여부 반환 (dynamic_cast 대체용)
 	virtual bool IsUI() const { return false; }
 
+	// 공간 분할용 접근자
+	int GetGridCellX() const { return m_gridCellX; }
+	int GetGridCellY() const { return m_gridCellY; }
+	void SetGridCell(int x, int y) { m_gridCellX = x; m_gridCellY = y; }
+
 	// 코루틴 시스템
 	void StartCoroutine(CoroutineHandle coroutine);
 	void StopAllCoroutines();
@@ -62,9 +75,14 @@ public:
 
 	// 상호작용 관련
 	virtual bool OnInteraction(GameObject* obj);
+	virtual void OnCollision(GameObject* other) {}
 	virtual void Damaged(int damage) {}
 	virtual bool CanInteract() const { return m_isInteractive; }
 	virtual void SetInteractive(bool interactive) { m_isInteractive = interactive; }
+
+	// 바운딩 박스 관련
+	Gdiplus::RectF GetBounds();
+	void SetBoundsDirty() { m_isBoundsDirty = true; }
 
 	// 디버그/시각화 오버레이 
 	static bool g_bRenderDebugOverlay;	

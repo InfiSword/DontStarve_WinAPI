@@ -22,9 +22,16 @@ SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivo
 	, m_isPlayingHit(false)
 	, m_spawnRadius(200.0f)
 	, m_invincibleTimer(0.0f)
-	, m_amountOfSpidersToSpawn(0)
-	, m_remainingSpiders(0)
+	,m_amountOfSpidersToSpawn(0)
+	,m_remainingSpiders(0)
+	,m_totalSpawnedCount(0)
+	,m_disappearTimer(2.0f)
+	,m_isDisappearing(false)
+	,m_isPeriodicSpawner(false)
+	,m_periodicSpawnTimer(0.0f)
+	,m_periodicSpawnInterval(5.0f)
 {
+
 	switch (id)
 	{
 	case GOID_BUILDING_SPIDER_SACEGG:
@@ -64,6 +71,8 @@ void SpiderEgg::Init()
 
 	DataManager* pRM = DataManager::GetInstance();
 	const ResourcePathUtils::ObjectResourceDef* data = pRM->GetObjectResourceInfo(m_id);
+	
+
 	if (!data) return;
 
 	std::wstring base = data->baseDir;
@@ -126,7 +135,26 @@ void SpiderEgg::LateInit()
 
 void SpiderEgg::Update(float deltaTime)
 {
+	if (m_isDisappearing) {
+		m_disappearTimer -= deltaTime;
+		if (m_disappearTimer <= 0.0f) {
+			ObjectManager::GetInstance()->RemoveGameObject(this);
+			return;
+		}
+	}
+
 	Building::Update(deltaTime);
+
+	// 주기적 스폰 업데이트
+	if (m_isPeriodicSpawner && !m_isDisappearing && m_buildingState != BuildingState::DESTROYED)
+	{
+		m_periodicSpawnTimer += deltaTime;
+		if (m_periodicSpawnTimer >= m_periodicSpawnInterval)
+		{
+			m_periodicSpawnTimer = 0.0f;
+			SpawnSpiders();
+		}
+	}
 
 	// 무적 타이머 업데이트
 	if (m_invincibleTimer > 0.0f) {
@@ -264,19 +292,35 @@ void SpiderEgg::PreSpawnSpiders()
 
 void SpiderEgg::SpawnSpiders()
 {
-	if (m_remainingSpiders <= 0) return;
+	if (m_totalSpawnedCount >= 4) return;
+
+	// 일반 모드에서는 남은 거미가 없으면 중단
+	if (!m_isPeriodicSpawner && m_remainingSpiders <= 0) return;
 
 	Transform* eggTr = GetComponent<Transform>();
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!eggTr || !objectManager) return;
 
-	if (m_poolSpiders.empty()) {
-		PreSpawnSpiders();
-	}
-	if (m_poolSpiders.empty()) return;
+	Spider* spider = nullptr;
 
-	Spider* spider = m_poolSpiders.back();
-	m_poolSpiders.pop_back();
+	// 풀에 거미가 있으면 사용 (PreSpawn 등으로 미리 생성된 경우)
+	if (!m_poolSpiders.empty()) {
+		spider = m_poolSpiders.back();
+		m_poolSpiders.pop_back();
+	}
+	else {
+		// 풀이 비어있으면 새로 생성 (주기적 스폰용)
+		GameObjectID spiderID = GOID_MONSTER_SPIDER;
+		if (m_eggStage == EggStage::Large && (rand() % 100 < 30)) spiderID = GOID_MONSTER_WARRIOR_SPIDER;
+		else if (m_eggStage == EggStage::Medium && (rand() % 100 < 15)) spiderID = GOID_MONSTER_WARRIOR_SPIDER;
+
+		Entity* spiderObj = objectManager->CreateEntity(spiderID, eggTr->GetX(), eggTr->GetY());
+		if (spiderObj) {
+			spider = dynamic_cast<Spider*>(spiderObj);
+		}
+	}
+
+	if (!spider) return;
 
 	float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
 	float dist = 60.0f + (rand() / (float)RAND_MAX) * 60.0f;
@@ -286,14 +330,21 @@ void SpiderEgg::SpawnSpiders()
 	Transform* spiderTr = spider->GetComponent<Transform>();
 	if (spiderTr) {
 		spiderTr->SetPosition(sx, sy);
+		objectManager->UpdateObjectGridCell(spider);
 	}
 
 	spider->SetActive(true);
+	spider->ClampPositionToMapBounds();
 
 	GameObject* player = objectManager->GetPlayer();
 	if (player) spider->SetAggroTarget(player);
 
-	m_remainingSpiders--;
+	if (m_remainingSpiders > 0) m_remainingSpiders--;
+	m_totalSpawnedCount++;
+
+	if (m_totalSpawnedCount >= 4) {
+		m_isDisappearing = true;
+	}
 }
 
 void SpiderEgg::Grow()
@@ -317,4 +368,27 @@ void SpiderEgg::SetTimeState(BuildingState buildingState)
 BuildingState SpiderEgg::GetTimeState() const
 {
 	return m_buildingState;
+}
+
+void SpiderEgg::SetEggStage(EggStage stage)
+{
+	m_eggStage = stage;
+
+	// 거미 수 업데이트
+	switch (m_eggStage) {
+	case EggStage::Small: m_remainingSpiders = 1; break;
+	case EggStage::Medium: m_remainingSpiders = 2; break;
+	case EggStage::Large: m_remainingSpiders = 3; break;
+	case EggStage::Sac: m_remainingSpiders = 0; break;
+	}
+
+	// 애니메이터 상태 업데이트 (이미 초기화된 경우)
+	if (m_animator) {
+		int idleState = EGG_STATE_IDLE_SMALL;
+		if (m_eggStage == EggStage::Medium) idleState = EGG_STATE_IDLE_MEDIUM;
+		else if (m_eggStage == EggStage::Large) idleState = EGG_STATE_IDLE_LARGE;
+		ChangeState(idleState);
+	}
+
+	PreSpawnSpiders();
 }

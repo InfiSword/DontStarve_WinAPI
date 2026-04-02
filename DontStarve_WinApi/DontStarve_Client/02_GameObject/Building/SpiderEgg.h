@@ -41,18 +41,23 @@ public:
     BuildingState GetTimeState() const override;
 
     // 성장: Sac→Small, Small→Medium, Medium→Large. 해당 성장 애니 재생 후 단계 전환.
-    void Grow();
+    virtual void Grow();
 
     EggStage GetEggStage() const { return m_eggStage; }
-    void SetEggStage(EggStage stage) { m_eggStage = stage; }
+    virtual void SetEggStage(EggStage stage);
     
     // 거미 스폰
-    void SpawnSpiders();
+    virtual void SpawnSpiders();
 
-private:
+    // 주기적 스폰 설정
+    void SetPeriodicSpawn(bool enable, float interval = 5.0f) { 
+        m_isPeriodicSpawner = enable; 
+        m_periodicSpawnInterval = interval;
+    }
+
+protected:
     void PreSpawnSpiders();
 
-private:
     EggStage m_eggStage;
     bool m_isPlayingGrowth;
     bool m_isPlayingHit;
@@ -61,6 +66,15 @@ private:
 
 	int m_amountOfSpidersToSpawn; // 한 번에 스폰할 거미 수
 	int m_remainingSpiders;       // 현재 거미집 안에 남은 총 거미 수
+
+    int m_totalSpawnedCount;      // 지금까지 스폰된 총 거미 수
+    float m_disappearTimer;       // 소멸 대기 타이머
+    bool m_isDisappearing;        // 소멸 중인지 여부
+
+    // 주기적 스폰 관련
+    bool m_isPeriodicSpawner;
+    float m_periodicSpawnTimer;
+    float m_periodicSpawnInterval;
 
     std::vector<class Spider*> m_poolSpiders; // 미리 생성해 둔 거미 오브젝트 풀
 };

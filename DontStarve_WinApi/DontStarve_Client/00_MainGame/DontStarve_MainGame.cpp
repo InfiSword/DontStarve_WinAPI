@@ -75,6 +75,9 @@ void DontStarve_MainGame::Update()
     // SceneManager 업데이트 (FPS 제한 적용)
     SceneManager::GetInstance()->Update(deltaTime);
 
+    // RenderManager 업데이트 (카메라 좌표 캐싱)
+    RenderManager::GetInstance()->Update(deltaTime);
+
     // 게임 진행도 업데이트 (전체 시간 측정 등)
     GameProgressManager::GetInstance()->Update(deltaTime);
 

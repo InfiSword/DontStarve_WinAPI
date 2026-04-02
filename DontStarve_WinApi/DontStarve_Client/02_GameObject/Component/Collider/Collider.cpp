@@ -7,6 +7,7 @@ Collider::Collider(GameObject* owner)
     : Component(owner)
 {
     m_isInteractionCollider = true;
+    m_isPhysicalCollider = true;
 }
 
 void Collider::Init()

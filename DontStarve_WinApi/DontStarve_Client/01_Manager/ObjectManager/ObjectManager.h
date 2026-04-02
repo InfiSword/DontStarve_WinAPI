@@ -1,4 +1,5 @@
 #pragma once
+#include "../../../Header/SingleTon.h"
 
 class GameObject;
 class Player;
@@ -36,6 +37,10 @@ public:
 	void ClearAllObjects();
 	bool IsScreenPointBlockedByUI(float screenX, float screenY) const;
 
+	// 공간 분할 (Spatial Partitioning) 관련
+	void UpdateObjectGridCell(GameObject* pObj);
+	void GetObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects);
+
 	// ID로 오브젝트 찾기 
 	GameObject* FindGameObject(GameObjectID id);
 	template <typename T>
@@ -48,7 +53,8 @@ public:
 	}
 
 	Player* GetPlayer() const;
-	const std::vector<GameObject*>& GetGameObjects() const { return m_gameObjects; }
+	const std::vector<GameObject*>& GetWorldObjects() const { return m_worldObjects; }
+	const std::vector<GameObject*>& GetUIObjects() const { return m_uiObjects; }
 
 	// 게임오브젝트 생성 헬퍼
 	Entity*   CreateEntity(GameObjectID id, float x, float y);
@@ -58,7 +64,7 @@ public:
 	// UI 생성 헬퍼
 	UIButton* CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, std::function<void()> onClick);
 	UIImage*  CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y);
-	UIText*   CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, float sortKey = 0 );
+	UIText*   CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, float sortKey = 0, Gdiplus::StringAlignment hAlign = Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignment vAlign = Gdiplus::StringAlignmentCenter);
 
 	// 특수 UI 생성 헬퍼
 	MenuUI* CreateMenuUI();
@@ -87,8 +93,18 @@ private:
 	void ForEachObject(std::function<void(GameObject*)> fn);
 	void ForEachEnabledObject(std::function<void(GameObject*)> fn);
 
-	std::vector<GameObject*> m_gameObjects;
+	std::vector<GameObject*> m_worldObjects;
+	std::vector<GameObject*> m_uiObjects;
 	std::vector<GameObject*> m_pendingDeletions; // 삭제 지연 큐
+
+	// 공간 분할용 그리드
+	static constexpr int GRID_CELL_SIZE = 256;
+	static constexpr int GRID_WIDTH = (MAP_WIDTH * TILE_SIZE / GRID_CELL_SIZE) + 1;
+	static constexpr int GRID_HEIGHT = (MAP_HEIGHT * TILE_SIZE / GRID_CELL_SIZE) + 1;
+	std::vector<GameObject*> m_spatialGrid[GRID_WIDTH][GRID_HEIGHT];
+
+	void AddToGrid(GameObject* pObj);
+	void RemoveFromGrid(GameObject* pObj);
 
 	Player* m_cachedPlayer; // 플레이어 캐시
 

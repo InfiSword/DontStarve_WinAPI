@@ -63,7 +63,7 @@ void BossHoundScene::Init(const MapData* mapData)
 
 	// 맵 데이터에서 생성된 보스들을 찾아 비활성화 (전투 준비 단계)
 	// 연출 순서 보장을 위해 순서대로 찾음 (Ice -> Red)
-	const auto& objects = objMgr->GetGameObjects();
+	const auto& objects = objMgr->GetWorldObjects();
 
 	GameObject* iceBoss = nullptr;
 	GameObject* redBoss = nullptr;
@@ -135,7 +135,7 @@ void BossHoundScene::UpdatePhase1(float deltaTime)
 {
 	// 필드에 있는 모든 일반 하운드(minion)가 죽었는지 체크
 	ObjectManager* objMgr = ObjectManager::GetInstance();
-	const auto& objects = objMgr->GetGameObjects();
+	const auto& objects = objMgr->GetWorldObjects();
 
 	bool houndsAlive = false;
 	for (auto* obj : objects)
@@ -348,7 +348,7 @@ void BossHoundScene::UpdatePhase2Battle(float deltaTime)
 {
 	// 기존 보스 생존 체크 로직 유지
 	ObjectManager* objMgr = ObjectManager::GetInstance();
-	const auto& objects = objMgr->GetGameObjects();
+	const auto& objects = objMgr->GetWorldObjects();
 	bool bossesAlive = false;
 
 	bool iceAlive = false;

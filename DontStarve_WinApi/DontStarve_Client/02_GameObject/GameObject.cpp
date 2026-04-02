@@ -3,6 +3,8 @@
 #include "Component/Transform/Transform.h"
 #include "Component/Sprite/SpriteRenderer.h"
 #include "../01_Manager/TimeManager/TimeManager.h"
+#include "../03_Animation/Animator.h"
+#include "../01_Manager/ObjectManager/ObjectManager.h"
 
 bool GameObject::g_bRenderDebugOverlay = false;
 
@@ -22,6 +24,10 @@ void GameObject::Init() {
 			component->Init();
 		}
 	}
+	// 초기 위치에 따른 그리드 셀 설정
+	if (!IsUI()) {
+		ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+	}
 }
 
 void GameObject::LateInit() {
@@ -36,6 +42,11 @@ void GameObject::Update(float deltaTime) {
 	// Release()가 호출되었으면 업데이트하지 않음
 	if (m_bReleased) {
 		return;
+	}
+
+	// 위치/크기 변경이 있었다면 바운딩 박스와 그리드 셀 갱신
+	if (m_isBoundsDirty) {
+		GetBounds();
 	}
 
 	for (auto& component : m_components) {
@@ -67,6 +78,11 @@ void GameObject::Release()
 	}
 	m_bReleased = true;
 
+	// 공간 분할 그리드에서 제거
+	if (!IsUI()) {
+		ObjectManager::GetInstance()->RemoveGameObject(this); 
+	}
+
 	StopAllCoroutines();
 
 	// 문자열 멤버 강제 해제 (swap으로 CRT 누수 탐지에 반영)
@@ -89,6 +105,43 @@ bool GameObject::OnInteraction(GameObject* obj)
 		return false;
 	
 	return true;
+}
+
+Gdiplus::RectF GameObject::GetBounds()
+{
+	if (!m_isBoundsDirty) return m_cachedBounds;
+
+	Transform* t = GetComponent<Transform>();
+	if (!t) {
+		m_cachedBounds = { 0,0,0,0 };
+		m_isBoundsDirty = false;
+		return m_cachedBounds;
+	}
+
+	float w = 32, h = 32, px = 0.5f, py = 0.5f;
+	if (auto* anim = GetComponent<Animator>()) {
+		if (auto sprite = anim->GetCurrentFrame().sprite) {
+			w = sprite->sourceRect.Width; h = sprite->sourceRect.Height;
+			px = sprite->pivot.X; py = sprite->pivot.Y;
+		}
+	}
+	else if (auto* sr = GetComponent<SpriteRenderer>()) {
+		if (auto sprite = sr->GetSpriteHandle()) {
+			w = sprite->sourceRect.Width; h = sprite->sourceRect.Height;
+			px = sprite->pivot.X; py = sprite->pivot.Y;
+		}
+	}
+	w *= t->GetScaleX(); h *= t->GetScaleY();
+
+	m_cachedBounds = { t->GetX() - w * px, t->GetY() - h * py, w, h };
+	m_isBoundsDirty = false;
+
+	// 위치 변경에 따른 그리드 갱신
+	if (!IsUI()) {
+		ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+	}
+
+	return m_cachedBounds;
 }
 
 void GameObject::StartCoroutine(CoroutineHandle coroutine)

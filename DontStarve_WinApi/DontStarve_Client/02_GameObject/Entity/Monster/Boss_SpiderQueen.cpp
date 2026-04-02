@@ -5,14 +5,14 @@
 #include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
-#include  "../../Building/BossSpiderEgg.h"
+#include "../../Building/SpiderEgg.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../../Component/Transform/Transform.h"
 #include "../../Component/Collider/BoxCollider.h"
 
 Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
-                                   const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
 	: Spider(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 	, m_bossPhase(1)
 	, m_specialAttackCooldown(0.0f)
@@ -22,12 +22,12 @@ Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivo
 	, m_poopCount(0)
 	, m_idleTimer(0.0f)
 	, m_idleDuration(2.0f)
-    , m_hasTriggeredCocoon(false)
-    , m_cocoonTimer(0.0f)
-    , m_healTickTimer(0.0f)
-    , m_isHealing(false)
-    , m_healFxAnimator(nullptr)
-    , m_spawnOutFxAnimator(nullptr)
+	, m_hasTriggeredCocoon(false)
+	, m_cocoonTimer(0.0f)
+	, m_healTickTimer(0.0f)
+	, m_isHealing(false)
+	, m_healFxAnimator(nullptr)
+	, m_spawnOutFxAnimator(nullptr)
 	, m_spawnOnHitCooldown(0.0f)
 {
 	m_hp = 2500;
@@ -37,7 +37,7 @@ Boss_SpiderQueen::Boss_SpiderQueen(GameObjectID id, float x, float y, float pivo
 	m_runSpeed = 120.0f;
 	m_attackRange = 130.0f;
 	m_attackCooldown = 1.5f;
-	m_attackHitFrame = 28;
+	m_attackHitFrame = 40;
 	m_damage = 25;
 	m_attackBoxWidth = 110;
 	m_attackBoxHeight = 80;
@@ -57,10 +57,10 @@ void Boss_SpiderQueen::Init()
 	m_specialAttackCooldown = 0.0f;
 
 	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
-    
-    // FX Animator 추가
-    if (!m_healFxAnimator) m_healFxAnimator = AddComponent<Animator>(spriteRenderer);
-    if (!m_spawnOutFxAnimator) m_spawnOutFxAnimator = AddComponent<Animator>(spriteRenderer);
+
+	// FX Animator 추가
+	if (!m_healFxAnimator) m_healFxAnimator = AddComponent<Animator>(spriteRenderer);
+	if (!m_spawnOutFxAnimator) m_spawnOutFxAnimator = AddComponent<Animator>(spriteRenderer);
 
 	DataManager* pRM = DataManager::GetInstance();
 	const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_QUEEN_SPIDER);
@@ -126,9 +126,9 @@ void Boss_SpiderQueen::Init()
 					});
 			}
 		}
-		
-        // ENTER (BIRTH) 애니메이션
-        for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+
+		// ENTER (BIRTH) 애니메이션
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 			m_animator->RegisterAnimation((int)SpiderQueenState::BIRTH, (Direction)dir, base + L"Queen_spider_queen_enter.png", 0, 0, 7, 58, px, py, false, 0.02f);
 			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::BIRTH, (Direction)dir);
 			if (clip) {
@@ -138,7 +138,7 @@ void Boss_SpiderQueen::Init()
 					});
 			}
 		}
-		
+
 		// COCOON_PRE 애니메이션
 		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 			m_animator->RegisterAnimation((int)SpiderQueenState::COCOON_PRE, (Direction)dir, base + L"Cocoon_spider_queen_cocoon.png", 0, 0, 7, 56, px, py, false, 0.02f);
@@ -151,7 +151,7 @@ void Boss_SpiderQueen::Init()
 			}
 		}
 
-        // COCOON 상태: SmallEgg 리소스 사용
+		// COCOON 상태: SmallEgg 리소스 사용
 		const ResourcePathUtils::ObjectResourceDef* eggData = pRM->GetObjectResourceInfo(GOID_BUILDING_SPIDER_SMALLEGG);
 		if (eggData) {
 			std::wstring eggBase = eggData->baseDir + L"\\";
@@ -163,8 +163,8 @@ void Boss_SpiderQueen::Init()
 			}
 		}
 
-        // TAUNT 애니메이션
-        for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+		// TAUNT 애니메이션
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 			m_animator->RegisterAnimation((int)SpiderQueenState::TAUNT, (Direction)dir, base + L"Queen_spider_queen_taunt.png", 0, 0, 7, 50, px, py, false, 0.03f);
 			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::TAUNT, (Direction)dir);
 			if (clip) {
@@ -176,48 +176,48 @@ void Boss_SpiderQueen::Init()
 						m_bCanChase = false;
 						ChangeState((int)SpiderQueenState::IDLE);
 					}
-				});
+					});
 			}
-        }
+		}
 
-					// POOP_PRE 애니메이션
-					for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-					m_animator->RegisterAnimation((int)SpiderQueenState::POOP_PRE, (Direction)dir, base + L"Queen_spider_queen_poop_pre.png", 0, 0, 7, 13, px, py, false, 0.03f);
-					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::POOP_PRE, (Direction)dir);
-					if (clip) {
-					clip->AddEventFrame(12, L"poop_pre_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+		// POOP_PRE 애니메이션
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::POOP_PRE, (Direction)dir, base + L"Queen_spider_queen_poop_pre.png", 0, 0, 7, 13, px, py, false, 0.03f);
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::POOP_PRE, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(12, L"poop_pre_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 					if (eventName == L"poop_pre_end") this->ChangeState((int)SpiderQueenState::POOP_LOOP);
 					});
-					}
-					}
+			}
+		}
 
-					// POOP_LOOP 애니메이션 (알 3개 낳기)
-					for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
-					m_animator->RegisterAnimation((int)SpiderQueenState::POOP_LOOP, (Direction)dir, base + L"Queen_spider_queen_poop_loop.png", 0, 0, 7, 50, px, py, false, 0.03f);
-					AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::POOP_LOOP, (Direction)dir);
-					if (clip) {
-					clip->AddEventFrame(10, L"poop_egg");
-					clip->AddEventFrame(25, L"poop_egg");
-					clip->AddEventFrame(40, L"poop_egg");
-					clip->AddEventFrame(49, L"poop_end");
-					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+		// POOP_LOOP 애니메이션 (알 3개 낳기)
+		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
+			m_animator->RegisterAnimation((int)SpiderQueenState::POOP_LOOP, (Direction)dir, base + L"Queen_spider_queen_poop_loop.png", 0, 0, 7, 50, px, py, false, 0.03f);
+			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::POOP_LOOP, (Direction)dir);
+			if (clip) {
+				clip->AddEventFrame(10, L"poop_egg");
+				clip->AddEventFrame(25, L"poop_egg");
+				clip->AddEventFrame(40, L"poop_egg");
+				clip->AddEventFrame(49, L"poop_end");
+				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 					if (eventName == L"poop_egg") this->OnPoopEgg();
 					else if (eventName == L"poop_end") this->OnPoopEnd();
 					});
-					}
-					}
+			}
+		}
 
-					// FX 등록
-        // 1. Heal Buff FX (루프)
-        m_healFxAnimator->RegisterAnimation(0, DIR_DOWN, base + L"Queen_heal_fx_heal_buff.png", 0, 0, 7, 65, px, py, true, 0.02f);
-        
-        // 2. Spawn Out FX (단발)
-        m_spawnOutFxAnimator->RegisterAnimation(0, DIR_DOWN, base + L"FX_splash_spiderweb_idle.png", 0, 0, 7, 45, px, py, false, 0.02f);
+		// FX 등록
+// 1. Heal Buff FX (루프)
+		m_healFxAnimator->RegisterAnimation(0, DIR_DOWN, base + L"Queen_heal_fx_heal_buff.png", 0, 0, 7, 65, px, py, true, 0.02f);
+
+		// 2. Spawn Out FX (단발)
+		m_spawnOutFxAnimator->RegisterAnimation(0, DIR_DOWN, base + L"FX_splash_spiderweb_idle.png", 0, 0, 7, 45, px, py, false, 0.02f);
 	}
 	ChangeState(m_state);
-    m_healFxAnimator->SetActive(false);
-    m_spawnOutFxAnimator->SetActive(false);
+	m_healFxAnimator->SetActive(false);
+	m_spawnOutFxAnimator->SetActive(false);
 
 	if (m_attackCollider) {
 		UpdateAttackBoxByDirection(DIR_DOWN);
@@ -352,10 +352,10 @@ int Boss_SpiderQueen::UpdateChase(float deltaTime)
 
 void Boss_SpiderQueen::OnAttackHit() { if (m_state == (int)SpiderQueenState::ATTACK) ProcessAttackHit(m_damage); }
 
-void Boss_SpiderQueen::OnAttackEnd() 
-{ 
+void Boss_SpiderQueen::OnAttackEnd()
+{
 	if (m_state != (int)SpiderQueenState::ATTACK) return;
-	
+
 	HandleAttackEndSuperArmor();
 
 	ChangeState((int)SpiderQueenState::CHASE);
@@ -409,28 +409,18 @@ void Boss_SpiderQueen::OnPoopEgg()
 	float ex = transform->GetX() + cosf(angle) * dist;
 	float ey = transform->GetY() + sinf(angle) * dist;
 
-	Building* eggObj = objectManager->CreateBuilding(GOID_BUILDING_BOSS_SPIDER_EGG, ex, ey);
+	// 알 ID 랜덤 선택 (Small, Normal, Tall 중 하나)
+	GameObjectID eggIDs[] = { GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG };
+	GameObjectID selectedID = eggIDs[rand() % 3];
+
+	Building* eggObj = objectManager->CreateBuilding(selectedID, ex, ey);
 	if (eggObj)
 	{
-		BossSpiderEgg* egg = dynamic_cast<BossSpiderEgg*>(eggObj);
+		SpiderEgg* egg = dynamic_cast<SpiderEgg*>(eggObj);
 		if (egg)
 		{
-			// 알 종류 결정 (Small 50%, Medium 35%, Tall 15%)
-			int roll = rand() % 100;
-			if (roll < 50) egg->SetEggStage(EggStage::Small);
-			else if (roll < 85) egg->SetEggStage(EggStage::Medium);
-			else egg->SetEggStage(EggStage::Large); // Tall
-
-			// 현재 단계에 맞게 애니메이션 초기화 (SpiderEgg::Init에서 stage에 따라 달라짐)
-			// 여기서는 stage를 강제로 바꾸었으므로 애니메이션 상태도 맞춰줘야 함
-			int animState = EGG_STATE_IDLE_SMALL;
-			if (egg->GetEggStage() == EggStage::Medium) animState = EGG_STATE_IDLE_MEDIUM;
-			else if (egg->GetEggStage() == EggStage::Large) animState = EGG_STATE_IDLE_LARGE;
-			
-			// egg->ChangeState는 protected이므로 public 인터페이스가 필요할 수 있음. 
-			// 하지만 SpiderEgg::Update에서 매 틱마다 stage에 맞춰 visibility를 조절하고 있으므로
-			// 일단 stage 설정만으로 충분할 가능성이 높음. (SpiderEgg.cpp 확인 결과 Init에서만 초기 Idle 설정)
-			// 원활한 렌더링을 위해 Animator의 SetState를 직접 호출하거나 SpiderEgg를 수정해야 할 수 있음.
+			// 보스가 생성한 알은 주기적으로 거미를 스폰하도록 설정
+			egg->SetPeriodicSpawn(true, 5.0f);
 		}
 	}
 }
@@ -467,7 +457,7 @@ void Boss_SpiderQueen::Damaged(int damage)
 	if (m_state == (int)SpiderQueenState::COCOON_PRE || m_state == (int)SpiderQueenState::BIRTH)
 		return;
 
-    if (m_state == (int)SpiderQueenState::COCOON || m_state == (int)SpiderQueenState::COCOON_HIT)
+	if (m_state == (int)SpiderQueenState::COCOON || m_state == (int)SpiderQueenState::COCOON_HIT)
 	{
 		// 고치 상태에서 피격 시 연출 및 시간 단축
 		if (m_state != (int)SpiderQueenState::COCOON_HIT)
@@ -495,15 +485,17 @@ void Boss_SpiderQueen::Damaged(int damage)
 		return;
 	}
 
-    // HP 50% 이하일 때 고치 페이즈 발동 (1회)
-    if (!m_hasTriggeredCocoon && m_hp <= m_maxHp * 0.5f)
-    {
-        StartCocoonPhase();
-        return; 
-    }
+	// HP 50% 이하일 때 고치 페이즈 발동 (1회)
+	if (!m_hasTriggeredCocoon && m_hp <= m_maxHp * 0.5f)
+	{
+		StartCocoonPhase();
+		return;
+	}
 
-	if (m_hp <= m_maxHp * 0.5f && m_bossPhase == 1) 
-	{ m_bossPhase = 2; OutputDebugStringW(L"Boss_SpiderQueen: 보스 페이즈가 2단계로 전환!\n"); }
+	if (m_hp <= m_maxHp * 0.5f && m_bossPhase == 1)
+	{
+		m_bossPhase = 2; OutputDebugStringW(L"Boss_SpiderQueen: 보스 페이즈가 2단계로 전환!\n");
+	}
 
 	if (CheckSuperArmorHit()) return;
 
@@ -512,70 +504,70 @@ void Boss_SpiderQueen::Damaged(int damage)
 
 void Boss_SpiderQueen::StartCocoonPhase()
 {
-    m_hasTriggeredCocoon = true;
-    m_cocoonTimer = 0.0f;
-    m_healTickTimer = 0.0f;
-    m_isHealing = true;
+	m_hasTriggeredCocoon = true;
+	m_cocoonTimer = 0.0f;
+	m_healTickTimer = 0.0f;
+	m_isHealing = true;
 
-    ChangeState((int)SpiderQueenState::COCOON_PRE);
-    
+	ChangeState((int)SpiderQueenState::COCOON_PRE);
+
 	// 고치 진입 시 거미 소환
 	SummonSpider();
 
-    if (m_healFxAnimator) {
-        m_healFxAnimator->SetActive(true);
-        // m_healFxAnimator->SetState(0, DIR_DOWN);
-    }
+	if (m_healFxAnimator) {
+		m_healFxAnimator->SetActive(true);
+		// m_healFxAnimator->SetState(0, DIR_DOWN);
+	}
 
-    OutputDebugStringW(L"Boss_SpiderQueen: 고치 상태 돌입! 거미를 소환하고 회복을 시작합니다.\n");
+	OutputDebugStringW(L"Boss_SpiderQueen: 고치 상태 돌입! 거미를 소환하고 회복을 시작합니다.\n");
 }
 
 void Boss_SpiderQueen::EndCocoonPhase()
 {
-    m_isHealing = false;
-    if (m_healFxAnimator) m_healFxAnimator->SetActive(false);
+	m_isHealing = false;
+	if (m_healFxAnimator) m_healFxAnimator->SetActive(false);
 
-    ChangeState((int)SpiderQueenState::BIRTH); 
+	ChangeState((int)SpiderQueenState::BIRTH);
 
-    if (m_spawnOutFxAnimator) {
-        m_spawnOutFxAnimator->SetActive(true);
-        // m_spawnOutFxAnimator->SetState(0, DIR_DOWN);
-    }
+	if (m_spawnOutFxAnimator) {
+		m_spawnOutFxAnimator->SetActive(true);
+		// m_spawnOutFxAnimator->SetState(0, DIR_DOWN);
+	}
 
-    OutputDebugStringW(L"Boss_SpiderQueen: 고치에서 나옵니다!\n");
+	OutputDebugStringW(L"Boss_SpiderQueen: 고치에서 나옵니다!\n");
 }
 
 void Boss_SpiderQueen::SummonSpider(int count)
 {
-    ObjectManager* objMgr = ObjectManager::GetInstance();
-    if (!objMgr || !transform) return;
+	ObjectManager* objMgr = ObjectManager::GetInstance();
+	if (!objMgr || !transform) return;
 
-    int spawnCount = (count > 0) ? count : (3 + (rand() % 3)); 
-    float spawnRadius = 150.0f;
+	int spawnCount = (count > 0) ? count : (3 + (rand() % 3));
+	float spawnRadius = 150.0f;
 
-    for (int i = 0; i < spawnCount; ++i)
-    {
-        float angle = (rand() / (float)RAND_MAX) * 6.283185f;
-        float dist = (rand() / (float)RAND_MAX) * spawnRadius;
-        float sx = transform->GetX() + cosf(angle) * dist;
-        float sy = transform->GetY() + sinf(angle) * dist;
+	for (int i = 0; i < spawnCount; ++i)
+	{
+		float angle = (rand() / (float)RAND_MAX) * 6.283185f;
+		float dist = (rand() / (float)RAND_MAX) * spawnRadius;
+		float sx = transform->GetX() + cosf(angle) * dist;
+		float sy = transform->GetY() + sinf(angle) * dist;
 
-        GameObjectID spiderID = (rand() % 2 == 0) ? GOID_MONSTER_SPIDER : GOID_MONSTER_WARRIOR_SPIDER;
-        
-        Entity* spiderObj = objMgr->CreateEntity(spiderID, sx, sy);
-        if (spiderObj)
-        {
-            Spider* spider = dynamic_cast<Spider*>(spiderObj);
-            if (spider)
-            {
-                // 생성된 위치가 맵 밖일 경우를 대비해 보정
-                spider->ClampPositionToMapBounds();
+		GameObjectID spiderID = (rand() % 2 == 0) ? GOID_MONSTER_SPIDER : GOID_MONSTER_WARRIOR_SPIDER;
 
-                // 플레이어를 즉시 타겟팅하여 추격하게 함
-                Player* player = objMgr->GetPlayer();
-                if (player) spider->SetAggroTarget(player);
-            }
-        }
-    }
-    OutputDebugStringW((L"Boss_SpiderQueen: 거미 " + std::to_wstring(spawnCount) + L"마리 소환 완료\n").c_str());
+		Entity* spiderObj = objMgr->CreateEntity(spiderID, sx, sy);
+		if (spiderObj)
+		{
+			Spider* spider = dynamic_cast<Spider*>(spiderObj);
+			if (spider)
+			{
+				// 생성된 위치가 맵 밖일 경우를 대비해 보정
+				spider->ClampPositionToMapBounds();
+
+				// 플레이어를 즉시 타겟팅하여 추격하게 함
+				Player* player = objMgr->GetPlayer();
+				if (player) spider->SetAggroTarget(player);
+			}
+		}
+	}
+	OutputDebugStringW((L"Boss_SpiderQueen: 거미 " + std::to_wstring(spawnCount) + L"마리 소환 완료\n").c_str());
 }

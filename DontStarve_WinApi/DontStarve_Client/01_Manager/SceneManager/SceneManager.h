@@ -32,7 +32,9 @@ private:
 
 private:
 	BaseScene* m_currentScene;
-	BaseScene* m_nextScene; // 교체 예약된 씬
+	
+	SceneType  m_reservedSceneType;    // 교체 예약된 씬 타입
+	GameObjectID m_reservedCharacterID; // 예약된 캐릭터 ID (게임 씬용)
 	
 	std::map<SceneType, MapData> m_mapDataStorage;  // 각 씬의 맵 데이터 (초기 상태)
 	const MapData* m_currentMapData;

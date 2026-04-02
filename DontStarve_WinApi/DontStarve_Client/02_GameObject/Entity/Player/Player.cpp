@@ -95,10 +95,20 @@ void Player::Init()
 		AnimationClip* clip = m_animator->GetAnimationClip((int)PlayerState::PICKUP, (Direction)dir);
 		if (clip) {
 			clip->AddEventFrame(PICKUP_LAST_FRAME, L"pickup_end");
+			clip->AddEventFrame(1, L"pickup_Trigger");
 			// 이벤트 콜백 설정
 			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 				if (eventName == L"pickup_end") {
 					this->OnPickupEnd();
+				}
+				else
+				{
+					if (m_activeInteractionTarget) {
+						Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
+						if (targetT) {
+							transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+						}
+					}
 				}
 				});
 		}
@@ -366,6 +376,8 @@ void Player::Update(float deltaTime)
 				float ax = targetT->GetX() - transform->GetX();
 				float ay = targetT->GetY() - transform->GetY();
 				float distToTarget = std::sqrt(ax * ax + ay * ay);
+				
+				// 공격 사거리 내에 들어오면 즉시 중단 (콜라이더 외곽선 충돌이 아닌 사거리 기준)
 				if (distToTarget <= m_attackRange) {
 					isMoveToGoal = false;
 					Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
@@ -376,14 +388,26 @@ void Player::Update(float deltaTime)
 			}
 		}
 
-		// 도착 여부 판별 (인라인화: IsArrivedAtTarget)
-		const float arrivalEpsilon = 1.0f;
-		bool isArrived = (distance < arrivalEpsilon) || (distance <= m_stopThreshold) || (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame);
+		// 도착 여부 판별
+		bool isArrived = false;
+		if (m_pendingInteractionTarget && m_pendingInteractionTarget->IsEnabled()) {
+			// 상호작용 시: 사용자 요청에 따라 외곽선에서 멈추지 않고 "정확히 오브젝트 위치" 근처까지 이동
+			// 중심점 기준 m_stopThreshold(10) 또는 한 프레임 이동 거리 이내면 도착으로 판정
+			isArrived = (distance <= m_stopThreshold) || (distance <= moveSpeedThisFrame);
+		}
+		else {
+			// 단순 이동(땅 클릭)인 경우
+			isArrived = (distance <= m_stopThreshold) || (moveSpeedThisFrame > 0.f && distance <= moveSpeedThisFrame);
+		}
 
 		if (isArrived) {
-			transform->SetPosition(m_targetWorldPos.X, m_targetWorldPos.Y);
-			ClampPositionToMapBounds();  // 맵 경계 체크
+			// 땅 클릭 이동 시에만 최종 좌표를 클릭 지점으로 보정
+			if (!m_pendingInteractionTarget) transform->SetPosition(m_targetWorldPos.X, m_targetWorldPos.Y);
+			ClampPositionToMapBounds();
 			isMoveToGoal = false;
+			
+			// 이동 완료 후 자신의 위치를 그리드 시스템에 동기화 (최적화용)
+			ObjectManager::GetInstance()->UpdateObjectGridCell(this);
 
 			// 공격 대상(몬스터)으로 이동한 경우: 사거리 안이면 방향 맞추고 ATTACK, 밖이면 몬스터 현재 위치로 다시 이동
 			if (m_attackTarget && m_attackTarget->IsEnabled()) {

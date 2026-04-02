@@ -21,21 +21,21 @@ public:
 	// 위치 Getter/Setter
 	float GetX() const { return m_x; }
 	float GetY() const { return m_y; }
-	void SetPosition(float x, float y) { m_x = x; m_y = y; }
+	void SetPosition(float x, float y);
 
 	// 스케일 Getter/Setter
 	float GetScaleX() const { return m_scaleX; }
 	float GetScaleY() const { return m_scaleY; }
-	void SetScale(float scaleX, float scaleY) { m_scaleX = scaleX; m_scaleY = scaleY; }
-	void SetScale(float scale) { m_scaleX = scale; m_scaleY = scale; }
+	void SetScale(float scaleX, float scaleY);
+	void SetScale(float scale);
 
 	// 회전 Getter/Setter
 	float GetRotation() const { return m_rotation; }
-	void SetRotation(float rotation) { m_rotation = rotation; }
+	void SetRotation(float rotation);
 
 	// 방향 Getter/Setter
 	Direction GetDirection() const { return m_direction; }
-	void SetDirection(Direction dir) { m_direction = dir; }
+	void SetDirection(Direction dir);
 
 	static Direction GetOppositeDirection(Direction dir)
 	{

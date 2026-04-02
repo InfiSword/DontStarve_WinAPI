@@ -61,7 +61,7 @@ void BossSpiderQueenScene::Init(const MapData* mapData)
 	// 게임 클리어 UI 생성
 	m_gameClearUI = objMgr->CreateGameClearUI();
 
-	const auto& objects = objMgr->GetGameObjects();
+	const auto& objects = objMgr->GetWorldObjects();
 
 	for (auto* obj : objects)
 	{
@@ -147,7 +147,7 @@ void BossSpiderQueenScene::Release()
 void BossSpiderQueenScene::UpdatePhase1(float deltaTime)
 {
 	ObjectManager* objMgr = ObjectManager::GetInstance();
-	const auto& objects = objMgr->GetGameObjects();
+	const auto& objects = objMgr->GetWorldObjects();
 
 	bool minionsAlive = false;
 	bool eggsExist = false;
@@ -320,7 +320,7 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
 			}
 
 			ObjectManager* objMgr = ObjectManager::GetInstance();
-			const auto& objects = objMgr->GetGameObjects();
+			const auto& objects = objMgr->GetWorldObjects();
 			for (auto* obj : objects)
 			{
 				if (obj && (obj->GetID() == GOID_MONSTER_SPIDER || obj->GetID() == GOID_MONSTER_WARRIOR_SPIDER))

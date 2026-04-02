@@ -1,9 +1,9 @@
 #include "99_Default/pch.h"
 #include "BoxCollider.h"
-#include "CircleCollider.h"
 #include "../Transform/Transform.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/CameraManager/CameraManager.h"
+#include "../../../01_Manager/ColliderManager/ColliderManager.h"
 #include "../../GameObject.h"
 
 
@@ -16,41 +16,7 @@ BoxCollider::BoxCollider(GameObject* owner)
 
 bool BoxCollider::IntersectsCollider(const Collider* other) const
 {
-	if (!IsEnabled() || !other || !other->IsEnabled()) {
-		return false;
-	}
-
-	// 다른 콜라이더가 BoxCollider인지 CircleCollider인지 확인
-	const BoxCollider* boxCollider = dynamic_cast<const BoxCollider*>(other);
-	const CircleCollider* circleCollider = dynamic_cast<const CircleCollider*>(other);
-
-	if (boxCollider) {
-		// BoxCollider와의 충돌 검사
-		RECT thisBox = GetWorldBoundingBox();
-		RECT otherBox = boxCollider->GetWorldBoundingBox();
-		return !(thisBox.right < otherBox.left || thisBox.left > otherBox.right ||
-			thisBox.bottom < otherBox.top || thisBox.top > otherBox.bottom);
-	}
-	else if (circleCollider) {
-		// CircleCollider와의 충돌 검사
-		// 원과 사각형의 충돌: 사각형에서 원의 중심에 가장 가까운 점을 찾아 거리 계산
-		RECT thisBox = GetWorldBoundingBox();
-		float worldCenterX, worldCenterY, worldRadius;
-		circleCollider->GetWorldCircle(worldCenterX, worldCenterY, worldRadius);
-
-		// 사각형에서 가장 가까운 점 찾기
-		float closestX = (std::max)((float)thisBox.left, (std::min)(worldCenterX, (float)thisBox.right));
-		float closestY = (std::max)((float)thisBox.top, (std::min)(worldCenterY, (float)thisBox.bottom));
-
-		// 원의 중심과 가장 가까운 점 사이의 거리
-		float dx = worldCenterX - closestX;
-		float dy = worldCenterY - closestY;
-		float distance = sqrtf(dx * dx + dy * dy);
-
-		return distance <= worldRadius;
-	}
-
-	return false;
+	return ColliderManager::GetInstance()->Intersects(const_cast<BoxCollider*>(this), const_cast<Collider*>(other));
 }
 
 bool BoxCollider::ContainsPoint(float worldX, float worldY) const
@@ -94,6 +60,17 @@ RECT BoxCollider::GetWorldBoundingBox() const
 	worldBox.bottom = static_cast<LONG>(oy + static_cast<float>(m_boundingBox.bottom) * sy);
 
 	return worldBox;
+}
+
+Gdiplus::RectF BoxCollider::GetWorldRect() const
+{
+	RECT rect = GetWorldBoundingBox();
+	return Gdiplus::RectF(
+		(float)rect.left,
+		(float)rect.top,
+		(float)(rect.right - rect.left),
+		(float)(rect.bottom - rect.top)
+	);
 }
 
 void BoxCollider::RenderGizmo()

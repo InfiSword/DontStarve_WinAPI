@@ -96,6 +96,10 @@ void HPUI::Init()
 	m_hpText->Init();
 	m_nameText->Init();
 
+	// 초기 상태를 비활성화로 설정 (Update에서 HPUI의 상태에 맞춰 활성화됨)
+	m_hpText->SetActive(false);
+	m_nameText->SetActive(false);
+
 	ObjectManager::GetInstance()->AddGameObject(m_hpText);
 	ObjectManager::GetInstance()->AddGameObject(m_nameText);
 

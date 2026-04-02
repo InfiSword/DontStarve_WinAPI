@@ -20,7 +20,6 @@
 #include "../../02_GameObject/Entity/Monster/Boss_IceHound.h"
 #include "../../02_GameObject/Building/PigHouse.h"
 #include "../../02_GameObject/Building/SpiderEgg.h"
-#include "../../02_GameObject/Building/BossSpiderEgg.h"
 #include "../../02_GameObject/UI/MenuUI.h"
 #include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIButton.h"
@@ -47,18 +46,23 @@ ObjectManager::~ObjectManager()
 
 void ObjectManager::Init()
 {
+	ClearAllObjects();
 	InitializeFactories();
 }
 
 void ObjectManager::ForEachObject(std::function<void(GameObject*)> fn)
 {
-	for (GameObject* obj : m_gameObjects)
+	for (GameObject* obj : m_worldObjects)
+		if (obj) fn(obj);
+	for (GameObject* obj : m_uiObjects)
 		if (obj) fn(obj);
 }
 
 void ObjectManager::ForEachEnabledObject(std::function<void(GameObject*)> fn)
 {
-	for (GameObject* obj : m_gameObjects)
+	for (GameObject* obj : m_worldObjects)
+		if (obj && obj->IsEnabled()) fn(obj);
+	for (GameObject* obj : m_uiObjects)
 		if (obj && obj->IsEnabled()) fn(obj);
 }
 
@@ -69,7 +73,13 @@ void ObjectManager::LateInit()
 
 void ObjectManager::Update(float deltaTime)
 {
-	for (GameObject* obj : m_gameObjects) {
+	for (GameObject* obj : m_worldObjects) {
+		if (obj && obj->IsEnabled())
+		{
+			obj->Update(deltaTime);
+		}
+	}
+	for (GameObject* obj : m_uiObjects) {
 		if (obj && obj->IsEnabled())
 		{
 			obj->Update(deltaTime);
@@ -86,15 +96,15 @@ void ObjectManager::LateUpdate()
 
 void ObjectManager::Render()
 {
-	// 1. 카메라에 보이는 월드 게임오브젝트 렌더링
+	// 1. 카메라에 보이는 월드 게임오브젝트 가시성 갱신 및 렌더링
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (cameraManager) {
 		cameraManager->RenderVisibleGameObjects();
 	}
 
-	// 2. UI 렌더링 (월드 오브젝트는 카메라가 처리, UI는 여기서 처리)
-	for (GameObject* obj : m_gameObjects) {
-		if (obj->IsUI() && obj->IsEnabled()) {
+	// 2. UI 렌더링
+	for (GameObject* obj : m_uiObjects) {
+		if (obj->IsEnabled()) {
 			obj->Render();
 		}
 	}
@@ -110,20 +120,23 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 	if (!pObj) return;
 
 	// 중복 추가 체크
-	auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), pObj);
-	if (it != m_gameObjects.end()) return;
+	auto& targetList = pObj->IsUI() ? m_uiObjects : m_worldObjects;
+	auto it = std::find(targetList.begin(), targetList.end(), pObj);
+	if (it != targetList.end()) return;
 
 	// 삭제 대기 중인지 확인
 	auto pendingIt = std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj);
 	if (pendingIt != m_pendingDeletions.end()) return;
 
-	m_gameObjects.push_back(pObj);
+	targetList.push_back(pObj);
 
 	// UI는 스크린 공간이므로 카메라 가시 목록에 넣지 않음
 	if (!pObj->IsUI()) {
+		AddToGrid(pObj);
+
 		CameraManager* cam = CameraManager::GetInstance();
 		if (cam) cam->TryAddToVisibleIfInViewport(pObj);
-		
+
 		// 플레이어 캐싱
 		if (pObj->GetType() == GO_TYPE_PLAYER) {
 			m_cachedPlayer = static_cast<Player*>(pObj);
@@ -141,6 +154,7 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 	pObj->SetActive(false);
 
 	if (!pObj->IsUI()) {
+		RemoveFromGrid(pObj);
 		CameraManager* cam = CameraManager::GetInstance();
 		if (cam) cam->RemoveFromVisibleObjects(pObj);
 	}
@@ -150,8 +164,8 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
 {
 	// 활성화된 UIElement의 RectTransform 바운딩 박스 검사
-	for (const GameObject* obj : m_gameObjects) {
-		if (!obj->IsUI() || !obj->IsEnabled()) continue;
+	for (const GameObject* obj : m_uiObjects) {
+		if (!obj->IsEnabled()) continue;
 
 		const UIElement* element = static_cast<const UIElement*>(obj);
 		RectTransform* rt = element->GetRectTransform();
@@ -163,9 +177,56 @@ bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
 	return false;
 }
 
+void ObjectManager::UpdateObjectGridCell(GameObject* pObj)
+{
+	if (!pObj || pObj->IsUI()) return;
+
+	Transform* t = pObj->GetComponent<Transform>();
+	if (!t) return;
+
+	int newX = static_cast<int>(t->GetX() / GRID_CELL_SIZE);
+	int newY = static_cast<int>(t->GetY() / GRID_CELL_SIZE);
+
+	// 범위 체크
+	if (newX < 0) newX = 0; if (newX >= GRID_WIDTH) newX = GRID_WIDTH - 1;
+	if (newY < 0) newY = 0; if (newY >= GRID_HEIGHT) newY = GRID_HEIGHT - 1;
+
+	if (newX != pObj->GetGridCellX() || newY != pObj->GetGridCellY()) {
+		RemoveFromGrid(pObj);
+		pObj->SetGridCell(newX, newY);
+		AddToGrid(pObj);
+	}
+}
+
+void ObjectManager::GetObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects)
+{
+	int startX = static_cast<int>(rect.X / GRID_CELL_SIZE);
+	int startY = static_cast<int>(rect.Y / GRID_CELL_SIZE);
+	int endX = static_cast<int>((rect.X + rect.Width) / GRID_CELL_SIZE);
+	int endY = static_cast<int>((rect.Y + rect.Height) / GRID_CELL_SIZE);
+
+	startX = max(0, min(GRID_WIDTH - 1, startX));
+	startY = max(0, min(GRID_HEIGHT - 1, startY));
+	endX = max(0, min(GRID_WIDTH - 1, endX));
+	endY = max(0, min(GRID_HEIGHT - 1, endY));
+
+	for (int y = startY; y <= endY; ++y) {
+		for (int x = startX; x <= endX; ++x) {
+			for (auto* obj : m_spatialGrid[x][y]) {
+				// 현재 시스템은 객체가 하나의 셀에만 등록되므로 중복 체크가 필요 없음.
+				// 만약 한 객체가 여러 셀에 등록되는 시스템으로 변경된다면 std::set 등을 사용해야 함.
+				outObjects.push_back(obj);
+			}
+		}
+	}
+}
+
 GameObject* ObjectManager::FindGameObject(GameObjectID id)
 {
-	for (GameObject* obj : m_gameObjects) {
+	for (GameObject* obj : m_worldObjects) {
+		if (obj && obj->GetID() == id) return obj;
+	}
+	for (GameObject* obj : m_uiObjects) {
 		if (obj && obj->GetID() == id) return obj;
 	}
 	return nullptr;
@@ -176,15 +237,17 @@ void ObjectManager::ProcessPendingDeletions()
 	// 게임 오브젝트 삭제 처리
 	if (!m_pendingDeletions.empty()) {
 		for (GameObject* obj : m_pendingDeletions) {
-			auto it = std::find(m_gameObjects.begin(), m_gameObjects.end(), obj);
-			if (it != m_gameObjects.end()) {
+			auto& targetList = obj->IsUI() ? m_uiObjects : m_worldObjects;
+			auto it = std::find(targetList.begin(), targetList.end(), obj);
+			if (it != targetList.end()) {
 				if (obj == m_cachedPlayer) m_cachedPlayer = nullptr;
+				if (!obj->IsUI()) RemoveFromGrid(obj);
 				(*it)->Release();
 				Utils::SafeDelete(*it);
-				
+
 				// Swap and Pop 최적화: 순서가 상관없으므로 마지막 요소와 교체 후 pop
-				*it = m_gameObjects.back();
-				m_gameObjects.pop_back();
+				*it = targetList.back();
+				targetList.pop_back();
 			}
 		}
 		m_pendingDeletions.clear();
@@ -196,10 +259,41 @@ void ObjectManager::ClearAllObjects()
 	ProcessPendingDeletions();
 	m_cachedPlayer = nullptr;
 	ForEachObject([](GameObject* obj) { obj->Release(); Utils::SafeDelete(obj); });
-	m_gameObjects.clear();
-	m_gameObjects.shrink_to_fit();
+	m_worldObjects.clear();
+	m_worldObjects.shrink_to_fit();
+	m_uiObjects.clear();
+	m_uiObjects.shrink_to_fit();
 	m_pendingDeletions.clear();
 	m_pendingDeletions.shrink_to_fit();
+
+	for (int y = 0; y < GRID_HEIGHT; ++y) {
+		for (int x = 0; x < GRID_WIDTH; ++x) {
+			m_spatialGrid[x][y].clear();
+		}
+	}
+}
+
+void ObjectManager::AddToGrid(GameObject* pObj)
+{
+	int x = pObj->GetGridCellX();
+	int y = pObj->GetGridCellY();
+	if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+		m_spatialGrid[x][y].push_back(pObj);
+	}
+}
+
+void ObjectManager::RemoveFromGrid(GameObject* pObj)
+{
+	int x = pObj->GetGridCellX();
+	int y = pObj->GetGridCellY();
+	if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+		auto& cell = m_spatialGrid[x][y];
+		auto it = std::find(cell.begin(), cell.end(), pObj);
+		if (it != cell.end()) {
+			*it = cell.back();
+			cell.pop_back();
+		}
+	}
 }
 
 // 플레이어 캐시된 포인터 반환 함수
@@ -282,9 +376,6 @@ void ObjectManager::InitializeFactories()
 	registerBuildingIds({ GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG, GOID_BUILDING_SPIDER_SACEGG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Building* {
 		return new SpiderEgg(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
 		});
-	m_buildingFactories[GOID_BUILDING_BOSS_SPIDER_EGG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Building* {
-		return new BossSpiderEgg(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
-		};
 
 	// 아이템
 	auto itemFactory = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
@@ -414,12 +505,12 @@ UIImage* ObjectManager::CreateImage(GameObjectID id, float width, float height, 
 	return image;
 }
 
-UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, float sortKey)
+UIText* ObjectManager::CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, float sortKey, Gdiplus::StringAlignment hAlign, Gdiplus::StringAlignment vAlign)
 {
 	RenderLayer layer = LAYER_UI_FOREGROUND;
 	std::wstring fontName = L"Arial";
 
-	UIText* uiText = new UIText(id, width, height, text, color, layer, sortKey, fontName, fontSize, fontStyle, Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignmentCenter, anchorMinX, anchorMinY, anchorMaxX, anchorMaxY, x, y);
+	UIText* uiText = new UIText(id, width, height, text, color, layer, sortKey, fontName, fontSize, fontStyle, hAlign, vAlign, anchorMinX, anchorMinY, anchorMaxX, anchorMaxY, x, y);
 	if (uiText) {
 		AddGameObject(uiText);
 		uiText->Init();

@@ -19,7 +19,8 @@
 
 SceneManager::SceneManager()
 	: m_currentScene(nullptr)
-	, m_nextScene(nullptr)
+	, m_reservedSceneType(SCENE_NONE)
+	, m_reservedCharacterID(GOID_NONE)
 	, m_currentMapData(nullptr)
 {
 }
@@ -66,19 +67,13 @@ void SceneManager::Release()
 		delete m_currentScene;
 		m_currentScene = nullptr;
 	}
-	if (m_nextScene) {
-		delete m_nextScene;
-		m_nextScene = nullptr;
-	}
 	
-	// m_mapDataStorage 정리 (스택 할당 회피)
-	for (auto it = m_mapDataStorage.begin(); it != m_mapDataStorage.end(); ++it) {
-		it->second.gameObjects.clear();
-		it->second.gameObjects.shrink_to_fit();
-		it->second.mapName.clear();
-		it->second.mapName.shrink_to_fit();
-		it->second.mapFilePath.clear();
-		it->second.mapFilePath.shrink_to_fit();
+	// m_mapDataStorage 정리
+	for (auto& pair : m_mapDataStorage) {
+		pair.second.gameObjects.clear();
+		pair.second.gameObjects.shrink_to_fit();
+		pair.second.mapName.clear();
+		pair.second.mapFilePath.clear();
 	}
 	m_mapDataStorage.clear();
 	
@@ -87,27 +82,16 @@ void SceneManager::Release()
 
 void SceneManager::LoadTitleScene()
 {
-	if (m_nextScene) return;
-
-	// 타이틀로 돌아갈 때 런타임 게임 데이터(보스 클리어 정보 등) 초기화
-	GameProgressManager::GetInstance()->ResetRuntimeData();
-
-	TitleScene* titleScene = new TitleScene();
-	m_nextScene = titleScene;
+	m_reservedSceneType = SCENE_TITLE;
 }
 
 void SceneManager::LoadCharacterSelectScene()
 {
-	if (m_nextScene) return;
-
-	CharacterSelectScene* characterSelectScene = new CharacterSelectScene();
-	m_nextScene = characterSelectScene;
+	m_reservedSceneType = SCENE_CHARACTER_SELECT;
 }
 
 void SceneManager::LoadGameScene(SceneType sceneType, GameObjectID selectedCharacterID)
 {
-	if (m_nextScene) return;
-
 	// 현재 플레이어 상태 저장
 	ObjectManager* objMgr = ObjectManager::GetInstance();
 	Player* currentPlayer = objMgr->GetPlayer();
@@ -115,54 +99,73 @@ void SceneManager::LoadGameScene(SceneType sceneType, GameObjectID selectedChara
 		GameProgressManager::GetInstance()->SavePlayerState(currentPlayer->SaveState());
 	}
 
-	GameScene* gameScene = nullptr;
-	switch (sceneType)
-	{
-	case SCENE_GAME_HOUND_FOREST:
-		gameScene = new BossHoundScene();
-		break;
-	case SCENE_GAME_SPIDER_QUEEN_HOUSE:
-		gameScene = new BossSpiderQueenScene();
-		break;
-	case SCENE_GAME_FARMING_AREA:
-	default:
-		gameScene = new ForestScene();
-		break;
-	}
-	
-	gameScene->SetSelectedCharacterID(selectedCharacterID);
-
-	// 맵 데이터 설정 (m_mapDataStorage에서 가져옴)
-	auto it = m_mapDataStorage.find(sceneType);
-	if (it != m_mapDataStorage.end()) {
-		m_currentMapData = &it->second;
-	}
-	else {
-		m_currentMapData = nullptr;
-	}
-
-	m_nextScene = gameScene;
+	m_reservedSceneType = sceneType;
+	m_reservedCharacterID = selectedCharacterID;
 }
 
 void SceneManager::ChangeSceneIfReserved()
 {
-	if (!m_nextScene) return;
+	if (m_reservedSceneType == SCENE_NONE) return;
 
 	OutputDebugStringW(L"SceneManager: 예약된 씬으로 안전하게 교체 수행\n");
 
-	// 1. 기존 씬 정리
+	// 1. 기존 씬 정리 (이 시점에 ObjectManager::Release가 호출됨)
 	if (m_currentScene) {
 		m_currentScene->Release();
 		delete m_currentScene;
 		m_currentScene = nullptr;
 	}
 
-	// 2. 새 씬 활성화 및 초기화
-	m_currentScene = m_nextScene;
-	m_nextScene = nullptr;
+	// 2. 타이틀로 돌아가는 경우 런타임 데이터 초기화
+	if (m_reservedSceneType == SCENE_TITLE) {
+		GameProgressManager::GetInstance()->ResetRuntimeData();
+	}
 
-	// 씬 활성화 시점에 Init 호출 (여기서 MapData 전달)
-	m_currentScene->Init(m_currentMapData);
+	// 3. 새 씬 인스턴스 생성
+	switch (m_reservedSceneType)
+	{
+	case SCENE_TITLE:
+		m_currentScene = new TitleScene();
+		break;
+	case SCENE_CHARACTER_SELECT:
+		m_currentScene = new CharacterSelectScene();
+		break;
+	case SCENE_GAME_HOUND_FOREST:
+		m_currentScene = new BossHoundScene();
+		break;
+	case SCENE_GAME_SPIDER_QUEEN_HOUSE:
+		m_currentScene = new BossSpiderQueenScene();
+		break;
+	case SCENE_GAME_FARMING_AREA:
+		m_currentScene = new ForestScene();
+		break;
+	default:
+		m_currentScene = nullptr;
+		break;
+	}
+
+	if (m_currentScene) {
+		// 게임 씬인 경우 캐릭터 ID 설정
+		if (m_reservedSceneType >= SCENE_GAME_FARMING_AREA && m_reservedSceneType <= SCENE_GAME_SPIDER_QUEEN_HOUSE) {
+			GameScene* gameScene = static_cast<GameScene*>(m_currentScene);
+			gameScene->SetSelectedCharacterID(m_reservedCharacterID);
+		}
+
+		// 맵 데이터 설정
+		auto it = m_mapDataStorage.find(m_reservedSceneType);
+		if (it != m_mapDataStorage.end()) {
+			m_currentMapData = &it->second;
+		} else {
+			m_currentMapData = nullptr;
+		}
+
+		// 4. 초기화 호출 (여기서 ObjectManager::Init 및 UI 생성이 수행됨)
+		m_currentScene->Init(m_currentMapData);
+	}
+
+	// 예약 정보 초기화
+	m_reservedSceneType = SCENE_NONE;
+	m_reservedCharacterID = GOID_NONE;
 }
 
 SceneType SceneManager::GetCurrentSceneType() const

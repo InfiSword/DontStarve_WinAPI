@@ -218,7 +218,6 @@
     <ClInclude Include="02_GameObject\Entity\Monster\Pig.h" />
     <ClInclude Include="02_GameObject\Entity\Monster\Spider.h" />
     <ClInclude Include="02_GameObject\Building\SpiderEgg.h" />
-    <ClInclude Include="02_GameObject\Building\BossSpiderEgg.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="01_Manager\DataManager\DataManager.cpp" />
@@ -296,7 +295,6 @@
     <ClCompile Include="02_GameObject\Entity\Monster\Pig.cpp" />
     <ClCompile Include="02_GameObject\Entity\Monster\Spider.cpp" />
     <ClCompile Include="02_GameObject\Building\SpiderEgg.cpp" />
-    <ClCompile Include="02_GameObject\Building\BossSpiderEgg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

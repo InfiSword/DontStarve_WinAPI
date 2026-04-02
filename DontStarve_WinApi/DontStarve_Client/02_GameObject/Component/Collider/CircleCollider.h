@@ -17,9 +17,13 @@ public:
     virtual bool IntersectsCollider(const Collider* other) const override;
         // 월드 좌표로 변환된 boundingBox 가져오기 (원을 감싸는 사각형)
 
+    virtual ColliderType GetColliderType() const override { return COLLIDER_CIRCLE; }
+
     virtual bool ContainsPoint(float worldX, float worldY) const override;
     virtual void GetCenterWorld(float& outX, float& outY) const override;
     
+    virtual Gdiplus::RectF GetWorldRect() const override;
+
     // 원형 오브젝트 콜라이더 설정
     void SetObjectCollider(float centerX, float centerY, float radius);
     
