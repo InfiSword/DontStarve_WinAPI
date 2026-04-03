@@ -16,6 +16,7 @@ TitleScene::TitleScene()
 
 TitleScene::~TitleScene()
 {
+	OutputDebugStringW(L"TitleScene: 소멸자 호출\n");
 	Release();
 }
 
@@ -185,7 +186,13 @@ void TitleScene::Render()
 
 void TitleScene::Release()
 {
-	// TitleScene에서 사용한 매니저/포인터 정리 (소멸자에서 호출)
+	if (m_bIsReleased) {
+		OutputDebugStringW(L"TitleScene: 이미 Release됨 (중복 호출 방지)\n");
+		return;
+	}
+	m_bIsReleased = true;
+	OutputDebugStringW(L"TitleScene: Release() 실행\n");
+
 	ObjectManager::GetInstance()->Release();
 	InputManager::GetInstance()->Release();
 	m_resetMessageText = nullptr;

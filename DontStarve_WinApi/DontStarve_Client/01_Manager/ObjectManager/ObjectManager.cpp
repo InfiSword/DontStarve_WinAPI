@@ -85,6 +85,11 @@ void ObjectManager::Update(float deltaTime)
 			obj->Update(deltaTime);
 		}
 	}
+	for(GameObject* obj : m_inactiveObjects) {
+		if (obj) {
+			obj->Update(deltaTime);
+		}
+	}
 }
 
 void ObjectManager::LateUpdate()
@@ -120,22 +125,16 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 	if (!pObj) return;
 
 	// 중복 추가 체크
+	if (std::find(m_worldObjects.begin(), m_worldObjects.end(), pObj) != m_worldObjects.end()) return;
+	if (std::find(m_uiObjects.begin(), m_uiObjects.end(), pObj) != m_uiObjects.end()) return;
+	if (std::find(m_inactiveObjects.begin(), m_inactiveObjects.end(), pObj) != m_inactiveObjects.end()) return;
+
 	auto& targetList = pObj->IsUI() ? m_uiObjects : m_worldObjects;
-	auto it = std::find(targetList.begin(), targetList.end(), pObj);
-	if (it != targetList.end()) return;
-
-	// 삭제 대기 중인지 확인
-	auto pendingIt = std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj);
-	if (pendingIt != m_pendingDeletions.end()) return;
-
 	targetList.push_back(pObj);
 
 	// UI는 스크린 공간이므로 카메라 가시 목록에 넣지 않음
 	if (!pObj->IsUI()) {
 		AddToGrid(pObj);
-
-		CameraManager* cam = CameraManager::GetInstance();
-		if (cam) cam->TryAddToVisibleIfInViewport(pObj);
 
 		// 플레이어 캐싱
 		if (pObj->GetType() == GO_TYPE_PLAYER) {
@@ -146,19 +145,48 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 
 void ObjectManager::RemoveGameObject(GameObject* pObj)
 {
-	if (!pObj) return;
+	if (!pObj || pObj->IsDead()) return;
 
-	auto pendingIt = std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj);
-	if (pendingIt != m_pendingDeletions.end()) return;
-
+	pObj->SetDead(true);
 	pObj->SetActive(false);
 
-	if (!pObj->IsUI()) {
-		RemoveFromGrid(pObj);
-		CameraManager* cam = CameraManager::GetInstance();
-		if (cam) cam->RemoveFromVisibleObjects(pObj);
-	}
 	m_pendingDeletions.push_back(pObj);
+}
+
+void ObjectManager::UnregisterFromWorld(GameObject* pObj)
+{
+	if (!pObj || pObj->IsUI()) return;
+
+	auto it = std::find(m_worldObjects.begin(), m_worldObjects.end(), pObj);
+	if (it != m_worldObjects.end()) {
+		if (pObj == m_cachedPlayer) m_cachedPlayer = nullptr;
+		RemoveFromGrid(pObj);
+
+		*it = m_worldObjects.back();
+		m_worldObjects.pop_back();
+
+		m_inactiveObjects.push_back(pObj);
+		pObj->SetActive(false);
+	}
+}
+
+void ObjectManager::RegisterToWorld(GameObject* pObj)
+{
+	if (!pObj || pObj->IsUI()) return;
+
+	auto it = std::find(m_inactiveObjects.begin(), m_inactiveObjects.end(), pObj);
+	if (it != m_inactiveObjects.end()) {
+		*it = m_inactiveObjects.back();
+		m_inactiveObjects.pop_back();
+
+		m_worldObjects.push_back(pObj);
+		pObj->SetActive(true);
+		AddToGrid(pObj);
+
+		if (pObj->GetType() == GO_TYPE_PLAYER) {
+			m_cachedPlayer = static_cast<Player*>(pObj);
+		}
+	}
 }
 
 bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
@@ -234,24 +262,35 @@ GameObject* ObjectManager::FindGameObject(GameObjectID id)
 
 void ObjectManager::ProcessPendingDeletions()
 {
-	// 게임 오브젝트 삭제 처리
-	if (!m_pendingDeletions.empty()) {
-		for (GameObject* obj : m_pendingDeletions) {
-			auto& targetList = obj->IsUI() ? m_uiObjects : m_worldObjects;
-			auto it = std::find(targetList.begin(), targetList.end(), obj);
-			if (it != targetList.end()) {
-				if (obj == m_cachedPlayer) m_cachedPlayer = nullptr;
-				if (!obj->IsUI()) RemoveFromGrid(obj);
-				(*it)->Release();
-				Utils::SafeDelete(*it);
+	if (m_pendingDeletions.empty()) return;
 
-				// Swap and Pop 최적화: 순서가 상관없으므로 마지막 요소와 교체 후 pop
-				*it = targetList.back();
-				targetList.pop_back();
-			}
+	// 1. 월드 오브젝트 처리 (역방향 루프)
+	for (int i = (int)m_worldObjects.size() - 1; i >= 0; --i) {
+		GameObject* obj = m_worldObjects[i];
+		if (obj->IsDead()) {
+			if (obj == m_cachedPlayer) m_cachedPlayer = nullptr;
+			RemoveFromGrid(obj);
+			obj->Release();
+			Utils::SafeDelete(obj);
+
+			m_worldObjects[i] = m_worldObjects.back();
+			m_worldObjects.pop_back();
 		}
-		m_pendingDeletions.clear();
 	}
+
+	// 2. UI 오브젝트 처리 (역방향 루프)
+	for (int i = (int)m_uiObjects.size() - 1; i >= 0; --i) {
+		GameObject* obj = m_uiObjects[i];
+		if (obj->IsDead()) {
+			obj->Release();
+			Utils::SafeDelete(obj);
+
+			m_uiObjects[i] = m_uiObjects.back();
+			m_uiObjects.pop_back();
+		}
+	}
+
+	m_pendingDeletions.clear();
 }
 
 void ObjectManager::ClearAllObjects()
@@ -423,7 +462,8 @@ T* ObjectManager::PostCreate(T* pObj, const ResourcePathUtils::ObjectResourceDef
 	if (data && data->hasCollider) {
 		if (data->colliderType == COLLIDER_BOX)
 		{
-			BoxCollider* col = pObj->template AddComponent<BoxCollider>();
+			BoxCollider* col = pObj->AddComponent<BoxCollider>();
+			pObj->SetMainCollider(col);
 			col->SetObjectCollider(
 				data->colliderOffsetX,
 				data->colliderOffsetY,
@@ -433,7 +473,9 @@ T* ObjectManager::PostCreate(T* pObj, const ResourcePathUtils::ObjectResourceDef
 		}
 		else if (data->colliderType == COLLIDER_CIRCLE)
 		{
-			CircleCollider* col = pObj->template AddComponent<CircleCollider>();
+			CircleCollider* col = pObj->AddComponent<CircleCollider>();
+
+			pObj->SetMainCollider(col);
 			col->SetObjectCollider(
 				data->colliderCenterX,
 				data->colliderCenterY,

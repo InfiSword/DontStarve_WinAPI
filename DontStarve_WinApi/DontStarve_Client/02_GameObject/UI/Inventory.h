@@ -8,12 +8,18 @@ class UIImage;
 class UIText;
 
 struct ItemSlot {
-	Item* item;
+	GameObjectID id;
 	UINT count;
+	std::wstring countStr; // 렌더링용 캐싱 문자열
+	std::shared_ptr<Sprite> cachedSprite; // 렌더링용 캐싱 스프라이트 (수명 보장)
 
-	ItemSlot() : item(nullptr), count(0) {}
-	bool IsEmpty() const { return item == nullptr || count == 0; }
+	ItemSlot() : id(GOID_NONE), count(0), countStr(L""), cachedSprite(nullptr) {}
+	bool IsEmpty() const { return id == GOID_NONE || count == 0; }
 	void Clear();
+	void UpdateCount(UINT newCount) {
+		count = newCount;
+		countStr = (count > 1) ? std::to_wstring(count) : L"";
+	}
 };
 
 class Inventory {
@@ -28,37 +34,41 @@ private:
 	const float SLOT_PADDING;
 	const float SLOT_STRIDE;   // SLOT_WIDTH + SLOT_PADDING
 
-	// 인벤토리 배경 UIImage
-	UIImage* m_bgImage;
+	// 인벤토리 배경 및 슬롯 리소스
+	std::shared_ptr<Sprite> m_bgSprite;
+	std::shared_ptr<Sprite> m_slotSprite;
 
-	// 슬롯당 UIButton (슬롯 배경) + UIImage (아이템 이미지) + UIText (개수 텍스트)
-	std::vector<UIButton*> m_slotButtons;
-	std::vector<UIImage*>  m_slotItemImages;
-	std::vector<UIText*>   m_slotCountTexts;
+	// 인벤토리 위치/크기 (Init에서 계산)
+	float m_bgX, m_bgY;
+	float m_bgW, m_bgH;
+	float m_slotStartX, m_slotStartY;
+
+	// 텍스트 렌더링용 폰트/브러시
+	Gdiplus::Font* m_font;
+	Gdiplus::SolidBrush* m_textBrush;
+	Gdiplus::StringFormat* m_stringFormat;
 
 public:
 	Inventory(Player* owner);
 	~Inventory();
 
 	void Init();
-
-	bool AddItem(Item* itemDef, UINT count = 1);
-	bool RemoveItem(UINT slotIndex, UINT count = 1);
-	bool ConsumeItems(const std::map<UINT, UINT>& requiredItems);
-
-	UINT GetItemCount(UINT itemId) const;
-	bool CheckHasEnoughItems(const std::map<UINT, UINT>& requiredItems) const;
-
-	const ItemSlot& GetSlot(int index) const;
-	Item* GetItem(int index) const {
-		if (index < 0 || index >= (int)m_slots.size()) return nullptr;
-		return m_slots[index].item;
-	}
-
+	void Update(float deltaTime);
 	void Render(int equippedSlotIndex);
 
 	bool ContainsScreenPoint(float screenX, float screenY) const;
 	bool HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player);
+
+	// 인벤토리 아이템 조작 인터페이스
+	bool AddItem(Item* itemDef, UINT count = 1);
+	bool RemoveItem(UINT slotIndex, UINT count = 1);
+	bool ConsumeItems(const std::map<UINT, UINT>& requiredItems);
+	
+	// 인벤토리 아이템 조회 인터페이스
+	UINT GetItemCount(UINT itemId) const;
+	UINT GetAvailableSpace(UINT itemId) const;
+	const ItemSlot& GetSlot(int index) const;
+	bool CheckHasEnoughItems(const std::map<UINT, UINT>& requiredItems) const;
 
 	// 상태 저장/복원용 메서드
 	void ClearAllItems();

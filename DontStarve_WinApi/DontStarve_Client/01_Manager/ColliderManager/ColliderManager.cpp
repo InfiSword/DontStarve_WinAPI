@@ -14,51 +14,57 @@ ColliderManager::ColliderManager()
 
 ColliderManager::~ColliderManager()
 {
+	Release();
 }
 
 void ColliderManager::Init()
 {
-	// 씬 재진입 시 콜라이더 목록을 비워 깨끗한 상태로 시작 (Release 호출 없이 Init만 호출되는 경우 대비)
 	m_colliders.clear();
+	m_queryBuffer.clear();
 }
 
 void ColliderManager::LateInit()
 {
-
 }
 
 void ColliderManager::Update(float deltaTime)
 {
-    // 모든 게임오브젝트의 콜라이더 위치 업데이트 
 }
 
 void ColliderManager::LateUpdate()
 {
-	// 모든 활성 콜라이더 간의 충돌 검사를 공간 분할 그리드를 활용해 수행
 	ObjectManager* objMgr = ObjectManager::GetInstance();
 	if (!objMgr) return;
 
+	// 최적화: 모든 콜라이더를 순회하는 대신, 능동적으로 움직이는 객체들만 충돌 검사를 시작함
 	for (size_t i = 0; i < m_colliders.size(); ++i) {
 		Collider* pSrc = m_colliders[i];
 		if (!pSrc || !pSrc->IsEnabled()) continue;
 
+		// 물리 충돌(몸통 밀기 등)은 물리 콜라이더끼리만 수행
+		if (!pSrc->IsPhysicalCollider()) continue;
+
 		GameObject* pSrcOwner = pSrc->GetOwner();
 		if (!pSrcOwner || !pSrcOwner->IsEnabled()) continue;
 
+		// 정적 객체(나무, 돌 등)는 스스로 충돌 검사를 시작하지 않음 (연산량 절감)
+		GameObjectType type = pSrcOwner->GetType();
+		if (type != GO_TYPE_PLAYER && type != GO_TYPE_MONSTER) {
+			continue;
+		}
+
 		// 현재 콜라이더의 영역을 기준으로 주변 객체들만 쿼리
 		Gdiplus::RectF srcRect = pSrc->GetWorldRect();
-		std::vector<GameObject*> potentialTargets;
-		objMgr->GetObjectsInRect(srcRect, potentialTargets);
+		
+		m_queryBuffer.clear();
+		objMgr->GetObjectsInRect(srcRect, m_queryBuffer);
 
-		for (GameObject* pDstOwner : potentialTargets) {
+		for (GameObject* pDstOwner : m_queryBuffer) {
 			if (!pDstOwner || pDstOwner == pSrcOwner || !pDstOwner->IsEnabled()) continue;
 
-			// 대상 객체의 모든 콜라이더와 검사
-			std::vector<Collider*> dstColliders = pDstOwner->GetComponents<Collider>();
-			for (Collider* pDst : dstColliders) {
-				if (!pDst || !pDst->IsEnabled()) continue;
-
-				// 실제 정밀 충돌 검사
+			// 최적화: 대상의 모든 콜라이더를 뒤지는 대신, 메인(몸통) 콜라이더와만 검사
+			Collider* pDst = pDstOwner->GetMainCollider();
+			if (pDst && pDst->IsEnabled() && pDst->IsPhysicalCollider()) {
 				if (Intersects(pSrc, pDst)) {
 					pSrcOwner->OnCollision(pDstOwner);
 				}
@@ -69,15 +75,15 @@ void ColliderManager::LateUpdate()
 
 void ColliderManager::Release()
 {
-    // Collider 해제는 Component 해제시에 처리되므로 여기서는 리스트만 정리
     m_colliders.clear();
     m_colliders.shrink_to_fit();
+	m_queryBuffer.clear();
+	m_queryBuffer.shrink_to_fit();
 }
 
 void ColliderManager::AddCollider(Collider* pCollider)
 {
     if (!pCollider) return;
-    // 중복 등록 방지 (AddComponent가 Init을 즉시 호출하고 InitializeObjects가 Init을 다시 호출하는 구조 대비)
     if (std::find(m_colliders.begin(), m_colliders.end(), pCollider) == m_colliders.end()) {
         m_colliders.push_back(pCollider);
     }
@@ -86,35 +92,19 @@ void ColliderManager::AddCollider(Collider* pCollider)
 void ColliderManager::RemoveCollider(Collider* pCollider)
 {
     if (!pCollider) return;
-    // 리스트에서 콜라이더 포인터 제거 (실제 Component 해제시에 처리)
     m_colliders.erase(std::remove(m_colliders.begin(), m_colliders.end(), pCollider), m_colliders.end());
 }
 
 bool ColliderManager::CheckCollision(GameObject* obj1, GameObject* obj2)
 {
-    // 유효성 검사
-    if (!obj1 || !obj2 || obj1 == obj2) {
-        return false;
-    }
+    if (!obj1 || !obj2 || obj1 == obj2) return false;
+    if (!obj1->IsEnabled() || !obj2->IsEnabled()) return false;
 
-    // 두 게임오브젝트가 모두 활성화되어 있는지
-    if (!obj1->IsEnabled() || !obj2->IsEnabled()) {
-        return false;
-    }
+    Collider* c1 = obj1->GetMainCollider();
+    Collider* c2 = obj2->GetMainCollider();
 
-    // 두 게임오브젝트의 모든 Collider Component 가져오기
-    std::vector<Collider*> colliders1 = obj1->GetComponents<Collider>();
-    std::vector<Collider*> colliders2 = obj2->GetComponents<Collider>();
-
-    // 각 게임오브젝트의 모든 콜라이더 쌍에 대해 충돌 검사 수행
-    for (Collider* c1 : colliders1) {
-        if (!c1->IsEnabled()) continue;
-        for (Collider* c2 : colliders2) {
-            if (!c2->IsEnabled()) continue;
-            if (Intersects(c1, c2)) {
-                return true;
-            }
-        }
+    if (c1 && c2 && c1->IsEnabled() && c2->IsEnabled()) {
+        return Intersects(c1, c2);
     }
 
     return false;

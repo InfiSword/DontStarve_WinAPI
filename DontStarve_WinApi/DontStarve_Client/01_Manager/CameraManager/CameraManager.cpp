@@ -14,7 +14,8 @@ CameraManager::CameraManager() {}
 void CameraManager::Init() {
     m_cameraPos = { 0,0 };
     m_visibleObjects.clear();
-    m_tileCache.clear();
+	m_queryBuffer.clear();
+    ClearTileCache();
     m_hasWalkableBounds = false;
     m_lastStartTileX = -1;
 }
@@ -28,6 +29,8 @@ void CameraManager::Update(float deltaTime) {
 
 void CameraManager::Release() {
     m_visibleObjects.clear();
+	m_queryBuffer.clear();
+	m_queryBuffer.shrink_to_fit();
     ClearTileCache();
 }
 
@@ -37,16 +40,22 @@ Gdiplus::RectF CameraManager::GetViewportWorldRect() const {
 
 void CameraManager::FollowTarget() {
     if (Transform* t = m_target->GetComponent<Transform>()) {
-        m_cameraPos = { t->GetX(), t->GetY() };
+        float targetX = t->GetX();
+        float targetY = t->GetY();
+
+        // 즉시 타겟 위치로 설정 (보간 제거)
+        m_cameraPos.X = targetX;
+        m_cameraPos.Y = targetY;
+
         if (m_hasWalkableBounds) {
-            m_cameraPos.X = std::max(m_walkableMinX + WINCX * 0.5f, std::min(m_walkableMaxX - WINCX * 0.5f, m_cameraPos.X));
-            m_cameraPos.Y = std::max(m_walkableMinY + WINCY * 0.5f, std::min(m_walkableMaxY - WINCY * 0.5f, m_cameraPos.Y));
+            m_cameraPos.X = (std::max)(m_walkableMinX + WINCX * 0.5f, (std::min)(m_walkableMaxX - WINCX * 0.5f, m_cameraPos.X));
+            m_cameraPos.Y = (std::max)(m_walkableMinY + WINCY * 0.5f, (std::min)(m_walkableMaxY - WINCY * 0.5f, m_cameraPos.Y));
         }
     }
 }
 
 bool CameraManager::IsObjectInViewport(GameObject* obj) const {
-    if (!obj || !obj->IsEnabled() || obj->IsUI()) return false;
+    if (!obj || !obj->IsEnabled()) return false;
     Gdiplus::RectF bounds = obj->GetBounds();
     Gdiplus::RectF vp = GetViewportWorldRect();
     const float M = 200.0f;
@@ -60,31 +69,15 @@ void CameraManager::UpdateVisibleObjects() {
     const float M = 200.0f;
     Gdiplus::RectF queryRect(vp.X - M, vp.Y - M, vp.Width + 2 * M, vp.Height + 2 * M);
 
-    std::vector<GameObject*> potentialObjects;
-    ObjectManager::GetInstance()->GetObjectsInRect(queryRect, potentialObjects);
+	m_queryBuffer.clear();
+    ObjectManager::GetInstance()->GetObjectsInRect(queryRect, m_queryBuffer);
 
-    for (auto* obj : potentialObjects)
+    for (auto* obj : m_queryBuffer)
     {
         if (IsObjectInViewport(obj)) {
             // 중복 방지 (객체가 여러 셀에 걸쳐 있을 수 있으나 현재 구현은 중심점 기반 한 셀에만 존재)
             m_visibleObjects.push_back(obj);
         }
-    }
-}
-
-void CameraManager::RemoveFromVisibleObjects(GameObject* obj) {
-    auto it = std::find(m_visibleObjects.begin(), m_visibleObjects.end(), obj);
-    if (it != m_visibleObjects.end()) {
-        *it = m_visibleObjects.back();
-        m_visibleObjects.pop_back();
-    }
-}
-
-void CameraManager::TryAddToVisibleIfInViewport(GameObject* obj) {
-    if (IsObjectInViewport(obj)) {
-        auto it = std::find(m_visibleObjects.begin(), m_visibleObjects.end(), obj);
-        if (it == m_visibleObjects.end())
-            m_visibleObjects.push_back(obj);
     }
 }
 
@@ -94,20 +87,19 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float x, float y) {
     // 마우스 위치 주변의 객체들만 쿼리 (그리드 최적화 활용)
     float range = 100.0f;
     Gdiplus::RectF queryRect(x - range, y - range, range * 2, range * 2);
-    std::vector<GameObject*> potentialObjects;
-    ObjectManager::GetInstance()->GetObjectsInRect(queryRect, potentialObjects);
+    
+	m_queryBuffer.clear();
+    ObjectManager::GetInstance()->GetObjectsInRect(queryRect, m_queryBuffer);
 
-    for (auto* obj : potentialObjects) {
+    for (auto* obj : m_queryBuffer) {
         if (!obj->CanInteract() || !obj->IsEnabled()) continue;
         
-        // 해당 객체의 모든 콜라이더 중 '상호작용용'이고 '포인터를 포함'하는 것이 있는지 체크
-        for (auto* col : obj->GetComponents<Collider>()) {
-            if (col->IsEnabled() && col->IsInteractionCollider() && col->ContainsPoint(x, y)) {
-                float curY = obj->GetComponent<Transform>()->GetY();
-                // 여러 객체가 겹쳐있을 경우 Y값이 큰(아래쪽에 있는) 객체를 우선순위로 선택 (Top-Down 뷰 특성)
-                if (!best || curY > maxY) { best = obj; maxY = curY; }
-                break;
-            }
+        // 수정: 모든 콜라이더 순회 제거, 메인(몸통) 콜라이더만 핀포인트로 체크
+        Collider* mainCol = obj->GetMainCollider();
+        if (mainCol && mainCol->IsEnabled() && mainCol->ContainsPoint(x, y)) {
+            float curY = obj->GetComponent<Transform>()->GetY();
+            // 여러 객체가 겹쳐있을 경우 Y값이 큰(아래쪽에 있는) 객체를 우선순위로 선택 (Top-Down 뷰 특성)
+            if (!best || curY > maxY) { best = obj; maxY = curY; }
         }
     }
     return best;
@@ -120,17 +112,18 @@ void CameraManager::FindObjectsIntersectingCollider(Collider* pCol, std::vector<
     GameObject* owner = pCol->GetOwner();
     Gdiplus::RectF bounds = pCol->GetWorldRect();
 
-    std::vector<GameObject*> potentialObjects;
-    ObjectManager::GetInstance()->GetObjectsInRect(bounds, potentialObjects);
+	m_queryBuffer.clear();
+    ObjectManager::GetInstance()->GetObjectsInRect(bounds, m_queryBuffer);
 
-    for (auto* obj : potentialObjects) {
+    for (auto* obj : m_queryBuffer) {
         if (!obj->IsEnabled() || obj == owner) continue; // 자기 자신 제외
 
-        for (auto* col : obj->GetComponents<Collider>()) {
-            if (col->IsEnabled() && (!onlyInteraction || col->IsInteractionCollider())) {
-                if (ColliderManager::GetInstance()->Intersects(pCol, col)) {
+        // 수정: 상대방의 모든 콜라이더가 아닌, 오직 "몸통 콜라이더"와만 충돌 체크
+        Collider* mainCol = obj->GetMainCollider();
+        if (mainCol && mainCol->IsEnabled()) {
+            if (!onlyInteraction || mainCol->IsInteractionCollider()) {
+                if (ColliderManager::GetInstance()->Intersects(pCol, mainCol)) {
                     out.push_back(obj); 
-                    break; 
                 }
             }
         }
@@ -185,8 +178,15 @@ void CameraManager::CleanupUnusedTileCache(const MapData* md, int sx, int ex, in
 }
 
 void CameraManager::ClearTileCache() {
-    for (auto& p : m_tileCache) delete p.second.bitmap;
-    m_tileCache.clear();
+	if (!m_tileCache.empty()) {
+		OutputDebugStringW((L"CameraManager: 타일 캐시 정리 시작 (Count: " + std::to_wstring(m_tileCache.size()) + L")\n").c_str());
+		for (auto& p : m_tileCache) {
+			if (p.second.bitmap) {
+				delete p.second.bitmap;
+			}
+		}
+		m_tileCache.clear();
+	}
 }
 
 void CameraManager::SetWalkableBoundsFromMapData(const MapData* md) {
@@ -195,7 +195,8 @@ void CameraManager::SetWalkableBoundsFromMapData(const MapData* md) {
     for (int y = 0; y < md->mapHeight; ++y) for (int x = 0; x < md->mapWidth; ++x) {
         if (!md->walkableAreas[x][y]) continue;
         float wx = x * TILE_SIZE + TILE_SIZE * 0.5f, wy = y * TILE_SIZE + TILE_SIZE * 0.5f;
-        minX = std::min(minX, wx); minY = std::min(minY, wy); maxX = std::max(maxX, wx); maxY = std::max(maxY, wy);
+        minX = (std::min)(minX, wx); minY = (std::min)(minY, wy); 
+        maxX = (std::max)(maxX, wx); maxY = (std::max)(maxY, wy);
         found = true;
     }
     if (found) SetWalkableBounds(minX, minY, maxX, maxY);

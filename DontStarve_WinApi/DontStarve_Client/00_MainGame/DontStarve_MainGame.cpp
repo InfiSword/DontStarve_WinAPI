@@ -121,30 +121,18 @@ void DontStarve_MainGame::Release()
     if (!m_bIsInitialized)
         return;
 
-    // 1단계: 게임 로직 매니저 해제 (씬 안의 오브젝트 정리 포함)
-    //        GameProgressManager는 씬 해제 전에 저장/파괴
-    GameProgressManager::DestroyInstance();
-
-    // 2단계: 씬 전체 파괴 (ObjectManager, CameraManager 등 씬 종속 매니저 포함)
-    SceneManager::DestroyInstance();
-
-    // 3단계: 씬과 무관한 독립 매니저 파괴
-    InventoryManager::DestroyInstance();
-    ColliderManager::DestroyInstance();
-    ObjectManager::DestroyInstance();
-    CameraManager::DestroyInstance();
-    InputManager::DestroyInstance();
-
-    // 4단계: 렌더/그래픽 매니저 파괴 (모든 Bitmap/Sprite 참조 해제 후)
-    RenderManager::DestroyInstance();
-    GraphicsManager::DestroyInstance();
-
-    // 5단계: 리소스 매니저 파괴 (모든 오브젝트가 해제된 후 마지막)
-    DataManager::DestroyInstance();
-    ResourceManager::DestroyInstance();
-
-    // 6단계: 시간 매니저 파괴
-    TimeManager::DestroyInstance();
+	SceneManager::DestroyInstance();
+	ObjectManager::DestroyInstance();
+	InputManager::DestroyInstance();
+	ResourceManager::DestroyInstance();
+	RenderManager::DestroyInstance();
+	GraphicsManager::DestroyInstance();
+	CameraManager::DestroyInstance();
+	DataManager::DestroyInstance();
+	GameProgressManager::DestroyInstance();
+	InventoryManager::DestroyInstance();
+	TimeManager::DestroyInstance();
+	ColliderManager::DestroyInstance();
 
     m_bIsInitialized = false;
 }

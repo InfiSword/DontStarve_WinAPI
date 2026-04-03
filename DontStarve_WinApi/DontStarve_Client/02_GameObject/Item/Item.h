@@ -14,7 +14,6 @@ protected:
     // Entity에서 가져온 필수 컴포넌트들
     Transform* m_transform;
     SpriteRenderer* m_spriteRenderer;
-    Collider* m_collider;
 
 public:
     Item(GameObjectID id, const std::wstring& name, const std::wstring& desc,
@@ -38,5 +37,4 @@ public:
     // Transform 접근자 (Entity와 동일한 인터페이스 유지)
     Transform* GetTransform() const { return m_transform; }
     SpriteRenderer* GetSpriteRenderer() const { return m_spriteRenderer; }
-    Collider* GetCollider() const { return m_collider; }
 };

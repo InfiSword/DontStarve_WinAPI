@@ -56,7 +56,12 @@ public:
     virtual GameObjectID GetDropItemID() const;
     virtual int GetDropItemCount() const;
     virtual void SetDropItem(GameObjectID itemID, int count = 1);   
-  virtual bool OnInteraction(GameObject* obj) override;
+    virtual bool OnInteraction(GameObject* obj) override;
+
+	// 객체의 메인(몸통) 콜라이더를 반환하도록 오버라이딩
+	virtual Collider* GetMainCollider() const override {
+		return m_entityCollider;
+	}
 
     // 맵 경계 체크 및 반환
     void ClampPositionToMapBounds();

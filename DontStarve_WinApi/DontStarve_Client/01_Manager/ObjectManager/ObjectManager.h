@@ -37,6 +37,10 @@ public:
 	void ClearAllObjects();
 	bool IsScreenPointBlockedByUI(float screenX, float screenY) const;
 
+	// 인벤토리 등 시스템 내부 관리용 (Update/Render에서 제외)
+	void UnregisterFromWorld(GameObject* pObj);
+	void RegisterToWorld(GameObject* pObj);
+
 	// 공간 분할 (Spatial Partitioning) 관련
 	void UpdateObjectGridCell(GameObject* pObj);
 	void GetObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects);
@@ -95,6 +99,7 @@ private:
 
 	std::vector<GameObject*> m_worldObjects;
 	std::vector<GameObject*> m_uiObjects;
+	std::vector<GameObject*> m_inactiveObjects;  // 인벤토리 등 시스템 내부 관리용 리스트
 	std::vector<GameObject*> m_pendingDeletions; // 삭제 지연 큐
 
 	// 공간 분할용 그리드

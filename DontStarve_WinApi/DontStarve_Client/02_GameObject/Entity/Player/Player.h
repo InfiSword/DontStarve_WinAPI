@@ -41,9 +41,7 @@ public:
 	virtual void RenderDebugOverlay() override;
 
 	void SetTargetPosition(float worldX, float worldY);
-	void HandleRightClick(float worldX, float worldY);
 	void HandleMovement();
-	void FinalizePickup();
 	virtual bool OnInteraction(GameObject* obj) override;
 
 	void SetInputEnabled(bool enabled) { m_bInputEnabled = enabled; }
@@ -53,7 +51,8 @@ public:
 
 	PlayerState GetPlayerState() const { return (PlayerState)m_state; }
 
-	Tool* GetEquippedItem() const { return m_equippedItem; }
+	Tool* GetEquippedItem() const { return nullptr; } // 기존 호환성을 위해 nullptr 반환 (추후 제거 가능)
+	GameObjectID GetEquippedItemID() const { return m_equippedItemID; }
 	int GetEquippedSlotIndex() const { return m_equippedSlotIndex; };
 
 	void ToggleEquipItem(int slotIndex);
@@ -72,7 +71,7 @@ public:
 private:
 
 	void TryStartInteraction(float worldX, float worldY);
-	void UpdateAnimatorState();
+	void FinalizePickup();
 	
 	// 애니메이션 이벤트 핸들러 함수들
 	void OnPickupEnd();
@@ -96,6 +95,6 @@ private:
 	float m_stopThreshold;
 
 	int m_equippedSlotIndex;
-	Tool* m_equippedItem;
+	GameObjectID m_equippedItemID;
 	bool m_bInputEnabled;
 };

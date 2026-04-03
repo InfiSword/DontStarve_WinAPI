@@ -27,4 +27,5 @@ public:
 
 private:
     std::vector<Collider*> m_colliders; // 등록된 콜라이더들
+    std::vector<GameObject*> m_queryBuffer; // 공간 분할 쿼리용 재사용 버퍼 (성능 최적화용)
 };

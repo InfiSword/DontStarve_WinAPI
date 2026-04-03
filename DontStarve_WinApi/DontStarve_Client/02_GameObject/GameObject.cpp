@@ -11,12 +11,15 @@ bool GameObject::g_bRenderDebugOverlay = false;
 GameObject::GameObject(GameObjectID id,
 	const std::wstring& resourcePath, const std::wstring& imageName,
 	bool isActive, bool isInteractive)
-	: Object(), m_id(id), m_isInteractive(isInteractive), m_bReleased(false), m_type(GameObjectType::GO_TYPE_NONE)
+	: Object(), m_id(id), m_isInteractive(isInteractive), m_type(GameObjectType::GO_TYPE_NONE), m_isDead(false)
 {
 	SetActive(isActive);
 }
 
-GameObject::~GameObject() { Release(); }
+GameObject::~GameObject() { 
+	OutputDebugStringW((L"GameObject: 소멸자 호출 - ID: " + std::to_wstring(m_id) + L", Name: " + m_name + L"\n").c_str());
+	Release(); 
+}
 
 void GameObject::Init() {
 	for (auto& component : m_components) {
@@ -39,15 +42,6 @@ void GameObject::LateInit() {
 }
 
 void GameObject::Update(float deltaTime) {
-	// Release()가 호출되었으면 업데이트하지 않음
-	if (m_bReleased) {
-		return;
-	}
-
-	// 위치/크기 변경이 있었다면 바운딩 박스와 그리드 셀 갱신
-	if (m_isBoundsDirty) {
-		GetBounds();
-	}
 
 	for (auto& component : m_components) {
 		if (component && component->IsEnabled()) {
@@ -58,9 +52,10 @@ void GameObject::Update(float deltaTime) {
 }
 
 void GameObject::LateUpdate() {
-	// Release()가 호출되었으면 업데이트하지 않음
-	if (m_bReleased) {
-		return;
+
+	// 위치/크기 변경이 있었다면 바운딩 박스와 그리드 셀 갱신 (LateUpdate 최상단)
+	if (m_isBoundsDirty) {
+		GetBounds();
 	}
 
 	for (auto& component : m_components) {
@@ -72,12 +67,6 @@ void GameObject::LateUpdate() {
 
 void GameObject::Release() 
 { 
-	// 이미 Release()가 호출되었으면 중복 호출 방지
-	if (m_bReleased) {
-		return;
-	}
-	m_bReleased = true;
-
 	// 공간 분할 그리드에서 제거
 	if (!IsUI()) {
 		ObjectManager::GetInstance()->RemoveGameObject(this); 

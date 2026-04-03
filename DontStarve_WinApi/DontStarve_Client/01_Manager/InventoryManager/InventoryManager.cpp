@@ -4,6 +4,7 @@
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Item/Item.h"
 #include "../../02_GameObject/Item/Tool/Tool.h"
+#include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/UI/Inventory.h"
 #include "../../02_GameObject/UI/CraftingRecipe.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
@@ -42,19 +43,22 @@ bool InventoryManager::TryGainItemFromWorldObject(Player* player, GameObject* wo
 	std::vector<std::pair<GameObjectID, UINT>> drops = CalculateDropsFromObject(worldObject);
 	
 	bool anyItemAdded = false;
+	auto* objMgr = ObjectManager::GetInstance();
+
 	for (const auto& drop : drops) {
-		// TODO: ObjectManager에 GetItemDefinition 함수 추가 필요
-		// 임시로 최소 처리
-		/*
-		std::shared_ptr<Item> itemDef = ObjectManager::GetInstance()->GetItemDefinition(drop.first);
-		if (itemDef) {
-			if (inventory->AddItem(itemDef, drop.second)) {
+		// ID 기반으로 임시 아이템 객체 생성 (AddItem 내부에서 데이터만 추출 후 파괴됨)
+		Item* tempItem = objMgr->CreateItem(drop.first, 0.0f, 0.0f);
+		if (tempItem) {
+			if (inventory->AddItem(tempItem, drop.second)) {
 				anyItemAdded = true;
 				OutputDebugStringW((L"InventoryManager: 아이템 획득 - ID: " + std::to_wstring(drop.first) + L", 개수: " + std::to_wstring(drop.second) + L"\n").c_str());
 			}
+			else {
+				// 인벤토리에 못 들어갔으면 임시 객체 수동 삭제
+				objMgr->RemoveGameObject(tempItem);
+				OutputDebugStringW((L"InventoryManager: 아이템 획득 실패 (인벤토리 가득 참) - ID: " + std::to_wstring(drop.first) + L"\n").c_str());
+			}
 		}
-		*/
-		OutputDebugStringW((L"InventoryManager: 아이템 획득 실패 - ID: " + std::to_wstring(drop.first) + L", 개수: " + std::to_wstring(drop.second) + L"\n").c_str());
 	}
 	
 	return anyItemAdded;
@@ -70,16 +74,15 @@ bool InventoryManager::TryUseItem(Player* player, int slotIndex) {
 	const ItemSlot& slot = inventory->GetSlot(slotIndex);
 	if (slot.IsEmpty()) return false;
 	
-	Item* item = slot.item;
+	GameObjectID itemID = slot.id;
 	
-	// 도구: 장착/해제 토글
-	if (dynamic_cast<Tool*>(item)) {
+	// 도구 여부 확인 (DataTable 사용)
+	if (DataTable::GetToolInfo(itemID) != nullptr) {
 		player->ToggleEquipItem(slotIndex);
 		return true;
 	}
 
-	// 음식
-	GameObjectID itemID = item->GetID();
+	// 음식 여부 확인 및 처리
 	int healAmount = GetFoodHealAmount(itemID);
 	if (healAmount > 0) {
 		if (inventory->RemoveItem(slotIndex, 1)) {
@@ -90,7 +93,7 @@ bool InventoryManager::TryUseItem(Player* player, int slotIndex) {
 	}
 	
 	// TODO: 그 외 아이템 타입별 사용 로직
-	OutputDebugStringW((L"InventoryManager: 아이템 사용 - 슬롯 " + std::to_wstring(slotIndex) + L"\n").c_str());
+	OutputDebugStringW((L"InventoryManager: 아이템 사용 - 슬롯 " + std::to_wstring(slotIndex) + L", ID: " + std::to_wstring(itemID) + L"\n").c_str());
 	return true;
 }
 
@@ -116,11 +119,17 @@ bool InventoryManager::TryDropItem(Player* player, int slotIndex, UINT count) {
 	
 	const ItemSlot& slot = inventory->GetSlot(slotIndex);
 	if (slot.IsEmpty() || slot.count < count) return false;
+
+	GameObjectID itemID = slot.id;
 	
 	// 인벤토리에서 아이템 제거
 	if (inventory->RemoveItem(slotIndex, count)) {
-		// TODO: 월드에 아이템 게임오브젝트 생성
-		// 플레이어 위치 근처에 아이템 드롭
+		// 월드에 실제 아이템 게임오브젝트 생성
+		Transform* playerTrans = player->GetComponent<Transform>();
+		if (playerTrans) {
+			// 버리는 위치: 플레이어 좌표에서 y좌표만 0.1f 앞에
+			ObjectManager::GetInstance()->CreateItem(itemID, playerTrans->GetX(), playerTrans->GetY() - 0.1f);
+		}
 		
 		OutputDebugStringW((L"InventoryManager: 아이템 버림 - 슬롯 " + std::to_wstring(slotIndex) + L", 개수: " + std::to_wstring(count) + L"\n").c_str());
 		return true;
@@ -179,32 +188,13 @@ bool InventoryManager::TryTradeItem(Player* player, const std::map<UINT, UINT>& 
 		return false;
 	}
 	
-	// 받을 아이템의 인벤토리 공간 확인
-	// TODO: 인벤토리 공간 확인 로직 필요
-	
 	// 아이템 교환 처리
 	if (inventory->ConsumeItems(giveItems)) {
-		bool allReceived = true;
 		for (const auto& receive : receiveItems) {
-			// TODO: ObjectManager에 GetItemDefinition 함수 추가 필요
-			// 임시로 최소 처리
-			/*
-			std::shared_ptr<Item> item = ObjectManager::GetInstance()->GetItemDefinition((GameObjectID)receive.first);
-			if (!item || !inventory->AddItem(item, receive.second)) {
-				allReceived = false;
-				break;
-			}
-			*/
+			inventory->AddItemByID((GameObjectID)receive.first, receive.second);
 		}
-		
-		if (allReceived) {
-			OutputDebugStringW(L"InventoryManager: 아이템 교환 완료\n");
-			return true;
-		}
-		else {
-			OutputDebugStringW(L"InventoryManager: 아이템 교환 중 오류 발생\n");
-			// TODO: 롤백 처리 필요
-		}
+		OutputDebugStringW(L"InventoryManager: 아이템 교환 완료\n");
+		return true;
 	}
 	
 	return false;
@@ -244,11 +234,6 @@ std::vector<std::pair<GameObjectID, UINT>> InventoryManager::CalculateDropsFromO
 	std::vector<std::pair<GameObjectID, UINT>> drops;
 	
 	if (!worldObject) return drops;
-	
-	// TODO: 오브젝트 타입에 따른 드롭 아이템 목록 설정
-	// 예시: 나무 -> 통나무 1개, 나뭇가지 1개
-	//       돌 -> 돌 2-3개
-	//       금 -> 금 1개
 	
 	// 임시 하드 코드
 	GameObjectID objID = worldObject->GetID();

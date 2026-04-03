@@ -17,6 +17,7 @@ RenderManager::RenderManager()
 	for (int i = 0; i < LAYER_COUNT; ++i) {
 		m_layerCommands[i].reserve(512);
 	}
+
 }
 
 RenderManager::~RenderManager()
@@ -51,10 +52,9 @@ void RenderManager::Release()
 {
 	Clear();
 
-	// 캐싱된 GDI+ 객체 해제 및 nullptr 설정
-	if (m_pCachedPen) { delete m_pCachedPen; m_pCachedPen = nullptr; }
-	if (m_pCachedBrush) { delete m_pCachedBrush; m_pCachedBrush = nullptr; }
-	if (m_pCachedAttr) { delete m_pCachedAttr; m_pCachedAttr = nullptr; }
+	Utils::SafeDelete(m_pCachedPen);
+	Utils::SafeDelete(m_pCachedBrush);
+	Utils::SafeDelete(m_pCachedAttr);
 }
 
 void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float worldX, float worldY, float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)

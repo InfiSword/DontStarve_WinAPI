@@ -14,7 +14,10 @@ IceProjectile::IceProjectile()
 	m_entityCollider = AddComponent<CircleCollider>();
 }
 
-IceProjectile::~IceProjectile() {}
+IceProjectile::~IceProjectile() 
+{
+	s_slowTintStates.clear();
+}
 
 void IceProjectile::Init()
 {

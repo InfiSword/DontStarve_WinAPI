@@ -32,8 +32,6 @@ public:
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 
 	void UpdateVisibleObjects();
-	void RemoveFromVisibleObjects(GameObject* obj);
-	void TryAddToVisibleIfInViewport(GameObject* obj);
 	
 	GameObject* FindInteractableObjectAtPosition(float worldX, float worldY);
 	void FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects, bool onlyInteraction = false);
@@ -57,6 +55,7 @@ private:
 	float m_walkableMinX = 0, m_walkableMinY = 0, m_walkableMaxX = 0, m_walkableMaxY = 0;
 	
 	std::vector<GameObject*> m_visibleObjects;
+	std::vector<GameObject*> m_queryBuffer; // 공간 분할 쿼리용 재사용 버퍼 (성능 최적화용)
 	Gdiplus::RectF m_lastViewportRect = { 0, 0, 0, 0 };
 
 	std::unordered_map<UINT, TileCacheData> m_tileCache;

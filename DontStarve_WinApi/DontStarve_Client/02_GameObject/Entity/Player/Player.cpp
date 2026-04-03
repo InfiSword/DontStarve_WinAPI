@@ -25,7 +25,7 @@ static const float MINE_PIVOT_Y = 0.9f;
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Combatant(characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
 	m_playerSpeed(300.f), m_stopThreshold(10),
-	m_equippedSlotIndex(-1), m_equippedItem(nullptr), m_inventory(nullptr),
+	m_equippedSlotIndex(-1), m_equippedItemID(GOID_NONE), m_inventory(nullptr),
 	m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr),
 	isMoveToGoal(false), m_bInputEnabled(true), m_speedModifier(1.0f), m_slowTimer(0.0f)
 {
@@ -40,7 +40,7 @@ Player::~Player() { Release(); }
 void Player::Init()
 {
 	Combatant::Init();
-	
+
 	// Player 전용 공격 박스 설정 (80x120)
 	SetupAttackBox(80, 120, 0, -100);
 
@@ -107,6 +107,7 @@ void Player::Init()
 						Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 						if (targetT) {
 							transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+							this->SetBoundsDirty();
 						}
 					}
 				}
@@ -136,11 +137,12 @@ void Player::Init()
 				else if (eventName == L"chop_end") {
 					this->OnChopEnd();
 				}
-				else 
+				else
 				{
 					Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 					if (targetT) {
 						transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+						this->SetBoundsDirty();
 					}
 				}
 				});
@@ -167,11 +169,12 @@ void Player::Init()
 				else if (eventName == L"mine_end") {
 					this->OnMineEnd();
 				}
-				else 
-				{					
+				else
+				{
 					Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 					if (targetT) {
 						transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+						this->SetBoundsDirty();
 					}
 				}
 				});
@@ -211,7 +214,7 @@ void Player::Init()
 		m_inventory = new Inventory(this);
 	}
 
-	UpdateAnimatorState();
+	ChangeState(m_state);
 
 	if (m_inventory)
 		m_inventory->Init();
@@ -231,26 +234,25 @@ void Player::ToggleEquipItem(int slotIndex)
 	if (targetSlot.IsEmpty())
 		return;
 
-	Tool* toolItem = dynamic_cast<Tool*>(targetSlot.item);
-	if (!toolItem)
+	GameObjectID itemID = targetSlot.id;
+	const ToolInfo* toolInfo = DataTable::GetToolInfo(itemID);
+	if (!toolInfo)
 		return;
 
-	m_damage = static_cast<int>(toolItem->GetDamage());
-	m_attackRange = toolItem->GetAttackRange();
-
-	if (m_equippedSlotIndex != -1) {
-		if (m_equippedSlotIndex == slotIndex) {
-			m_equippedSlotIndex = -1;
-			m_equippedItem = nullptr;
-		}
-		else {
-			m_equippedSlotIndex = slotIndex;
-			m_equippedItem = toolItem;
-		}
+	if (m_equippedSlotIndex == slotIndex) {
+		// 해제
+		m_equippedSlotIndex = -1;
+		m_equippedItemID = GOID_NONE;
+		// 기본 공격력/사거리로 복구 (필요시)
+		m_damage = 10; 
+		m_attackRange = 50.0f;
 	}
 	else {
+		// 새로운 슬롯 장착
 		m_equippedSlotIndex = slotIndex;
-		m_equippedItem = toolItem;
+		m_equippedItemID = itemID;
+		m_damage = static_cast<int>(toolInfo->damage);
+		m_attackRange = toolInfo->attackRange;
 	}
 }
 
@@ -281,11 +283,11 @@ PlayerStateSnapshot Player::SaveState() const
 	PlayerStateSnapshot snapshot;
 	snapshot.hp = m_hp;
 	snapshot.equippedSlotIndex = m_equippedSlotIndex;
-	
+
 	if (m_inventory) {
 		snapshot.inventoryItems = m_inventory->GetAllItemsSnapshot();
 	}
-	
+
 	return snapshot;
 }
 
@@ -295,10 +297,11 @@ void Player::RestoreState(const PlayerStateSnapshot& snapshot)
 	int currentHp = m_hp;
 	if (snapshot.hp > currentHp) {
 		Heal(snapshot.hp - currentHp);
-	} else if (snapshot.hp < currentHp) {
+	}
+	else if (snapshot.hp < currentHp) {
 		Damaged(currentHp - snapshot.hp);
 	}
-	
+
 	// 인벤토리 복원
 	if (m_inventory) {
 		m_inventory->ClearAllItems();
@@ -306,20 +309,12 @@ void Player::RestoreState(const PlayerStateSnapshot& snapshot)
 			m_inventory->AddItemByID(item.first, item.second);
 		}
 	}
-	
+
 	// 장착 슬롯 복원
 	if (snapshot.equippedSlotIndex >= 0) {
 		ToggleEquipItem(snapshot.equippedSlotIndex);
 	}
 }
-
-void Player::UpdateAnimatorState() {
-
-	if (m_animator == nullptr) return;
-
-	ChangeState(m_state);
-}
-
 
 void Player::SetTargetPosition(float worldX, float worldY) {
 
@@ -342,9 +337,6 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 	{
 		transform->SetDirection(newDirection);
 	}
-
-	// 목표 위치가 설정되면 항상 WALK 상태 애니메이션으로 전환
-	UpdateAnimatorState();
 }
 
 void Player::Update(float deltaTime)
@@ -357,6 +349,10 @@ void Player::Update(float deltaTime)
 			m_slowTimer = 0;
 			m_speedModifier = 1.0f;
 		}
+	}
+
+	if (m_inventory) {
+		m_inventory->Update(deltaTime);
 	}
 
 	HandleMovement();
@@ -376,7 +372,7 @@ void Player::Update(float deltaTime)
 				float ax = targetT->GetX() - transform->GetX();
 				float ay = targetT->GetY() - transform->GetY();
 				float distToTarget = std::sqrt(ax * ax + ay * ay);
-				
+
 				// 공격 사거리 내에 들어오면 즉시 중단 (콜라이더 외곽선 충돌이 아닌 사거리 기준)
 				if (distToTarget <= m_attackRange) {
 					isMoveToGoal = false;
@@ -405,7 +401,7 @@ void Player::Update(float deltaTime)
 			if (!m_pendingInteractionTarget) transform->SetPosition(m_targetWorldPos.X, m_targetWorldPos.Y);
 			ClampPositionToMapBounds();
 			isMoveToGoal = false;
-			
+
 			// 이동 완료 후 자신의 위치를 그리드 시스템에 동기화 (최적화용)
 			ObjectManager::GetInstance()->UpdateObjectGridCell(this);
 
@@ -432,7 +428,7 @@ void Player::Update(float deltaTime)
 			// 도착 시 상호작용 처리
 			if (m_pendingInteractionTarget && m_pendingInteractionTarget->IsEnabled()) {
 				m_activeInteractionTarget = m_pendingInteractionTarget;
-				m_pendingInteractionTarget = nullptr;			
+				m_pendingInteractionTarget = nullptr;
 
 				// 방향 설정 
 				Direction dir;
@@ -498,14 +494,14 @@ void Player::TryStartInteraction(float worldX, float worldY)
 		switch (objType) {
 		case GO_TYPE_NATURAL_ENVIRONMENT:
 			if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
-				if (m_equippedItem) {
-					GameObjectID equippedID = m_equippedItem->GetID();
+				if (m_equippedItemID != GOID_NONE) {
+					GameObjectID equippedID = m_equippedItemID;
 					canInteract = (equippedID == GOID_TOOL_RED_AXE || equippedID == GOID_TOOL_SWAP_AXE);
 				}
 			}
 			else if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK) {
-				if (m_equippedItem) {
-					GameObjectID equippedID = m_equippedItem->GetID();
+				if (m_equippedItemID != GOID_NONE) {
+					GameObjectID equippedID = m_equippedItemID;
 					canInteract = (equippedID == GOID_TOOL_GOLDEN_PICKAXE || equippedID == GOID_TOOL_PICKAXE);
 				}
 			}
@@ -519,27 +515,26 @@ void Player::TryStartInteraction(float worldX, float worldY)
 		case GO_TYPE_BUILDING:
 			if (objID == GOID_BUILDING_PIGHOUSE)
 			{
-				if (m_equippedItem)
+				if (m_equippedItemID != GOID_NONE)
 				{
-					GameObjectID equippedID = m_equippedItem->GetID();
+					GameObjectID equippedID = m_equippedItemID;
 					canInteract = (equippedID == GOID_TOOL_HAMMER);
 					m_attackTarget = target;
 				}
 			}
 			else if (objID == GOID_BUILDING_SPIDER_NORMALEGG || objID == GOID_BUILDING_SPIDER_SMALLEGG || objID == GOID_BUILDING_SPIDER_TALLEGG)
 			{
-				if (m_equippedItem)
-				{
-					canInteract = (m_equippedItem && m_equippedItem->CanAttack());
-					m_attackTarget = target;
-				}
+				const ToolInfo* toolInfo = DataTable::GetToolInfo(m_equippedItemID);
+				canInteract = (toolInfo != nullptr && toolInfo->damage > 0);
+				if (canInteract) m_attackTarget = target;
 			}
 			break;
 		case GO_TYPE_MONSTER:
 		{
 			// 몬스터 클릭: 장착 도구가 공격 가능할 때만 추격 및 공격
-			canInteract = (m_equippedItem && m_equippedItem->CanAttack());
-			if(canInteract)
+			const ToolInfo* toolInfo = DataTable::GetToolInfo(m_equippedItemID);
+			canInteract = (toolInfo != nullptr && toolInfo->damage > 0);
+			if (canInteract)
 				m_attackTarget = target;
 			break;
 		}
@@ -581,15 +576,14 @@ void Player::FinalizePickup()
 
 	if (objType == GO_TYPE_ITEM) {
 		Item* item = objMgr->CreateItem(objID, 0.0f, 0.0f);
-		if (item) {
-			if (m_inventory->AddItem(item, 1)) {
-				itemAdded = true;
-				objMgr->RemoveGameObject(m_activeInteractionTarget);
-			}
-			else {
-				// 인벤토리 추가 실패 시 생성된 Item 삭제 요청
-				objMgr->RemoveGameObject(item);
-			}
+
+		if (m_inventory->AddItem(item, 1)) {
+			itemAdded = true;
+			objMgr->RemoveGameObject(m_activeInteractionTarget);
+		}
+		else {
+			// 인벤토리 추가 실패 시 생성된 Item 삭제 요청
+			objMgr->RemoveGameObject(item);
 		}
 	}
 	else if (objType == GO_TYPE_NATURAL_ENVIRONMENT) {
@@ -598,16 +592,15 @@ void Player::FinalizePickup()
 		int itemCount = entity ? entity->GetDropItemCount() : 0;
 		if (itemID != GOID_NONE && itemCount > 0) {
 			Item* item = objMgr->CreateItem(itemID, 0.0f, 0.0f);
-			if (item) {
-				if (m_inventory->AddItem(item, itemCount)) {
-					itemAdded = true;
-					objMgr->RemoveGameObject(m_activeInteractionTarget);
-				}
-				else {
-					// 인벤토리 추가 실패 시 생성된 Item 삭제 요청
-					objMgr->RemoveGameObject(item);
-				}
+			if (m_inventory->AddItem(item, itemCount)) {
+				itemAdded = true;
+				objMgr->RemoveGameObject(m_activeInteractionTarget);
 			}
+			else {
+				// 인벤토리 추가 실패 시 생성된 Item 삭제 요청
+				objMgr->RemoveGameObject(item);
+			}
+
 		}
 	}
 
@@ -620,7 +613,7 @@ void Player::OnPickupEnd()
 	if (m_state != (int)PlayerState::PICKUP) return;
 	// PICKUP 종료 처리: 아이템 획득 및 상태 전환
 	FinalizePickup();
-	// 상태를 IDLE로 변경하고 애니메이션 업데이트
+
 	transform->SetDirection(DIR_DOWN);
 	ChangeState((int)PlayerState::IDLE);
 }
@@ -725,7 +718,6 @@ bool Player::OnInteraction(GameObject* obj)
 
 void Player::LateUpdate()
 {
-	// 부모 클래스의 LateUpdate() 호출하여 컴포넌트 업데이트
 	GameObject::LateUpdate();
 
 	if (m_inventory)
@@ -749,17 +741,12 @@ void Player::Release() {
 		delete m_inventory;
 		m_inventory = nullptr;
 	}
-	m_equippedItem = nullptr;
+	m_equippedItemID = GOID_NONE;
 	m_pendingInteractionTarget = nullptr;
 	m_activeInteractionTarget = nullptr;
 
 	// 부모 클래스의 Release() 호출하여 컴포넌트 정리
 	Combatant::Release();
-}
-
-void Player::HandleRightClick(float worldX, float worldY)
-{
-	SetTargetPosition(worldX, worldY);
 }
 
 // 좌/우클릭 입력 처리. 인벤토리 UI 영역 위 클릭은 월드 상호작용·이동에 사용하지 않음.
@@ -778,7 +765,8 @@ void Player::HandleMovement()
 
 	// Space: 현재 방향으로 공격 (CHOP/MINE/PICKUP/ATTACK 중이 아닐 때만, 장착 도구가 공격 가능할 때만)
 	if (inputManager->IsKeyPressed(VK_SPACE)) {
-		if (m_equippedItem && m_equippedItem->CanAttack()) {
+		const ToolInfo* toolInfo = DataTable::GetToolInfo(m_equippedItemID);
+		if (toolInfo && toolInfo->damage > 0) {
 			if (m_state != (int)PlayerState::CHOP && m_state != (int)PlayerState::MINE && m_state != (int)PlayerState::PICKUP && m_state != (int)PlayerState::ATTACK) {
 				ChangeState((int)PlayerState::ATTACK);
 			}
@@ -795,7 +783,7 @@ void Player::HandleMovement()
 		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(sx, sy);
 		TryStartInteraction(worldPos.X, worldPos.Y);
 	}
-	else if (inputManager->IsRButtonClicked()) 
+	else if (inputManager->IsRButtonClicked())
 	{
 		// 우클릭 시 모든 상호작용 및 공격 대상 초기화
 		m_pendingInteractionTarget = nullptr;
@@ -805,12 +793,12 @@ void Player::HandleMovement()
 		POINT mousePos = inputManager->GetMousePos();
 		float sx = static_cast<float>(mousePos.x);
 		float sy = static_cast<float>(mousePos.y);
-		
+
 		// 인벤토리 우클릭 처리 - 처리되면 더 이상 진행하지 않음
 		if (m_inventory && m_inventory->HandleRightClick(sx, sy, this)) {
 			return;
 		}
-		
+
 		// UI 영역 블로킹 체크 (인벤토리 외 다른 UI)
 		if (ObjectManager::GetInstance()->IsScreenPointBlockedByUI(sx, sy)) {
 			return;
@@ -821,6 +809,6 @@ void Player::HandleMovement()
 		}
 
 		Gdiplus::PointF worldPos = cameraManager->ScreenToWorld(sx, sy);
-		HandleRightClick(worldPos.X, worldPos.Y);
+		SetTargetPosition(worldPos.X, worldPos.Y);
 	}
 }

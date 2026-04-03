@@ -21,4 +21,5 @@ private:
 	void OnResetButtonClicked();
 
 	class UIText* m_resetMessageText = nullptr;
+	bool m_bIsReleased = false;
 };

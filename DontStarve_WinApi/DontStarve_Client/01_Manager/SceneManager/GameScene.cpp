@@ -78,6 +78,7 @@ void GameScene::Update(float deltaTime)
 void GameScene::LateUpdate()
 {
 	ObjectManager::GetInstance()->LateUpdate();
+	ColliderManager::GetInstance()->LateUpdate();
 }
 
 void GameScene::Render()

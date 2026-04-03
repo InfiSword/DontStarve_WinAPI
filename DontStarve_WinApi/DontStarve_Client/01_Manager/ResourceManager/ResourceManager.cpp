@@ -16,8 +16,8 @@ void ResourceManager::Init()
 
 void ResourceManager::Release()
 {
-	m_spriteCache.clear();
-	m_spriteSheetCache.clear();
+    m_spriteCache.clear();
+    m_spriteSheetCache.clear();
 }
 
 std::shared_ptr<Sprite> ResourceManager::LoadSprite(const std::wstring& fullPath, const Gdiplus::PointF& pivot)
