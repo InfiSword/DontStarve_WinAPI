@@ -61,6 +61,7 @@ void Boss_IceHound::Init()
 
 	m_bUseSuperArmor = true;
 	m_bHasHowled = false;
+	m_hasHowlStarted = false;
 
 	if (this->transform) {
 		m_targetX = this->transform->GetX();
@@ -141,9 +142,13 @@ void Boss_IceHound::Init()
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				m_animator->RegisterAnimation((int)BossIceHoundState::HOWL, (Direction)dir, base + houndPrefix + L"howl.png", 0, 0, 7, 47, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossIceHoundState::HOWL, (Direction)dir);
+				clip->AddEventFrame(0, L"howl_start");
 				clip->AddEventFrame(46, L"howl_end");
 				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-					if (eventName == L"howl_end") {
+					if (eventName == L"howl_start") {
+						m_hasHowlStarted = true;
+					}
+					else if (eventName == L"howl_end") {
 						m_bHasHowled = true;
 						m_bCanChase = false;
 						ChangeState((int)BossIceHoundState::IDLE);
@@ -179,6 +184,32 @@ void Boss_IceHound::UpdateAI(float deltaTime)
 	if (m_retreatThenShootPending)
 		m_retreatBeforeShotTimer = (std::max)(0.0f, m_retreatBeforeShotTimer - deltaTime);
 
+	if (!m_isCombatEnabled)
+	{
+		m_attackTarget = nullptr;
+		m_retreatThenShootPending = false;
+		m_retreatBeforeShotTimer = 0.0f;
+		if (!m_hasHowlStarted)
+		{
+			if (m_state != (int)BossIceHoundState::HOWL)
+			{
+				ChangeState((int)BossIceHoundState::HOWL);
+			}
+			return;
+		}
+
+		if (!m_bHasHowled)
+		{
+			return;
+		}
+
+		if (m_state != (int)BossIceHoundState::IDLE)
+		{
+			ChangeState((int)BossIceHoundState::IDLE);
+		}
+		return;
+	}
+
 	if (m_state == (int)BossIceHoundState::HOWL)
 	{
 		// HOWL은 애니메이션 이벤트(howl_end)에서 상태 전이가 이루어짐
@@ -211,6 +242,11 @@ void Boss_IceHound::UpdateMovement(float deltaTime)
 int Boss_IceHound::UpdateIdle(float deltaTime)
 {
 	int nextState = Monster::UpdateIdle(deltaTime);
+	if (!m_isCombatEnabled)
+	{
+		return m_bHasHowled ? (int)BossIceHoundState::IDLE : (int)BossIceHoundState::HOWL;
+	}
+
 	if (nextState == (int)BossIceHoundState::CHASE && !m_bHasHowled)
 	{
 		return (int)BossIceHoundState::HOWL;
@@ -231,6 +267,11 @@ int Boss_IceHound::UpdateWalk(float deltaTime)
 {
 	int nextState = Monster::UpdateWalk(deltaTime);
 
+	if (!m_isCombatEnabled)
+	{
+		return m_bHasHowled ? (int)BossIceHoundState::IDLE : (int)BossIceHoundState::HOWL;
+	}
+
 	if (nextState == (int)BossIceHoundState::CHASE && !m_bHasHowled)
 	{
 		return (int)BossIceHoundState::HOWL;
@@ -245,6 +286,13 @@ int Boss_IceHound::UpdateWalk(float deltaTime)
 
 int Boss_IceHound::UpdateChase(float deltaTime)
 {
+	if (!m_isCombatEnabled)
+	{
+		m_retreatThenShootPending = false;
+		m_retreatBeforeShotTimer = 0.0f;
+		return m_bHasHowled ? (int)BossIceHoundState::IDLE : (int)BossIceHoundState::HOWL;
+	}
+
 	if (m_retreatThenShootPending)
 	{
 		// 플레이어가 너무 가까워지면 즉시 근접/투사체 공격으로 전환
@@ -297,6 +345,7 @@ void Boss_IceHound::Damaged(int damage)
 
 void Boss_IceHound::OnAttackHit()
 {
+	if (!m_isCombatEnabled) return;
 	if (m_state != (int)BossIceHoundState::ATTACK) return;
 
 	// 1. 발사체 쿨타임이 완료되었다면 무조건 발사

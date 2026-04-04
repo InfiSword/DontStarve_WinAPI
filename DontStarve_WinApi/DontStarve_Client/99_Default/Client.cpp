@@ -1,5 +1,4 @@
 #include "99_Default/pch.h"
-#include "framework.h"
 #include "Client.h"
 #include "../00_MainGame/DontStarve_MainGame.h"
 #include "../01_Manager/InputManager/InputManager.h"
@@ -7,7 +6,9 @@
 
 #pragma comment(lib, "shlwapi.lib")
 
+#define _CRTDBG_MAP_ALLOC
 #define MAX_LOADSTRING 100
+
 
 // 실행 파일 위치에서 Resource·GameData가 있는 프로젝트 루트로 작업 디렉터리 설정
 static void EnsureResourceWorkingDirectory()
@@ -53,7 +54,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 #ifdef _DEBUG
     // _CRTDBG_LEAK_CHECK_DF: 프로그램 종료 시 자동으로 덤프를 수행합니다.
     // _CRTDBG_DELAY_FREE_MEM_DF는 실제 메모리 해제 시점을 지연시키므로 정확한 누수 판별을 위해 제거합니다.
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_LEAK_CHECK_DF);
+    // _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
     UNREFERENCED_PARAMETER(hPrevInstance);
@@ -101,10 +102,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         else
         {
-			_CrtSetBreakAlloc(220);
-			_CrtSetBreakAlloc(219);
-			_CrtSetBreakAlloc(218);
-			_CrtSetBreakAlloc(217);
             mainGame->Update();
             mainGame->LateUpdate();
             mainGame->Render();
@@ -123,8 +120,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     GdiplusShutdown(g_gdiplusToken);
 
 #ifdef _DEBUG
-    //메모리릭 출력
-    _CrtDumpMemoryLeaks();
+    
+	//_CrtDumpMemoryLeaks();
 #endif
 
     return (int) msg.wParam;

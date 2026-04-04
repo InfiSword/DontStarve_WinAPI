@@ -3,6 +3,8 @@
 #include "framework.h" 
 #include <ole2.h>
 #include <gdiplus.h>
+#include <vld.h>
+
 #pragma comment(lib, "Gdiplus.lib")
 
 #include <list>

@@ -65,11 +65,7 @@ public:
 
     virtual void ProcessAttackHit(int damage);
     virtual void OnAttackEnd();
-    
-    // 타겟 관리
-    void SetAttackTarget(GameObject* target) { m_attackTarget = target; }
-    GameObject* GetAttackTarget() const { return m_attackTarget; }
-
+	
     // 슈퍼아머 관련
     virtual bool IsInAttackState() const { 
         return m_state == (int)CombatantState::ATTACK || m_state == (int)CombatantState::ATTACK_PRE; 

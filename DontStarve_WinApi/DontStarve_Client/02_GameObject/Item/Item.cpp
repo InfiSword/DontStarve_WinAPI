@@ -57,6 +57,8 @@ void Item::Render()
     if (m_spriteRenderer && m_spriteRenderer->IsEnabled()) {
         m_spriteRenderer->Render();
     }
+
+	MainColliderGizmo();
 }
 
 void Item::Release()

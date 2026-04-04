@@ -13,10 +13,12 @@ public:
     void Init();
     void Update();
     float GetDeltaTime() const { return m_deltaTime; }
+    float GetDeltaTimeMs() const { return m_deltaTime * 1000.0f; }
 
     void SetFPS(int fps);
     int GetFPS() const { return m_fps; }
     float GetCurrentFPS() const { return m_currentFPS; }
+    float GetTargetFrameTimeMs() const { return (m_fps > 0) ? (1000.0f / static_cast<float>(m_fps)) : 0.0f; }
     void UpdateFrameLimit();
 
 private:

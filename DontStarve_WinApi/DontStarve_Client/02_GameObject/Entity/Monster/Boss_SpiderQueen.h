@@ -1,5 +1,6 @@
 #pragma once
 #include "Spider.h"
+#include <vector>
 
 enum class SpiderQueenState
 {
@@ -35,6 +36,10 @@ public:
 	virtual bool OnInteraction(GameObject* obj) override;
 	virtual void Damaged(int damage) override;
 
+	void SetCombatEnabled(bool enabled);
+	bool HasTauntStarted() const { return m_hasTauntStarted; }
+	bool HasTauntFinished() const { return m_bHasTaunted; }
+
 	// 슈퍼아머 훅
 	virtual bool IsInAttackState() const override { return m_state == (int)SpiderQueenState::ATTACK || m_state == (int)SpiderQueenState::COMBO_ATTACK || m_state == (int)SpiderQueenState::POOP_PRE || m_state == (int)SpiderQueenState::POOP_LOOP; }
 	virtual int GetHitState() const override { return (int)SpiderQueenState::HIT; }
@@ -67,6 +72,8 @@ private:
 	void StartCocoonPhase();
 	void EndCocoonPhase();
 	void SummonSpider(int count = -1);
+	void PreSpawnCocoonSpiders(int count);
+	Spider* AcquirePooledSpider();
 
 private:
 	int m_bossPhase;
@@ -92,4 +99,9 @@ private:
 	Animator* m_spawnOutFxAnimator;  // 고치 탈출 시 단발 FX
 
 	float m_spawnOnHitCooldown;
+	bool m_hasTauntStarted;
+	bool m_isCombatEnabled;
+
+	std::vector<Spider*> m_cocoonSpiderPool;
+ 	int m_cocoonPoolWarmCount;
 };

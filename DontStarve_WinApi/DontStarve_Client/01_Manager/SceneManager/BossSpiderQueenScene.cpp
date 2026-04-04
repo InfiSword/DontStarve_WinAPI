@@ -217,6 +217,12 @@ void BossSpiderQueenScene::StartBossIntro()
 
 	if (m_bossObject)
 	{
+		Boss_SpiderQueen* boss = dynamic_cast<Boss_SpiderQueen*>(m_bossObject);
+		if (boss) boss->SetCombatEnabled(false);
+
+		Monster* pBoss = dynamic_cast<Monster*>(m_bossObject);
+		if (pBoss) pBoss->SetCanChase(false);
+
 		Transform* tr = m_bossObject->GetComponent<Transform>();
 		if (tr) m_introTargetPos = { tr->GetX(), tr->GetY() };
 	}
@@ -265,13 +271,14 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
 		Boss_SpiderQueen* bossEnt = dynamic_cast<Boss_SpiderQueen*>(m_bossObject);
 		if (!bossEnt) { m_introStep = IntroStep::WaitExtra; break; }
 
-		// TAUNT 상태가 시작되었는지 확인
-		if (bossEnt->GetTaunted() && !m_startedTaunt)
+		// Taunt 시작 이벤트가 들어오면 시작 플래그를 올리고,
+		// Taunt 종료 이벤트가 들어온 뒤에만 다음 단계로 진행한다.
+		if (bossEnt->HasTauntStarted() && !m_startedTaunt)
 		{
 			m_startedTaunt = true;
 		}
 
-		else if (m_startedTaunt)
+		else if (m_startedTaunt && bossEnt->HasTauntFinished())
 		{
 			m_introStep = IntroStep::WaitExtra;
 			m_introTimer = 0.0f;
@@ -315,6 +322,9 @@ void BossSpiderQueenScene::UpdatePhase2Intro(float deltaTime)
 			// 보스 및 미니언들 추격 활성화
 			if (m_bossObject)
 			{
+				Boss_SpiderQueen* boss = dynamic_cast<Boss_SpiderQueen*>(m_bossObject);
+				if (boss) boss->SetCombatEnabled(true);
+
 				Monster* pBoss = dynamic_cast<Monster*>(m_bossObject);
 				if (pBoss) pBoss->SetCanChase(true);
 			}

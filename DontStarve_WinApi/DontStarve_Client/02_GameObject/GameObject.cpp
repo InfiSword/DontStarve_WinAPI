@@ -2,6 +2,7 @@
 #include "GameObject.h"
 #include "Component/Transform/Transform.h"
 #include "Component/Sprite/SpriteRenderer.h"
+#include "Component/Collider/Collider.h"
 #include "../01_Manager/TimeManager/TimeManager.h"
 #include "../03_Animation/Animator.h"
 #include "../01_Manager/ObjectManager/ObjectManager.h"
@@ -17,7 +18,7 @@ GameObject::GameObject(GameObjectID id,
 }
 
 GameObject::~GameObject() { 
-	OutputDebugStringW((L"GameObject: 소멸자 호출 - ID: " + std::to_wstring(m_id) + L", Name: " + m_name + L"\n").c_str());
+	// OutputDebugStringW((L"GameObject: 소멸자 호출 - ID: " + std::to_wstring(m_id) + L", Name: " + m_name + L"\n").c_str());
 	Release(); 
 }
 
@@ -67,6 +68,7 @@ void GameObject::LateUpdate() {
 
 void GameObject::Release() 
 { 
+
 	// 공간 분할 그리드에서 제거
 	if (!IsUI()) {
 		ObjectManager::GetInstance()->RemoveGameObject(this); 
@@ -169,4 +171,17 @@ void GameObject::UpdateCoroutines(float deltaTime)
 	// 코루틴이 모두 끝나면 예약된 capacity 반환 (메모리 누적 완화)
 	if (m_coroutines.empty())
 		m_coroutines.shrink_to_fit();
+}
+
+void GameObject::Render()
+{
+	MainColliderGizmo();
+}
+
+void GameObject::MainColliderGizmo()
+{
+	Collider* pMainCol = GetMainCollider();
+	if (pMainCol && pMainCol->IsEnabled()) {
+		pMainCol->RenderGizmo();
+	}
 }

@@ -186,6 +186,15 @@ void BossHoundScene::StartBossIntro()
 
 	if (!m_bossObjects.empty())
 	{
+		for (auto* bossObj : m_bossObjects)
+		{
+			Hound* pBossHound = dynamic_cast<Hound*>(bossObj);
+			if (pBossHound) pBossHound->SetCombatEnabled(false);
+
+			Monster* pMonster = dynamic_cast<Monster*>(bossObj);
+			if (pMonster) pMonster->SetCanChase(false);
+		}
+
 		Transform* tr = m_bossObjects[0]->GetComponent<Transform>();
 		if (tr) m_introTargetPos = { tr->GetX(), tr->GetY() };
 	}
@@ -252,9 +261,9 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
 		Hound* bossEnt = dynamic_cast<Hound*>(boss);
 		if (!bossEnt) { m_introStep = IntroStep::WaitExtra; break; }
 
-		if (bossEnt->GetHowled() == true && !m_startedHowl) m_startedHowl = true;
+		if (bossEnt->HasHowlStarted() && !m_startedHowl) m_startedHowl = true;
 		
-		else if (m_startedHowl)
+		else if (m_startedHowl && bossEnt->HasHowlFinished())
 		{
 			m_introStep = IntroStep::WaitExtra;
 			m_introTimer = 0.0f;
@@ -311,6 +320,9 @@ void BossHoundScene::UpdatePhase2Intro(float deltaTime)
 			// 보스들에게 추격 허용
 			for (auto* boss : m_bossObjects)
 			{
+				Hound* pBossHound = dynamic_cast<Hound*>(boss);
+				if (pBossHound) pBossHound->SetCombatEnabled(true);
+
 				Monster* pMonster = dynamic_cast<Monster*>(boss);
 				if (pMonster) pMonster->SetCanChase(true);
 			}

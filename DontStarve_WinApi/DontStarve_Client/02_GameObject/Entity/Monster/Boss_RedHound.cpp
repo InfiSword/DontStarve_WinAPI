@@ -57,6 +57,7 @@ void Boss_RedHound::Init()
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 	m_bHasHowled = false;
+	m_hasHowlStarted = false;
 
 	if (this->transform) {
 		m_targetX = this->transform->GetX();
@@ -137,9 +138,13 @@ void Boss_RedHound::Init()
 				m_animator->RegisterAnimation((int)BossRedHoundState::HOWL, (Direction)dir, base + houndPrefix + L"howl.png", 0, 0, 7, 47, objData->pivotX, objData->pivotY, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)BossRedHoundState::HOWL, (Direction)dir);
 				if (clip) {
+					clip->AddEventFrame(0, L"howl_start");
 					clip->AddEventFrame(46, L"howl_end");
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-						if (eventName == L"howl_end") {
+						if (eventName == L"howl_start") {
+							m_hasHowlStarted = true;
+						}
+						else if (eventName == L"howl_end") {
 							m_bHasHowled = true;
 							m_bCanChase = false;
 							if (m_bCanChase) ChangeState((int)BossRedHoundState::CHASE);
@@ -194,6 +199,33 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 	if (!IsEnabled() || !transform || !m_animator) return;
 
 	m_dashCooldownTimer = (std::max)(0.0f, m_dashCooldownTimer - deltaTime);
+
+	if (!m_isCombatEnabled)
+	{
+		m_attackTarget = nullptr;
+		m_dashRemainingTime = 0.0f;
+		m_dashHitProcessed = false;
+		if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
+		if (!m_hasHowlStarted)
+		{
+			if (m_state != (int)BossRedHoundState::HOWL)
+			{
+				ChangeState((int)BossRedHoundState::HOWL);
+			}
+			return;
+		}
+
+		if (!m_bHasHowled)
+		{
+			return;
+		}
+
+		if (m_state != (int)BossRedHoundState::IDLE)
+		{
+			ChangeState((int)BossRedHoundState::IDLE);
+		}
+		return;
+	}
 
 	if (m_state == (int)BossRedHoundState::HOWL)
 	{
@@ -268,6 +300,11 @@ int Boss_RedHound::UpdateIdle(float deltaTime)
 {
 	int nextState = Monster::UpdateIdle(deltaTime);
 
+	if (!m_isCombatEnabled)
+	{
+		return m_bHasHowled ? (int)BossRedHoundState::IDLE : (int)BossRedHoundState::HOWL;
+	}
+
 	if (nextState == (int)BossRedHoundState::CHASE && !m_bHasHowled)
 	{
 		return (int)BossRedHoundState::HOWL;
@@ -285,6 +322,11 @@ int Boss_RedHound::UpdateWalk(float deltaTime)
 {
 	int nextState = Monster::UpdateWalk(deltaTime);
 
+	if (!m_isCombatEnabled)
+	{
+		return m_bHasHowled ? (int)BossRedHoundState::IDLE : (int)BossRedHoundState::HOWL;
+	}
+
 	if (nextState == (int)BossRedHoundState::CHASE && !m_bHasHowled)
 	{
 		return (int)BossRedHoundState::HOWL;
@@ -295,6 +337,13 @@ int Boss_RedHound::UpdateWalk(float deltaTime)
 
 int Boss_RedHound::UpdateChase(float deltaTime)
 {
+	if (!m_isCombatEnabled)
+	{
+		m_dashRemainingTime = 0.0f;
+		m_dashHitProcessed = false;
+		return m_bHasHowled ? (int)BossRedHoundState::IDLE : (int)BossRedHoundState::HOWL;
+	}
+
 	int nextState = Monster::UpdateChase(deltaTime);
 
 	// 공격 거리 밖이고 쿨타임이 찼을 때만 대쉬 고려
@@ -322,7 +371,7 @@ void Boss_RedHound::Damaged(int damage)
 
 void Boss_RedHound::OnAttackHit()
 {
-	if (m_state == (int)BossRedHoundState::ATTACK)
+	if (m_isCombatEnabled && m_state == (int)BossRedHoundState::ATTACK)
 		ProcessAttackHit(m_damage);
 }
 

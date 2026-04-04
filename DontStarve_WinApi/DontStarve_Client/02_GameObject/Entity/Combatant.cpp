@@ -123,10 +123,13 @@ void Combatant::UpdateAttackBoxByDirection(Direction dir)
 {
 	if (!m_attackCollider) return;
 
-	const AttackBox* box = nullptr;
+	const AttackBox* box = &m_attackBoxDown;
 
 	switch (dir)
 	{
+	case DIR_NONE:
+	case DIR_COUNT:
+		return;
 	case DIR_DOWN:
 		box = &m_attackBoxDown;
 		break;
@@ -139,14 +142,10 @@ void Combatant::UpdateAttackBoxByDirection(Direction dir)
 	case DIR_RIGHT:
 		box = &m_attackBoxRight;
 		break;
-	default:
-		return;
 	}
 
-	if (box && box->width > 0 && box->height > 0)
-	{
-		m_attackCollider->SetObjectCollider(box->offsetX, box->offsetY, box->width, box->height);
-	}
+	if (box->width <= 0 || box->height <= 0) return;
+	m_attackCollider->SetObjectCollider(box->offsetX, box->offsetY, box->width, box->height);
 }
 
 void Combatant::ProcessAttackHit(int damage)
@@ -168,8 +167,25 @@ void Combatant::ProcessAttackHit(int damage)
 
 bool Combatant::ApplyAttackDamageToTarget(int damage)
 {
+	if (!m_attackCollider) return false;
+
+	auto canApplyDamageTo = [this](GameObject* target) {
+		if (!target || !target->IsEnabled() || target == this) return false;
+		if (this->GetType() == GO_TYPE_MONSTER && target->GetType() == GO_TYPE_MONSTER) return false;
+		return true;
+	};
+
+	// 클릭/AI로 지정된 타겟이 있으면 최우선으로 판정한다.
+	if (canApplyDamageTo(m_attackTarget)) {
+		Collider* targetCollider = m_attackTarget->GetMainCollider();
+		if (targetCollider && targetCollider->IsEnabled() && m_attackCollider->IntersectsCollider(targetCollider)) {
+			m_attackTarget->Damaged(damage);
+			return true;
+		}
+	}
+
 	CameraManager* cameraManager = CameraManager::GetInstance();
-	if (!cameraManager || !m_attackCollider) return false;
+	if (!cameraManager) return false;
 
 	std::vector<GameObject*> hits;
 	cameraManager->FindObjectsIntersectingCollider(m_attackCollider, hits);
@@ -195,12 +211,7 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 		});
 
 	for (GameObject* obj : hits) {
-		if (!obj || !obj->IsEnabled() || obj == this) continue;
-
-		// 몬스터끼리는 서로 데미지를 입히지 않도록 처리
-		if (this->GetType() == GO_TYPE_MONSTER && obj->GetType() == GO_TYPE_MONSTER)
-			continue;
-
+		if (!canApplyDamageTo(obj)) continue;
 		obj->Damaged(damage);
 		return true; // 첫 번째(가장 가까운) 대상만 데미지 입힘
 	}

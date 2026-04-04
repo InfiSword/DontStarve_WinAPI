@@ -174,7 +174,7 @@ namespace ResourcePathUtils
 
 		// 파일 열기
 		std::wifstream file(mapFileName);
-		file.imbue(std::locale(std::locale(), new std::codecvt_utf8<wchar_t>));
+		// file.imbue(std::locale(std::locale(), new std::codecvt_utf8<wchar_t>));
 
 		if (!file.is_open()) {
 			return false;

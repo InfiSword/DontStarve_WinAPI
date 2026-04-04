@@ -27,6 +27,9 @@ public:
     virtual bool OnInteraction(GameObject* obj) override;
 
 	bool GetHowled() const { return m_bHasHowled; }
+      bool HasHowlStarted() const { return m_hasHowlStarted; }
+      bool HasHowlFinished() const { return m_bHasHowled; }
+      void SetCombatEnabled(bool enabled);
 
 protected:
     virtual void UpdateAI(float deltaTime) override;
@@ -43,4 +46,6 @@ protected:
 
 protected:
     bool m_bHasHowled;
+  bool m_hasHowlStarted;
+  bool m_isCombatEnabled;
 };

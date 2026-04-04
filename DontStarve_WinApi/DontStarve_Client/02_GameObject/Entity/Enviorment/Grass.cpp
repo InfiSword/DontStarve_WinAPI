@@ -9,6 +9,7 @@ Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, cons
 	, m_regrowTimer(0.0f)
 {
 	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
+	SetDropItem(GOID_ITEM_CUT_NORMAL_GRASS, 1);
 }
 
 Grass::~Grass() {}
@@ -48,7 +49,7 @@ bool Grass::OnInteraction(GameObject* obj)
 	m_grassState = GrassState::REGROWING;
 	m_regrowTimer = 0.0f;
 
-	return true;
+	return Entity::OnInteraction(obj);;
 }
 
 void Grass::Damaged(int damage)

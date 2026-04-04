@@ -121,6 +121,7 @@ void Entity::Render()
 		spriteRenderer->Render();
 	}
 
+	MainColliderGizmo();
 }
 
 void Entity::Update(float deltaTime)

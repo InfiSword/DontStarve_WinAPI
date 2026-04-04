@@ -16,6 +16,8 @@ Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Dire
 	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
 	: Monster(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
 	, m_bHasHowled(false)
+	, m_hasHowlStarted(false)
+	, m_isCombatEnabled(true)
 {
 	m_hp = 90;
 	m_maxHp = m_hp;
@@ -43,6 +45,7 @@ void Hound::Init()
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 	m_bHasHowled = false;
+	m_hasHowlStarted = false;
 
 	if (this->transform) {
 		m_targetX = this->transform->GetX();
@@ -126,9 +129,14 @@ void Hound::Init()
 				m_animator->RegisterAnimation((int)HoundState::HOWL, (Direction)dir, base + L"Hound_hound_howl.png", 0, 0, 7, 47, px, py, false, 0.03f);
 				AnimationClip* clip = m_animator->GetAnimationClip((int)HoundState::HOWL, (Direction)dir);
 
+				clip->AddEventFrame(0, L"howl_start");
 				clip->AddEventFrame(46, L"howl_end"); // 47프레임이므로 마지막 인덱스는 46
 				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-					if (eventName == L"howl_end")
+					if (eventName == L"howl_start")
+					{
+						m_hasHowlStarted = true;
+					}
+					else if (eventName == L"howl_end")
 					{
 						m_bHasHowled = true;
 						ChangeState((int)HoundState::CHASE);
@@ -155,6 +163,30 @@ void Hound::UpdateAI(float deltaTime)
 {
 	if (!IsEnabled() || !transform || !m_animator) return;
 
+	if (!m_isCombatEnabled)
+	{
+		m_attackTarget = nullptr;
+		if (!m_hasHowlStarted)
+		{
+			if (m_state != (int)HoundState::HOWL)
+			{
+				ChangeState((int)HoundState::HOWL);
+			}
+			return;
+		}
+
+		if (!m_bHasHowled)
+		{
+			return;
+		}
+
+		if (m_state != (int)HoundState::IDLE)
+		{
+			ChangeState((int)HoundState::IDLE);
+		}
+		return;
+	}
+
 	if (m_state == (int)HoundState::ATTACK_PRE)
 	{
 		if (m_animator->IsAnimationDone()) ChangeState((int)HoundState::ATTACK);
@@ -175,6 +207,11 @@ int Hound::UpdateIdle(float deltaTime)
 {
 	int nextState = Monster::UpdateIdle(deltaTime);
 
+	if (!m_isCombatEnabled)
+	{
+		return m_bHasHowled ? (int)HoundState::IDLE : (int)HoundState::HOWL;
+	}
+
 	if (nextState == (int)HoundState::CHASE && !m_bHasHowled)
 	{
 		return (int)HoundState::HOWL;
@@ -192,6 +229,11 @@ int Hound::UpdateWalk(float deltaTime)
 {
 	int nextState = Monster::UpdateWalk(deltaTime);
 
+	if (!m_isCombatEnabled)
+	{
+		return m_bHasHowled ? (int)HoundState::IDLE : (int)HoundState::HOWL;
+	}
+
 	if (nextState == (int)HoundState::CHASE && !m_bHasHowled)
 	{
 		return (int)HoundState::HOWL;
@@ -202,6 +244,11 @@ int Hound::UpdateWalk(float deltaTime)
 
 int Hound::UpdateChase(float deltaTime)
 {
+	if (!m_isCombatEnabled)
+	{
+		return m_bHasHowled ? (int)HoundState::IDLE : (int)HoundState::HOWL;
+	}
+
 	int nextState = Monster::UpdateChase(deltaTime);
 
 	if (nextState == (int)HoundState::ATTACK)
@@ -223,7 +270,7 @@ void Hound::Damaged(int damage)
 
 void Hound::OnAttackHit()
 {
-	if (m_state == (int)HoundState::ATTACK) ProcessAttackHit(m_damage);
+	if (m_isCombatEnabled && m_state == (int)HoundState::ATTACK) ProcessAttackHit(m_damage);
 }
 
 void Hound::OnAttackEnd()
@@ -243,3 +290,24 @@ void Hound::OnHitEnd()
 void Hound::Die() { ChangeState((int)HoundState::DEATH); }
 
 bool Hound::OnInteraction(GameObject* obj) { return Entity::OnInteraction(obj); }
+
+void Hound::SetCombatEnabled(bool enabled)
+{
+	m_isCombatEnabled = enabled;
+	if (!m_isCombatEnabled)
+	{
+		m_hasHowlStarted = false;
+		m_bHasHowled = false;
+		m_attackTarget = nullptr;
+		m_attackCooldownTimer = 0.0f;
+		if (m_attackCollider) m_attackCollider->SetColliderEnabled(false);
+	}
+	else
+	{
+		// ALWAYS 어그로 몬스터는 연출 중 타겟을 비웠다면 전투 재개 시 즉시 다시 플레이어를 잡아야 한다.
+		if (m_aggroType == AggroType::ALWAYS)
+		{
+			m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
+		}
+	}
+}

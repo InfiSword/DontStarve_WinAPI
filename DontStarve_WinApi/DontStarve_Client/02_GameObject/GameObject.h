@@ -30,7 +30,6 @@ protected:
 
 	std::wstring m_name;					// 해당 게임 오브젝트 이름
 	bool m_isInteractive;			// 상호작용 가능 여부
-	bool m_bReleased;				// Release() 호출 여부 (중복 호출 방지)
 	GameObjectType m_type;					// 게임 오브젝트 타입
     // 컴포넌트 관리					
     std::vector<Component*> m_components;
@@ -63,7 +62,7 @@ public:
 	virtual void LateInit();
 	virtual void Update(float deltaTime); 
 	virtual void LateUpdate();
-	virtual void Render() {}
+	virtual void Render();
 	virtual void Release();
 
 	// 삭제 관련
@@ -87,6 +86,7 @@ public:
 	void StopAllCoroutines();
 
 	virtual void RenderDebugOverlay() {}
+	virtual void MainColliderGizmo();
 
 	// 상호작용 관련
 	virtual bool OnInteraction(GameObject* obj);
@@ -114,9 +114,6 @@ public:
     template <typename T>
     T* GetComponent() const 
 	{
-        if (m_bReleased) {
-            return nullptr;
-        }
         for (Component* component : m_components) {
             if (!component) continue; 
             T* target = dynamic_cast<T*>(component);
@@ -130,7 +127,6 @@ public:
 	template <typename T>
 	std::vector<T*> GetComponents() const {
 		std::vector<T*> result;
-		if (m_bReleased) return result;
 		for (Component* component : m_components) {
 			if (!component) continue;
 			T* target = dynamic_cast<T*>(component);
