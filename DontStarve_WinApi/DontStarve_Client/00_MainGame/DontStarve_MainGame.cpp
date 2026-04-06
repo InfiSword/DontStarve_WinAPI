@@ -23,6 +23,7 @@ DontStarve_MainGame::DontStarve_MainGame()
 #ifdef _DEBUG
     , m_showPerfOverlay(false)
     , m_prevF1Down(false)
+    , m_prevF2Down(false)
     , m_pPerfFont(nullptr)
     , m_pPerfBrush(nullptr)
     , m_pPerfStringFormat(nullptr)
@@ -99,6 +100,13 @@ void DontStarve_MainGame::Update()
     }
     m_prevF1Down = isF1Down;
 
+    const bool isF2Down = InputManager::GetInstance()->IsKeyDown(VK_F2);
+    if (isF2Down && !m_prevF2Down) {
+        RenderManager* pRM = RenderManager::GetInstance();
+        pRM->SetOptimizationEnabled(!pRM->IsOptimizationEnabled());
+    }
+    m_prevF2Down = isF2Down;
+
     if (m_showPerfOverlay) {
         UpdatePerformanceOverlayText();
     }
@@ -141,6 +149,8 @@ void DontStarve_MainGame::Render()
     }
 
     // SceneManager 렌더링 (씬이 RenderManager에 렌더링 명령 추가)
+    // BeginFrame: 비최적화(일반 렌더) 모드에서 즉시 그리기에 사용할 Graphics 컨텍스트를 등록한다.
+    RenderManager::GetInstance()->BeginFrame(pGraphics);
     SceneManager::GetInstance()->Render();
 
 #ifdef _DEBUG
@@ -218,7 +228,10 @@ void DontStarve_MainGame::UpdatePerformanceOverlayText()
         stream << L"Target Frame : " << targetFrameMs << L" ms\n";
     }
 
-    stream << L"Delta Time   : " << pTimeManager->GetDeltaTime() << L" s";
+    stream << L"Delta Time   : " << pTimeManager->GetDeltaTime() << L" s\n";
+
+    const bool isOptimized = RenderManager::GetInstance()->IsOptimizationEnabled();
+    stream << L"Render Mode  : " << (isOptimized ? L"RenderQueue (F2)" : L"Direct (F2)");
 
     m_perfOverlayText = stream.str();
 }

@@ -85,6 +85,10 @@ void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplu
 	cmd.sprite.hasTint = hasTint;
 	cmd.sprite.preFlipped = preFlipped;
 
+	if (!m_bUseRenderQueue && m_pDirectGraphics) {
+		ExecuteCommand(m_pDirectGraphics, cmd);
+		return;
+	}
 	m_layerCommands[layer].push_back(cmd);
 }
 
@@ -109,6 +113,10 @@ void RenderManager::AddUICommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF&
 	cmd.sprite.tintColor = tintColor;
 	cmd.sprite.hasTint = hasTint;
 
+	if (!m_bUseRenderQueue && m_pDirectGraphics) {
+		ExecuteCommand(m_pDirectGraphics, cmd);
+		return;
+	}
 	m_layerCommands[layer].push_back(cmd);
 }
 
@@ -127,6 +135,10 @@ void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFon
 	cmd.text.pBrush = pBrush;
 	cmd.text.pStringFormat = pStringFormat;
 
+	if (!m_bUseRenderQueue && m_pDirectGraphics) {
+		ExecuteCommand(m_pDirectGraphics, cmd);
+		return;
+	}
 	m_layerCommands[layer].push_back(cmd);
 }
 
@@ -142,6 +154,10 @@ void RenderManager::AddDrawRectCommand(const Gdiplus::RectF& rect, const Gdiplus
 	cmd.primitive.thickness = thickness;
 	cmd.primitive.isFilled = false;
 
+	if (!m_bUseRenderQueue && m_pDirectGraphics) {
+		ExecuteCommand(m_pDirectGraphics, cmd);
+		return;
+	}
 	m_layerCommands[layer].push_back(cmd);
 }
 
@@ -157,6 +173,10 @@ void RenderManager::AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gd
 	cmd.primitive.thickness = 0.0f;
 	cmd.primitive.isFilled = true;
 
+	if (!m_bUseRenderQueue && m_pDirectGraphics) {
+		ExecuteCommand(m_pDirectGraphics, cmd);
+		return;
+	}
 	m_layerCommands[layer].push_back(cmd);
 }
 
@@ -167,9 +187,63 @@ void RenderManager::Clear()
 	}
 }
 
+void RenderManager::BeginFrame(Gdiplus::Graphics* pGraphics)
+{
+	m_pDirectGraphics = pGraphics;
+}
+
+void RenderManager::ExecuteCommand(Gdiplus::Graphics* pGraphics, const DrawCommand& cmd)
+{
+	Gdiplus::GraphicsState state;
+	bool rotated = (cmd.rotation != 0.0f);
+
+	if (rotated) {
+		state = pGraphics->Save();
+		pGraphics->TranslateTransform(cmd.rotationPivot.X, cmd.rotationPivot.Y);
+		pGraphics->RotateTransform(cmd.rotation);
+		pGraphics->TranslateTransform(-cmd.rotationPivot.X, -cmd.rotationPivot.Y);
+	}
+
+	switch (cmd.type) {
+	case DRAW_COMMAND_ENTITY:
+	case DRAW_COMMAND_UI_IMAGE:
+		RenderSprite(pGraphics, cmd.sprite, cmd.destRect);
+		break;
+	case DRAW_COMMAND_TEXT:
+		if (cmd.text.textPtr && cmd.text.pBrush) {
+			pGraphics->DrawString(cmd.text.textPtr->c_str(), -1, cmd.text.pFont, cmd.destRect, cmd.text.pStringFormat, cmd.text.pBrush);
+		}
+		break;
+	case DRAW_COMMAND_RECTANGLE:
+		if (m_pCachedPen) {
+			m_pCachedPen->SetColor(cmd.primitive.color);
+			m_pCachedPen->SetWidth(cmd.primitive.thickness);
+			pGraphics->DrawRectangle(m_pCachedPen, cmd.destRect);
+		}
+		break;
+	case DRAW_COMMAND_FILL_RECTANGLE:
+		if (m_pCachedBrush) {
+			m_pCachedBrush->SetColor(cmd.primitive.color);
+			pGraphics->FillRectangle(m_pCachedBrush, cmd.destRect);
+		}
+		break;
+	}
+
+	if (rotated) {
+		pGraphics->Restore(state);
+	}
+}
+
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 {
 	if (!pGraphics) return;
+
+	if (!m_bUseRenderQueue) {
+		// 비최적화(일반 렌더) 모드: AddXXXCommand에서 이미 즉시 그렸으므로 큐만 초기화
+		Clear();
+		m_pDirectGraphics = nullptr;
+		return;
+	}
 
 	for (int i = LAYER_TILE_BACKGROUND; i < LAYER_COUNT; ++i) {
 		if (m_layerCommands[i].empty()) continue;
@@ -177,44 +251,7 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 		std::stable_sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), CompareDrawCommands);
 		
 		for (const auto& cmd : m_layerCommands[i]) {
-			Gdiplus::GraphicsState state;
-			bool rotated = (cmd.rotation != 0.0f);
-			
-			if (rotated) {
-				state = pGraphics->Save();
-				pGraphics->TranslateTransform(cmd.rotationPivot.X, cmd.rotationPivot.Y);
-				pGraphics->RotateTransform(cmd.rotation);
-				pGraphics->TranslateTransform(-cmd.rotationPivot.X, -cmd.rotationPivot.Y);
-			}
-
-			switch (cmd.type) {
-			case DRAW_COMMAND_ENTITY:
-			case DRAW_COMMAND_UI_IMAGE:
-				RenderSprite(pGraphics, cmd.sprite, cmd.destRect);
-				break;
-			case DRAW_COMMAND_TEXT:
-				if (cmd.text.textPtr && cmd.text.pBrush) {
-					pGraphics->DrawString(cmd.text.textPtr->c_str(), -1, cmd.text.pFont, cmd.destRect, cmd.text.pStringFormat, cmd.text.pBrush);
-				}
-				break;
-			case DRAW_COMMAND_RECTANGLE:
-				if (m_pCachedPen) {
-					m_pCachedPen->SetColor(cmd.primitive.color);
-					m_pCachedPen->SetWidth(cmd.primitive.thickness);
-					pGraphics->DrawRectangle(m_pCachedPen, cmd.destRect);
-				}
-				break;
-			case DRAW_COMMAND_FILL_RECTANGLE:
-				if (m_pCachedBrush) {
-					m_pCachedBrush->SetColor(cmd.primitive.color);
-					pGraphics->FillRectangle(m_pCachedBrush, cmd.destRect);
-				}
-				break;			
-			}
-
-			if (rotated) {
-				pGraphics->Restore(state);
-			}
+			ExecuteCommand(pGraphics, cmd);
 		}
 		m_layerCommands[i].clear();
 	}
