@@ -17,8 +17,8 @@ GameObject::GameObject(GameObjectID id,
 	SetActive(isActive);
 }
 
-GameObject::~GameObject() { 
-	// OutputDebugStringW((L"GameObject: 소멸자 호출 - ID: " + std::to_wstring(m_id) + L", Name: " + m_name + L"\n").c_str());
+GameObject::~GameObject() 
+{ 
 	Release(); 
 }
 
@@ -29,9 +29,9 @@ void GameObject::Init() {
 		}
 	}
 	// 초기 위치에 따른 그리드 셀 설정
-	if (!IsUI()) {
-		ObjectManager::GetInstance()->UpdateObjectGridCell(this);
-	}
+	// if (!IsUI()) {
+	// 	ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+	// }
 }
 
 void GameObject::LateInit() {
@@ -126,12 +126,6 @@ Gdiplus::RectF GameObject::GetBounds()
 
 	m_cachedBounds = { t->GetX() - w * px, t->GetY() - h * py, w, h };
 	m_isBoundsDirty = false;
-
-	// 위치 변경에 따른 그리드 갱신
-	if (!IsUI()) {
-		ObjectManager::GetInstance()->UpdateObjectGridCell(this);
-	}
-
 	return m_cachedBounds;
 }
 
@@ -175,7 +169,6 @@ void GameObject::UpdateCoroutines(float deltaTime)
 
 void GameObject::Render()
 {
-	MainColliderGizmo();
 }
 
 void GameObject::MainColliderGizmo()

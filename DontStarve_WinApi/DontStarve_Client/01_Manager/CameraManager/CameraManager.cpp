@@ -1,5 +1,7 @@
 #include "99_Default/pch.h"
 #include "CameraManager.h"
+#include "../../99_Default/ClientOptimatzationOption.h"
+#include <chrono>
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 #include "../../02_GameObject/Component/Collider/Collider.h"
@@ -9,33 +11,58 @@
 #include "../RenderManager/RenderManager.h"
 #include "../ColliderManager/ColliderManager.h"
 
+// 타일은 팝인 체감이 커서 오브젝트보다 덜 공격적으로 컬링한다.
+constexpr float kTileCullMargin = -8.0f;
+constexpr float kObjectCullMargin = -16.0f;
+
+
 CameraManager::CameraManager() {}
 
 void CameraManager::Init() {
     m_cameraPos = { 0,0 };
-    m_visibleObjects.clear();
 	m_queryBuffer.clear();
+    // 가시성 쿼리 버퍼는 프레임마다 재사용하므로 초기 reserve로 재할당을 줄인다.
+    m_queryBuffer.reserve(2048);
     ClearTileCache();
     m_hasWalkableBounds = false;
+    m_lastViewportRect = { 0, 0, 0, 0 };
     m_lastStartTileX = -1;
+#ifdef _DEBUG
+  m_cullVisibleGameObjectsSampleCount = 0;
+  m_avgCullVisibleGameObjectsMs = 0.0f;
+    m_avgRenderVisibleGameObjectsMs = 0.0f;
+    m_renderVisibleGameObjectsSampleCount = 0;
+    m_avgRenderVisibleTilesMs = 0.0f;
+    m_renderVisibleTilesSampleCount = 0;
+#endif
 }
 
 void CameraManager::Update(float deltaTime) {
+    UNREFERENCED_PARAMETER(deltaTime);
+
     if (m_followMode && m_target) 
 		FollowTarget();
-
-    UpdateVisibleObjects();
 }
 
 void CameraManager::Release() {
-    m_visibleObjects.clear();
 	m_queryBuffer.clear();
 	m_queryBuffer.shrink_to_fit();
     ClearTileCache();
+    m_lastViewportRect = { 0, 0, 0, 0 };
+#ifdef _DEBUG
+  m_cullVisibleGameObjectsSampleCount = 0;
+  m_avgCullVisibleGameObjectsMs = 0.0f;
+    m_avgRenderVisibleGameObjectsMs = 0.0f;
+    m_renderVisibleGameObjectsSampleCount = 0;
+    m_avgRenderVisibleTilesMs = 0.0f;
+    m_renderVisibleTilesSampleCount = 0;
+#endif
 }
 
 Gdiplus::RectF CameraManager::GetViewportWorldRect() const {
-    return { m_cameraPos.X - WINCX * 0.5f, m_cameraPos.Y - WINCY * 0.5f, (float)WINCX, (float)WINCY };
+    const float halfW = static_cast<float>(WINCX) * 0.5f;
+    const float halfH = static_cast<float>(WINCY) * 0.5f;
+    return { m_cameraPos.X - halfW, m_cameraPos.Y - halfH, static_cast<float>(WINCX), static_cast<float>(WINCY) };
 }
 
 void CameraManager::FollowTarget() {
@@ -56,29 +83,54 @@ void CameraManager::FollowTarget() {
 
 bool CameraManager::IsObjectInViewport(GameObject* obj) const {
     if (!obj || !obj->IsEnabled()) return false;
+
+    Gdiplus::RectF vp = GetViewportWorldRect();
+    const float M = kObjectCullMargin;
+
     Gdiplus::RectF bounds = obj->GetBounds();
-    Gdiplus::RectF vp = GetViewportWorldRect();
-    const float M = 200.0f;
-    return bounds.X < vp.X + vp.Width + M && bounds.X + bounds.Width > vp.X - M &&
-           bounds.Y < vp.Y + vp.Height + M && bounds.Y + bounds.Height > vp.Y - M;
-}
+    const bool overlapsObjectBounds =
+        bounds.X < vp.X + vp.Width + M && bounds.X + bounds.Width > vp.X - M &&
+        bounds.Y < vp.Y + vp.Height + M && bounds.Y + bounds.Height > vp.Y - M;
+    if (!overlapsObjectBounds) {
+        return false;
+    }
 
-void CameraManager::UpdateVisibleObjects() {
-    m_visibleObjects.clear();
-    Gdiplus::RectF vp = GetViewportWorldRect();
-    const float M = 200.0f;
-    Gdiplus::RectF queryRect(vp.X - M, vp.Y - M, vp.Width + 2 * M, vp.Height + 2 * M);
+    // 2차 정밀 컷: 스프라이트가 있는 경우 실제 렌더 bounds 기준으로 한 번 더 판정.
+    Transform* transform = obj->GetComponent<Transform>();
+    if (!transform) {
+        return true;
+    }
 
-	m_queryBuffer.clear();
-    ObjectManager::GetInstance()->GetObjectsInRect(queryRect, m_queryBuffer);
-
-    for (auto* obj : m_queryBuffer)
-    {
-        if (IsObjectInViewport(obj)) {
-            // 중복 방지 (객체가 여러 셀에 걸쳐 있을 수 있으나 현재 구현은 중심점 기반 한 셀에만 존재)
-            m_visibleObjects.push_back(obj);
+    std::shared_ptr<Sprite> sprite;
+    if (SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>()) {
+        sprite = spriteRenderer->GetSpriteHandle();
+    }
+    if (!sprite) {
+        if (Animator* animator = obj->GetComponent<Animator>()) {
+            sprite = animator->GetCurrentFrame().sprite;
         }
     }
+
+    if (!sprite || !sprite->bitmap) {
+        return true;
+    }
+
+    const float width = fabsf(sprite->sourceRect.Width * transform->GetScaleX());
+    const float height = fabsf(sprite->sourceRect.Height * transform->GetScaleY());
+    if (width <= 0.0f || height <= 0.0f) {
+        return false;
+    }
+
+    const float worldX = transform->GetX();
+    const float worldY = transform->GetY();
+    Gdiplus::RectF renderBounds(
+        worldX - width * sprite->pivot.X,
+        worldY - height * sprite->pivot.Y,
+        width,
+        height);
+
+    return renderBounds.X < vp.X + vp.Width + M && renderBounds.X + renderBounds.Width > vp.X - M &&
+           renderBounds.Y < vp.Y + vp.Height + M && renderBounds.Y + renderBounds.Height > vp.Y - M;
 }
 
 GameObject* CameraManager::FindInteractableObjectAtPosition(float x, float y) {
@@ -87,21 +139,37 @@ GameObject* CameraManager::FindInteractableObjectAtPosition(float x, float y) {
     // 마우스 위치 주변의 객체들만 쿼리 (그리드 최적화 활용)
     float range = 100.0f;
     Gdiplus::RectF queryRect(x - range, y - range, range * 2, range * 2);
-    
-	m_queryBuffer.clear();
-    ObjectManager::GetInstance()->GetObjectsInRect(queryRect, m_queryBuffer);
 
-    for (auto* obj : m_queryBuffer) {
-        if (!obj->CanInteract() || !obj->IsEnabled()) continue;
-        
-        // 수정: 모든 콜라이더 순회 제거, 메인(몸통) 콜라이더만 핀포인트로 체크
-        Collider* mainCol = obj->GetMainCollider();
-        if (mainCol && mainCol->IsEnabled() && mainCol->ContainsPoint(x, y)) {
-            float curY = obj->GetComponent<Transform>()->GetY();
-            // 여러 객체가 겹쳐있을 경우 Y값이 큰(아래쪽에 있는) 객체를 우선순위로 선택 (Top-Down 뷰 특성)
-            if (!best || curY > maxY) { best = obj; maxY = curY; }
+    if (g_bEnableBufferReuse) {
+        m_queryBuffer.clear();
+        ObjectManager::GetInstance()->QueryObjectsInRect(queryRect, m_queryBuffer);
+
+        for (auto* obj : m_queryBuffer) {
+            if (!obj->CanInteract() || !obj->IsEnabled()) continue;
+
+            Collider* mainCol = obj->GetMainCollider();
+            if (mainCol && mainCol->IsEnabled() && mainCol->ContainsPoint(x, y)) {
+                float curY = obj->GetComponent<Transform>()->GetY();
+                if (!best || curY > maxY) { best = obj; maxY = curY; }
+            }
         }
     }
+    else {
+        // 비최적화 모드: 임시 버퍼 사용
+        std::vector<GameObject*> queryBuffer;
+        ObjectManager::GetInstance()->QueryObjectsInRect(queryRect, queryBuffer);
+
+        for (auto* obj : queryBuffer) {
+            if (!obj->CanInteract() || !obj->IsEnabled()) continue;
+
+            Collider* mainCol = obj->GetMainCollider();
+            if (mainCol && mainCol->IsEnabled() && mainCol->ContainsPoint(x, y)) {
+                float curY = obj->GetComponent<Transform>()->GetY();
+                if (!best || curY > maxY) { best = obj; maxY = curY; }
+            }
+        }
+    }
+
     return best;
 }
 
@@ -112,18 +180,37 @@ void CameraManager::FindObjectsIntersectingCollider(Collider* pCol, std::vector<
     GameObject* owner = pCol->GetOwner();
     Gdiplus::RectF bounds = pCol->GetWorldRect();
 
-	m_queryBuffer.clear();
-    ObjectManager::GetInstance()->GetObjectsInRect(bounds, m_queryBuffer);
+    if (g_bEnableBufferReuse) {
+        m_queryBuffer.clear();
+        ObjectManager::GetInstance()->QueryObjectsInRect(bounds, m_queryBuffer);
 
-    for (auto* obj : m_queryBuffer) {
-        if (!obj->IsEnabled() || obj == owner) continue; // 자기 자신 제외
+        for (auto* obj : m_queryBuffer) {
+            if (!obj->IsEnabled() || obj == owner) continue;
 
-        // 수정: 상대방의 모든 콜라이더가 아닌, 오직 "몸통 콜라이더"와만 충돌 체크
-        Collider* mainCol = obj->GetMainCollider();
-        if (mainCol && mainCol->IsEnabled()) {
-            if (!onlyInteraction || mainCol->IsInteractionCollider()) {
-                if (ColliderManager::GetInstance()->Intersects(pCol, mainCol)) {
-                    out.push_back(obj); 
+            Collider* mainCol = obj->GetMainCollider();
+            if (mainCol && mainCol->IsEnabled()) {
+                if (!onlyInteraction || mainCol->IsInteractionCollider()) {
+                    if (ColliderManager::GetInstance()->Intersects(pCol, mainCol)) {
+                        out.push_back(obj);
+                    }
+                }
+            }
+        }
+    }
+    else {
+        // 비최적화 모드: 임시 버퍼 사용
+        std::vector<GameObject*> queryBuffer;
+        ObjectManager::GetInstance()->QueryObjectsInRect(bounds, queryBuffer);
+
+        for (auto* obj : queryBuffer) {
+            if (!obj->IsEnabled() || obj == owner) continue;
+
+            Collider* mainCol = obj->GetMainCollider();
+            if (mainCol && mainCol->IsEnabled()) {
+                if (!onlyInteraction || mainCol->IsInteractionCollider()) {
+                    if (ColliderManager::GetInstance()->Intersects(pCol, mainCol)) {
+                        out.push_back(obj);
+                    }
                 }
             }
         }
@@ -131,18 +218,33 @@ void CameraManager::FindObjectsIntersectingCollider(Collider* pCol, std::vector<
 }
 
 void CameraManager::RenderVisibleTiles(const MapData* mapData) {
+#ifdef _DEBUG
+    const auto profileStart = std::chrono::high_resolution_clock::now();
+#endif
+
+
     if (!mapData) return;
     Gdiplus::RectF vp = GetViewportWorldRect();
-    int sx = std::max(0, (int)floor((vp.X - TILE_SIZE) / TILE_SIZE));
-    int ex = std::min(MAP_WIDTH, (int)ceil((vp.X + vp.Width + TILE_SIZE) / TILE_SIZE));
-    int sy = std::max(0, (int)floor((vp.Y - TILE_SIZE) / TILE_SIZE));
-    int ey = std::min(MAP_HEIGHT, (int)ceil((vp.Y + vp.Height + TILE_SIZE) / TILE_SIZE));
+    const float tileCullPadding = kTileCullMargin;
+    int sx = std::max(0, (int)floor((vp.X - tileCullPadding) / TILE_SIZE));
+    int ex = std::min(MAP_WIDTH, (int)ceil((vp.X + vp.Width + tileCullPadding) / TILE_SIZE));
+    int sy = std::max(0, (int)floor((vp.Y - tileCullPadding) / TILE_SIZE));
+    int ey = std::min(MAP_HEIGHT, (int)ceil((vp.Y + vp.Height + tileCullPadding) / TILE_SIZE));
 
-    if (sx != m_lastStartTileX || ex != m_lastEndTileX || sy != m_lastStartTileY || ey != m_lastEndTileY) {
+    if (!g_bEnableTileCaching) {
+        // 비최적화 모드: 매 프레임 캐시 제거(사실상 캐시 미사용)
+        ClearTileCache();
+        m_lastStartTileX = -1;
+        m_lastEndTileX = -1;
+        m_lastStartTileY = -1;
+        m_lastEndTileY = -1;
+    }
+    else if (sx != m_lastStartTileX || ex != m_lastEndTileX || sy != m_lastStartTileY || ey != m_lastEndTileY) {
         CleanupUnusedTileCache(mapData, sx, ex, sy, ey);
         m_lastStartTileX = sx; m_lastEndTileX = ex; m_lastStartTileY = sy; m_lastEndTileY = ey;
     }
 
+    const float tileSizeF = static_cast<float>(TILE_SIZE);
     auto* rm = RenderManager::GetInstance();
     for (int y = sy; y < ey; ++y) {
         for (int x = sx; x < ex; ++x) {
@@ -150,20 +252,142 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData) {
             if (td.id == TILEID_NONE) continue;
             auto it = m_tileCache.find(td.id);
             if (it == m_tileCache.end()) {
-                TileCacheData cd; cd.id = td.id; LoadTileBitmap(td, cd);
+                TileCacheData cd; LoadTileBitmap(td, cd);
                 if (!cd.bitmap) continue;
                 m_tileCache[td.id] = cd; it = m_tileCache.find(td.id);
             }
             Gdiplus::Bitmap* bm = it->second.bitmap;
-            float wx = x * TILE_SIZE + TILE_SIZE * 0.5f, wy = y * TILE_SIZE + TILE_SIZE * 0.5f;
-            rm->AddWorldEntityCommand(bm, {0,0,(float)bm->GetWidth(),(float)bm->GetHeight()}, wx, wy, (float)TILE_SIZE/bm->GetWidth(), (float)TILE_SIZE/bm->GetHeight(), 0.5f, 0.5f, LAYER_WORLD_TILE, wy);
+            const float bitmapW = static_cast<float>(bm->GetWidth());
+            const float bitmapH = static_cast<float>(bm->GetHeight());
+            const float wx = static_cast<float>(x) * tileSizeF + tileSizeF * 0.5f;
+            const float wy = static_cast<float>(y) * tileSizeF + tileSizeF * 0.5f;
+            rm->AddWorldEntityCommand(bm, { 0.0f, 0.0f, bitmapW, bitmapH }, wx, wy, tileSizeF / bitmapW, tileSizeF / bitmapH, 0.5f, 0.5f, LAYER_WORLD_TILE, wy);
         }
     }
+
+#ifdef _DEBUG
+    const auto profileEnd = std::chrono::high_resolution_clock::now();
+    const auto elapsedUs = std::chrono::duration_cast<std::chrono::microseconds>(profileEnd - profileStart).count();
+    const float elapsedMs = static_cast<float>(elapsedUs) / 1000.0f;
+    constexpr float kEmaAlpha = 0.10f;
+    if (m_renderVisibleTilesSampleCount == 0) {
+        m_avgRenderVisibleTilesMs = elapsedMs;
+    }
+    else {
+        m_avgRenderVisibleTilesMs += kEmaAlpha * (elapsedMs - m_avgRenderVisibleTilesMs);
+    }
+    ++m_renderVisibleTilesSampleCount;
+#endif
 }
 
 void CameraManager::RenderVisibleGameObjects() {
-    for (auto* obj : m_visibleObjects)
-		{ obj->Render(); obj->RenderDebugOverlay(); }
+#ifdef _DEBUG
+    const auto cullStart = std::chrono::high_resolution_clock::now();
+#endif
+
+    ObjectManager* objectManager = ObjectManager::GetInstance();
+    if (!objectManager) {
+        return;
+    }
+
+    if (!g_bEnableOptimizationMode)
+    {
+        // 비최적화 비교 모드: 카메라 컬링 없이 월드 객체를 모두 렌더한다.
+        const auto& worldObjects = objectManager->GetWorldObjects();
+        int renderedWorldCount = 0;
+
+#ifdef _DEBUG
+        const float cullElapsedMs = 0.0f;
+#endif
+
+#ifdef _DEBUG
+        const auto renderStart = std::chrono::high_resolution_clock::now();
+#endif
+        for (GameObject* obj : worldObjects) {
+            if (!obj || !obj->IsEnabled() || obj->IsDead()) {
+                continue;
+            }
+            obj->Render();
+            obj->RenderDebugOverlay();
+              ++renderedWorldCount;
+        }
+
+#ifdef _DEBUG
+        const auto renderEnd = std::chrono::high_resolution_clock::now();
+        const float renderElapsedMs = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(renderEnd - renderStart).count()) / 1000.0f;
+        constexpr float kEmaAlpha = 0.10f;
+
+        if (m_cullVisibleGameObjectsSampleCount == 0) {
+            m_avgCullVisibleGameObjectsMs = cullElapsedMs;
+        }
+        else {
+            m_avgCullVisibleGameObjectsMs += kEmaAlpha * (cullElapsedMs - m_avgCullVisibleGameObjectsMs);
+        }
+        ++m_cullVisibleGameObjectsSampleCount;
+
+        if (m_renderVisibleGameObjectsSampleCount == 0) {
+            m_avgRenderVisibleGameObjectsMs = renderElapsedMs;
+        }
+        else {
+            m_avgRenderVisibleGameObjectsMs += kEmaAlpha * (renderElapsedMs - m_avgRenderVisibleGameObjectsMs);
+        }
+        ++m_renderVisibleGameObjectsSampleCount;
+
+
+#endif
+    }
+    else {
+        const auto& worldObjects = objectManager->GetWorldObjects();
+        std::vector<GameObject*> localVisibleBuffer;
+        std::vector<GameObject*>& visibleBuffer = g_bEnableBufferReuse ? m_queryBuffer : localVisibleBuffer;
+
+        visibleBuffer.clear();
+        for (GameObject* obj : worldObjects) {
+            if (!obj || !obj->IsEnabled() || obj->IsDead()) {
+                continue;
+            }
+            if (!IsObjectInViewport(obj)) {
+                continue;
+            }
+
+            visibleBuffer.push_back(obj);
+        }
+
+#ifdef _DEBUG
+        const auto cullEnd = std::chrono::high_resolution_clock::now();
+        const float cullElapsedMs = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(cullEnd - cullStart).count()) / 1000.0f;
+#endif
+
+#ifdef _DEBUG
+        const auto renderStart = std::chrono::high_resolution_clock::now();
+#endif
+        for (GameObject* obj : visibleBuffer) {
+            obj->Render();
+            obj->RenderDebugOverlay();
+        }
+
+#ifdef _DEBUG
+        const auto renderEnd = std::chrono::high_resolution_clock::now();
+        const float renderElapsedMs = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(renderEnd - renderStart).count()) / 1000.0f;
+    constexpr float kEmaAlpha = 0.10f;
+
+    if (m_cullVisibleGameObjectsSampleCount == 0) {
+        m_avgCullVisibleGameObjectsMs = cullElapsedMs;
+    }
+    else {
+        m_avgCullVisibleGameObjectsMs += kEmaAlpha * (cullElapsedMs - m_avgCullVisibleGameObjectsMs);
+    }
+    ++m_cullVisibleGameObjectsSampleCount;
+
+    if (m_renderVisibleGameObjectsSampleCount == 0) {
+        m_avgRenderVisibleGameObjectsMs = renderElapsedMs;
+    }
+    else {
+        m_avgRenderVisibleGameObjectsMs += kEmaAlpha * (renderElapsedMs - m_avgRenderVisibleGameObjectsMs);
+    }
+    ++m_renderVisibleGameObjectsSampleCount;
+#endif
+    }
 }
 
 void CameraManager::CleanupUnusedTileCache(const MapData* md, int sx, int ex, int sy, int ey) {
@@ -191,11 +415,13 @@ void CameraManager::ClearTileCache() {
 
 void CameraManager::SetWalkableBoundsFromMapData(const MapData* md) {
     if (!md) return;
+    const float tileSizeF = static_cast<float>(TILE_SIZE);
     float minX = 1e9f, minY = 1e9f, maxX = -1e9f, maxY = -1e9f; bool found = false;
     for (int y = 0; y < md->mapHeight; ++y) for (int x = 0; x < md->mapWidth; ++x) {
         if (!md->walkableAreas[x][y]) continue;
-        float wx = x * TILE_SIZE + TILE_SIZE * 0.5f, wy = y * TILE_SIZE + TILE_SIZE * 0.5f;
-        minX = (std::min)(minX, wx); minY = (std::min)(minY, wy); 
+        float wx = static_cast<float>(x) * tileSizeF + tileSizeF * 0.5f;
+        float wy = static_cast<float>(y) * tileSizeF + tileSizeF * 0.5f;
+        minX = (std::min)(minX, wx); minY = (std::min)(minY, wy);
         maxX = (std::max)(maxX, wx); maxY = (std::max)(maxY, wy);
         found = true;
     }
@@ -215,6 +441,7 @@ Gdiplus::PointF CameraManager::ScreenToWorld(float screenX, float screenY) const
     Gdiplus::RectF vp = GetViewportWorldRect();
     return { screenX + vp.X, screenY + vp.Y };
 }
+
 
 void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& td, TileCacheData& cd) {
     std::wstring path = ResourcePathUtils::BuildResourcePath(td.baseDir, td.imageName);

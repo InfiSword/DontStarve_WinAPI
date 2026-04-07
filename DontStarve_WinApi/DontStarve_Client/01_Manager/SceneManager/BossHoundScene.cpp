@@ -7,14 +7,11 @@
 #include "../../02_GameObject/Entity/Monster/Monster.h"
 #include "../../02_GameObject/Entity/Monster/Hound.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
-#include "../ResourceManager/ResourceManager.h"
 #include "../GameProgressManager/GameProgressManager.h"
 #include "../SceneManager/SceneManager.h"
-#include "../../02_GameObject/UI/UIImage.h"
 #include "../../02_GameObject/UI/UIText.h"
 #include "../../02_GameObject/UI/GameClearUI.h"
 #include "../../02_GameObject/UI/HPUI.h"
-#include "../../01_Manager/RenderManager/RenderManager.h"
 
 BossHoundScene::BossHoundScene()
 	: GameScene()

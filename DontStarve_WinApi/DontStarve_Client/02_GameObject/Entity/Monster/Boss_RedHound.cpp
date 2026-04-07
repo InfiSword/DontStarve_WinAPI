@@ -12,6 +12,17 @@
 #include "../../Component/Collider/BoxCollider.h"
 #include "Boss_RedHound.h"
 
+namespace
+{
+	inline Direction ResolveFacingFromDirToPlayer(const Gdiplus::PointF& dirToPlayer)
+	{
+		if (std::abs(dirToPlayer.X) > std::abs(dirToPlayer.Y)) {
+			return (dirToPlayer.X >= 0.0f) ? DIR_RIGHT : DIR_LEFT;
+		}
+		return (dirToPlayer.Y >= 0.0f) ? DIR_DOWN : DIR_UP;
+	}
+}
+
 Boss_RedHound::Boss_RedHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
 	: Hound(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
@@ -272,8 +283,14 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 
 	if (m_state == (int)BossRedHoundState::ATTACK_PRE)
 	{
-		if (m_animator->IsAnimationDone())
+		if (m_animator->IsAnimationDone()) {
+			if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
+				const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
+				transform->SetDirection(faceDir);
+				UpdateAttackBoxByDirection(faceDir);
+			}
 			ChangeState((int)BossRedHoundState::ATTACK);
+		}
 		return;
 	}
 
@@ -312,6 +329,11 @@ int Boss_RedHound::UpdateIdle(float deltaTime)
 
 	if (nextState == (int)BossRedHoundState::ATTACK)
 	{
+		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
+			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
+			transform->SetDirection(faceDir);
+			UpdateAttackBoxByDirection(faceDir);
+		}
 		return (int)BossRedHoundState::ATTACK_PRE;
 	}
 
@@ -353,6 +375,11 @@ int Boss_RedHound::UpdateChase(float deltaTime)
 	}
 	if (nextState == (int)BossRedHoundState::ATTACK)
 	{
+		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
+			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
+			transform->SetDirection(faceDir);
+			UpdateAttackBoxByDirection(faceDir);
+		}
 		return (int)BossRedHoundState::ATTACK_PRE;
 	}
 
@@ -371,8 +398,15 @@ void Boss_RedHound::Damaged(int damage)
 
 void Boss_RedHound::OnAttackHit()
 {
-	if (m_isCombatEnabled && m_state == (int)BossRedHoundState::ATTACK)
-		ProcessAttackHit(m_damage);
+	if (!m_isCombatEnabled || m_state != (int)BossRedHoundState::ATTACK) return;
+
+	if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
+		const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
+		transform->SetDirection(faceDir);
+		UpdateAttackBoxByDirection(faceDir);
+	}
+
+	ProcessAttackHit(m_damage);
 }
 
 void Boss_RedHound::OnAttackEnd()

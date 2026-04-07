@@ -36,22 +36,19 @@ public:
 	void AddFillRectangleCommand(const Gdiplus::RectF& rect, const Gdiplus::Color& color, RenderLayer layer, float zOrder = 0.0f); 
 
 	void Clear();
+	void BeginFrame(const Gdiplus::PointF& cameraPos);
 
 	void Flush(Gdiplus::Graphics* pGraphics);
 
 private:
 	std::vector<DrawCommand> m_layerCommands[LAYER_COUNT];
+	Gdiplus::PointF m_frameCameraPos = { 0.0f, 0.0f };
+	bool m_hasFrameCameraPos = false;
 
 	Gdiplus::Pen* m_pCachedPen = nullptr;
 	Gdiplus::SolidBrush* m_pCachedBrush = nullptr;
 	Gdiplus::ImageAttributes* m_pCachedAttr = nullptr;
 
-	Gdiplus::PointF m_cameraPos = { 0, 0 };
-
 	void RenderSprite(Gdiplus::Graphics* pGraphics, const DrawCommand::SpriteData& data, const Gdiplus::RectF& destRect);
-
-	static bool CompareDrawCommands(const DrawCommand& a, const DrawCommand& b)
-	{
-		return a.zOrder < b.zOrder;
-	}
+	void ExecuteDrawCommand(Gdiplus::Graphics* pGraphics, const DrawCommand& cmd);
 };

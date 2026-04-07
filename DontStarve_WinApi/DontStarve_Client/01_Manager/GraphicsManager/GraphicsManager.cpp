@@ -75,10 +75,14 @@ void GraphicsManager::Release()
     }
 }
 
+void GraphicsManager::BeginFrame()
+{
+  if (m_pGraphics) {
+    m_pGraphics->Clear(Gdiplus::Color(255, 0, 0, 0));
+  }
+}
+
 Gdiplus::Graphics* GraphicsManager::GetGraphics()
 {
-    if (m_pGraphics) {
-        m_pGraphics->Clear(Gdiplus::Color(255, 0, 0, 0));
-    }
     return m_pGraphics;
 }

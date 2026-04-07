@@ -4,6 +4,7 @@
 #include "Component/Component.h"
 #include <utility>
 #include <type_traits>
+#include <cstdint>
 
 class Transform;
 class SpriteRenderer;
@@ -44,6 +45,7 @@ protected:
 	// 공간 분할용 그리드 좌표
 	int m_gridCellX = -1;
 	int m_gridCellY = -1;
+	uint32_t m_lastSpatialQueryStamp = 0;
 
 	bool m_isDead = false; // 삭제 여부 플래그
 
@@ -76,6 +78,8 @@ public:
 	int GetGridCellX() const { return m_gridCellX; }
 	int GetGridCellY() const { return m_gridCellY; }
 	void SetGridCell(int x, int y) { m_gridCellX = x; m_gridCellY = y; }
+	uint32_t GetLastSpatialQueryStamp() const { return m_lastSpatialQueryStamp; }
+	void SetLastSpatialQueryStamp(uint32_t stamp) { m_lastSpatialQueryStamp = stamp; }
 
 	// 메인 콜라이더 접근자
 	virtual Collider* GetMainCollider() const { return m_mainCollider; }

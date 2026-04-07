@@ -3,9 +3,8 @@
 namespace ResourcePathUtils { struct TileResourceDef; }
 
 struct TileCacheData {
-	TileID id;
 	Gdiplus::Bitmap* bitmap;
-	TileCacheData() : id(TILEID_NONE), bitmap(nullptr) {}
+	TileCacheData() : bitmap(nullptr) {}
 };
 
 class GameObject;
@@ -30,8 +29,6 @@ public:
 	GameObject* GetTarget() { return m_target; }
 	void FollowTarget();
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
-
-	void UpdateVisibleObjects();
 	
 	GameObject* FindInteractableObjectAtPosition(float worldX, float worldY);
 	void FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects, bool onlyInteraction = false);
@@ -46,20 +43,50 @@ public:
 	Gdiplus::PointF WorldToScreen(float worldX, float worldY) const;
 	Gdiplus::PointF ScreenToWorld(float screenX, float screenY) const;
 
+	float GetAvgRenderVisibleGameObjectsMs() const {
+#ifdef _DEBUG
+		return m_avgRenderVisibleGameObjectsMs;
+#else
+		return 0.0f;
+#endif
+	}
+
+	float GetAvgRenderVisibleTilesMs() const {
+#ifdef _DEBUG
+		return m_avgRenderVisibleTilesMs;
+#else
+		return 0.0f;
+#endif
+	}
+
+	float GetAvgCullVisibleGameObjectsMs() const {
+#ifdef _DEBUG
+		return m_avgCullVisibleGameObjectsMs;
+#else
+		return 0.0f;
+#endif
+	}
+
 private:
 	GameObject* m_target = nullptr;
-	Gdiplus::PointF m_cameraPos = { 0, 0 };
-	bool m_followMode = true;
-
-	bool m_hasWalkableBounds = false;
-	float m_walkableMinX = 0, m_walkableMinY = 0, m_walkableMaxX = 0, m_walkableMaxY = 0;
-	
-	std::vector<GameObject*> m_visibleObjects;
-	std::vector<GameObject*> m_queryBuffer; // 공간 분할 쿼리용 재사용 버퍼 (성능 최적화용)
-	Gdiplus::RectF m_lastViewportRect = { 0, 0, 0, 0 };
-
 	std::unordered_map<UINT, TileCacheData> m_tileCache;
+	std::vector<GameObject*> m_queryBuffer; // 공간 분할 쿼리용 재사용 버퍼 (성능 최적화용)
+
+	Gdiplus::RectF m_lastViewportRect = { 0, 0, 0, 0 };
+	Gdiplus::PointF m_cameraPos = { 0, 0 };
+	float m_walkableMinX = 0, m_walkableMinY = 0, m_walkableMaxX = 0, m_walkableMaxY = 0;
 	int m_lastStartTileX = -1, m_lastStartTileY = -1, m_lastEndTileX = -1, m_lastEndTileY = -1;
+
+#ifdef _DEBUG
+	unsigned long long m_cullVisibleGameObjectsSampleCount = 0;
+	unsigned long long m_renderVisibleGameObjectsSampleCount = 0;
+	unsigned long long m_renderVisibleTilesSampleCount = 0;
+	float m_avgCullVisibleGameObjectsMs = 0.0f;
+	float m_avgRenderVisibleGameObjectsMs = 0.0f;
+	float m_avgRenderVisibleTilesMs = 0.0f;
+#endif
+	bool m_followMode = true;
+	bool m_hasWalkableBounds = false;
 
 	bool IsObjectInViewport(GameObject* obj) const;
 	void LoadTileBitmap(const ResourcePathUtils::TileResourceDef& tileData, TileCacheData& cacheData);

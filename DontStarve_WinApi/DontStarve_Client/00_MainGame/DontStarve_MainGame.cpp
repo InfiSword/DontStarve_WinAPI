@@ -1,5 +1,6 @@
 #include "99_Default/pch.h"
 #include "DontStarve_MainGame.h"
+#include "../99_Default/ClientOptimatzationOption.h"
 #include "../01_Manager/TimeManager/TimeManager.h"
 #include "../01_Manager/CameraManager/CameraManager.h"
 #include "../01_Manager/InputManager/InputManager.h"
@@ -23,6 +24,7 @@ DontStarve_MainGame::DontStarve_MainGame()
 #ifdef _DEBUG
     , m_showPerfOverlay(false)
     , m_prevF1Down(false)
+    , m_prevF2Down(false)
     , m_pPerfFont(nullptr)
     , m_pPerfBrush(nullptr)
     , m_pPerfStringFormat(nullptr)
@@ -42,7 +44,7 @@ void DontStarve_MainGame::Init()
 
     // 기본 시스템 매니저만 초기화 (렌더/윈도우 매니저 등)
     TimeManager::GetInstance()->Init();
-    TimeManager::GetInstance()->SetFPS(30);
+    TimeManager::GetInstance()->SetFPS(30); // 목표 프레임을 30으로 고정
     
     GraphicsManager::GetInstance()->Init();
     RenderManager::GetInstance()->Init();
@@ -93,11 +95,19 @@ void DontStarve_MainGame::Update()
     InputManager::GetInstance()->Update(deltaTime);
 
 #ifdef _DEBUG
+    // F1: 성능 오버레이 토글
     const bool isF1Down = InputManager::GetInstance()->IsKeyDown(VK_F1);
     if (isF1Down && !m_prevF1Down) {
         m_showPerfOverlay = !m_showPerfOverlay;
     }
     m_prevF1Down = isF1Down;
+
+    // F2: 최적화 모드 토글
+    const bool isF2Down = InputManager::GetInstance()->IsKeyDown(VK_F2);
+    if (isF2Down && !m_prevF2Down) {
+        ToggleOptimizationMode();
+    }
+    m_prevF2Down = isF2Down;
 
     if (m_showPerfOverlay) {
         UpdatePerformanceOverlayText();
@@ -134,14 +144,26 @@ void DontStarve_MainGame::Render()
     if (!m_bIsInitialized)
         return;
 
-    // Graphics 그래픽스 컨텍스트 가져오기 (내부에서 검은색으로 Clear됨)
+    // 모드와 무관하게 프레임 시작 시 백버퍼를 1회 초기화한다.
+    GraphicsManager::GetInstance()->BeginFrame();
+
+    // Graphics 그래픽스 컨텍스트 가져오기
     Gdiplus::Graphics* pGraphics = GraphicsManager::GetInstance()->GetGraphics();
     if (!pGraphics) {
         return;
     }
 
-    // SceneManager 렌더링 (씬이 RenderManager에 렌더링 명령 추가)
-    SceneManager::GetInstance()->Render();
+    // SceneManager 렌더링
+    if (g_bEnableOptimizationMode) {
+        // 최적화 모드: 커맨드 큐 기반 렌더
+        RenderManager::GetInstance()->BeginFrame(CameraManager::GetInstance()->GetCameraPos());
+        SceneManager::GetInstance()->Render();
+    }
+    else {
+        // 비최적화 모드: 즉시 렌더 경로 사용
+        RenderManager::GetInstance()->Clear();
+        SceneManager::GetInstance()->Render();
+    }
 
 #ifdef _DEBUG
     if (m_showPerfOverlay) {
@@ -149,7 +171,7 @@ void DontStarve_MainGame::Render()
     }
 #endif
 
-    // RenderManager 렌더링 커밋
+    // 커맨드 큐(및 fallback 큐)를 Flush로 소모한다.
     RenderManager::GetInstance()->Flush(pGraphics);
 
     // 그래픽스 컨텍스트 렌더링
@@ -197,28 +219,36 @@ void DontStarve_MainGame::UpdatePerformanceOverlayText()
 
     const int targetFps = pTimeManager->GetFPS();
     const float currentFps = pTimeManager->GetCurrentFPS();
-    const float frameMs = pTimeManager->GetDeltaTimeMs();
-    const float targetFrameMs = pTimeManager->GetTargetFrameTimeMs();
+    const float avgCullVisibleGameObjectsMs = CameraManager::GetInstance()->GetAvgCullVisibleGameObjectsMs();
+    const float avgRenderVisibleGameObjectsMs = CameraManager::GetInstance()->GetAvgRenderVisibleGameObjectsMs();
+    const float avgRenderVisibleTilesMs = CameraManager::GetInstance()->GetAvgRenderVisibleTilesMs();
+
+    auto formatPerfValue = [](float ms) -> std::wstring {
+        std::wostringstream value;
+        value << std::fixed;
+        if (ms > 0.0f && ms < 0.01f) {
+            value << std::setprecision(1) << (ms * 1000.0f) << L"us";
+        }
+        else {
+            value << std::setprecision(3) << ms << L"ms";
+        }
+        return value.str();
+    };
 
     std::wostringstream stream;
     stream << std::fixed << std::setprecision(2);
-    stream << L"[Performance Debug (F1)]\n";
-    stream << L"FPS(Current) : " << currentFps << L"\n";
-    stream << L"FPS(Target)  : ";
-    if (targetFps > 0) {
-        stream << targetFps;
-    }
-    else {
-        stream << L"Unlimited";
-    }
-    stream << L"\n";
-    stream << L"Frame Time   : " << frameMs << L" ms\n";
-
-    if (targetFps > 0) {
-        stream << L"Target Frame : " << targetFrameMs << L" ms\n";
-    }
-
-    stream << L"Delta Time   : " << pTimeManager->GetDeltaTime() << L" s";
+    stream << L"[성능 디버그 - F1]\n";
+    stream << L"===================================\n";
+    stream << L"모드: " << (g_bEnableOptimizationMode ? L"최적화 ON" : L"비최적화") << L" [F2]\n";
+    stream << L"===================================\n";
+    stream << L"FPS(현재) : " << currentFps << L"\n";
+    stream << L"FPS(목표) : ";
+    if (targetFps > 0) stream << targetFps;
+    else stream << L"무제한";
+    stream << L"\n[EMA 시간(ms)]\n";
+    stream << L"CullVisibleGameObjects          : " << formatPerfValue(avgCullVisibleGameObjectsMs) << L"\n";
+    stream << L"RenderVisibleGameObjects        : " << formatPerfValue(avgRenderVisibleGameObjectsMs) << L"\n";
+    stream << L"RenderVisibleTiles              : " << formatPerfValue(avgRenderVisibleTilesMs) << L"\n";
 
     m_perfOverlayText = stream.str();
 }
@@ -229,14 +259,22 @@ void DontStarve_MainGame::RenderPerformanceOverlay()
 
     const float panelX = 10.0f;
     const float panelY = 10.0f;
-    const float panelW = 380.0f;
-    const float panelH = 150.0f;
-    const float padding = 10.0f;
+    const float panelW = 700.0f;
+    const float padding = 12.0f;
+
+    int lineCount = 1;
+    for (wchar_t ch : m_perfOverlayText) {
+        if (ch == L'\n') ++lineCount;
+    }
+
+    const float lineHeight = 22.0f;
+    float panelH = (padding * 2.0f) + (static_cast<float>(lineCount) * lineHeight) + 12.0f;
+    if (panelH < 280.0f) panelH = 280.0f;
+    if (panelH > 680.0f) panelH = 680.0f;
 
     const Gdiplus::RectF backgroundRect(panelX, panelY, panelW, panelH);
     const Gdiplus::RectF textRect(panelX + padding, panelY + padding, panelW - (padding * 2.0f), panelH - (padding * 2.0f));
 
-    // UI 최상위 레이어에 렌더링해 씬 UI에 가려지지 않도록 고정한다.
     RenderManager::GetInstance()->AddFillRectangleCommand(backgroundRect, Gdiplus::Color(220, 255, 255, 255), LAYER_UI_FOREGROUND, 9999.0f);
     RenderManager::GetInstance()->AddDrawRectCommand(backgroundRect, Gdiplus::Color(255, 30, 30, 30), 1.5f, LAYER_UI_FOREGROUND, 10000.0f);
     RenderManager::GetInstance()->AddTextCommand(&m_perfOverlayText, m_pPerfFont, m_pPerfBrush, m_pPerfStringFormat, textRect, LAYER_UI_FOREGROUND, 10001.0f);

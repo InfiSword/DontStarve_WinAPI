@@ -1,15 +1,8 @@
 #include "99_Default/pch.h"
 #include "RenderManager.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
-#include "../../01_Manager/ResourceManager/ResourceManager.h"
-#include "../../02_GameObject/Component/Transform/Transform.h"
-#include "../../02_GameObject/Component/Transform/RectTransform.h"
-#include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
-#include "../../02_GameObject/Component/Sprite/Image.h"
-#include "../../02_GameObject/Component/Text/Text.h"
-#include "../../03_Animation/Animator.h"
 #include "../../02_GameObject/Component/Sprite/SpriteSheet.h"
-#include "../../02_GameObject/GameObject.h"
+#include "../../99_Default/ClientOptimatzationOption.h"
 
 RenderManager::RenderManager()
 {
@@ -41,11 +34,17 @@ void RenderManager::LateInit()
 
 void RenderManager::Update(float deltaTime)
 {
-	m_cameraPos = CameraManager::GetInstance()->GetCameraPos();
+	// UNREFERENCED_PARAMETER(deltaTime);
 }
 
 void RenderManager::LateUpdate()
 {
+}
+
+void RenderManager::BeginFrame(const Gdiplus::PointF& cameraPos)
+{
+	m_frameCameraPos = cameraPos;
+	m_hasFrameCameraPos = true;
 }
 
 void RenderManager::Release()
@@ -59,15 +58,22 @@ void RenderManager::Release()
 
 void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float worldX, float worldY, float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)
 {
-	// 월드 좌표를 화면 좌표로 변환 (RenderManager가 캐싱된 카메라 좌표를 사용하여 직접 계산)
-	float screenX = worldX - m_cameraPos.X + (float)WINCX * 0.5f;
-	float screenY = worldY - m_cameraPos.Y + (float)WINCY * 0.5f;
+	// 프레임 시작 시 고정한 카메라 스냅샷을 우선 사용해, 같은 프레임 내 좌표 흔들림을 줄인다.
+	const Gdiplus::PointF currentCamPos = m_hasFrameCameraPos ? m_frameCameraPos : CameraManager::GetInstance()->GetCameraPos();
+	float screenX = worldX - currentCamPos.X + (float)WINCX * 0.5f;
+	float screenY = worldY - currentCamPos.Y + (float)WINCY * 0.5f;
 	Gdiplus::PointF screenPos(screenX, screenY);
 
 	float width = sourceRect.Width * scaleX;
 	float height = sourceRect.Height * scaleY;
+	// 0 크기 커맨드는 이후 정렬/드로우 비용만 늘리므로 등록 전에 제거한다.
+	if (width <= 0.0f || height <= 0.0f) {
+		return;
+	}
+
 	float renderX = screenPos.X - width * pivotX;
 	float renderY = screenPos.Y - height * pivotY;
+
 
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_ENTITY;
@@ -165,6 +171,7 @@ void RenderManager::Clear()
 	for (int i = 0; i < LAYER_COUNT; ++i) {
 		m_layerCommands[i].clear();
 	}
+	m_hasFrameCameraPos = false;
 }
 
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
@@ -173,50 +180,65 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 
 	for (int i = LAYER_TILE_BACKGROUND; i < LAYER_COUNT; ++i) {
 		if (m_layerCommands[i].empty()) continue;
-		
-		std::stable_sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), CompareDrawCommands);
-		
+
+		if (g_bEnableOptimizationMode && m_layerCommands[i].size() > 1) {
+			std::stable_sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), [](const DrawCommand& a, const DrawCommand& b) {
+				return a.zOrder < b.zOrder;
+			});
+		}
+
 		for (const auto& cmd : m_layerCommands[i]) {
-			Gdiplus::GraphicsState state;
-			bool rotated = (cmd.rotation != 0.0f);
-			
-			if (rotated) {
-				state = pGraphics->Save();
-				pGraphics->TranslateTransform(cmd.rotationPivot.X, cmd.rotationPivot.Y);
-				pGraphics->RotateTransform(cmd.rotation);
-				pGraphics->TranslateTransform(-cmd.rotationPivot.X, -cmd.rotationPivot.Y);
-			}
-
-			switch (cmd.type) {
-			case DRAW_COMMAND_ENTITY:
-			case DRAW_COMMAND_UI_IMAGE:
-				RenderSprite(pGraphics, cmd.sprite, cmd.destRect);
-				break;
-			case DRAW_COMMAND_TEXT:
-				if (cmd.text.textPtr && cmd.text.pBrush) {
-					pGraphics->DrawString(cmd.text.textPtr->c_str(), -1, cmd.text.pFont, cmd.destRect, cmd.text.pStringFormat, cmd.text.pBrush);
-				}
-				break;
-			case DRAW_COMMAND_RECTANGLE:
-				if (m_pCachedPen) {
-					m_pCachedPen->SetColor(cmd.primitive.color);
-					m_pCachedPen->SetWidth(cmd.primitive.thickness);
-					pGraphics->DrawRectangle(m_pCachedPen, cmd.destRect);
-				}
-				break;
-			case DRAW_COMMAND_FILL_RECTANGLE:
-				if (m_pCachedBrush) {
-					m_pCachedBrush->SetColor(cmd.primitive.color);
-					pGraphics->FillRectangle(m_pCachedBrush, cmd.destRect);
-				}
-				break;			
-			}
-
-			if (rotated) {
-				pGraphics->Restore(state);
-			}
+			ExecuteDrawCommand(pGraphics, cmd);
 		}
 		m_layerCommands[i].clear();
+	}
+	m_hasFrameCameraPos = false;
+}
+
+void RenderManager::ExecuteDrawCommand(Gdiplus::Graphics* pGraphics, const DrawCommand& cmd)
+{
+	if (!pGraphics) return;
+
+	Gdiplus::GraphicsState state = 0;
+	const bool rotated = (cmd.rotation != 0.0f);
+
+	if (rotated) {
+		state = pGraphics->Save();
+		pGraphics->TranslateTransform(cmd.rotationPivot.X, cmd.rotationPivot.Y);
+		pGraphics->RotateTransform(cmd.rotation);
+		pGraphics->TranslateTransform(-cmd.rotationPivot.X, -cmd.rotationPivot.Y);
+	}
+
+	switch (cmd.type) {
+	case DRAW_COMMAND_ENTITY:
+	case DRAW_COMMAND_UI_IMAGE:
+		RenderSprite(pGraphics, cmd.sprite, cmd.destRect);
+		break;
+	case DRAW_COMMAND_TEXT:
+		if (cmd.text.textPtr && cmd.text.pBrush) {
+			pGraphics->DrawString(cmd.text.textPtr->c_str(), -1, cmd.text.pFont, cmd.destRect, cmd.text.pStringFormat, cmd.text.pBrush);
+		}
+		break;
+	case DRAW_COMMAND_RECTANGLE:
+		if (m_pCachedPen) {
+			m_pCachedPen->SetColor(cmd.primitive.color);
+			m_pCachedPen->SetWidth(cmd.primitive.thickness);
+			pGraphics->DrawRectangle(m_pCachedPen, cmd.destRect);
+		}
+		break;
+	case DRAW_COMMAND_FILL_RECTANGLE:
+		if (m_pCachedBrush) {
+			m_pCachedBrush->SetColor(cmd.primitive.color);
+			pGraphics->FillRectangle(m_pCachedBrush, cmd.destRect);
+		}
+		break;
+	case DRAW_COMMAND_HIGHLIGHT:
+	default:
+		break;
+	}
+
+	if (rotated) {
+		pGraphics->Restore(state);
 	}
 }
 
@@ -237,3 +259,5 @@ void RenderManager::RenderSprite(Gdiplus::Graphics* pGraphics, const DrawCommand
 		pGraphics->DrawImage(data.pBitmap, destRect, data.sourceRect.X, data.sourceRect.Y, data.sourceRect.Width, data.sourceRect.Height, data.srcUnit);
 	}
 }
+
+

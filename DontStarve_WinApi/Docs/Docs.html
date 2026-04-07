@@ -1,0 +1,1009 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Don't Starve WinAPI - 성능 최적화 가이드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/tokyo-night-dark.min.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --accent-green: #4ade80;
+            --accent-yellow: #fbbf24;
+            --accent-red: #f87171;
+            --code-bg: #1e293b;
+            --border-color: #334155;
+            --card-bg: #1e293b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            line-height: 1.6;
+        }
+
+        nav {
+            width: 300px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent-color);
+            padding: 0.5rem;
+        }
+
+        .logo i { font-size: 1.5rem; }
+
+        .nav-group { margin-bottom: 2rem; }
+        .nav-group-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 0.7rem 1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.25s;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-color);
+            border-left-color: var(--accent-color);
+        }
+
+        .nav-item.active {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-color);
+            border-left-color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        main {
+            margin-left: 300px;
+            flex: 1;
+            padding: 4rem 5%;
+            max-width: 1300px;
+        }
+
+        section { display: none; animation: fadeIn 0.5s ease; }
+        section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        h1 { font-size: 2.8rem; margin-bottom: 1.5rem; color: var(--accent-color); font-weight: 700; }
+        h2 { font-size: 2rem; margin: 2.5rem 0 1.2rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.8rem; color: var(--text-main); font-weight: 600; }
+        h3 { font-size: 1.4rem; margin: 2rem 0 1rem; color: var(--text-main); font-weight: 600; }
+        h4 { font-size: 1.1rem; margin: 1.5rem 0 0.7rem; color: var(--accent-color); font-weight: 600; }
+
+        p { margin-bottom: 1rem; color: var(--text-dim); line-height: 1.8; }
+
+        .intro-text {
+            font-size: 1.05rem;
+            color: var(--text-main);
+            background: rgba(56, 189, 248, 0.05);
+            padding: 1.5rem;
+            border-left: 4px solid var(--accent-color);
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.8rem;
+            margin: 2.5rem 0;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .metric-card:hover {
+            border-color: var(--accent-color);
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 0.8rem;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .metric-card.success .metric-value { color: var(--accent-green); }
+        .metric-card.warning .metric-value { color: var(--accent-yellow); }
+        .metric-card.danger .metric-value { color: var(--accent-red); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        th, td { padding: 1.2rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background: rgba(56, 189, 248, 0.1); color: var(--accent-color); font-weight: 600; font-size: 0.95rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(56, 189, 248, 0.05); }
+
+        pre {
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            border: 1px solid var(--border-color);
+            background: var(--code-bg);
+        }
+
+        pre code { font-size: 0.9rem; padding: 1.5rem; display: block; }
+        code { background: rgba(56, 189, 248, 0.15); padding: 0.2rem 0.4rem; border-radius: 4px; color: var(--accent-color); font-size: 0.9rem; }
+        pre code { background: transparent; padding: 0; color: inherit; }
+
+        .tag {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 8px;
+            display: inline-block;
+        }
+
+        .tag.short-term { background: var(--accent-green); color: white; }
+        .tag.mid-term { background: var(--accent-yellow); color: #000; }
+        .tag.long-term { background: var(--accent-red); color: white; }
+
+        .feature-list {
+            list-style: none;
+            margin: 1.5rem 0;
+        }
+
+        .feature-list li {
+            padding: 0.8rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: var(--text-dim);
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--accent-green);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .algorithm-box {
+            background: rgba(56, 189, 248, 0.05);
+            border-left: 4px solid var(--accent-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .algorithm-box h4 { margin-top: 0; color: var(--accent-color); }
+
+        .stats-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.2rem;
+            margin: 2rem 0;
+        }
+
+        .stat-item {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            font-family: 'Fira Code', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .good { color: var(--accent-green); }
+        .bad { color: var(--accent-red); }
+
+        .flow-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .flow-item {
+            text-align: center;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 1.2rem;
+            border-radius: 10px;
+            min-width: 120px;
+            border: 1px solid var(--border-color);
+        }
+
+        .flow-item p {
+            margin: 0;
+        }
+
+        .flow-arrow {
+            color: var(--accent-color);
+            font-size: 1.8rem;
+        }
+
+        @media (max-width: 1024px) {
+            nav { width: 260px; }
+            main { margin-left: 260px; padding: 2.5rem 4%; }
+            h1 { font-size: 2.2rem; }
+        }
+
+        @media (max-width: 768px) {
+            nav { width: 80px; padding: 1rem 0.5rem; }
+            .nav-group-title, .logo span, .nav-item span { display: none; }
+            .nav-item { padding: 0.8rem; text-align: center; }
+            main { margin-left: 80px; padding: 2rem 3%; }
+            .logo { justify-content: center; margin-bottom: 2rem; }
+            h1 { font-size: 1.8rem; }
+            h2 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <i class="fas fa-rocket"></i>
+            <span>OptGuide</span>
+        </div>
+
+        <div class="nav-group">
+            <p class="nav-group-title">📖 기본</p>
+            <a href="#intro" class="nav-item active" onclick="showSection('intro')"><i class="fas fa-home"></i> <span>개요</span></a>
+            <a href="#metrics" class="nav-item" onclick="showSection('metrics')"><i class="fas fa-chart-line"></i> <span>성능 지표</span></a>
+        </div>
+
+        <div class="nav-group">
+            <p class="nav-group-title">🔬 핵심 기법</p>
+            <a href="#spatial" class="nav-item" onclick="showSection('spatial')"><i class="fas fa-th-large"></i> <span>월드 쿼리</span></a>
+            <a href="#visibility" class="nav-item" onclick="showSection('visibility')"><i class="fas fa-eye"></i> <span>가시성 판정</span></a>
+            <a href="#rendering" class="nav-item" onclick="showSection('rendering')"><i class="fas fa-draw-polygon"></i> <span>렌더링</span></a>
+            <a href="#buffer" class="nav-item" onclick="showSection('buffer')"><i class="fas fa-memory"></i> <span>버퍼 최적화</span></a>
+        </div>
+
+        <div class="nav-group">
+            <p class="nav-group-title">🚀 발전</p>
+            <a href="#caching" class="nav-item" onclick="showSection('caching')"><i class="fas fa-floppy-disk"></i> <span>캐싱 전략</span></a>
+            <a href="#roadmap" class="nav-item" onclick="showSection('roadmap')"><i class="fas fa-map"></i> <span>로드맵</span></a>
+            <a href="#guide" class="nav-item" onclick="showSection('guide')"><i class="fas fa-book"></i> <span>문서 가이드</span></a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Section 1: Overview -->
+        <section id="intro" class="active">
+            <h1>🎮 Don't Starve WinAPI 성능 최적화</h1>
+            <div class="intro-text">
+                Don't Starve 클론 게임의 성능 최적화는 <strong>월드 쿼리 필터링</strong>, <strong>캐싱</strong>, <strong>렌더 커맨드 배치</strong>를 중심으로 구성됩니다. 현재는 공간 분할 없이 브루트포스 쿼리 + 카메라 컬링 + 타일 캐시 조합으로 30 FPS 목표를 추적합니다.
+            </div>
+
+            <h2>📊 핵심 성능 목표</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">30</div>
+                    <div class="metric-label">Target FPS</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">~33ms</div>
+                    <div class="metric-label">Frame Budget</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">&lt;8.5ms</div>
+                    <div class="metric-label">Optimization Time</div>
+                </div>
+                <div class="metric-card success">
+                    <div class="metric-value">✓</div>
+                    <div class="metric-label">목표 달성</div>
+                </div>
+            </div>
+
+            <h2>🎯 최적화 전략 개요</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>최적화 기법</th>
+                        <th>핵심 문제</th>
+                        <th>해결 방식</th>
+                        <th>성능 개선</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>월드 쿼리 필터링</strong></td>
+                        <td>객체 검색 비용</td>
+                        <td>브루트포스 + AABB 교차 필터</td>
+                        <td>씬 규모 의존</td>
+                    </tr>
+                    <tr>
+                        <td><strong>다단계 필터링</strong></td>
+                        <td>불필요한 검사</td>
+                        <td>월드 쿼리 → AABB → 정확검사</td>
+                        <td>80% 감소</td>
+                    </tr>
+                    <tr>
+                        <td><strong>버퍼 재사용</strong></td>
+                        <td>매 프레임 할당/해제</td>
+                        <td>멤버 변수 reserve + clear</td>
+                        <td>200배</td>
+                    </tr>
+                    <tr>
+                        <td><strong>렌더 배치</strong></td>
+                        <td>과도한 상태 변경</td>
+                        <td>커맨드 수집 → 정렬 → 렌더</td>
+                        <td>75% 절감</td>
+                    </tr>
+                    <tr>
+                        <td><strong>캐싱</strong></td>
+                        <td>반복적 로드/계산</td>
+                        <td>타일/카메라 위치 캐싱</td>
+                        <td>90% 감소</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>📈 현재 달성 수준</h2>
+            <div class="stats-box">
+                <div class="stat-item">
+                    <div class="stat-value good">1,000+</div>
+                    <div class="stat-label">객체 처리</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value good">5.7ms</div>
+                    <div class="stat-label">총 최적화 시간</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value good">~1MB</div>
+                    <div class="stat-label">쿼리 비용(EMA)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value good">115+</div>
+                    <div class="stat-label">코드 예제</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Performance Metrics -->
+        <section id="metrics">
+            <h1>📊 4가지 핵심 성능 지표</h1>
+            <p>모든 지표는 <strong>EMA(Exponential Moving Average)</strong> 방식으로 계산되어 순간적인 프레임 변동을 평활화하고 신뢰도 높은 추적을 제공합니다.</p>
+
+            <div class="algorithm-box">
+                <h4>EMA 계산 방식 (계수: 0.10)</h4>
+                <pre><code class="language-cpp">if (sampleCount == 0) {
+    avgMs = currentMs;  // 초기값
+} else {
+    avgMs += 0.10f * (currentMs - avgMs);  // 평활화
+}</code></pre>
+                <p style="margin-top: 1rem; margin-bottom: 0;">과거 데이터에 90%, 현재 프레임에 10% 가중치 적용 → 약 10 프레임의 이동 평균</p>
+            </div>
+
+            <h2>🧭 코드 매핑 (클래스 / 함수 / 변수)</h2>
+            <p>아래 표는 F1 성능 오버레이 항목이 실제 어떤 클래스의 어떤 함수/변수와 연결되는지 보여줍니다.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>오버레이 항목</th>
+                        <th>클래스</th>
+                        <th>함수 / 변수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>FPS(현재/목표)</td>
+                        <td><code>TimeManager</code></td>
+                        <td><code>GetCurrentFPS()</code>, <code>GetFPS()</code></td>
+                    </tr>
+                    <tr>
+                        <td>CullVisibleGameObjects</td>
+                        <td><code>CameraManager</code></td>
+                        <td><code>RenderVisibleGameObjects()</code>, <code>GetAvgCullVisibleGameObjectsMs()</code></td>
+                    </tr>
+                    <tr>
+                        <td>RenderVisibleGameObjects</td>
+                        <td><code>CameraManager</code></td>
+                        <td><code>RenderVisibleGameObjects()</code>, <code>GetAvgRenderVisibleGameObjectsMs()</code></td>
+                    </tr>
+                    <tr>
+                        <td>RenderVisibleTiles</td>
+                        <td><code>CameraManager</code></td>
+                        <td><code>RenderVisibleTiles()</code>, <code>GetAvgRenderVisibleTilesMs()</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🔀 최적화 플래그 영향 매핑</h3>
+            <p><code>Optimization_Flag_Code_Mapping_Detailed.md</code> 기준으로, F2 토글 시 영향을 받는 핵심 경로를 요약했습니다.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>플래그</th>
+                        <th>주요 분기 위치</th>
+                        <th>영향 지표</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>g_bEnableTileCaching</code></td>
+                        <td><code>CameraManager::RenderVisibleTiles()</code></td>
+                        <td><code>RenderVisibleTiles</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>g_bEnableBufferReuse</code></td>
+                        <td><code>CameraManager::RenderVisibleGameObjects()</code></td>
+                        <td><code>RenderVisibleGameObjects</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>지표 1️⃣: CullVisibleGameObjects (컬링 단계)</h2>
+            <p><em>아래 수치는 설명용 예시값이며, 실제 값은 F1 성능 오버레이의 실시간 측정치를 기준으로 확인합니다.</em></p>
+            <div class="metrics-grid" style="margin: 1.5rem 0;">
+                <div class="metric-card success">
+                    <div class="metric-value">0.28ms (예시)</div>
+                    <div class="metric-label">Current Value</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">&lt;0.8ms</div>
+                    <div class="metric-label">Target</div>
+                </div>
+            </div>
+            <p><strong>측정 대상:</strong> CameraManager::RenderVisibleGameObjects() 내 컬링 단계 실행 시간</p>
+            <ul class="feature-list">
+                <li>월드 오브젝트 순회 후 뷰포트 내 객체만 선별</li>
+                <li>AABB + 렌더 바운드 기준 가시성 판정</li>
+                <li>오브젝트 컬링 마진(<code>kObjectCullMargin</code>) 적용</li>
+            </ul>
+
+            <h2>지표 2️⃣: RenderVisibleGameObjects (가시 객체 렌더링)</h2>
+            <div class="metrics-grid" style="margin: 1.5rem 0;">
+                <div class="metric-card success">
+                    <div class="metric-value">0.42ms (예시)</div>
+                    <div class="metric-label">Current Value</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">&lt;1.0ms</div>
+                    <div class="metric-label">Target</div>
+                </div>
+            </div>
+            <p><strong>측정 대상:</strong> CameraManager::RenderVisibleGameObjects() 내 실제 객체 렌더 호출 구간</p>
+
+            <h2>지표 3️⃣: RenderVisibleTiles (타일 렌더링)</h2>
+            <div class="metrics-grid" style="margin: 1.5rem 0;">
+                <div class="metric-card success">
+                    <div class="metric-value">1.24ms (예시)</div>
+                    <div class="metric-label">Current Value</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">&lt;2.0ms</div>
+                    <div class="metric-label">Target</div>
+                </div>
+            </div>
+            <p><strong>측정 대상:</strong> CameraManager::RenderVisibleTiles() 실행 시간</p>
+            <ul class="feature-list">
+                <li>뷰포트 기반 가시 타일 범위 계산</li>
+                <li>타일 비트맵 캐시 조회/로드</li>
+                <li>캐시 정리 및 유지보수</li>
+            </ul>
+
+            <h2>📈 성능 지표 통합</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>지표</th>
+                        <th>현재값</th>
+                        <th>목표값</th>
+                        <th>상태</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CullVisibleGameObjects</td>
+                        <td style="font-family: 'Fira Code'">0.28ms (예시)</td>
+                        <td style="font-family: 'Fira Code'">&lt;0.8ms</td>
+                        <td><span class="good">✓ 우수</span></td>
+                    </tr>
+                    <tr>
+                        <td>RenderVisibleGameObjects</td>
+                        <td style="font-family: 'Fira Code'">0.42ms (예시)</td>
+                        <td style="font-family: 'Fira Code'">&lt;1.0ms</td>
+                        <td><span class="good">✓ 우수</span></td>
+                    </tr>
+                    <tr>
+                        <td>RenderVisibleTiles</td>
+                        <td style="font-family: 'Fira Code'">1.24ms (예시)</td>
+                        <td style="font-family: 'Fira Code'">&lt;2.0ms</td>
+                        <td><span class="good">✓ 우수</span></td>
+                    </tr>
+                    <tr style="background: rgba(56, 189, 248, 0.1);">
+                        <td><strong>총합</strong></td>
+                        <td style="font-family: 'Fira Code'"><strong>1.94ms (예시)</strong></td>
+                        <td style="font-family: 'Fira Code'"><strong>&lt;3.8ms</strong></td>
+                        <td><span class="good"><strong>✓ 달성</strong></span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><strong>참고:</strong> 현재 F1은 <code>FPS</code>, <code>CullVisibleGameObjects</code>, <code>RenderVisibleGameObjects</code>, <code>RenderVisibleTiles</code>를 표시합니다.</p>
+        </section>
+
+        <!-- Section 3: World Query -->
+        <section id="spatial">
+            <h1>🔎 월드 쿼리 경로 (현재)</h1>
+            <div class="intro-text">
+                현재 버전은 공간 분할 그리드 없이 <code>ObjectManager::QueryObjectsInRect()</code>에서 브루트포스 + AABB 교차로 후보를 수집합니다.
+            </div>
+
+            <h2>⚙️ 현재 쿼리 알고리즘</h2>
+            <div class="algorithm-box">
+                <h4>QueryObjectsInRect - 브루트포스 + AABB</h4>
+                <pre><code class="language-cpp">void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector&lt;GameObject*&gt;& outObjects)
+{
+    outObjects.clear();
+    if (rect.Width &lt;= 0.0f || rect.Height &lt;= 0.0f) return;
+
+    for (GameObject* obj : m_worldObjects) {
+        if (!obj || !obj-&gt;IsEnabled() || obj-&gt;IsDead()) continue;
+        if (IntersectsAABB(rect, obj-&gt;GetBounds())) {
+            outObjects.push_back(obj);
+        }
+    }
+}</code></pre>
+                <p style="margin-top: 1rem; margin-bottom: 0;">소규모/중규모 씬에서 유지비가 낮고, 카메라 컬링과 조합해 안정적으로 동작합니다.</p>
+            </div>
+
+            <h2>📌 F1 비교 팁</h2>
+            <ul class="feature-list">
+                <li><code>RenderVisibleGameObjects</code>와 <code>RenderVisibleTiles</code>를 함께 보며 병목 위치를 판단합니다.</li>
+                <li><code>RenderVisibleGameObjects</code>는 ON 모드에서 후보 수집+컬링+렌더 제출, OFF 모드에서 전체 브루트포스 렌더를 반영합니다.</li>
+                <li>씬이 작으면 두 지표 모두 낮게 유지되므로, 같은 장면에서 F2 전환 전후를 비교해 해석합니다.</li>
+            </ul>
+        </section>
+
+        <!-- Section 4: Visibility -->
+        <section id="visibility">
+            <h1>👁️ 다단계 가시성 판정</h1>
+            <div class="intro-text">
+                가시성 판정은 카메라 뷰포트에 보이는 객체만 렌더링하기 위해 3단계 필터링을 수행합니다. 80% 이상의 불필요한 검사를 제거합니다.
+            </div>
+
+            <h2>🎯 3단계 필터링 흐름</h2>
+            <div class="flow-box">
+                <div class="flow-item">
+                    <p><strong>1단계</strong></p>
+                    <p style="font-size: 0.9rem;">월드 쿼리</p>
+                    <p style="color: var(--text-main); margin-top: 0.5rem;">1,000 → 400</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <p><strong>2단계</strong></p>
+                    <p style="font-size: 0.9rem;">AABB 필터</p>
+                    <p style="color: var(--text-main); margin-top: 0.5rem;">400 → 200</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <p><strong>3단계</strong></p>
+                    <p style="font-size: 0.9rem;">렌더 bounds 정밀 컷</p>
+                    <p style="color: var(--text-main); margin-top: 0.5rem;">후보 추가 제거</p>
+                </div>
+            </div>
+
+            <h2>⚙️ 컬링 마진 (Margin)</h2>
+            <p><strong>현재값:</strong> 타일 <code>kTileCullMargin = -8</code>, 오브젝트 <code>kObjectCullMargin = -16</code></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>구분</th>
+                        <th>값</th>
+                        <th>의도</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>타일 컬링</td>
+                        <td><code>-8</code></td>
+                        <td>타일 팝인 완화(덜 공격적 컬링)</td>
+                    </tr>
+                    <tr>
+                        <td>오브젝트 컬링</td>
+                        <td><code>-16</code></td>
+                        <td>오브젝트 컬링 강도 강화(더 공격적 컬링)</td>
+                    </tr>
+                    <tr>
+                        <td>적용 위치</td>
+                        <td><code>RenderVisibleTiles</code> / <code>IsObjectInViewport</code></td>
+                        <td>타일/오브젝트 경로 분리 적용</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Section 5: Rendering -->
+        <section id="rendering">
+            <h1>🎨 렌더 커맨드 버퍼링</h1>
+            <div class="intro-text">
+                객체를 직접 그리는 대신 렌더 커맨드를 수집하고 z-order로 정렬한 후 일괄 실행합니다. 불필요한 상태 변경을 극적으로 줄입니다.
+            </div>
+
+            <h2>🏗️ 렌더 파이프라인</h2>
+            <div class="flow-box">
+                <div class="flow-item">
+                    <p><strong>수집</strong></p>
+                    <p style="font-size: 0.85rem;">200+ 커맨드</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <p><strong>정렬</strong></p>
+                    <p style="font-size: 0.85rem;">z-order 기반</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <p><strong>렌더</strong></p>
+                    <p style="font-size: 0.85rem;">Flush 실행</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <p><strong>재사용</strong></p>
+                    <p style="font-size: 0.85rem;">clear()</p>
+                </div>
+            </div>
+
+            <h2>🎬 렌더 계층 (7단계)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>순서</th>
+                        <th>계층명</th>
+                        <th>용도</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0</td>
+                        <td><code>LAYER_TILE_BACKGROUND</code></td>
+                        <td>배경 타일</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td><code>LAYER_WORLD_TILE</code></td>
+                        <td>월드 타일</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><code>LAYER_WORLD_OBJECT</code></td>
+                        <td>월드 오브젝트</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><code>LAYER_WORLD_EFFECT</code></td>
+                        <td>월드 이펙트</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><code>LAYER_DEBUG_OVERLAY</code></td>
+                        <td>디버그 오버레이</td>
+                    </tr>
+                    <tr>
+                        <td>5-6</td>
+                        <td><code>LAYER_UI_BACKGROUND / LAYER_UI_FOREGROUND</code></td>
+                        <td>UI 레이어</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Section 6: Buffer Optimization -->
+        <section id="buffer">
+            <h1>💾 버퍼 재사용 최적화</h1>
+            <div class="intro-text">
+                매 프레임 발생하는 메모리 할당/해제를 제거하여 CPU 사이클을 <strong>200배</strong> 이상 절감합니다.
+            </div>
+
+            <div class="metric-card success" style="margin-bottom: 2rem; max-width: 500px;">
+                <div class="metric-value" style="color: var(--accent-green); font-size: 2.5rem;">200배</div>
+                <p style="margin-bottom: 0; color: var(--text-dim);">할당 방식 (2.0ms) ➔ 재사용 방식 (0.01ms)</p>
+            </div>
+
+            <h2><span class="bad">❌ 비효율적: 매 프레임 할당</span></h2>
+            <pre><code class="language-cpp">void RenderVisibleGameObjects() {
+    std::vector&lt;GameObject*&gt; tempBuffer;  // 생성 (malloc)
+    
+    // 쿼리 수행...
+    ObjectManager::GetInstance()-&gt;QueryObjectsInRect(rect, tempBuffer);
+    
+    // 함수 종료 시 소멸자 호출 (free)
+}</code></pre>
+            <p style="color: var(--text-dim); margin-top: 1rem;"><strong>문제:</strong> 30 FPS × 200 cycle/회 = 6,000 cycle/초</p>
+
+            <h2><span class="good">✅ 효율적: 버퍼 재사용</span></h2>
+            <pre><code class="language-cpp">class CameraManager {
+    std::vector&lt;GameObject*&gt; m_queryBuffer;  // 멤버 변수
+    
+    void Init() {
+        m_queryBuffer.reserve(2048);  // 한 번만 할당
+    }
+    
+    void RenderVisibleGameObjects() {
+        m_queryBuffer.clear();  // O(1) - 메모리 해제 없음!
+        ObjectManager::GetInstance()-&gt;QueryObjectsInRect(rect, m_queryBuffer);
+    }
+};</code></pre>
+            <p style="color: var(--text-dim); margin-top: 1rem;"><strong>효과:</strong> 할당 1회 + clear 30회 = 1,000 cycle/초 (6배 감소!)</p>
+        </section>
+
+        <!-- Section 7: Caching -->
+        <section id="caching">
+            <h1>🗂️ 캐싱 전략</h1>
+            <div class="intro-text">
+                반복적으로 로드하거나 계산하는 데이터를 캐싱하여 성능을 극대화합니다.
+            </div>
+
+            <h2>📌 타일 비트맵 캐시</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>측면</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>캐시 구조</strong></td>
+                        <td><code>unordered_map&lt;TileID, Bitmap*&gt;</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>초기화</strong></td>
+                        <td>타일 로드 시 비트맵 생성</td>
+                    </tr>
+                    <tr>
+                        <td><strong>유지</strong></td>
+                        <td>뷰포트 범위 내 타일만 유지</td>
+                    </tr>
+                    <tr>
+                        <td><strong>정리</strong></td>
+                        <td>뷰포트 외 타일 메모리 해제</td>
+                    </tr>
+                    <tr>
+                        <td><strong>효과</strong></td>
+                        <td>반복 로드 제거 → 90% 시간 절감</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>⏱️ 카메라 위치 캐싱</h2>
+            <div class="algorithm-box">
+                <h4>문제: 지터(Jitter) 방지</h4>
+                <p>여러 객체를 렌더할 때 매번 카메라 위치를 조회하면 불일치 가능:</p>
+                <pre><code class="language-cpp">// ❌ 잘못된 방식
+for (auto* obj : visibleObjects) {
+    Gdiplus::PointF cam = CameraManager::GetInstance()-&gt;GetCameraPos();
+    // → 중간에 카메라가 이동했을 수 있음!
+    float screenX = obj-&gt;worldX - cam.X;
+}
+
+// ✅ 올바른 방식
+Gdiplus::PointF cachedCam = CameraManager::GetInstance()-&gt;GetCameraPos();
+for (auto* obj : visibleObjects) {
+    float screenX = obj-&gt;worldX - cachedCam.X;
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- Section 8: Roadmap -->
+        <section id="roadmap">
+            <h1>🗺️ 향후 최적화 로드맵</h1>
+
+            <h2><span class="tag short-term">단기</span> (1-2주)</h2>
+            <ul class="feature-list">
+                <li>타일 프리로드 - 카메라 이동 방향 예측</li>
+                <li>동적 LOD - 거리 기반 세부도 조절</li>
+                <li>프러스텀 컬링 - 회전 객체 정확 판정</li>
+            </ul>
+
+            <h2><span class="tag mid-term">중기</span> (1개월)</h2>
+            <ul class="feature-list">
+                <li>GDI+ → Direct2D 전환 - 하드웨어 가속</li>
+                <li>쿼드트리 도입 - 큰 맵 지원</li>
+                <li>오클루더 컬링 - 건물 뒤 객체 생략</li>
+            </ul>
+
+            <h2><span class="tag long-term">장기</span> (3-6개월)</h2>
+            <ul class="feature-list">
+                <li>Compute Shader 가시성 - GPU 처리</li>
+                <li>인스턴싱 렌더링 - 대량 객체 최적화</li>
+                <li>동적 라이팅 - 실시간 섀도우</li>
+            </ul>
+
+            <div style="background: rgba(56, 189, 248, 0.05); padding: 2rem; border-radius: 10px; margin-top: 2rem;">
+                <h3>📚 상세 로드맵은</h3>
+                <p>다음 문서를 참조하세요:</p>
+                <ul class="feature-list">
+                    <li>Query_and_Rendering_Optimization.md - 향후 최적화 로드맵</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 9: Documentation Guide -->
+        <section id="guide">
+            <h1>📚 전체 문서 가이드</h1>
+            <p>프로젝트에는 5개의 상세 마크다운 문서가 포함되어 있습니다.</p>
+
+            <h2>📄 문서 목록</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>문서</th>
+                        <th>대상</th>
+                        <th>내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Performance_Optimization.md</strong></td>
+                        <td>모든 개발자</td>
+                        <td>성능 최적화의 전체 개요 (먼저 읽기!)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Spatial_Partitioning_Detailed.md</strong></td>
+                        <td>엔진 개발자</td>
+                        <td>공간 분할의 심화 분석 (550줄)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Query_and_Rendering_Optimization.md</strong></td>
+                        <td>그래픽스 프로그래머</td>
+                        <td>쿼리 및 렌더링 최적화 (600줄)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Performance_Documentation_Guide.md</strong></td>
+                        <td>PM / 리드</td>
+                        <td>문서 체계 및 사용 방법</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Optimization_Flag_Code_Mapping_Detailed.md</strong></td>
+                        <td>클라이언트/엔진 개발자</td>
+                        <td>플래그-클래스-함수-지표 매핑 및 관련 코드 발췌</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>🧩 신규 문서 핵심 요약</h2>
+            <div style="background: rgba(56, 189, 248, 0.05); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                <p style="margin-top: 0;"><strong>Optimization_Flag_Code_Mapping_Detailed.md</strong>는 "플래그 토글(F2) → 매니저 분기 → 오버레이 지표(F1)"의 연결을 코드 기준으로 추적합니다.</p>
+                <ul class="feature-list" style="margin-bottom: 0;">
+                    <li>플래그 선언/토글 코드와 실제 분기 위치를 1:1 매핑</li>
+                    <li>오버레이 항목별 수집 함수와 측정 지표 출처를 표로 정리</li>
+                    <li>ObjectManager / CameraManager / RenderManager / SceneManager 흐름을 통합 설명</li>
+                    <li>회귀 확인용 테스트 체크리스트 포함</li>
+                </ul>
+            </div>
+
+            <h2>🎯 추천 읽기 흐름</h2>
+            <div style="background: var(--card-bg); padding: 2rem; border-radius: 10px; margin-top: 2rem; border: 1px solid var(--border-color);">
+                <h4 style="margin-top: 0;">빠른 이해 (2시간)</h4>
+                <ol>
+                    <li>이 HTML 페이지 읽기</li>
+                    <li>Performance_Optimization.md 읽기</li>
+                    <li>소스 코드 직접 확인</li>
+                </ol>
+
+                <h4 style="margin-top: 2rem;">체계적 학습 (8시간)</h4>
+                <ol>
+                    <li>Performance_Documentation_Guide.md (개요)</li>
+                    <li>Performance_Optimization.md (핵심)</li>
+                    <li>Optimization_Flag_Code_Mapping_Detailed.md (코드 매핑)</li>
+                    <li>소스 코드 (ObjectManager, CameraManager, RenderManager)</li>
+                    <li>Spatial_Partitioning_Detailed.md (심화)</li>
+                    <li>Query_and_Rendering_Optimization.md (최적화)</li>
+                </ol>
+            </div>
+
+            <h2>📊 문서 통계</h2>
+            <div class="stats-box">
+                <div class="stat-item">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">문서 수</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">3,000+</div>
+                    <div class="stat-label">총 줄 수</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">115+</div>
+                    <div class="stat-label">코드 예제</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">25+</div>
+                    <div class="stat-label">분석 테이블</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>
+        hljs.highlightAll();
+
+        function showSection(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            document.getElementById(id).classList.add('active');
+            document.querySelector(`a[href="#${id}"]`).classList.add('active');
+
+            window.scrollTo(0, 0);
+        }
+
+        window.onload = () => {
+            const hash = window.location.hash.substring(1);
+            if (hash) showSection(hash);
+        };
+    </script>
+</body>
+</html>

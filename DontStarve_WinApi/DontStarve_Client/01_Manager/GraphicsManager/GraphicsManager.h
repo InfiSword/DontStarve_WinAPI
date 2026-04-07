@@ -15,6 +15,7 @@ public:
 	void LateUpdate();    
 	void Render();        // 더블 버퍼의 내용을 화면에 표시
 	void Release();       // GDI+ 리소스 해제
+	void BeginFrame();    // 프레임 시작 시 백버퍼를 1회 Clear
 
 	Gdiplus::Graphics* GetGraphics(); 
 	// 그리기 작업을 위한 Graphics 객체를 반환

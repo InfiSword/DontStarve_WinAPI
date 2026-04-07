@@ -60,7 +60,7 @@ void Projectile::Fire(float x, float y, float dirX, float dirY, int damage, floa
     {
         trans->SetPosition(x, y);
         // 위치 변경에 따른 그리드 갱신 (Warp 처리)
-        ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+        // ObjectManager::GetInstance()->UpdateObjectGridCell(this);
     }
 
     // 방향 정규화

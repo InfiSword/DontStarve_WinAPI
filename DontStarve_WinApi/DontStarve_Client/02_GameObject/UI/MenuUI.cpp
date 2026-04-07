@@ -75,13 +75,14 @@ void MenuUI::CreateMenuBar()
     const float iconX = 40.0f;
     auto* objMgr = ObjectManager::GetInstance();
 
+    // 배경을 먼저 생성해 비최적화 즉시 렌더에서도 아이콘이 위에 오도록 한다.
+    AddManaged(objMgr->CreateImage(GOID_UI_MENU, m_craftBarWidth, m_craftBarHeight, LAYER_UI_BACKGROUND, L"Resource/UI/CraftBar.png", 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 50.0f, 0.0f));
+
     AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CraftIcon.png", L"Resource/UI/CraftIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[4], [this]() { ToggleToolList(); }));
     AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize + 20, m_iconSize + 20, L"Resource/UI/CreateIcon.png", L"Resource/UI/CreateIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[3], [this]() { ToggleCreateList(); }));
     AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CookIcon.png", L"Resource/UI/CookIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[2], [this]() { ToggleCookList(); }));
     AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/BattleIcon.png", L"Resource/UI/BattleIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[1], [this]() { ToggleBossPanel(); }));
     AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/EditIcon.png", L"Resource/UI/EditIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[0], [this]() { ToggleEditPanel(); }));
-
-    AddManaged(objMgr->CreateImage(GOID_UI_MENU, m_craftBarWidth, m_craftBarHeight, LAYER_UI_BACKGROUND, L"Resource/UI/CraftBar.png", 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 50.0f, 0.0f));
 }
 
 void MenuUI::CreatePalettes()
@@ -89,6 +90,16 @@ void MenuUI::CreatePalettes()
     const float startX = m_craftBarWidth + m_toolButtonSize * 0.5f + 45.0f;
     const float startY = -(m_craftBarHeight * 0.5f);
     auto* objMgr = ObjectManager::GetInstance();
+
+  const float palettePadding = 48.0f;
+  const int maxRows = (static_cast<int>(m_availableTools.size()) + m_columnsPerRow - 1) / m_columnsPerRow;
+  const float toolPanelW = m_columnsPerRow * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
+  const float toolPanelH = maxRows * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
+  const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
+  const float toolPanelCX = m_craftBarWidth + toolPanelW * 0.5f - palettePadding;
+  const float toolPanelCY = toolButtonStartY + toolPanelH * 0.5f - palettePadding;
+
+    m_toolPanelBg = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, toolPanelW, toolPanelH, LAYER_UI_BACKGROUND, L"Resource/UI/CraftUI_PaletteBG.png", -0.05f, 0.0f, 0.5f, 0.0f, 0.5f, toolPanelCX + 20.0f, toolPanelCY - 30.0f));
 
     auto CreateGrid = [&](const std::vector<GameObjectID>& items, std::vector<GameObject*>& group) {
         for (size_t i = 0; i < items.size(); ++i) {
@@ -106,16 +117,6 @@ void MenuUI::CreatePalettes()
     CreateGrid(m_availableTools, m_toolGroup);
     CreateGrid(m_availableCreateItems, m_createGroup);
     CreateGrid(m_availableCookItems, m_cookGroup);
-
-    const float palettePadding = 48.0f;
-    const int maxRows = (static_cast<int>(m_availableTools.size()) + m_columnsPerRow - 1) / m_columnsPerRow;
-    const float toolPanelW = m_columnsPerRow * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
-    const float toolPanelH = maxRows * (m_toolButtonSize + m_toolButtonSpacing) - m_toolButtonSpacing + palettePadding * 2.0f;
-    const float toolButtonStartY = -(m_craftBarHeight * 0.5f);
-    const float toolPanelCX = m_craftBarWidth + toolPanelW * 0.5f - palettePadding;
-    const float toolPanelCY = toolButtonStartY + toolPanelH * 0.5f - palettePadding;
-
-    m_toolPanelBg = AddManaged(objMgr->CreateImage(GOID_UI_IMAGE, toolPanelW, toolPanelH, LAYER_UI_BACKGROUND, L"Resource/UI/CraftUI_PaletteBG.png", -0.05f, 0.0f, 0.5f, 0.0f, 0.5f, toolPanelCX + 20.0f, toolPanelCY - 30.0f));
 }
 
 void MenuUI::CreateIngredientUI()

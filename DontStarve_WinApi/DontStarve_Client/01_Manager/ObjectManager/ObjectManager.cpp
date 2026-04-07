@@ -2,7 +2,6 @@
 #include "ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../DataManager/DataManager.h"
-#include "../RenderManager/RenderManager.h"
 #include "../CameraManager/CameraManager.h"
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
@@ -30,7 +29,6 @@
 #include "../../02_GameObject/UI/IntroNoticeUI.h"
 #include "../../02_GameObject/UI/UIElement.h"
 #include "../../02_GameObject/Component/Transform/RectTransform.h"
-#include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../../02_GameObject/Component/Collider/BoxCollider.h"
 #include "../../02_GameObject/Component/Collider/CircleCollider.h"
 
@@ -55,6 +53,8 @@ void ObjectManager::ForEachObject(std::function<void(GameObject*)> fn)
 	for (GameObject* obj : m_worldObjects)
 		if (obj) fn(obj);
 	for (GameObject* obj : m_uiObjects)
+		if (obj) fn(obj);
+	for (GameObject* obj : m_inactiveObjects)
 		if (obj) fn(obj);
 }
 
@@ -90,6 +90,7 @@ void ObjectManager::Update(float deltaTime)
 			obj->Update(deltaTime);
 		}
 	}
+
 }
 
 void ObjectManager::LateUpdate()
@@ -101,7 +102,7 @@ void ObjectManager::LateUpdate()
 
 void ObjectManager::Render()
 {
-	// 1. 카메라에 보이는 월드 게임오브젝트 가시성 갱신 및 렌더링
+	// 1. 월드 렌더의 최종 가시 컬링/제출은 CameraManager 단일 경로에서 처리한다.
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (cameraManager) {
 		cameraManager->RenderVisibleGameObjects();
@@ -134,8 +135,6 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 
 	// UI는 스크린 공간이므로 카메라 가시 목록에 넣지 않음
 	if (!pObj->IsUI()) {
-		AddToGrid(pObj);
-
 		// 플레이어 캐싱
 		if (pObj->GetType() == GO_TYPE_PLAYER) {
 			m_cachedPlayer = static_cast<Player*>(pObj);
@@ -145,7 +144,13 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 
 void ObjectManager::RemoveGameObject(GameObject* pObj)
 {
-	if (!pObj || pObj->IsDead()) return;
+	if (!pObj) return;
+
+	// 현재 매니저가 소유 중인 객체가 아니면(씬 정리 중 이미 분리된 포인터 등) 무시
+	if (!IsManagedObject(pObj)) return;
+
+	if (std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj) != m_pendingDeletions.end()) return;
+	if (pObj->IsDead()) return;
 
 	pObj->SetDead(true);
 	pObj->SetActive(false);
@@ -160,7 +165,6 @@ void ObjectManager::UnregisterFromWorld(GameObject* pObj)
 	auto it = std::find(m_worldObjects.begin(), m_worldObjects.end(), pObj);
 	if (it != m_worldObjects.end()) {
 		if (pObj == m_cachedPlayer) m_cachedPlayer = nullptr;
-		RemoveFromGrid(pObj);
 
 		*it = m_worldObjects.back();
 		m_worldObjects.pop_back();
@@ -181,7 +185,6 @@ void ObjectManager::RegisterToWorld(GameObject* pObj)
 
 		m_worldObjects.push_back(pObj);
 		pObj->SetActive(true);
-		AddToGrid(pObj);
 
 		if (pObj->GetType() == GO_TYPE_PLAYER) {
 			m_cachedPlayer = static_cast<Player*>(pObj);
@@ -205,48 +208,45 @@ bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
 	return false;
 }
 
-void ObjectManager::UpdateObjectGridCell(GameObject* pObj)
+void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects)
 {
-	if (!pObj || pObj->IsUI()) return;
+	outObjects.clear();
+	if (m_worldObjects.empty()) return;
 
-	Transform* t = pObj->GetComponent<Transform>();
-	if (!t) return;
+	// 음수 폭/높이를 허용하는 입력을 정규화해서 교차 판정을 안정화한다.
+	const float rectRight = rect.X + rect.Width;
+	const float rectBottom = rect.Y + rect.Height;
+	const float normLeft = (std::min)(rect.X, rectRight);
+	const float normTop = (std::min)(rect.Y, rectBottom);
+	const float normRight = (std::max)(rect.X, rectRight);
+	const float normBottom = (std::max)(rect.Y, rectBottom);
+	if (normRight <= normLeft || normBottom <= normTop) return;
 
-	int newX = static_cast<int>(t->GetX() / GRID_CELL_SIZE);
-	int newY = static_cast<int>(t->GetY() / GRID_CELL_SIZE);
+	const Gdiplus::RectF normalizedRect(normLeft, normTop, normRight - normLeft, normBottom - normTop);
 
-	// 범위 체크
-	if (newX < 0) newX = 0; if (newX >= GRID_WIDTH) newX = GRID_WIDTH - 1;
-	if (newY < 0) newY = 0; if (newY >= GRID_HEIGHT) newY = GRID_HEIGHT - 1;
+	const float aMinX = normalizedRect.X;
+	const float aMinY = normalizedRect.Y;
+	const float aMaxX = normalizedRect.X + normalizedRect.Width;
+	const float aMaxY = normalizedRect.Y + normalizedRect.Height;
 
-	if (newX != pObj->GetGridCellX() || newY != pObj->GetGridCellY()) {
-		RemoveFromGrid(pObj);
-		pObj->SetGridCell(newX, newY);
-		AddToGrid(pObj);
+	for (GameObject* obj : m_worldObjects) {
+		if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
+
+		const Gdiplus::RectF bounds = obj->GetBounds();
+		const float bMinX = bounds.X;
+		const float bMinY = bounds.Y;
+		const float bMaxX = bounds.X + bounds.Width;
+		const float bMaxY = bounds.Y + bounds.Height;
+
+		if ((aMinX < bMaxX) && (aMaxX > bMinX) && (aMinY < bMaxY) && (aMaxY > bMinY)) {
+			outObjects.push_back(obj);
+		}
 	}
 }
 
-void ObjectManager::GetObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects)
+Player* ObjectManager::GetPlayer() const
 {
-	int startX = static_cast<int>(rect.X / GRID_CELL_SIZE);
-	int startY = static_cast<int>(rect.Y / GRID_CELL_SIZE);
-	int endX = static_cast<int>((rect.X + rect.Width) / GRID_CELL_SIZE);
-	int endY = static_cast<int>((rect.Y + rect.Height) / GRID_CELL_SIZE);
-
-	startX = max(0, min(GRID_WIDTH - 1, startX));
-	startY = max(0, min(GRID_HEIGHT - 1, startY));
-	endX = max(0, min(GRID_WIDTH - 1, endX));
-	endY = max(0, min(GRID_HEIGHT - 1, endY));
-
-	for (int y = startY; y <= endY; ++y) {
-		for (int x = startX; x <= endX; ++x) {
-			for (auto* obj : m_spatialGrid[x][y]) {
-				// 현재 시스템은 객체가 하나의 셀에만 등록되므로 중복 체크가 필요 없음.
-				// 만약 한 객체가 여러 셀에 등록되는 시스템으로 변경된다면 std::set 등을 사용해야 함.
-				outObjects.push_back(obj);
-			}
-		}
-	}
+	return m_cachedPlayer;
 }
 
 GameObject* ObjectManager::FindGameObject(GameObjectID id)
@@ -269,7 +269,6 @@ void ObjectManager::ProcessPendingDeletions()
 		GameObject* obj = m_worldObjects[i];
 		if (obj->IsDead()) {
 			if (obj == m_cachedPlayer) m_cachedPlayer = nullptr;
-			RemoveFromGrid(obj);
 			obj->Release();
 			Utils::SafeDelete(obj);
 
@@ -296,50 +295,41 @@ void ObjectManager::ProcessPendingDeletions()
 void ObjectManager::ClearAllObjects()
 {
 	ProcessPendingDeletions();
+
+	std::vector<GameObject*> allObjects;
+	allObjects.reserve(m_worldObjects.size() + m_uiObjects.size() + m_inactiveObjects.size());
+	allObjects.insert(allObjects.end(), m_worldObjects.begin(), m_worldObjects.end());
+	allObjects.insert(allObjects.end(), m_uiObjects.begin(), m_uiObjects.end());
+	allObjects.insert(allObjects.end(), m_inactiveObjects.begin(), m_inactiveObjects.end());
+
 	m_cachedPlayer = nullptr;
-	ForEachObject([](GameObject* obj) { obj->Release(); Utils::SafeDelete(obj); });
+
+	// 먼저 매니저 컨테이너를 비워서 Release 중 재귀적인 RemoveGameObject 호출을 무해화
 	m_worldObjects.clear();
 	m_worldObjects.shrink_to_fit();
 	m_uiObjects.clear();
 	m_uiObjects.shrink_to_fit();
+	m_inactiveObjects.clear();
+	m_inactiveObjects.shrink_to_fit();
 	m_pendingDeletions.clear();
 	m_pendingDeletions.shrink_to_fit();
 
-	for (int y = 0; y < GRID_HEIGHT; ++y) {
-		for (int x = 0; x < GRID_WIDTH; ++x) {
-			m_spatialGrid[x][y].clear();
-		}
+	for (GameObject* obj : allObjects) {
+		if (!obj) continue;
+		obj->Release();
+		Utils::SafeDelete(obj);
 	}
 }
 
-void ObjectManager::AddToGrid(GameObject* pObj)
+bool ObjectManager::IsManagedObject(const GameObject* pObj) const
 {
-	int x = pObj->GetGridCellX();
-	int y = pObj->GetGridCellY();
-	if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
-		m_spatialGrid[x][y].push_back(pObj);
-	}
+	if (!pObj) return false;
+	if (std::find(m_worldObjects.begin(), m_worldObjects.end(), pObj) != m_worldObjects.end()) return true;
+	if (std::find(m_uiObjects.begin(), m_uiObjects.end(), pObj) != m_uiObjects.end()) return true;
+	if (std::find(m_inactiveObjects.begin(), m_inactiveObjects.end(), pObj) != m_inactiveObjects.end()) return true;
+	return false;
 }
 
-void ObjectManager::RemoveFromGrid(GameObject* pObj)
-{
-	int x = pObj->GetGridCellX();
-	int y = pObj->GetGridCellY();
-	if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
-		auto& cell = m_spatialGrid[x][y];
-		auto it = std::find(cell.begin(), cell.end(), pObj);
-		if (it != cell.end()) {
-			*it = cell.back();
-			cell.pop_back();
-		}
-	}
-}
-
-// 플레이어 캐시된 포인터 반환 함수
-Player* ObjectManager::GetPlayer() const
-{
-	return m_cachedPlayer;
-}
 
 void ObjectManager::InitializeFactories()
 {

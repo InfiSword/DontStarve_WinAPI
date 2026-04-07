@@ -403,7 +403,7 @@ void Player::Update(float deltaTime)
 			isMoveToGoal = false;
 
 			// 이동 완료 후 자신의 위치를 그리드 시스템에 동기화 (최적화용)
-			ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+			//ObjectManager::GetInstance()->UpdateObjectGridCell(this);
 
 			// 공격 대상(몬스터)으로 이동한 경우: 사거리 안이면 방향 맞추고 ATTACK, 밖이면 몬스터 현재 위치로 다시 이동
 			if (m_attackTarget && m_attackTarget->IsEnabled()) {
@@ -719,9 +719,13 @@ bool Player::OnInteraction(GameObject* obj)
 void Player::LateUpdate()
 {
 	GameObject::LateUpdate();
+}
 
-	if (m_inventory)
-	{
+void Player::Render()
+{
+	Entity::Render();
+
+	if (m_inventory) {
 		m_inventory->Render(m_equippedSlotIndex);
 	}
 }

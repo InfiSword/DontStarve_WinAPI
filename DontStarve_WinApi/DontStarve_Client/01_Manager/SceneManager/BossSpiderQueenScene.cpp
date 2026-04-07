@@ -9,12 +9,9 @@
 #include "../../02_GameObject/Building/SpiderEgg.h"
 #include "../../02_GameObject/Component/Transform/Transform.h"
 #include "../GameProgressManager/GameProgressManager.h"
-#include "../../02_GameObject/UI/UIText.h"
 #include "../../02_GameObject/UI/GameClearUI.h"
 #include "../../02_GameObject/UI/HPUI.h"
 #include "../../02_GameObject/Entity/Enviorment/Tree.h"
-#include "../../03_Animation/Animator.h"
-#include "../../01_Manager/RenderManager/RenderManager.h"
 
 BossSpiderQueenScene::BossSpiderQueenScene()
 	: GameScene()

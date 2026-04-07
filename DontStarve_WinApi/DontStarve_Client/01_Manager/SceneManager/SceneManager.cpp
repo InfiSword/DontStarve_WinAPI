@@ -7,12 +7,7 @@
 #include "BossHoundScene.h"
 #include "BossSpiderQueenScene.h"
 #include "../GameProgressManager/GameProgressManager.h"
-#include "../InputManager/InputManager.h"
-#include "../CameraManager/CameraManager.h"
 #include "../ObjectManager/ObjectManager.h"
-#include "../RenderManager/RenderManager.h"
-#include "../InventoryManager/InventoryManager.h"
-#include "../ColliderManager/ColliderManager.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../DataManager/DataManager.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
@@ -64,6 +59,7 @@ void SceneManager::Render()
 void SceneManager::Release()
 {
 	if (m_currentScene) {
+		// 각 Scene 소멸자에서 Release를 수행하므로 여기서는 delete만 수행
 		delete m_currentScene;
 		m_currentScene = nullptr;
 	}
@@ -111,7 +107,6 @@ void SceneManager::ChangeSceneIfReserved()
 
 	// 1. 기존 씬 정리 (이 시점에 ObjectManager::Release가 호출됨)
 	if (m_currentScene) {
-		m_currentScene->Release();
 		delete m_currentScene;
 		m_currentScene = nullptr;
 	}

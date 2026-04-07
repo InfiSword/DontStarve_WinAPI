@@ -15,6 +15,14 @@ namespace
 {
 	constexpr float kTwoPi = 6.283185f;
 
+	inline Direction ResolveFacingFromDirToPlayer(const Gdiplus::PointF& dirToPlayer)
+	{
+		if (std::abs(dirToPlayer.X) > std::abs(dirToPlayer.Y)) {
+			return (dirToPlayer.X >= 0.0f) ? DIR_RIGHT : DIR_LEFT;
+		}
+		return (dirToPlayer.Y >= 0.0f) ? DIR_DOWN : DIR_UP;
+	}
+
 	inline float Random01()
 	{
 		return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -217,7 +225,6 @@ void Boss_SpiderQueen::Init()
 			m_animator->RegisterAnimation((int)SpiderQueenState::POOP_LOOP, (Direction)dir, base + L"Queen_spider_queen_poop_loop.png", 0, 0, 7, 43, px, py, false, 0.03f);
 			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderQueenState::POOP_LOOP, (Direction)dir);
 			if (clip) {
-				clip->AddEventFrame(10, L"poop_egg");
 				clip->AddEventFrame(21, L"poop_egg");
 				clip->AddEventFrame(36, L"poop_egg");
 				clip->AddEventFrame(42, L"poop_end");
@@ -401,6 +408,13 @@ int Boss_SpiderQueen::UpdateChase(float deltaTime)
 
 	const float comboRangeSq = m_attackRange * m_attackRange * 2.25f;
 
+	if (transform && m_attackTarget && m_attackTarget->IsEnabled())
+	{
+		const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
+		transform->SetDirection(faceDir);
+		UpdateAttackBoxByDirection(faceDir);
+	}
+
 	if (m_poopCooldown <= 0.0f)
 	{
 		m_poopCooldown = 20.0f; // 사용 후 20초 쿨타임
@@ -417,7 +431,18 @@ int Boss_SpiderQueen::UpdateChase(float deltaTime)
 	return Monster::UpdateChase(deltaTime);
 }
 
-void Boss_SpiderQueen::OnAttackHit() { if (m_isCombatEnabled && m_state == (int)SpiderQueenState::ATTACK) ProcessAttackHit(m_damage); }
+void Boss_SpiderQueen::OnAttackHit()
+{
+	if (!m_isCombatEnabled || m_state != (int)SpiderQueenState::ATTACK) return;
+
+	if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
+		const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
+		transform->SetDirection(faceDir);
+		UpdateAttackBoxByDirection(faceDir);
+	}
+
+	ProcessAttackHit(m_damage);
+}
 
 void Boss_SpiderQueen::OnAttackEnd()
 {
@@ -431,6 +456,12 @@ void Boss_SpiderQueen::OnAttackEnd()
 void Boss_SpiderQueen::OnComboAttackHit()
 {
 	if (m_state != (int)SpiderQueenState::COMBO_ATTACK) return;
+
+	if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
+		const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
+		transform->SetDirection(faceDir);
+		UpdateAttackBoxByDirection(faceDir);
+	}
 
 	// 플레이어 방향으로 전진 (약 40픽셀)
 	if (transform)
@@ -655,7 +686,7 @@ void Boss_SpiderQueen::SummonSpider(int count)
 		Transform* spiderTr = spider->GetComponent<Transform>();
 		if (spiderTr) {
 			spiderTr->SetPosition(sx, sy);
-			objMgr->UpdateObjectGridCell(spider);
+			//objMgr->UpdateObjectGridCell(spider);
 		}
 
 		spider->SetActive(true);

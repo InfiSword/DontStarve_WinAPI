@@ -8,7 +8,6 @@
 #include "../../02_GameObject/UI/MenuUI.h"
 #include "../../02_GameObject/UI/HPUI.h"
 #include "../../02_GameObject/UI/GameOverUI.h"
-#include "../../02_GameObject/UI/GameClearUI.h"
 
 GameScene::GameScene()
 	: m_mapData(nullptr)

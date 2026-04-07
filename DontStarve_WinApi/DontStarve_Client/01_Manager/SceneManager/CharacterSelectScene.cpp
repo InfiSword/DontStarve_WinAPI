@@ -3,7 +3,6 @@
 #include "SceneManager.h"
 #include "../ObjectManager/ObjectManager.h"
 #include "../InputManager/InputManager.h"
-#include "../RenderManager/RenderManager.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../DataManager/DataManager.h"
 #include "../GameProgressManager/GameProgressManager.h"

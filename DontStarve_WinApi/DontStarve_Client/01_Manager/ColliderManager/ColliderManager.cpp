@@ -36,7 +36,8 @@ void ColliderManager::LateUpdate()
 	ObjectManager* objMgr = ObjectManager::GetInstance();
 	if (!objMgr) return;
 
-	// 최적화: 모든 콜라이더를 순회하는 대신, 능동적으로 움직이는 객체들만 충돌 검사를 시작함
+	// [역할] Broad-phase 시작점: 능동 주체(플레이어/몬스터)만 충돌 탐색을 시작한다.
+	// [최적화] 정적/수동 주체의 시작 검사를 생략해 N^2 탐색 폭발을 줄인다.
 	for (size_t i = 0; i < m_colliders.size(); ++i) {
 		Collider* pSrc = m_colliders[i];
 		if (!pSrc || !pSrc->IsEnabled()) continue;
@@ -53,16 +54,18 @@ void ColliderManager::LateUpdate()
 			continue;
 		}
 
-		// 현재 콜라이더의 영역을 기준으로 주변 객체들만 쿼리
+		// [역할] Broad-phase 후보 수집: 그리드 쿼리로 srcRect 주변 객체만 가져온다.
+		// [최적화] 전체 월드 순회 대신 지역 후보만 검사해 내로우페이즈 호출 수를 줄인다.
 		Gdiplus::RectF srcRect = pSrc->GetWorldRect();
 		
 		m_queryBuffer.clear();
-		objMgr->GetObjectsInRect(srcRect, m_queryBuffer);
+		objMgr->QueryObjectsInRect(srcRect, m_queryBuffer);
 
 		for (GameObject* pDstOwner : m_queryBuffer) {
 			if (!pDstOwner || pDstOwner == pSrcOwner || !pDstOwner->IsEnabled()) continue;
 
-			// 최적화: 대상의 모든 콜라이더를 뒤지는 대신, 메인(몸통) 콜라이더와만 검사
+			// [역할] Narrow-phase 진입 전 필터: 대상의 메인 콜라이더만 사용한다.
+			// [최적화] 다중 콜라이더 전수 검사 대신 핵심 콜라이더 1개만 검사해 비용을 절감한다.
 			Collider* pDst = pDstOwner->GetMainCollider();
 			if (pDst && pDst->IsEnabled() && pDst->IsPhysicalCollider()) {
 				if (Intersects(pSrc, pDst)) {
@@ -117,6 +120,10 @@ bool ColliderManager::Intersects(Collider* a, Collider* b)
 
 	ColliderType typeA = a->GetColliderType();
 	ColliderType typeB = b->GetColliderType();
+
+	// [역할] Narrow-phase 실제 충돌 판정.
+	// [최적화] 타입 조합별 최소 연산 경로(Box-Box, Circle-Circle, Box-Circle)로 분기한다.
+	// TODO(선택): 빈번한 조합에서 먼저 AABB 사전 컷을 넣으면 연산량을 더 줄일 수 있다.
 
 	if (typeA == COLLIDER_BOX && typeB == COLLIDER_BOX) {
 		BoxCollider* boxA = static_cast<BoxCollider*>(a);

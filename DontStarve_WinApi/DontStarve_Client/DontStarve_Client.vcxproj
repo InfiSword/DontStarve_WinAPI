@@ -191,6 +191,7 @@
     <ClInclude Include="02_GameObject\UI\UIText.h" />
     <ClInclude Include="03_Animation\AnimationClip.h" />
     <ClInclude Include="03_Animation\Animator.h" />
+    <ClInclude Include="99_Default\ClientOptimatzationOption.h" />
     <ClInclude Include="99_Default\framework.h" />
     <ClInclude Include="99_Default\Client.h" />
     <ClInclude Include="99_Default\pch.h" />

@@ -279,7 +279,10 @@ void Monster::MoveTowardLocation(float deltaTime, float speed)
 	float wdy = m_targetY - transform->GetY();
 	float wdistSq = wdx * wdx + wdy * wdy;
 
-	if (wdistSq < 0.0001f) return;
+	if (wdistSq < 0.0001f) {
+		transform->SetPosition(m_targetX, m_targetY);
+		return;
+	}
 
 	float wdist = sqrtf(wdistSq);
 
@@ -294,8 +297,16 @@ void Monster::MoveTowardLocation(float deltaTime, float speed)
 	transform->SetDirection(wDir);
 	ChangeState(m_state);
 
-	float moveStep = speed * deltaTime;
-	transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
+	// 목표 지점을 지나치지 않도록 스텝을 남은 거리로 클램프한다.
+	const float moveStep = (std::min)(speed * deltaTime, wdist);
+	if (moveStep <= 0.0f) return;
+
+	if (moveStep >= wdist) {
+		transform->SetPosition(m_targetX, m_targetY);
+	}
+	else {
+		transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
+	}
 
 	// 맵 경계 체크
 	ClampPositionToMapBounds();

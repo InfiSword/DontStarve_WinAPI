@@ -330,7 +330,7 @@ void SpiderEgg::SpawnSpiders()
 	Transform* spiderTr = spider->GetComponent<Transform>();
 	if (spiderTr) {
 		spiderTr->SetPosition(sx, sy);
-		objectManager->UpdateObjectGridCell(spider);
+		//objectManager->UpdateObjectGridCell(spider);
 	}
 
 	spider->SetActive(true);

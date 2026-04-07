@@ -1,6 +1,5 @@
 #include "99_Default/pch.h"
 #include "ForestScene.h"
-#include "../../02_GameObject/UI/IntroNoticeUI.h"
 #include "../ObjectManager/ObjectManager.h"
 
 bool ForestScene::m_bIntroPlayed = false;

@@ -40,10 +40,9 @@ public:
 	// 인벤토리 등 시스템 내부 관리용 (Update/Render에서 제외)
 	void UnregisterFromWorld(GameObject* pObj);
 	void RegisterToWorld(GameObject* pObj);
-
-	// 공간 분할 (Spatial Partitioning) 관련
-	void UpdateObjectGridCell(GameObject* pObj);
-	void GetObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects);
+	
+	// 월드 오브젝트를 Rect 기준으로 1차 수집(최종 판정은 호출부 담당)
+	void QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects);
 
 	// ID로 오브젝트 찾기 
 	GameObject* FindGameObject(GameObjectID id);
@@ -96,21 +95,13 @@ private:
 
 	void ForEachObject(std::function<void(GameObject*)> fn);
 	void ForEachEnabledObject(std::function<void(GameObject*)> fn);
+	bool IsManagedObject(const GameObject* pObj) const;
 
 	std::vector<GameObject*> m_worldObjects;
 	std::vector<GameObject*> m_uiObjects;
 	std::vector<GameObject*> m_inactiveObjects;  // 인벤토리 등 시스템 내부 관리용 리스트
 	std::vector<GameObject*> m_pendingDeletions; // 삭제 지연 큐
-
-	// 공간 분할용 그리드
-	static constexpr int GRID_CELL_SIZE = 256;
-	static constexpr int GRID_WIDTH = (MAP_WIDTH * TILE_SIZE / GRID_CELL_SIZE) + 1;
-	static constexpr int GRID_HEIGHT = (MAP_HEIGHT * TILE_SIZE / GRID_CELL_SIZE) + 1;
-	std::vector<GameObject*> m_spatialGrid[GRID_WIDTH][GRID_HEIGHT];
-
-	void AddToGrid(GameObject* pObj);
-	void RemoveFromGrid(GameObject* pObj);
-
+	
 	Player* m_cachedPlayer; // 플레이어 캐시
 
 	// 삭제 지연 처리

@@ -138,27 +138,27 @@ void Spider::Init()
 		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 			m_animator->RegisterAnimation((int)SpiderState::DEATH, (Direction)dir, base + prefix + L"death.png", 0, 0, 7, 56, objData->pivotX, objData->pivotY, false, 0.02f);
 			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::DEATH, (Direction)dir);
-			if (clip) {
-				clip->AddEventFrame(55, L"death_end");
-				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-					if (eventName == L"death_end") this->OnDeathEnd();
-					});
-			}
+
+			clip->AddEventFrame(55, L"death_end");
+			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+				if (eventName == L"death_end") this->OnDeathEnd();
+				});
+
 		}
 
 		for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 			m_animator->RegisterAnimation((int)SpiderState::TAUNT, (Direction)dir, base + prefix + L"taunt.png", 0, 0, 7, 64, objData->pivotX, objData->pivotY, false, 0.01f);
 			AnimationClip* clip = m_animator->GetAnimationClip((int)SpiderState::TAUNT, (Direction)dir);
-			if (clip) {
-				clip->AddEventFrame(63, L"taunt_end");
-				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
-					if (eventName == L"taunt_end")
-					{
-						m_bHasTaunted = true;
-						ChangeState((int)SpiderState::CHASE);
-					}
-					});
-			}
+
+			clip->AddEventFrame(63, L"taunt_end");
+			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
+				if (eventName == L"taunt_end")
+				{
+					m_bHasTaunted = true;
+					ChangeState((int)SpiderState::CHASE);
+				}
+				});
+
 		}
 
 		ChangeState(m_state);
