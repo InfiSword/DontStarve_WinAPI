@@ -74,6 +74,9 @@ public:
 	// UI 여부 반환 (dynamic_cast 대체용)
 	virtual bool IsUI() const { return false; }
 
+	// Entity 여부 반환
+	virtual bool IsEntity() const { return false; }
+
 	// 공간 분할용 접근자
 	int GetGridCellX() const { return m_gridCellX; }
 	int GetGridCellY() const { return m_gridCellY; }

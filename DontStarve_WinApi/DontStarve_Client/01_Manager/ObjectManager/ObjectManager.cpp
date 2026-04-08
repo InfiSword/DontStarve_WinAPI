@@ -3,6 +3,7 @@
 #include "../ResourceManager/ResourceManager.h"
 #include "../DataManager/DataManager.h"
 #include "../CameraManager/CameraManager.h"
+#include "../RenderManager/RenderManager.h"
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/Item/Item.h"
@@ -112,6 +113,10 @@ void ObjectManager::Render()
 	for (GameObject* obj : m_uiObjects) {
 		if (obj->IsEnabled()) {
 			obj->Render();
+
+#ifdef _DEBUG
+			RenderManager::GetInstance()->AddRenderedObject(obj->IsEntity());
+#endif
 		}
 	}
 }

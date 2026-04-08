@@ -40,10 +40,22 @@ public:
 
 	void Flush(Gdiplus::Graphics* pGraphics);
 
+#ifdef _DEBUG
+	void ResetRenderStats() { m_renderedObjectCount = 0; m_renderedEntityCount = 0; }
+	void AddRenderedObject(bool isEntity) { m_renderedObjectCount++; if (isEntity) m_renderedEntityCount++; }
+	int GetRenderedObjectCount() const { return m_renderedObjectCount; }
+	int GetRenderedEntityCount() const { return m_renderedEntityCount; }
+#endif
+
 private:
 	std::vector<DrawCommand> m_layerCommands[LAYER_COUNT];
 	Gdiplus::PointF m_frameCameraPos = { 0.0f, 0.0f };
 	bool m_hasFrameCameraPos = false;
+
+#ifdef _DEBUG
+	int m_renderedObjectCount = 0;
+	int m_renderedEntityCount = 0;
+#endif
 
 	Gdiplus::Pen* m_pCachedPen = nullptr;
 	Gdiplus::SolidBrush* m_pCachedBrush = nullptr;

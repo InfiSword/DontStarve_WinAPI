@@ -310,6 +310,10 @@ void CameraManager::RenderVisibleGameObjects() {
             obj->Render();
             obj->RenderDebugOverlay();
               ++renderedWorldCount;
+
+#ifdef _DEBUG
+			RenderManager::GetInstance()->AddRenderedObject(obj->IsEntity());
+#endif
         }
 
 #ifdef _DEBUG
@@ -364,6 +368,9 @@ void CameraManager::RenderVisibleGameObjects() {
         for (GameObject* obj : visibleBuffer) {
             obj->Render();
             obj->RenderDebugOverlay();
+#ifdef _DEBUG
+			RenderManager::GetInstance()->AddRenderedObject(obj->IsEntity());
+#endif
         }
 
 #ifdef _DEBUG

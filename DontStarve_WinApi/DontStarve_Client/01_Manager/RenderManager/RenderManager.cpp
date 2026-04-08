@@ -45,6 +45,9 @@ void RenderManager::BeginFrame(const Gdiplus::PointF& cameraPos)
 {
 	m_frameCameraPos = cameraPos;
 	m_hasFrameCameraPos = true;
+#ifdef _DEBUG
+	ResetRenderStats();
+#endif
 }
 
 void RenderManager::Release()
@@ -172,6 +175,9 @@ void RenderManager::Clear()
 		m_layerCommands[i].clear();
 	}
 	m_hasFrameCameraPos = false;
+#ifdef _DEBUG
+	ResetRenderStats();
+#endif
 }
 
 void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
