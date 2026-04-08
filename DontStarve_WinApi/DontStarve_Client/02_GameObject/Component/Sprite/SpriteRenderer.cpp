@@ -23,6 +23,8 @@ void SpriteRenderer::Init()
 
 void SpriteRenderer::Render()
 {
+	if (m_sprite == m_beforeSprite && m_sprite == nullptr) return;
+
 	auto pTransform = m_owner->GetComponent<Transform>();
 	if (!pTransform || !m_sprite || !m_sprite->bitmap) return;
 

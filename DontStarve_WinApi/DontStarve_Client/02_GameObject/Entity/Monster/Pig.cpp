@@ -54,31 +54,30 @@ void Pig::Init()
 			std::wstring base = objData->baseDir + L"\\";
 			std::wstring baseAction = base + L"Action\\";
 
-			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_DOWN, baseAction + L"pig_pigman_idle_loop_down.png", 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
-			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_UP, baseAction + L"pig_pigman_idle_loop_up.png", 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_DOWN, baseAction + L"pig_pigman_idle_loop_down.png", 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
+			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_UP, baseAction + L"pig_pigman_idle_loop_up.png", 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 			std::wstring idleSidePath = baseAction + L"pig_pigman_idle_loop_side.png";
 			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_LEFT, idleSidePath, 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f, false);
 			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_RIGHT, idleSidePath, 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
 
-			m_animator->RegisterAnimation((int)PigState::WALK, DIR_DOWN, baseAction + L"pig_pigman_walk_loop_down.png", 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.025f);
-			m_animator->RegisterAnimation((int)PigState::WALK, DIR_UP, baseAction + L"pig_pigman_walk_loop_up.png", 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::WALK, DIR_DOWN, baseAction + L"pig_pigman_walk_loop_down.png", 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.03f);
+			m_animator->RegisterAnimation((int)PigState::WALK, DIR_UP, baseAction + L"pig_pigman_walk_loop_up.png", 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.03f);
 			std::wstring walkSidePath = baseAction + L"pig_pigman_walk_loop_side.png";
-			m_animator->RegisterAnimation((int)PigState::WALK, DIR_LEFT, walkSidePath, 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.025f, false);
-			m_animator->RegisterAnimation((int)PigState::WALK, DIR_RIGHT, walkSidePath, 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::WALK, DIR_LEFT, walkSidePath, 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.03f, false);
+			m_animator->RegisterAnimation((int)PigState::WALK, DIR_RIGHT, walkSidePath, 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.03f);
 
-			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_DOWN, baseAction + L"pig_pigman_run_loop_down.png", 225, 198, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
-			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_UP, baseAction + L"pig_pigman_run_loop_up.png", 225, 195, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_DOWN, baseAction + L"pig_pigman_run_loop_down.png", 225, 198, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
+			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_UP, baseAction + L"pig_pigman_run_loop_up.png", 225, 195, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 			std::wstring runSidePath = baseAction + L"pig_pigman_run_loop_side.png";
-			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_LEFT, runSidePath, 222, 200, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f, false);
-			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_RIGHT, runSidePath, 222, 200, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_LEFT, runSidePath, 222, 200, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f, false);
+			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_RIGHT, runSidePath, 222, 200, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 
 			std::wstring baseAttack = base + L"Attack\\";
-			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_DOWN, baseAttack + L"down_pigman_atk_down.png", 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.025f);
-			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_UP, baseAttack + L"up_pigman_atk_up.png", 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_DOWN, baseAttack + L"down_pigman_atk_down.png", 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.03f);
+			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_UP, baseAttack + L"up_pigman_atk_up.png", 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.03f);
 			std::wstring atkSidePath = baseAttack + L"side_pigman_atk_side.png";
-			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_LEFT, atkSidePath, 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.025f, false);
-			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_RIGHT, atkSidePath, 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.025f);
-
+			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_LEFT, atkSidePath, 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.03f, false);
+			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_RIGHT, atkSidePath, 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.03f);
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)PigState::ATTACK, (Direction)dir);
 				if (clip) {

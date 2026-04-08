@@ -10,8 +10,9 @@ class SpriteRenderer : public Component
 {
 protected:
 	std::shared_ptr<Sprite> m_sprite;		// 렌더링할 스프라이트
-	RenderLayer m_layer;				// 렌더 레이어
-	bool m_preFlipped;					// 이미 좌우 반전된 리소스인지 여부 (Animator에서 설정)
+	std::shared_ptr<Sprite> m_beforeSprite; // 이전 프레임에 렌더링된 스프라이트 
+	RenderLayer m_layer;					// 렌더 레이어
+	bool m_preFlipped;						// 이미 좌우 반전된 리소스인지 여부 
 
 public:
 	SpriteRenderer(GameObject* owner, RenderLayer layer = LAYER_WORLD_OBJECT);
@@ -25,7 +26,7 @@ public:
 	// 스프라이트 Getter/Setter
 	Gdiplus::Bitmap* GetSprite() const { return m_sprite ? m_sprite->bitmap.get() : nullptr; }
 	void SetSprite(const std::shared_ptr<Sprite>& sprite) { m_sprite = sprite; }
-	std::shared_ptr<Sprite> GetSpriteHandle() const { return m_sprite; }
+	std::shared_ptr<Sprite> GetSpriteHandle() const { return  m_sprite; }
 
 	// 레이어 Getter/Setter
 	RenderLayer GetLayer() const { return m_layer; }

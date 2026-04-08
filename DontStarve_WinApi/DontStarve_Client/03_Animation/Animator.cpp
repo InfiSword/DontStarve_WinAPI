@@ -72,14 +72,15 @@ void Animator::SetState(int state, Direction direction, bool restart) {
 	}
 }
 
-void Animator::SelectAndPlayAnimation() {
+void Animator::SelectAndPlayAnimation() 
+{
 	int key = GetAnimationKey(m_currentState, m_currentDirection);
 	auto it = m_animations.find(key);
 
 	if (it != m_animations.end()) {
 		AnimationClip* newClip = it->second.get();
-
 		m_currentClip = newClip;
+
 		m_elapsed = 0.0f;
 		m_isPlaying = true;
 		m_lastTriggeredFrame = -1;
@@ -113,8 +114,15 @@ void Animator::Update(float deltaTime)
 		// 매 프레임 SpriteRenderer(m_renderTarget)에 현재 프레임의 스프라이트를 동기화
 		if (m_renderTarget && currentFrameIndex != -1) {
 			const auto& frames = m_currentClip->GetFrames();
-			if (currentFrameIndex < (int)frames.size()) {							
-				m_renderTarget->SetSprite(frames[currentFrameIndex].sprite);
+
+			// 2프레임씩 건너뛰기
+			int displayIndex = (currentFrameIndex / 3) * 3;
+			if (displayIndex >= (int)frames.size()) {
+				displayIndex = (int)frames.size() - 1;
+			}
+
+			if (displayIndex < (int)frames.size()) {							
+				m_renderTarget->SetSprite(frames[displayIndex].sprite);
 			}
 		}
 
@@ -131,7 +139,7 @@ void Animator::Update(float deltaTime)
 			// 현재 클립을 로컬에 저장 (콜백 중 m_currentClip이 바뀔 수 있음)
 			AnimationClip* pCurrentClipBeforeCallback = m_currentClip;
 
-			for (int fi = startIdx; fi <= endIdx && callback; ++fi) {
+			for (int fi = startIdx; fi <= endIdx && callback; ++fi ) {
 				auto eventIt = eventFrames.find(fi);
 				if (eventIt != eventFrames.end())
 				{
