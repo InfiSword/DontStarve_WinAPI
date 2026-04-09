@@ -99,7 +99,7 @@ void CharacterSelectScene::Init(const MapData* mapData)
 		16.0f, Gdiplus::FontStyleBold,
 		1.0f, 0.5f, 
 		1.0f, 0.5f,  
-		-300.0f, 200.0f,
+		-300.0f, 180.0f,
 		6.0f, // sortKey
 		Gdiplus::StringAlignmentNear // hAlign
 	);

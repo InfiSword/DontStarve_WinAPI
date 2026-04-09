@@ -2,10 +2,12 @@
 #include "SceneManager.h"
 #include "TitleScene.h"
 #include "CharacterSelectScene.h"
+#include "LoadingScene.h"
 #include "GameScene.h"
 #include "ForestScene.h"
 #include "BossHoundScene.h"
 #include "BossSpiderQueenScene.h"
+#include "../SoundManager/SoundManager.h"
 #include "../GameProgressManager/GameProgressManager.h"
 #include "../ObjectManager/ObjectManager.h"
 #include "../ResourceManager/ResourceManager.h"
@@ -16,6 +18,8 @@ SceneManager::SceneManager()
 	: m_currentScene(nullptr)
 	, m_reservedSceneType(SCENE_NONE)
 	, m_reservedCharacterID(GOID_NONE)
+	, m_targetSceneType(SCENE_NONE)
+	, m_targetCharacterID(GOID_NONE)
 	, m_currentMapData(nullptr)
 {
 }
@@ -95,8 +99,22 @@ void SceneManager::LoadGameScene(SceneType sceneType, GameObjectID selectedChara
 		GameProgressManager::GetInstance()->SavePlayerState(currentPlayer->SaveState());
 	}
 
-	m_reservedSceneType = sceneType;
-	m_reservedCharacterID = selectedCharacterID;
+	// 로딩 씬을 먼저 예약하고, 실제 목적지를 저장해둠
+	m_targetSceneType = sceneType;
+	m_targetCharacterID = selectedCharacterID;
+
+	m_reservedSceneType = SCENE_LOADING;
+	m_reservedCharacterID = GOID_NONE; // 로딩 씬 자체에는 캐릭터 ID가 필요 없음
+}
+
+void SceneManager::FinishLoading()
+{
+	// 로딩이 끝나면 실제로 예약해둔 타겟 씬으로 전환 예약
+	m_reservedSceneType = m_targetSceneType;
+	m_reservedCharacterID = m_targetCharacterID;
+
+	m_targetSceneType = SCENE_NONE;
+	m_targetCharacterID = GOID_NONE;
 }
 
 void SceneManager::ChangeSceneIfReserved()
@@ -105,18 +123,18 @@ void SceneManager::ChangeSceneIfReserved()
 
 	OutputDebugStringW(L"SceneManager: 예약된 씬으로 안전하게 교체 수행\n");
 
-	// 1. 기존 씬 정리 (이 시점에 ObjectManager::Release가 호출됨)
+	// 기존 씬 정리 (이 시점에 ObjectManager::Release가 호출됨)
 	if (m_currentScene) {
 		delete m_currentScene;
 		m_currentScene = nullptr;
 	}
 
-	// 2. 타이틀로 돌아가는 경우 런타임 데이터 초기화
+	// 타이틀로 돌아가는 경우 런타임 데이터 초기화
 	if (m_reservedSceneType == SCENE_TITLE) {
 		GameProgressManager::GetInstance()->ResetRuntimeData();
 	}
 
-	// 3. 새 씬 인스턴스 생성
+	// 새 씬 인스턴스 생성
 	switch (m_reservedSceneType)
 	{
 	case SCENE_TITLE:
@@ -124,6 +142,9 @@ void SceneManager::ChangeSceneIfReserved()
 		break;
 	case SCENE_CHARACTER_SELECT:
 		m_currentScene = new CharacterSelectScene();
+		break;
+	case SCENE_LOADING:
+		m_currentScene = new LoadingScene();
 		break;
 	case SCENE_GAME_HOUND_FOREST:
 		m_currentScene = new BossHoundScene();
@@ -140,6 +161,28 @@ void SceneManager::ChangeSceneIfReserved()
 	}
 
 	if (m_currentScene) {
+		// BGM 재생
+		SoundManager* soundMgr = SoundManager::GetInstance();
+		if (m_reservedSceneType == SCENE_TITLE || m_reservedSceneType == SCENE_CHARACTER_SELECT)
+		{
+			soundMgr->PlayBGM(L"Resource/Sound/Title_Theme.wav");
+		}
+		else if (m_reservedSceneType == SCENE_GAME_HOUND_FOREST || m_reservedSceneType == SCENE_GAME_SPIDER_QUEEN_HOUSE)
+		{
+			soundMgr->PlayBGM(L"Resource/Sound/Boss_BGM.wav");
+		}
+		else if (m_reservedSceneType == SCENE_LOADING)
+		{
+			soundMgr->StopBGM();
+		}
+		else
+		{			
+			if (m_reservedSceneType == SCENE_GAME_FARMING_AREA)
+				soundMgr->PlayBGM(L"Resource/Sound/Forest_Scene_BGM.wav");
+			else
+				soundMgr->StopBGM();
+		}
+
 		// 게임 씬인 경우 캐릭터 ID 설정
 		if (m_reservedSceneType >= SCENE_GAME_FARMING_AREA && m_reservedSceneType <= SCENE_GAME_SPIDER_QUEEN_HOUSE) {
 			GameScene* gameScene = static_cast<GameScene*>(m_currentScene);

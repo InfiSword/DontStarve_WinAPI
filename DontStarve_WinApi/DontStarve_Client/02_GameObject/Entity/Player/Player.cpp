@@ -5,6 +5,7 @@
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../02_GameObject/UI/Inventory.h"
 #include "../../../02_GameObject/Component/Sprite/SpriteRenderer.h"
 #include "../../../03_Animation/Animator.h"
@@ -27,7 +28,7 @@ Player::Player(float x, float y, GameObjectID characterID, const std::wstring& r
 	m_playerSpeed(300.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItemID(GOID_NONE), m_inventory(nullptr),
 	m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr),
-	isMoveToGoal(false), m_bInputEnabled(true), m_speedModifier(1.0f), m_slowTimer(0.0f)
+	isMoveToGoal(false), m_bInputEnabled(true), m_speedModifier(1.0f), m_slowTimer(0.0f), m_walkSoundTimer(0.0f)
 {
 	m_hp = 100;
 	m_maxHp = 100;
@@ -101,8 +102,9 @@ void Player::Init()
 				if (eventName == L"pickup_end") {
 					this->OnPickupEnd();
 				}
-				else
+				else if (eventName == L"pickup_Trigger")
 				{
+					SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PlayerSound/pickup_sound.wav");
 					if (m_activeInteractionTarget) {
 						Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 						if (targetT) {
@@ -132,6 +134,7 @@ void Player::Init()
 			// 이벤트 콜백 설정
 			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 				if (eventName == L"chop_hit") {
+					SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PlayerSound/Chop_tree.wav");
 					this->OnChopHit();
 				}
 				else if (eventName == L"chop_end") {
@@ -164,6 +167,7 @@ void Player::Init()
 			clip->AddEventFrame(1, L"mine_Trigger");
 			clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 				if (eventName == L"mine_hit") {
+					SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PlayerSound/pickaxe_hitrock.wav");
 					this->OnMineHit();
 				}
 				else if (eventName == L"mine_end") {
@@ -356,6 +360,18 @@ void Player::Update(float deltaTime)
 	}
 
 	HandleMovement();
+
+	// 이동 사운드 처리
+	if (m_state == (int)PlayerState::WALK) {
+		m_walkSoundTimer -= deltaTime;
+		if (m_walkSoundTimer <= 0) {
+			SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PlayerSound/walk_sound.wav");
+			m_walkSoundTimer = 0.4f; // 0.4초 간격
+		}
+	}
+	else {
+		m_walkSoundTimer = 0.0f;
+	}
 
 	float moveSpeedThisFrame = m_playerSpeed * m_speedModifier * deltaTime;
 

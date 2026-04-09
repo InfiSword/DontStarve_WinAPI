@@ -4,6 +4,7 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -153,6 +154,7 @@ void Boss_RedHound::Init()
 					clip->AddEventFrame(46, L"howl_end");
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"howl_start") {
+							SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_bark.wav");
 							m_hasHowlStarted = true;
 						}
 						else if (eventName == L"howl_end") {
@@ -249,6 +251,7 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 			// 이미 dash_lock 이벤트에서 m_dashDir와 캐릭터 방향이 설정되었으므로 바로 전환
 			m_dashRemainingTime = m_dashDuration;
 			m_dashHitProcessed = false;
+			SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Redhound_DashSound.wav");
 			ChangeState((int)BossRedHoundState::DASH);
 		}
 		return;
@@ -389,7 +392,12 @@ int Boss_RedHound::UpdateChase(float deltaTime)
 void Boss_RedHound::Damaged(int damage)
 {
 	Monster::Damaged(damage);
-	if (IsDead()) return;
+	if (IsDead()) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_death.wav");
+		return;
+	}
+
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_hurt.wav");
 
 	if (CheckSuperArmorHit()) return;
 
@@ -406,6 +414,7 @@ void Boss_RedHound::OnAttackHit()
 		UpdateAttackBoxByDirection(faceDir);
 	}
 
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_attack.wav");
 	ProcessAttackHit(m_damage);
 }
 
@@ -424,4 +433,7 @@ void Boss_RedHound::OnHitEnd()
 	ChangeState((int)BossRedHoundState::IDLE);
 }
 
-void Boss_RedHound::Die() { ChangeState((int)BossRedHoundState::DEATH); }
+void Boss_RedHound::Die() {
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_death.wav");
+	ChangeState((int)BossRedHoundState::DEATH); 
+}

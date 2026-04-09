@@ -5,6 +5,7 @@
 #include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../Building/SpiderEgg.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
@@ -196,6 +197,7 @@ void Boss_SpiderQueen::Init()
 				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 					if (eventName == L"taunt_start")
 					{
+						SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/SpiderQueen_Scream.wav");
 						m_hasTauntStarted = true;
 					}
 					else if (eventName == L"taunt_end")
@@ -441,6 +443,7 @@ void Boss_SpiderQueen::OnAttackHit()
 		UpdateAttackBoxByDirection(faceDir);
 	}
 
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/SpiderQueen_attack.wav");
 	ProcessAttackHit(m_damage);
 }
 
@@ -473,6 +476,7 @@ void Boss_SpiderQueen::OnComboAttackHit()
 		ClampPositionToMapBounds();
 	}
 
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/SpiderQueen_attack.wav");
 	ProcessAttackHit(m_damage);
 }
 
@@ -603,6 +607,7 @@ void Boss_SpiderQueen::Damaged(int damage)
 	Monster::Damaged(damage);
 	if (IsDead())
 	{
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/spiderQueen_Death.wav");
 		m_hp = 0; ChangeState((int)SpiderQueenState::DEATH); m_isDead = true;
 		OutputDebugStringW(L"Boss_SpiderQueen: 보스가 처치되었습니다\n");
 		return;
@@ -620,6 +625,8 @@ void Boss_SpiderQueen::Damaged(int damage)
 		m_bossPhase = 2; OutputDebugStringW(L"Boss_SpiderQueen: 보스 페이즈가 2단계로 전환!\n");
 	}
 
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_hurt.wav");
+
 	if (CheckSuperArmorHit()) return;
 
 	ChangeState((int)SpiderQueenState::HIT);
@@ -631,6 +638,8 @@ void Boss_SpiderQueen::StartCocoonPhase()
 	m_cocoonTimer = 0.0f;
 	m_healTickTimer = 0.0f;
 	m_isHealing = true;
+
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/SpiderQueen_Scream.wav");
 
 	ChangeState((int)SpiderQueenState::COCOON_PRE);
 
@@ -649,6 +658,8 @@ void Boss_SpiderQueen::EndCocoonPhase()
 {
 	m_isHealing = false;
 	if (m_healFxAnimator) m_healFxAnimator->SetActive(false);
+
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/SpiderQueen_Birth.wav");
 
 	ChangeState((int)SpiderQueenState::BIRTH);
 

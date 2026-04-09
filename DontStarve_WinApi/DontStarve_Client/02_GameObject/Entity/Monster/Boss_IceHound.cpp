@@ -4,6 +4,7 @@
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -157,6 +158,7 @@ void Boss_IceHound::Init()
 				clip->AddEventFrame(46, L"howl_end");
 				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 					if (eventName == L"howl_start") {
+						SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_bark.wav");
 						m_hasHowlStarted = true;
 					}
 					else if (eventName == L"howl_end") {
@@ -378,7 +380,12 @@ int Boss_IceHound::UpdateChase(float deltaTime)
 void Boss_IceHound::Damaged(int damage)
 {
 	Monster::Damaged(damage);
-	if (IsDead()) return;
+	if (IsDead()) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_death.wav");
+		return;
+	}
+
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_hurt.wav");
 
 	if (CheckSuperArmorHit()) return;
 
@@ -406,6 +413,7 @@ void Boss_IceHound::OnAttackHit()
 
 	// 2. 플레이어가 근접 사거리(m_attackRange) 내에 있다면 무조건 근접 공격 처리
 	if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_attack.wav");
 		ProcessAttackHit(m_damage); // 근접 공격 처리
 	}
 }
@@ -431,6 +439,7 @@ void Boss_IceHound::FireIceProjectile()
 {
 	if (!m_attackTarget || !m_attackTarget->IsEnabled()) return;
 
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Icehound_SkillSound.wav");
 
 	float dx, dy;
 	Transform* targetTr = m_attackTarget->GetComponent<Transform>();

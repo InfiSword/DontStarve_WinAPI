@@ -9,6 +9,7 @@
 #include "../../02_GameObject/UI/CraftingRecipe.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../01_Manager/GameProgressManager/GameProgressManager.h"
+#include "../../01_Manager/SoundManager/SoundManager.h"
 
 
 InventoryManager::InventoryManager() {}
@@ -87,6 +88,7 @@ bool InventoryManager::TryUseItem(Player* player, int slotIndex) {
 	if (healAmount > 0) {
 		if (inventory->RemoveItem(slotIndex, 1)) {
 			player->Heal(healAmount);
+			SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PlayerSound/eat.wav");
 			return true;
 		}
 		return false;

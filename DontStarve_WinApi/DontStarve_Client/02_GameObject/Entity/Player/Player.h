@@ -91,6 +91,7 @@ private:
 	float m_playerSpeed;
 	float m_speedModifier;
 	float m_slowTimer;
+	float m_walkSoundTimer;
 
 	Gdiplus::PointF m_targetWorldPos;
 	float m_stopThreshold;

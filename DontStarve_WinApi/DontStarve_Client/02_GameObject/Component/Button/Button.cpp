@@ -3,6 +3,7 @@
 #include "../Transform/RectTransform.h"
 #include "../Sprite/Image.h"
 #include "../../GameObject.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../01_Manager/InputManager/InputManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 
@@ -131,6 +132,10 @@ bool Button::UpdateState(const RectTransform* rectTransform, ComponentElement::I
 		if (previousState != m_buttonState) {
 			ApplyVisualState(image);
 		}
+
+		// 클릭 사운드 재생
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PlayerSound/Pickup_item.wav");
+
 		// 콜백 호출
 		if (m_onClickCallback) {
 			m_onClickCallback();

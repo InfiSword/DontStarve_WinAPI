@@ -3,6 +3,7 @@
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/DataManager/DataManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -162,6 +163,8 @@ void Pig::Damaged(int damage)
 	Monster::Damaged(damage);
 	if (!IsDead())
 	{
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PigSound/Pig_hurt.wav");
+
 		if (m_state == (int)PigState::HIT)
 		{
 			m_animator->SetState((int)PigState::HIT, transform->GetDirection(), true);
@@ -173,7 +176,12 @@ void Pig::Damaged(int damage)
 	}
 }
 
-void Pig::OnAttackHit() { if (m_state == (int)PigState::ATTACK) ProcessAttackHit(m_damage); }
+void Pig::OnAttackHit() { 
+	if (m_state == (int)PigState::ATTACK) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PigSound/Pig_Attack.wav");
+		ProcessAttackHit(m_damage);
+	}
+}
 
 void Pig::OnAttackEnd()
 {
@@ -196,6 +204,8 @@ void Pig::OnHitEnd()
 }
 
 void Pig::Die() {
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PigSound/Pig_death.wav");
+
 	// 0: MEAT, 1: SMALL_MEAT
 	int r = rand() % 2;
 	SetDropItem(r == 0 ? GOID_ITEM_MEAT : GOID_ITEM_SMALL_MEAT, 1);

@@ -10,7 +10,6 @@ class SpriteRenderer : public Component
 {
 protected:
 	std::shared_ptr<Sprite> m_sprite;		// 렌더링할 스프라이트
-	std::shared_ptr<Sprite> m_beforeSprite; // 이전 프레임에 렌더링된 스프라이트 
 	RenderLayer m_layer;					// 렌더 레이어
 	bool m_preFlipped;						// 이미 좌우 반전된 리소스인지 여부 
 

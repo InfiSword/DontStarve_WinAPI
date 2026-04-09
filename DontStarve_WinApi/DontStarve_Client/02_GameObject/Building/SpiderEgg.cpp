@@ -4,6 +4,7 @@
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../01_Manager/DataManager/DataManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../01_Manager/SoundManager/SoundManager.h"
 #include "../../03_Animation/Animator.h"
 #include "../../03_Animation/AnimationClip.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
@@ -247,6 +248,8 @@ void SpiderEgg::Damaged(int damage)
 	if (m_hp <= 0) {
 		m_hp = 0;
 		m_buildingState = BuildingState::DESTROYED;
+
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/SpiderEggRemove.wav");
 
 		// 파괴될 때 남은 거미가 있다면 모두 스폰
 		while (m_remainingSpiders > 0) {

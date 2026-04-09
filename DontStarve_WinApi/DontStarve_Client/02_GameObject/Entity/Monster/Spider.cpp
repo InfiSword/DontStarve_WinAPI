@@ -3,6 +3,7 @@
 #include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -193,6 +194,7 @@ void Spider::SetAggroTarget(GameObject* target)
 
 		if (!m_bHasTaunted)
 		{
+			SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_scream.wav");
 			ChangeState((int)SpiderState::TAUNT);
 		}
 
@@ -253,6 +255,7 @@ int Spider::UpdateIdle(float deltaTime)
 	// CHASE로 전환될 때 도발(TAUNT) 체크
 	if (nextState == (int)SpiderState::CHASE && !m_bHasTaunted)
 	{
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_scream.wav");
 		return (int)SpiderState::TAUNT;
 	}
 
@@ -266,6 +269,7 @@ int Spider::UpdateWalk(float deltaTime)
 	// CHASE로 전환될 때 도발(TAUNT) 체크
 	if (nextState == (int)SpiderState::CHASE && !m_bHasTaunted)
 	{
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_scream.wav");
 		return (int)SpiderState::TAUNT;
 	}
 
@@ -281,6 +285,7 @@ void Spider::Damaged(int damage)
 {
 	Monster::Damaged(damage);
 	if (!IsDead()) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_hurt.wav");
 		if (!m_homeEgg || !m_homeEgg->IsEnabled())
 			m_bCanChase = true;
 		ChangeState((int)SpiderState::HIT);
@@ -288,7 +293,12 @@ void Spider::Damaged(int damage)
 	}
 }
 
-void Spider::OnAttackHit() { if (m_state == (int)SpiderState::ATTACK) ProcessAttackHit(m_damage); }
+void Spider::OnAttackHit() { 
+	if (m_state == (int)SpiderState::ATTACK) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_attack.wav");
+		ProcessAttackHit(m_damage);
+	}
+}
 
 void Spider::OnAttackEnd()
 {
@@ -309,6 +319,7 @@ void Spider::OnHitEnd()
 }
 
 void Spider::Die() {
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_death.wav");
 	SetDropItem(GOID_ITEM_MONSTER_MEAT, 1);
 	ChangeState((int)SpiderState::DEATH);
 }

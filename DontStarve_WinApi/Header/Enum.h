@@ -36,6 +36,7 @@ enum SceneType
 	SCENE_NONE = 0,
 	SCENE_TITLE,               // 타이틀 씬
 	SCENE_CHARACTER_SELECT,    // 캐릭터 선택 씬
+	SCENE_LOADING,             // 로딩 씬
 	SCENE_GAME_FARMING_AREA,        
 	SCENE_GAME_HOUND_FOREST,        
 	SCENE_GAME_SPIDER_QUEEN_HOUSE,  

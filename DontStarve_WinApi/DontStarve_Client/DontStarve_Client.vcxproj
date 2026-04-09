@@ -145,12 +145,14 @@
     <ClInclude Include="01_Manager\GameProgressManager\GameProgressManager.h" />
     <ClInclude Include="01_Manager\InventoryManager\InventoryManager.h" />
     <ClInclude Include="01_Manager\ResourceManager\ResourceManager.h" />
+    <ClInclude Include="01_Manager\SoundManager\SoundManager.h" />
     <ClInclude Include="01_Manager\SceneManager\BaseScene.h" />
     <ClInclude Include="01_Manager\SceneManager\BossHoundScene.h" />
     <ClInclude Include="01_Manager\SceneManager\BossSpiderQueenScene.h" />
     <ClInclude Include="01_Manager\SceneManager\CharacterSelectScene.h" />
     <ClInclude Include="01_Manager\SceneManager\ForestScene.h" />
     <ClInclude Include="01_Manager\SceneManager\GameScene.h" />
+    <ClInclude Include="01_Manager\SceneManager\LoadingScene.h" />
     <ClInclude Include="01_Manager\SceneManager\SceneManager.h" />
     <ClInclude Include="01_Manager\SceneManager\TitleScene.h" />
     <ClInclude Include="02_GameObject\Building\Building.h" />
@@ -231,8 +233,10 @@
     <ClCompile Include="01_Manager\SceneManager\CharacterSelectScene.cpp" />
     <ClCompile Include="01_Manager\SceneManager\ForestScene.cpp" />
     <ClCompile Include="01_Manager\SceneManager\GameScene.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\LoadingScene.cpp" />
     <ClCompile Include="01_Manager\SceneManager\SceneManager.cpp" />
     <ClCompile Include="01_Manager\SceneManager\TitleScene.cpp" />
+    <ClCompile Include="01_Manager\SoundManager\SoundManager.cpp" />
     <ClCompile Include="02_GameObject\Building\Building.cpp" />
     <ClCompile Include="02_GameObject\Component\Button\Button.cpp" />
     <ClCompile Include="02_GameObject\Component\Component.cpp" />

@@ -169,6 +169,20 @@ int Monster::UpdateIdle(float deltaTime)
 			float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
 			m_targetX = centerX + cosf(angle) * dist;
 			m_targetY = centerY + sinf(angle) * dist;
+
+			// 맵 경계 내로 목표 지점 제한 (Entity::ClampPositionToMapBounds와 동일한 로직)
+			float boundHalfWidth = 40.0f;
+			float boundHalfHeight = 40.0f;
+			float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - boundHalfWidth;
+			float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - boundHalfHeight;
+			float mapMinX = boundHalfWidth;
+			float mapMinY = boundHalfHeight;
+
+			if (m_targetX < mapMinX) m_targetX = mapMinX;
+			if (m_targetX > mapMaxX) m_targetX = mapMaxX;
+			if (m_targetY < mapMinY) m_targetY = mapMinY;
+			if (m_targetY > mapMaxY) m_targetY = mapMaxY;
+
 			m_idleTimer = 0.0f;
 			return (int)CombatantState::WALK;
 		}

@@ -1,6 +1,7 @@
 #include "99_Default/pch.h"
 #include "DontStarve_MainGame.h"
 #include "../99_Default/ClientOptimatzationOption.h"
+#include "../01_Manager/SoundManager/SoundManager.h"
 #include "../01_Manager/TimeManager/TimeManager.h"
 #include "../01_Manager/CameraManager/CameraManager.h"
 #include "../01_Manager/InputManager/InputManager.h"
@@ -51,6 +52,7 @@ void DontStarve_MainGame::Init()
     ResourceManager::GetInstance()->Init(); // 리소스 매니저 초기화 (오브젝트 리소스 등록 포함)
     DataManager::GetInstance()->Init();
     InputManager::GetInstance()->Init();
+    SoundManager::GetInstance()->Init();
 
 #ifdef _DEBUG
     m_pPerfFont = new Gdiplus::Font(L"Consolas", 14.0f, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
@@ -185,6 +187,7 @@ void DontStarve_MainGame::Release()
     }
 
 	SceneManager::DestroyInstance();
+	SoundManager::DestroyInstance();
 	ObjectManager::DestroyInstance();
 	InputManager::DestroyInstance();
 	ResourceManager::DestroyInstance();
