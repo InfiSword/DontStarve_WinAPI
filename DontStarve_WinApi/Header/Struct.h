@@ -1,6 +1,4 @@
 #pragma once
-#include <windows.h>
-#include <gdiplus.h>
 #include "Define.h"
 #include "Enum.h"
 

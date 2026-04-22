@@ -1,5 +1,6 @@
 #pragma once
 #include "Enum.h"
+#include "Struct.h"
 
 // ====================== 통합 데이터 테이블 =======================
 
