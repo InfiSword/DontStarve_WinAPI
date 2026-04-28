@@ -51,9 +51,6 @@
     <ClInclude Include="02_EditorResourceManager\EditorResourceManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="03_MapFileIO\MapFileIO.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="04_EditorPalette\EditorPalette.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -70,6 +67,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="09_EditorLayerComposer\EditorLayerComposer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="03_EditorMapFileIO\EditorMapFileIO.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -98,9 +98,6 @@
     <ClCompile Include="02_EditorResourceManager\EditorResourceManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="03_MapFileIO\MapFileIO.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="04_EditorPalette\EditorPalette.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -117,6 +114,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="09_EditorLayerComposer\EditorLayerComposer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="03_EditorMapFileIO\EditorMapFileIO.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
