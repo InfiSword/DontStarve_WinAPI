@@ -1,10 +1,8 @@
 #pragma once
 #include "Building.h"
 
-// Egg 단계: Sac(땅에서 막 생성), Small, Medium, Large
 enum class EggStage { Sac = 0, Small, Medium, Large, EggStageCount };
 
-// Animator 상태 상수 (int state)
 enum EggAnimState {
     EGG_STATE_IDLE_SMALL = 0,
     EGG_STATE_IDLE_MEDIUM = 1,
@@ -40,7 +38,6 @@ public:
     void SetTimeState(BuildingState buildingState) override;
     BuildingState GetTimeState() const override;
 
-    // 성장: Sac→Small, Small→Medium, Medium→Large. 해당 성장 애니 재생 후 단계 전환.
     virtual void Grow();
 
     EggStage GetEggStage() const { return m_eggStage; }
@@ -75,6 +72,13 @@ protected:
     bool m_isPeriodicSpawner;
     float m_periodicSpawnTimer;
     float m_periodicSpawnInterval;
+
+	float m_baseX;
+	float m_baseY;
+	float m_shakeDuration;
+	float m_shakeAmount;
+	float m_shakeSpeed;
+	bool m_isShaking;
 
     std::vector<class Spider*> m_poolSpiders; // 미리 생성해 둔 거미 오브젝트 풀
 };

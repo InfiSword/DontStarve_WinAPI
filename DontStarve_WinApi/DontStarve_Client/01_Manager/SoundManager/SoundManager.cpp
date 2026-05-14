@@ -15,7 +15,7 @@ SoundManager::~SoundManager()
 
 void SoundManager::Init()
 {
-    // MCI does not require special initialization.
+
 }
 
 void SoundManager::Release()

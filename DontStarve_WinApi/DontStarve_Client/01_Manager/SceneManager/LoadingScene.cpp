@@ -50,7 +50,6 @@ void LoadingScene::Init(const MapData* mapData)
 		0.0f, 0.0f    // anchoredPosition
 	);
 
-	// "로딩중..." 텍스트 - 화면 중앙에서 살짝 아래
 	objectManager->CreateText(
 		static_cast<GameObjectID>(GOID_UI_TEXT),
 		400.0f,
@@ -60,7 +59,7 @@ void LoadingScene::Init(const MapData* mapData)
 		32.0f, Gdiplus::FontStyleBold,
 		0.5f, 0.5f,
 		0.5f, 0.5f,
-		0.0f, 250.0f, // 중앙(0,0)에서 아래로 250px
+		0.0f, 250.0f, 
 		0.2f
 	);
 }
@@ -71,12 +70,9 @@ void LoadingScene::Update(float deltaTime)
 
 	m_loadingTime += deltaTime;
 
-	// 최소 0.5초 정도는 로딩 화면을 보여줌으로써 사용자에게 인지시킴
-	// 또한 1프레임 이상 렌더링이 확실히 된 후에 다음 씬으로 넘어가야 함
 	if (!m_bFinished && m_loadingTime > 0.5f)
 	{
 		m_bFinished = true;
-		// SceneManager에게 로딩 완료를 알리고 실제 대상 씬으로 전환 요청
 		SceneManager::GetInstance()->FinishLoading();
 	}
 }

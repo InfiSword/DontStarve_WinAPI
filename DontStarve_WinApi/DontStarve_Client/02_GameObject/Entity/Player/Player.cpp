@@ -18,14 +18,9 @@
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
 
-static const float CHOP_PIVOT_X = 0.3f;
-static const float CHOP_PIVOT_Y = 0.9f;
-static const float MINE_PIVOT_X = 0.5f;
-static const float MINE_PIVOT_Y = 0.9f;
-
 Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
 	: Combatant(characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
-	m_playerSpeed(300.f), m_stopThreshold(10),
+	m_playerSpeed(330.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItemID(GOID_NONE), m_inventory(nullptr),
 	m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr),
 	isMoveToGoal(false), m_bInputEnabled(true), m_speedModifier(1.0f), m_slowTimer(0.0f), m_walkSoundTimer(0.0f)
@@ -42,10 +37,10 @@ void Player::Init()
 {
 	Combatant::Init();
 
-	// Player 전용 공격 박스 설정 (80x120)
-	SetupAttackBox(80, 120, 0, -100);
+	// Player 전용 공격 박스 설정 
+	SetupAttackBox(120, 160, 0, -60);
 
-	// Animator 생성 후 애니메이션 등록 (AnimationDefinition 클래스 제거)
+	// Animator 생성 후 애니메이션 등록
 	if (!m_animator) {
 		m_animator = AddComponent<Animator>(spriteRenderer);
 	}

@@ -6,7 +6,6 @@
 
 RenderManager::RenderManager()
 {
-	// 생성자에서 레이어별 커맨드 벡터의 초기 공간을 미리 확보 (싱글톤 생성 시 1회 수행)
 	for (int i = 0; i < LAYER_COUNT; ++i) {
 		m_layerCommands[i].reserve(512);
 	}
@@ -34,7 +33,6 @@ void RenderManager::LateInit()
 
 void RenderManager::Update(float deltaTime)
 {
-	// UNREFERENCED_PARAMETER(deltaTime);
 }
 
 void RenderManager::LateUpdate()
@@ -59,9 +57,11 @@ void RenderManager::Release()
 	Utils::SafeDelete(m_pCachedAttr);
 }
 
-void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float worldX, float worldY, float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder, Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped, float rotation)
+void RenderManager::AddWorldObjectCommand
+(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float worldX, float worldY,
+	float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder,
+	Direction direction, const Gdiplus::Color& tintColor, bool hasTint, bool preFlipped)
 {
-	// 프레임 시작 시 고정한 카메라 스냅샷을 우선 사용해, 같은 프레임 내 좌표 흔들림을 줄인다.
 	const Gdiplus::PointF currentCamPos = m_hasFrameCameraPos ? m_frameCameraPos : CameraManager::GetInstance()->GetCameraPos();
 	float screenX = worldX - currentCamPos.X + (float)WINCX * 0.5f;
 	float screenY = worldY - currentCamPos.Y + (float)WINCY * 0.5f;
@@ -69,7 +69,7 @@ void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplu
 
 	float width = sourceRect.Width * scaleX;
 	float height = sourceRect.Height * scaleY;
-	// 0 크기 커맨드는 이후 정렬/드로우 비용만 늘리므로 등록 전에 제거한다.
+
 	if (width <= 0.0f || height <= 0.0f) {
 		return;
 	}
@@ -77,14 +77,11 @@ void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplu
 	float renderX = screenPos.X - width * pivotX;
 	float renderY = screenPos.Y - height * pivotY;
 
-
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_ENTITY;
 	cmd.destRect = Gdiplus::RectF(renderX, renderY, width, height);
-	cmd.rotationPivot = screenPos; // 피벗 위치가 회전 중심
 	cmd.layer = layer;
 	cmd.zOrder = zOrder;
-	cmd.rotation = rotation;
 
 	cmd.sprite.pBitmap = pBitmap;
 	cmd.sprite.sourceRect = sourceRect;
@@ -97,7 +94,10 @@ void RenderManager::AddWorldEntityCommand(Gdiplus::Bitmap* pBitmap, const Gdiplu
 	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::AddUICommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float screenX, float screenY, float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder, const Gdiplus::Color& tintColor, bool hasTint, float rotation)
+void RenderManager::AddUICommand
+(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF& sourceRect, float screenX, float screenY,
+	float scaleX, float scaleY, float pivotX, float pivotY, RenderLayer layer, float zOrder,
+	const Gdiplus::Color& tintColor, bool hasTint)
 {
 	float width = sourceRect.Width * scaleX;
 	float height = sourceRect.Height * scaleY;
@@ -107,10 +107,8 @@ void RenderManager::AddUICommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF&
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_UI_IMAGE;
 	cmd.destRect = Gdiplus::RectF(renderX, renderY, width, height);
-	cmd.rotationPivot = Gdiplus::PointF(screenX, screenY);
 	cmd.layer = layer;
 	cmd.zOrder = zOrder;
-	cmd.rotation = rotation;
 
 	cmd.sprite.pBitmap = pBitmap;
 	cmd.sprite.sourceRect = sourceRect;
@@ -121,15 +119,14 @@ void RenderManager::AddUICommand(Gdiplus::Bitmap* pBitmap, const Gdiplus::RectF&
 	m_layerCommands[layer].push_back(cmd);
 }
 
-void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush, Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float zOrder, float rotation, const Gdiplus::PointF& rotationPivot)
+void RenderManager::AddTextCommand(const std::wstring* text, Gdiplus::Font* pFont, Gdiplus::Brush* pBrush,
+	Gdiplus::StringFormat* pStringFormat, const Gdiplus::RectF& destRect, RenderLayer layer, float zOrder)
 {
 	DrawCommand cmd;
 	cmd.type = DRAW_COMMAND_TEXT;
 	cmd.destRect = destRect;
 	cmd.layer = layer;
 	cmd.zOrder = zOrder;
-	cmd.rotation = rotation;
-	cmd.rotationPivot = rotationPivot;
 
 	cmd.text.textPtr = text;
 	cmd.text.pFont = pFont;
@@ -187,10 +184,24 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 	for (int i = LAYER_TILE_BACKGROUND; i < LAYER_COUNT; ++i) {
 		if (m_layerCommands[i].empty()) continue;
 
+#ifdef _DEBUG
 		if (g_bEnableOptimizationMode && m_layerCommands[i].size() > 1) {
+#else
+		if (m_layerCommands[i].size() > 1) {
+#endif
 			std::stable_sort(m_layerCommands[i].begin(), m_layerCommands[i].end(), [](const DrawCommand& a, const DrawCommand& b) {
-				return a.zOrder < b.zOrder;
-			});
+				if (a.zOrder != b.zOrder) {
+					return a.zOrder < b.zOrder;
+				}
+
+				const bool aSprite = (a.type == DRAW_COMMAND_ENTITY || a.type == DRAW_COMMAND_UI_IMAGE);
+				const bool bSprite = (b.type == DRAW_COMMAND_ENTITY || b.type == DRAW_COMMAND_UI_IMAGE);
+				if (aSprite && bSprite) {
+					return a.sprite.pBitmap < b.sprite.pBitmap;
+				}
+
+				return a.type < b.type;
+				});
 		}
 
 		for (const auto& cmd : m_layerCommands[i]) {
@@ -201,19 +212,9 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 	m_hasFrameCameraPos = false;
 }
 
-void RenderManager::ExecuteDrawCommand(Gdiplus::Graphics* pGraphics, const DrawCommand& cmd)
+void RenderManager::ExecuteDrawCommand(Gdiplus::Graphics * pGraphics, const DrawCommand & cmd)
 {
 	if (!pGraphics) return;
-
-	Gdiplus::GraphicsState state = 0;
-	const bool rotated = (cmd.rotation != 0.0f);
-
-	if (rotated) {
-		state = pGraphics->Save();
-		pGraphics->TranslateTransform(cmd.rotationPivot.X, cmd.rotationPivot.Y);
-		pGraphics->RotateTransform(cmd.rotation);
-		pGraphics->TranslateTransform(-cmd.rotationPivot.X, -cmd.rotationPivot.Y);
-	}
 
 	switch (cmd.type) {
 	case DRAW_COMMAND_ENTITY:
@@ -243,9 +244,6 @@ void RenderManager::ExecuteDrawCommand(Gdiplus::Graphics* pGraphics, const DrawC
 		break;
 	}
 
-	if (rotated) {
-		pGraphics->Restore(state);
-	}
 }
 
 void RenderManager::RenderSprite(Gdiplus::Graphics* pGraphics, const DrawCommand::SpriteData& data, const Gdiplus::RectF& destRect)

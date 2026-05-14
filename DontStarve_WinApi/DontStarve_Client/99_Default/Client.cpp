@@ -10,7 +10,6 @@
 #define MAX_LOADSTRING 100
 
 
-// 실행 파일 위치에서 Resource·GameData가 있는 프로젝트 루트로 작업 디렉터리 설정
 static void EnsureResourceWorkingDirectory()
 {
     wchar_t exePath[MAX_PATH];
@@ -45,9 +44,8 @@ HWND g_hWnd;           // 전역으로 쓸 window핸들
 ULONG_PTR g_gdiplusToken; // 전역 GDI+ 토큰
 static InputManager* g_inputManager = nullptr; // WndProc에서 사용할 InputManager 포인터
 
-// ============================================================================
-// 성능 최적화 비교 모드 전역 변수 (전처리기)
-// ============================================================================
+// 성능 최적화 비교 모드 전역 변수
+#ifdef _DEBUG
 bool g_bEnableOptimizationMode = (PERF_OPTIMIZATION_DEFAULT_ON != 0); // 기본값 전처리기 제어
 bool g_bEnableBufferReuse = (PERF_OPTIMIZATION_DEFAULT_ON != 0); // 버퍼 재사용 최적화
 bool g_bEnableTileCaching = (PERF_OPTIMIZATION_DEFAULT_ON != 0); // 타일 캐싱 최적화
@@ -55,9 +53,7 @@ bool g_bEnableTileCaching = (PERF_OPTIMIZATION_DEFAULT_ON != 0); // 타일 캐�
 // 모드 상태 문자열 업데이트
 const char* g_CurrentOptimizationMode = (PERF_OPTIMIZATION_DEFAULT_ON != 0) ? "OPTIMIZED" : "BRUTE_FORCE";
 
-// ============================================================================
 // 최적화 모드 토글 함수
-// ============================================================================
 void ToggleOptimizationMode()
 {
     g_bEnableOptimizationMode = !g_bEnableOptimizationMode;
@@ -73,6 +69,7 @@ void ToggleOptimizationMode()
         g_CurrentOptimizationMode = "BRUTE_FORCE";
     }
 }
+#endif
 
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

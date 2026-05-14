@@ -68,31 +68,6 @@ void Inventory::Init()
 void Inventory::Update(float deltaTime)
 {
 	if (!m_player || m_player->GetHp() <= 0) return;
-
-	InputManager* input = InputManager::GetInstance();
-	if (input->IsLButtonClicked()) {
-		POINT mousePos = input->GetMousePos();
-		float mx = (float)mousePos.x;
-		float my = (float)mousePos.y;
-
-		// 슬롯 클릭 감지
-		for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
-			float cx = m_slotStartX + i * SLOT_STRIDE;
-			float cy = m_slotStartY;
-			Gdiplus::RectF slotRect(cx - SLOT_WIDTH * 0.5f, cy - SLOT_HEIGHT * 0.5f, SLOT_WIDTH, SLOT_HEIGHT);
-			
-			if (slotRect.Contains(mx, my)) {
-				// Shift 키가 눌려있으면 아이템 버리기
-				if (input->IsKeyPressed(VK_SHIFT)) {
-					InventoryManager::GetInstance()->TryDropItem(m_player, i);
-				}
-				else {
-					HandleSlotClick(i, m_player);
-				}
-				break;
-			}
-		}
-	}
 }
 
 void Inventory::Render(int equippedSlotIndex)
@@ -312,6 +287,7 @@ void Inventory::HandleSlotClick(int slotIndex, Player* player) {
 
 bool Inventory::HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player) {
 	if (!player) return false;
+	InputManager* input = InputManager::GetInstance();
 
 	// 슬롯 클릭 검사
 	for (int i = 0; i < INVENTORY_SLOT_COUNT; ++i) {
@@ -320,7 +296,12 @@ bool Inventory::HandleRightClick(float mouseScreenX, float mouseScreenY, Player*
 		Gdiplus::RectF slotRect(cx - SLOT_WIDTH * 0.5f, cy - SLOT_HEIGHT * 0.5f, SLOT_WIDTH, SLOT_HEIGHT);
 		
 		if (slotRect.Contains(mouseScreenX, mouseScreenY)) {
-			HandleSlotClick(i, player);
+			if (input && input->IsKeyDown(VK_SHIFT)) {
+				InventoryManager::GetInstance()->TryDropItem(player, i);
+			}
+			else {
+				HandleSlotClick(i, player);
+			}
 			return true;
 		}
 	}

@@ -171,7 +171,9 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 
 	auto canApplyDamageTo = [this](GameObject* target) {
 		if (!target || !target->IsEnabled() || target == this) return false;
-		if (this->GetType() == GO_TYPE_MONSTER && target->GetType() == GO_TYPE_MONSTER) return false;
+		if (this->GetType() == GO_TYPE_MONSTER && target->GetType() != GO_TYPE_PLAYER) {
+			return false;
+		}
 		return true;
 	};
 
@@ -213,7 +215,7 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 	for (GameObject* obj : hits) {
 		if (!canApplyDamageTo(obj)) continue;
 		obj->Damaged(damage);
-		return true; // 첫 번째(가장 가까운) 대상만 데미지 입힘
+		return true; // 가장 가까운 대상만 데미지 입힘
 	}
 
 	return false;

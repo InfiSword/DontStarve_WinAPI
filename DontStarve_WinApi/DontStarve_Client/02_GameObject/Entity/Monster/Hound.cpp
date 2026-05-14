@@ -30,7 +30,7 @@ Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Dire
 	m_attackHitFrame = 4;
 	m_damage = 20;
 	m_attackBoxWidth = 80;
-	m_attackBoxHeight = 50;
+	m_attackBoxHeight = 55;
 }
 
 Hound::~Hound() {}
@@ -39,7 +39,7 @@ void Hound::Init()
 {
 	Monster::Init();
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
-	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight,0,-40.f);
 
 	ChangeState((int)HoundState::IDLE);
 
@@ -295,6 +295,8 @@ void Hound::OnHitEnd()
 
 void Hound::Die() {
 	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_death.wav");
+
+	SetDropItem(GOID_ITEM_MONSTER_MEAT, 1);
 	ChangeState((int)HoundState::DEATH);
 }
 

@@ -145,22 +145,32 @@ void Entity::ClampPositionToMapBounds()
 	float x = transform->GetX();
 	float y = transform->GetY();
 
-	// 콜라이더 크기를 사용하여 경계 계산 (또는 기본값 사용)
-	float boundHalfWidth = 40.0f;   // 기본값
-	float boundHalfHeight = 40.0f;  // 기본값
+	const auto bounds = GetBounds();
 
-	// 맵 경계 계산 (타일 기반, Define.h의 상수 사용)
-	float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - boundHalfWidth;
-	float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - boundHalfHeight;
-	float mapMinX = boundHalfWidth;
-	float mapMinY = boundHalfHeight;
+	const float mapMinX = 0.0f;
+	const float mapMinY = 0.0f;
+	const float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE);
+	const float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE);
 
-	// 경계 내로 위치 제한
-	if (x < mapMinX) x = mapMinX;
-	if (x > mapMaxX) x = mapMaxX;
-	if (y < mapMinY) y = mapMinY;
-	if (y > mapMaxY) y = mapMaxY;
+	float offsetX = 0.0f;
+	float offsetY = 0.0f;
 
-	transform->SetPosition(x, y);
+	if (bounds.X < mapMinX) {
+		offsetX = mapMinX - bounds.X;
+	}
+	else if (bounds.X + bounds.Width > mapMaxX) {
+		offsetX = mapMaxX - (bounds.X + bounds.Width);
+	}
+
+	if (bounds.Y < mapMinY) {
+		offsetY = mapMinY - bounds.Y;
+	}
+	else if (bounds.Y + bounds.Height > mapMaxY) {
+		offsetY = mapMaxY - (bounds.Y + bounds.Height);
+	}
+
+	if (offsetX != 0.0f || offsetY != 0.0f) {
+		transform->SetPosition(x + offsetX, y + offsetY);
+	}
 }
 

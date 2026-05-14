@@ -76,13 +76,13 @@ void MenuUI::CreateMenuBar()
     auto* objMgr = ObjectManager::GetInstance();
 
     // 배경을 먼저 생성해 비최적화 즉시 렌더에서도 아이콘이 위에 오도록 한다.
-    AddManaged(objMgr->CreateImage(GOID_UI_MENU, m_craftBarWidth, m_craftBarHeight, LAYER_UI_BACKGROUND, L"Resource/UI/CraftBar.png", 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 50.0f, 0.0f));
+	m_managedObjects.push_back(objMgr->CreateImage(GOID_UI_MENU, m_craftBarWidth, m_craftBarHeight, LAYER_UI_BACKGROUND, L"Resource/UI/CraftBar.png", 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 50.0f, 0.0f));
 
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CraftIcon.png", L"Resource/UI/CraftIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[4], [this]() { ToggleToolList(); }));
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize + 20, m_iconSize + 20, L"Resource/UI/CreateIcon.png", L"Resource/UI/CreateIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[3], [this]() { ToggleCreateList(); }));
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CookIcon.png", L"Resource/UI/CookIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[2], [this]() { ToggleCookList(); }));
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/BattleIcon.png", L"Resource/UI/BattleIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[1], [this]() { ToggleBossPanel(); }));
-    AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/EditIcon.png", L"Resource/UI/EditIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[0], [this]() { ToggleEditPanel(); }));
+	m_managedObjects.push_back(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CraftIcon.png", L"Resource/UI/CraftIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[4], [this]() { ToggleToolList(); }));
+	m_managedObjects.push_back(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize + 20, m_iconSize + 20, L"Resource/UI/CreateIcon.png", L"Resource/UI/CreateIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[3], [this]() { ToggleCreateList(); }));
+	m_managedObjects.push_back(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/CookIcon.png", L"Resource/UI/CookIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[2], [this]() { ToggleCookList(); }));
+	m_managedObjects.push_back(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/BattleIcon.png", L"Resource/UI/BattleIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[1], [this]() { ToggleBossPanel(); }));
+    m_managedObjects.push_back(objMgr->CreateButton(GOID_UI_BUTTON, m_iconSize, m_iconSize, L"Resource/UI/EditIcon.png", L"Resource/UI/EditIcon.png", 0.0f, 0.5f, 0.0f, 0.5f, iconX, m_menuIconY[0], [this]() { ToggleEditPanel(); }));
 }
 
 void MenuUI::CreatePalettes()
@@ -162,7 +162,6 @@ void MenuUI::CreateBossChallengeUI()
         m_bossPanels[idx].id = bossID;
         m_bossPanels[idx].panel = AddManaged(objMgr->CreateButton(GOID_UI_BUTTON, 300.0f, 400.0f, spritePath, spritePath, 0.5f, 0.5f, 0.5f, 0.5f, x, 0.0f, [this, bossID]() { SelectBoss(bossID); }));
         m_bossPanels[idx].clearText = AddManaged(objMgr->CreateText(GOID_UI_TEXT, 300.0f, 60.0f, L"CLEAR", Gdiplus::Color::Red, 48.0f, Gdiplus::FontStyleRegular, 0.5f, 0.5f, 0.5f, 0.5f, x, 0.0f));
-        m_bossPanels[idx].clearText->GetRectTransform()->SetRotation(-25.0f);
         m_bossGroup.push_back(m_bossPanels[idx].panel);
         m_bossGroup.push_back(m_bossPanels[idx].clearText);
     };

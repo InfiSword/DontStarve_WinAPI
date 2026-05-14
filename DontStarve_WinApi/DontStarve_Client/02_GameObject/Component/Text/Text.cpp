@@ -66,9 +66,7 @@ void Text::Render()
 			params.format,
 			params.destRect,
 			params.layer,
-			params.sortKey,
-			rt->GetRotation(),
-			Gdiplus::PointF(rt->GetX(), rt->GetY())
+			params.sortKey
 		);
 	}
 }

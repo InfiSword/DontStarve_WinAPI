@@ -316,7 +316,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			}
 		}
 	}
-	break;
+	return 0;
 
 	case WM_LBUTTONDOWN: {
 		RECT clientRect;
@@ -418,7 +418,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			HandleObjectSelectionClick(clickPoint, hWnd);
 		}
 	}
-	break;
+	return 0;
 
 	case WM_RBUTTONDOWN:
 	{
@@ -454,7 +454,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			SetCapture(hWnd);
 		}
 	}
-	break;
+	return 0;
 
 	case WM_CAPTURECHANGED:
 	{
@@ -465,7 +465,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			m_pWalkableEditor->OnLeftButtonUp();
 		}
 	}
-	break;
+	return 0;
 
 	case WM_RBUTTONUP:
 	{
@@ -484,7 +484,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			return 0;
 		}
 	}
-	break;
+	return 0;
 
 	case WM_MOUSEWHEEL:
 	{
@@ -667,6 +667,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
+	return 0;
 }
 
 void MapEditor::NewMap() {

@@ -115,8 +115,8 @@ void Animator::Update(float deltaTime)
 		if (m_renderTarget && currentFrameIndex != -1) {
 			const auto& frames = m_currentClip->GetFrames();
 
-			// 2프레임씩 건너뛰기
-			int displayIndex = (currentFrameIndex / 3) * 3;
+			// 프레임 건너뛰기
+			int displayIndex = (currentFrameIndex / 5) * 5;
 			if (displayIndex >= (int)frames.size()) {
 				displayIndex = (int)frames.size() - 1;
 			}

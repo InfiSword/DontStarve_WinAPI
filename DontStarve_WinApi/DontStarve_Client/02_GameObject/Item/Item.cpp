@@ -44,8 +44,7 @@ Item::~Item()
 void Item::Init()
 {
     GameObject::Init();
-    
-    // 컴포넌트 캐싱 (이미 생성자에서 했지만 안전을 위해)
+   
     if (!m_transform) m_transform = GetComponent<Transform>();
     if (!m_spriteRenderer) m_spriteRenderer = GetComponent<SpriteRenderer>();
 }

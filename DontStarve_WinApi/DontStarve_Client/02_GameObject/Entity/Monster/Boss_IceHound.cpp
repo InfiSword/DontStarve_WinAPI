@@ -14,16 +14,6 @@
 #include "../../Skill/IceProjectile.h"
 #include "Boss_IceHound.h"
 
-namespace
-{
-	inline Direction ResolveFacingFromDirToPlayer(const Gdiplus::PointF& dirToPlayer)
-	{
-		if (std::abs(dirToPlayer.X) > std::abs(dirToPlayer.Y)) {
-			return (dirToPlayer.X >= 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		}
-		return (dirToPlayer.Y >= 0.0f) ? DIR_DOWN : DIR_UP;
-	}
-}
 
 Boss_IceHound::Boss_IceHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
@@ -65,7 +55,7 @@ void Boss_IceHound::Init()
 	Monster::Init();
 
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
-	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight,0,-40.f);
 
 	ChangeState((int)BossIceHoundState::IDLE);
 	m_idleTimer = 0.0f;
@@ -231,11 +221,7 @@ void Boss_IceHound::UpdateAI(float deltaTime)
 	if (m_state == (int)BossIceHoundState::ATTACK_PRE)
 	{
 		if (m_animator->IsAnimationDone()) {
-			if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-				const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-				transform->SetDirection(faceDir);
-				UpdateAttackBoxByDirection(faceDir);
-			}
+			LookAtPlayer();
 			ChangeState((int)BossIceHoundState::ATTACK);
 		}
 		return;
@@ -272,20 +258,12 @@ int Boss_IceHound::UpdateIdle(float deltaTime)
 	}
 	if (nextState == (int)BossIceHoundState::ATTACK)
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossIceHoundState::ATTACK_PRE; // 근접 공격 유지
 	}
 	if (CanStartProjectileAttack())
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossIceHoundState::ATTACK_PRE; // 원거리 공격
 	}
 
@@ -307,11 +285,7 @@ int Boss_IceHound::UpdateWalk(float deltaTime)
 	}
 	if (CanStartProjectileAttack())
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossIceHoundState::ATTACK_PRE;
 	}
 
@@ -349,20 +323,12 @@ int Boss_IceHound::UpdateChase(float deltaTime)
 	int nextState = Monster::UpdateChase(deltaTime);
 	if (nextState == (int)BossIceHoundState::ATTACK)
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossIceHoundState::ATTACK_PRE; // 근접 공격 유지
 	}
 	if (CanStartProjectileAttack())
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossIceHoundState::ATTACK_PRE;
 	}
 
@@ -397,13 +363,9 @@ void Boss_IceHound::OnAttackHit()
 	if (!m_isCombatEnabled) return;
 	if (m_state != (int)BossIceHoundState::ATTACK) return;
 
-	if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-		const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-		transform->SetDirection(faceDir);
-		UpdateAttackBoxByDirection(faceDir);
-	}
+	LookAtPlayer();
 
-	// 1. 발사체 쿨타임이 완료되었다면 무조건 발사
+	// 발사체 쿨타임이 완료되었다면 무조건 발사
 	if (m_projectileCooldownTimer <= 0.0f) {
 		FireIceProjectile();
 		m_projectileCooldownTimer = m_projectileCooldown;
@@ -411,7 +373,6 @@ void Boss_IceHound::OnAttackHit()
 		m_retreatBeforeShotTimer = 0.0f;
 	}
 
-	// 2. 플레이어가 근접 사거리(m_attackRange) 내에 있다면 무조건 근접 공격 처리
 	if (m_distToPlayerSq <= (m_attackRange * m_attackRange)) {
 		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_attack.wav");
 		ProcessAttackHit(m_damage); // 근접 공격 처리
@@ -497,10 +458,5 @@ void Boss_IceHound::MoveAwayFromPlayer(float deltaTime, float speed)
 	ClampPositionToMapBounds();
 
 	// 바라보는 방향은 플레이어 쪽으로 유지(공격 애니메이션 연결 자연스럽게)
-	Direction faceDir = DIR_DOWN;
-	if (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y))
-		faceDir = (m_dirToPlayer.X > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-	else
-		faceDir = (m_dirToPlayer.Y > 0.0f) ? DIR_DOWN : DIR_UP;
-	transform->SetDirection(faceDir);
+	LookAtPlayer();
 }

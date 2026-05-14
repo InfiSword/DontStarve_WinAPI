@@ -71,7 +71,7 @@ protected:
 private:
 	void StartCocoonPhase();
 	void EndCocoonPhase();
-	void SummonSpider(int count = -1);
+	void SummonSpider();
 	void PreSpawnCocoonSpiders(int count);
 	Spider* AcquirePooledSpider();
 
@@ -92,11 +92,6 @@ private:
 	bool m_hasTriggeredCocoon;
 	float m_cocoonTimer;
 	float m_healTickTimer;
-
-	// FX 관련
-	bool m_isHealing;
-	Animator* m_healFxAnimator;      // 회복 중 루프 FX
-	Animator* m_spawnOutFxAnimator;  // 고치 탈출 시 단발 FX
 
 	float m_spawnOnHitCooldown;
 	bool m_hasTauntStarted;

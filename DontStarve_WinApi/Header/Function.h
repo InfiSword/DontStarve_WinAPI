@@ -3,11 +3,6 @@
 #include <gdiplus.h>
 #include <vector>
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <locale>
-#include <codecvt>
-#include <cstring>
 #include "Enum.h"
 #include "Struct.h"
 
@@ -150,9 +145,13 @@ namespace Utils
 			return (dy > 0) ? DIR_DOWN : DIR_UP;
 		}
 	}
+
+	inline float Random01()
+	{
+		return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+	}
 }
 
-// 리소스 경로 관련 유틸리티 함수들
 namespace ResourcePathUtils
 {
 	// 맵 파일 파싱 함수
@@ -174,7 +173,6 @@ namespace ResourcePathUtils
 
 		// 파일 열기
 		std::wifstream file(mapFileName);
-		// file.imbue(std::locale(std::locale(), new std::codecvt_utf8<wchar_t>));
 
 		if (!file.is_open()) {
 			return false;

@@ -79,27 +79,15 @@ const ResourcePathUtils::ObjectResourceDef* EditorResourceManager::GetObjectVari
 
 std::wstring EditorResourceManager::GetResourceRoot()
 {
-	wchar_t modulePath[MAX_PATH] = {};
-	GetModuleFileNameW(NULL, modulePath, MAX_PATH);
-	wchar_t* winApiPos = wcsstr(modulePath, L"DontStarve_WinApi");
-	if (winApiPos) {
-		size_t len = wcslen(L"DontStarve_WinApi");
-		std::wstring root(modulePath, winApiPos - modulePath + len);
-		return root;
-	}
-	wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-	if (lastSlash) { *lastSlash = L'\0'; lastSlash = wcsrchr(modulePath, L'\\'); if (lastSlash) *lastSlash = L'\0'; }
-	return std::wstring(modulePath);
+	return L".";
 }
 
 std::shared_ptr<Gdiplus::Bitmap> EditorResourceManager::GetCachedBitmap(const std::wstring& fullPath)
 {
 	std::wstring pathToUse = fullPath;
-	if (fullPath.size() >= 2 && fullPath[1] != L':' && fullPath[0] != L'\\') {
-		std::wstring root = GetResourceRoot();
-		if (!root.empty() && root.back() != L'\\') root += L"\\";
-		pathToUse = root + fullPath;
-	}
+	
+	// 상대 경로인 경우 현재 디렉터리(프로젝트 루트)를 기준으로 처리
+	// EnsureResourceWorkingDirectory()에 의해 이미 작업 디렉터리가 루트로 설정되어 있음
 
 	auto it = m_bitmapCache.find(pathToUse);
 	if (it != m_bitmapCache.end()) {
@@ -122,9 +110,7 @@ void EditorResourceManager::ClearBitmapCache()
 
 std::wstring EditorResourceManager::GetGameDataPath()
 {
-	std::wstring root = GetResourceRoot();
-	if (!root.empty() && root.back() != L'\\') root += L"\\";
-	return root + L"GameData";
+	return L"GameData";
 }
 
 bool EditorResourceManager::ObjectResourceOverridesFileExists()

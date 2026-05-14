@@ -1,13 +1,9 @@
-﻿#pragma once
-
-// ============================================================================
-// Client Optimization Option (전역 최적화 필터링 옵션)
-// ============================================================================
-
+#pragma once
 #ifndef PERF_OPTIMIZATION_DEFAULT_ON
 #define PERF_OPTIMIZATION_DEFAULT_ON 1
 #endif
 
+#ifdef _DEBUG
 // 최적화 모드 활성화 (ON: 최적화된 코드 / OFF: 비최적화 코드)
 extern bool g_bEnableOptimizationMode;
 
@@ -20,3 +16,4 @@ extern const char* g_CurrentOptimizationMode;
 
 // 토글 함수
 void ToggleOptimizationMode();
+#endif

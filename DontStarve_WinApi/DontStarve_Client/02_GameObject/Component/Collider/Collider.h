@@ -20,9 +20,6 @@ public:
     void SetIsInteractionCollider(bool isInteraction) { m_isInteractionCollider = isInteraction; }
     bool IsInteractionCollider() const { return m_isInteractionCollider; }
 
-    void SetIsPhysicalCollider(bool isPhysical) { m_isPhysicalCollider = isPhysical; }
-    bool IsPhysicalCollider() const { return m_isPhysicalCollider; }
-
     virtual bool IntersectsCollider(const Collider* other) const = 0;  
 
     virtual ColliderType GetColliderType() const = 0;
@@ -39,5 +36,4 @@ public:
 
 protected:
     bool m_isInteractionCollider = true;
-    bool m_isPhysicalCollider = true;
 };

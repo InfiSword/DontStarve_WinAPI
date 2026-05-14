@@ -31,6 +31,12 @@ SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivo
 	,m_isPeriodicSpawner(false)
 	,m_periodicSpawnTimer(0.0f)
 	,m_periodicSpawnInterval(5.0f)
+	,m_baseX(0.0f)
+	,m_baseY(0.0f)
+	,m_shakeDuration(0.5f)
+	,m_shakeAmount(14.0f)
+	,m_shakeSpeed(40.0f)
+	,m_isShaking(false)
 {
 
 	switch (id)
@@ -93,12 +99,12 @@ void SpiderEgg::Init()
 		0, 0, 1, 1, px, py, true, 0.04f);
 
 	// Hit (loop=false)
-	m_animator->RegisterAnimation(EGG_STATE_HIT_SMALL, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_small_hit.png",
-		0, 0, 7, 33, px, py, false, 0.04f);
-	m_animator->RegisterAnimation(EGG_STATE_HIT_MEDIUM, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_medium_hit.png",
-		0, 0, 7, 35, px, py, false, 0.04f);
-	m_animator->RegisterAnimation(EGG_STATE_HIT_LARGE, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_large_hit.png",
-		0, 0, 7, 43, px, py, false, 0.04f);
+	//m_animator->RegisterAnimation(EGG_STATE_HIT_SMALL, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_small_hit.png",
+	//	0, 0, 7, 33, px, py, false, 0.04f);
+	//m_animator->RegisterAnimation(EGG_STATE_HIT_MEDIUM, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_medium_hit.png",
+	//	0, 0, 7, 35, px, py, false, 0.04f);
+	//m_animator->RegisterAnimation(EGG_STATE_HIT_LARGE, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_large_hit.png",
+	//	0, 0, 7, 43, px, py, false, 0.04f);
 
 	// Grow (loop=false)
 	m_animator->RegisterAnimation(EGG_STATE_GROW_SAC_TO_SMALL, DIR_DOWN, base + L"Grow\\Egg_spider_cocoon_grow_sac_to_small.png",
@@ -109,8 +115,8 @@ void SpiderEgg::Init()
 		0, 0, 7, 43, px, py, false, 0.04f);
 
 	// Burst (loop=false)
-	m_animator->RegisterAnimation(EGG_STATE_BURST_LARGE, DIR_DOWN, base + L"Burst\\Egg_spider_cocoon_cocoon_large_burst.png",
-		0, 0, 7, 43, px, py, false, 0.04f);
+	/*m_animator->RegisterAnimation(EGG_STATE_BURST_LARGE, DIR_DOWN, base + L"Burst\\Egg_spider_cocoon_cocoon_large_burst.png",
+		0, 0, 7, 43, px, py, false, 0.04f);*/
 
 	// 현재 단계에 맞는 Idle로 시작
 	int idleState = EGG_STATE_IDLE_SMALL;
@@ -123,6 +129,12 @@ void SpiderEgg::Init()
 	if (spriteRenderer) {
 		if (m_eggStage == EggStage::Sac) spriteRenderer->SetActive(false);
 		else spriteRenderer->SetActive(true);
+	}
+
+	if (transform)
+	{
+		m_baseX = transform->GetX();
+		m_baseY = transform->GetY();
 	}
 
 	PreSpawnSpiders();
@@ -184,9 +196,9 @@ void SpiderEgg::Update(float deltaTime)
 
 		// 성장할 때마다 남은 거미 수 갱신 (Don't Starve 방식)
 		switch (m_eggStage) {
-		case EggStage::Small: m_remainingSpiders = 1; break;
-		case EggStage::Medium: m_remainingSpiders = 2; break;
-		case EggStage::Large: m_remainingSpiders = 3; break;
+		case EggStage::Small: m_remainingSpiders = 1; m_amountOfSpidersToSpawn = 1; break;
+		case EggStage::Medium: m_remainingSpiders = 2; m_amountOfSpidersToSpawn = 2; break;
+		case EggStage::Large: m_remainingSpiders = 3; m_amountOfSpidersToSpawn = 3; break;
 		}
 
 		PreSpawnSpiders();
@@ -239,6 +251,15 @@ void SpiderEgg::Damaged(int damage)
 
 	OutputDebugStringW((L"SpiderEgg: Damaged - 데미지: " + std::to_wstring(damage) + L"\n").c_str());
 
+	Transform* eggTr = GetComponent<Transform>();
+	if (m_isShaking && eggTr) {
+		eggTr->SetPosition(m_baseX, m_baseY);
+	}
+	else if (eggTr) {
+		m_baseX = eggTr->GetX();
+		m_baseY = eggTr->GetY();
+	}
+
 	// 거미 스폰 (남아있는 거미가 있을 때만)
 	if (m_remainingSpiders > 0) {
 		SpawnSpiders();
@@ -256,16 +277,47 @@ void SpiderEgg::Damaged(int damage)
 			SpawnSpiders();
 		}
 
+		if (eggTr) eggTr->SetPosition(m_baseX, m_baseY);
+		m_isShaking = false;
+
 		ObjectManager::GetInstance()->RemoveGameObject(this);
 	}
 	else {
-		// Hit 애니메이션 재생
-		if (m_animator && !m_isPlayingHit) {
+		StopAllCoroutines();
+		m_isShaking = true;
+
+		float baseX = m_baseX;
+		float baseY = m_baseY;
+		float elapsed = 0.0f;
+		float duration = m_shakeDuration;
+		float amount = m_shakeAmount;
+		float speed = m_shakeSpeed;
+		Transform* tr = eggTr;
+
+		StartCoroutine([=](float dt) mutable -> bool {
+			elapsed += dt;
+
+			if (elapsed >= duration) {
+				if (tr) tr->SetPosition(baseX, baseY);
+				m_isShaking = false;
+				return false;
+			}
+
+			if (tr) {
+				float currentAmount = amount * (1.0f - (elapsed / duration));
+				float offsetX = sinf(elapsed * speed) * currentAmount;
+				tr->SetPosition(baseX + offsetX, baseY);
+			}
+			return true;
+		});
+
+		if (m_animator && !m_isPlayingHit) 
+		{
 			m_isPlayingHit = true;
-			int hitState = EGG_STATE_HIT_SMALL;
-			if (m_eggStage == EggStage::Medium) hitState = EGG_STATE_HIT_MEDIUM;
-			else if (m_eggStage == EggStage::Large) hitState = EGG_STATE_HIT_LARGE;
-			ChangeState(hitState);
+			//int hitState = EGG_STATE_HIT_SMALL;
+			//if (m_eggStage == EggStage::Medium) hitState = EGG_STATE_HIT_MEDIUM;
+			//else if (m_eggStage == EggStage::Large) hitState = EGG_STATE_HIT_LARGE;
+			//ChangeState(hitState);
 		}
 	}
 }
@@ -333,7 +385,6 @@ void SpiderEgg::SpawnSpiders()
 	Transform* spiderTr = spider->GetComponent<Transform>();
 	if (spiderTr) {
 		spiderTr->SetPosition(sx, sy);
-		//objectManager->UpdateObjectGridCell(spider);
 	}
 
 	spider->SetActive(true);

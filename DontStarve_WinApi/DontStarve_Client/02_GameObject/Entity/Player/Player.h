@@ -73,7 +73,7 @@ private:
 
 	void TryStartInteraction(float worldX, float worldY);
 	void FinalizePickup();
-	
+
 	// 애니메이션 이벤트 핸들러 함수들
 	void OnPickupEnd();
 	void OnChopHit();
@@ -86,6 +86,11 @@ private:
 	Inventory* m_inventory;
 	GameObject* m_pendingInteractionTarget;  // 이동 후 상호작용할 대상
 	GameObject* m_activeInteractionTarget;   // 현재 상호작용 중인 대상
+
+	const float CHOP_PIVOT_X = 0.3f;
+	const float CHOP_PIVOT_Y = 0.9f;
+	const float MINE_PIVOT_X = 0.5f;
+	const float MINE_PIVOT_Y = 0.9f;
 
 	bool isMoveToGoal;
 	float m_playerSpeed;

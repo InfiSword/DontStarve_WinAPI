@@ -25,7 +25,7 @@ Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, Directio
 	m_attackCooldown = 3.f;
 	m_attackHitFrame = 28;
 	m_damage = 15;
-	m_attackBoxWidth = 80;
+	m_attackBoxWidth = 90;
 	m_attackBoxHeight = 100;
 }
 
@@ -139,12 +139,6 @@ void Pig::UpdateMovement(float deltaTime)
 
 int Pig::UpdateIdle(float deltaTime)
 {
-	// IDLE 상태에서도 플레이어를 바라보게 업데이트
-	if (m_attackTarget && m_attackTarget->IsEnabled()) {
-		Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
-		transform->SetDirection(newDir);
-	}
-
 	return Monster::UpdateIdle(deltaTime);
 }
 

@@ -13,17 +13,6 @@
 #include "../../Component/Collider/BoxCollider.h"
 #include "Boss_RedHound.h"
 
-namespace
-{
-	inline Direction ResolveFacingFromDirToPlayer(const Gdiplus::PointF& dirToPlayer)
-	{
-		if (std::abs(dirToPlayer.X) > std::abs(dirToPlayer.Y)) {
-			return (dirToPlayer.X >= 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		}
-		return (dirToPlayer.Y >= 0.0f) ? DIR_DOWN : DIR_UP;
-	}
-}
-
 Boss_RedHound::Boss_RedHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
 	: Hound(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType)
@@ -37,9 +26,9 @@ Boss_RedHound::Boss_RedHound(GameObjectID id, float x, float y, float pivotX, fl
 	m_attackRange = 100.0f;
 	m_attackCooldown = 2.0f;
 	m_attackHitFrame = 4;
-	m_damage = 25; 
-	m_attackBoxWidth = 100;
-	m_attackBoxHeight = 60;
+	m_damage = 25;
+	m_attackBoxWidth = 120;
+	m_attackBoxHeight = 70;
 	m_wanderRadius = 300.0f;
 	m_aggroRadius = 400.0f;
 	m_deaggroRadius = 600.0f;
@@ -58,12 +47,11 @@ Boss_RedHound::Boss_RedHound(GameObjectID id, float x, float y, float pivotX, fl
 Boss_RedHound::~Boss_RedHound() {}
 
 void Boss_RedHound::Init()
-// ... (omitting middle part of Init for brevity in this replace call, but I will include it in the actual call)
 {
 	Monster::Init();
 	m_bUseSuperArmor = true;
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
-	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight,0,-40.f);
 
 	ChangeState((int)BossRedHoundState::IDLE);
 	m_idleTimer = 0.0f;
@@ -177,13 +165,7 @@ void Boss_RedHound::Init()
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"dash_lock") {
 							m_dashDir = m_dirToPlayer;
-
-							if (abs(m_dashDir.X) > abs(m_dashDir.Y)) {
-								transform->SetDirection(m_dashDir.X > 0 ? DIR_RIGHT : DIR_LEFT);
-							}
-							else {
-								transform->SetDirection(m_dashDir.Y > 0 ? DIR_DOWN : DIR_UP);
-							}
+							LookAtPlayer();
 						}
 						});
 				}
@@ -287,11 +269,7 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 	if (m_state == (int)BossRedHoundState::ATTACK_PRE)
 	{
 		if (m_animator->IsAnimationDone()) {
-			if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-				const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-				transform->SetDirection(faceDir);
-				UpdateAttackBoxByDirection(faceDir);
-			}
+			LookAtPlayer();
 			ChangeState((int)BossRedHoundState::ATTACK);
 		}
 		return;
@@ -332,11 +310,7 @@ int Boss_RedHound::UpdateIdle(float deltaTime)
 
 	if (nextState == (int)BossRedHoundState::ATTACK)
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossRedHoundState::ATTACK_PRE;
 	}
 
@@ -378,11 +352,7 @@ int Boss_RedHound::UpdateChase(float deltaTime)
 	}
 	if (nextState == (int)BossRedHoundState::ATTACK)
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossRedHoundState::ATTACK_PRE;
 	}
 
@@ -408,11 +378,7 @@ void Boss_RedHound::OnAttackHit()
 {
 	if (!m_isCombatEnabled || m_state != (int)BossRedHoundState::ATTACK) return;
 
-	if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-		const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-		transform->SetDirection(faceDir);
-		UpdateAttackBoxByDirection(faceDir);
-	}
+	LookAtPlayer();
 
 	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_attack.wav");
 	ProcessAttackHit(m_damage);
@@ -435,5 +401,5 @@ void Boss_RedHound::OnHitEnd()
 
 void Boss_RedHound::Die() {
 	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_death.wav");
-	ChangeState((int)BossRedHoundState::DEATH); 
+	ChangeState((int)BossRedHoundState::DEATH);
 }

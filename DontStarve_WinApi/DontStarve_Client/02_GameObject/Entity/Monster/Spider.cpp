@@ -27,8 +27,8 @@ Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, Di
 	m_attackCooldown = 1.2f;
 	m_attackHitFrame = 45;
 	m_damage = 15;
-	m_attackBoxWidth = 60;
-	m_attackBoxHeight = 40;
+	m_attackBoxWidth = 90;
+	m_attackBoxHeight = 60;
 }
 
 Spider::~Spider() {}
@@ -37,7 +37,7 @@ void Spider::Init()
 {
 	Monster::Init();
 	SetupAggro(AggroType::ON_RANGE, 300.0f, 500.0f);
-	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight,0, -50.f);
 
 	ChangeState((int)SpiderState::IDLE);
 	m_idleTimer = 0.0f;
@@ -58,8 +58,8 @@ void Spider::Init()
 	m_walkSpeed = isWarrior ? 80.0f : 60.0f;
 	m_runSpeed = isWarrior ? 180.0f : 150.0f;
 	m_attackRange = isWarrior ? 100.0f : 80.0f;
-	m_attackBoxWidth = isWarrior ? 72 : 60;
-	m_attackBoxHeight = isWarrior ? 48 : 40;
+	m_attackBoxWidth = isWarrior ? 82 : 70;
+	m_attackBoxHeight = isWarrior ? 92 : 80;
 
 	const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
 	if (objData)
@@ -189,7 +189,7 @@ void Spider::SetAggroTarget(GameObject* target)
 {
 	if (target && target->IsEnabled())
 	{
-		if (!m_homeEgg || !m_homeEgg->IsEnabled()) m_bCanChase = true;
+		m_bCanChase = true;
 		m_attackTarget = target;
 
 		if (!m_bHasTaunted)
@@ -202,7 +202,7 @@ void Spider::SetAggroTarget(GameObject* target)
 		if (targetTr && transform) {
 			float dx = targetTr->GetX() - transform->GetX();
 			float dy = targetTr->GetY() - transform->GetY();
-			Direction newDir = (std::abs(dx) > std::abs(dy)) ? (dx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (dy > 0.0f ? DIR_DOWN : DIR_UP);
+			Direction newDir = ResolveFacingDirection({ dx, dy });
 			transform->SetDirection(newDir);
 		}
 	}
@@ -286,8 +286,7 @@ void Spider::Damaged(int damage)
 	Monster::Damaged(damage);
 	if (!IsDead()) {
 		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_hurt.wav");
-		if (!m_homeEgg || !m_homeEgg->IsEnabled())
-			m_bCanChase = true;
+		m_bCanChase = true;
 		ChangeState((int)SpiderState::HIT);
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 	}

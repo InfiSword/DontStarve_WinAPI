@@ -26,7 +26,7 @@ public:
 	bool IsLButtonDown();
 	// 마우스 왼쪽 버튼이 현재 눌려있는지
 	bool IsLButtonClicked();
-	// 마우스 왼쪽 버튼이 클릭되었는지
+	// 마우스 오른쪽 버튼이 클릭되었는지
 	bool IsRButtonClicked();
 
 	// Windows 메시지 직접 처리 (즉시 반응을 위한 함수)

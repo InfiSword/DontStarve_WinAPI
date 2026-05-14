@@ -37,7 +37,7 @@ void SpriteRenderer::Render()
 	bool hasTint = (tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
 
 	// RenderManager에 월드 좌표와 변환 정보 전달
-	RenderManager::GetInstance()->AddWorldEntityCommand(
+	RenderManager::GetInstance()->AddWorldObjectCommand(
 		m_sprite->bitmap.get(), 
 		m_sprite->sourceRect, 
 		worldX, worldY, 

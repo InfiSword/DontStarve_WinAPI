@@ -197,7 +197,7 @@ void SceneManager::ChangeSceneIfReserved()
 			m_currentMapData = nullptr;
 		}
 
-		// 4. 초기화 호출 (여기서 ObjectManager::Init 및 UI 생성이 수행됨)
+		// 초기화 호출 (여기서 ObjectManager::Init 및 UI 생성이 수행됨)
 		m_currentScene->Init(m_currentMapData);
 	}
 

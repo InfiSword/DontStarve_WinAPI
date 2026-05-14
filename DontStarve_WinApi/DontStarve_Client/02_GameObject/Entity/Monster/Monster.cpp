@@ -59,7 +59,7 @@ void Monster::Update(float deltaTime)
 	Entity::Update(deltaTime);
 	if (m_isDead) return;
 
-	// 2. 타겟 존재 여부에 따른 연산 분리
+	// 타겟 존재 여부에 따른 연산 분리
 	if (m_attackTarget && m_attackTarget->IsEnabled()) {
 		Transform* tTr = m_attackTarget->GetComponent<Transform>();
 		float dx = tTr->GetX() - transform->GetX();
@@ -146,6 +146,8 @@ int Monster::UpdateIdle(float deltaTime)
 {
 	if (m_attackTarget && m_attackTarget->IsEnabled())
 	{
+		LookAtPlayer();
+
 		if (m_distToPlayerSq > (m_attackRange * m_attackRange))
 		{
 			if (m_bCanChase)
@@ -245,7 +247,28 @@ int Monster::UpdateHit(float deltaTime)
 
 void Monster::OnDeathEnd()
 {
-	ObjectManager::GetInstance()->RemoveGameObject(this);
+	ObjectManager* objMgr = ObjectManager::GetInstance();
+	if (objMgr)
+	{
+		GameObjectID dropItemID = GetDropItemID();
+		int count = GetDropItemCount();
+
+		if (dropItemID != GOID_NONE && transform)
+		{
+			float tx = transform->GetX();
+			float ty = transform->GetY();
+
+			for (int i = 0; i < count; ++i)
+			{
+				float angle = (rand() / (float)RAND_MAX) * 6.28f;
+				float spreadRadius = 20.0f + (rand() / (float)RAND_MAX) * 30.0f;
+				float offsetX = cosf(angle) * spreadRadius;
+				float offsetY = sinf(angle) * spreadRadius;
+				objMgr->CreateItem(dropItemID, tx + offsetX, ty + offsetY);
+			}
+		}
+		objMgr->RemoveGameObject(this);
+	}
 }
 
 void Monster::ResolveWanderCenter(float& outX, float& outY) const
@@ -266,13 +289,7 @@ void Monster::MoveTowardPlayer(float deltaTime, float speed)
 	if (!transform || !m_animator) return;
 
 	// 실시간 방향 업데이트 (플레이어와의 상대적 위치 기준)
-	Direction newDir = DIR_DOWN;
-	if (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) {
-		newDir = (m_dirToPlayer.X > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-	}
-	else {
-		newDir = (m_dirToPlayer.Y > 0.0f) ? DIR_DOWN : DIR_UP;
-	}
+	Direction newDir = ResolveFacingDirection(m_dirToPlayer);
 
 	transform->SetDirection(newDir);
 	ChangeState(m_state);
@@ -301,13 +318,8 @@ void Monster::MoveTowardLocation(float deltaTime, float speed)
 	float wdist = sqrtf(wdistSq);
 
 	// 실시간 방향 업데이트 (목표 지점 기준)
-	Direction wDir = DIR_DOWN;
-	if (std::abs(wdx) > std::abs(wdy)) {
-		wDir = (wdx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-	}
-	else {
-		wDir = (wdy > 0.0f) ? DIR_DOWN : DIR_UP;
-	}
+	Direction wDir = ResolveFacingDirection({ wdx, wdy });
+
 	transform->SetDirection(wDir);
 	ChangeState(m_state);
 
@@ -324,4 +336,21 @@ void Monster::MoveTowardLocation(float deltaTime, float speed)
 
 	// 맵 경계 체크
 	ClampPositionToMapBounds();
+}
+
+void Monster::LookAtPlayer()
+{
+	if (!transform || !m_attackTarget || !m_attackTarget->IsEnabled()) return;
+
+	Direction newDir = ResolveFacingDirection(m_dirToPlayer);
+	transform->SetDirection(newDir);
+	UpdateAttackBoxByDirection(newDir);
+}
+
+Direction Monster::ResolveFacingDirection(const Gdiplus::PointF& dir)
+{
+	if (std::abs(dir.X) > std::abs(dir.Y)) {
+		return (dir.X >= 0.0f) ? DIR_RIGHT : DIR_LEFT;
+	}
+	return (dir.Y >= 0.0f) ? DIR_DOWN : DIR_UP;
 }

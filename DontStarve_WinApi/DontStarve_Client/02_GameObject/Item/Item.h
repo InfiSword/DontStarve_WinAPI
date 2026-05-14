@@ -11,7 +11,6 @@ protected:
     std::wstring m_itemName;
     std::wstring m_description;
     
-    // Entity에서 가져온 필수 컴포넌트들
     Transform* m_transform;
     SpriteRenderer* m_spriteRenderer;
 
@@ -34,7 +33,7 @@ public:
     const std::wstring& GetItemName() const { return m_itemName; }
     const std::wstring& GetDescription() const { return m_description; }
     
-    // Transform 접근자 (Entity와 동일한 인터페이스 유지)
+    // Transform 접근자 
     Transform* GetTransform() const { return m_transform; }
     SpriteRenderer* GetSpriteRenderer() const { return m_spriteRenderer; }
 };

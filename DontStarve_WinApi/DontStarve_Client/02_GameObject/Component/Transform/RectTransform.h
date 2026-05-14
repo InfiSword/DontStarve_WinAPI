@@ -9,7 +9,6 @@ protected:
 	float m_x, m_y;				// 화면 좌표
 	float m_width, m_height;	// 너비와 높이
 	float m_scaleX, m_scaleY;	// 스케일 (기본값 1.0f)
-	float m_rotation;           // 회전 (도 단위)
 	float m_anchorX, m_anchorY;	// 앵커 (0.0 ~ 1.0, 기본 0.0) - 호환성 유지용
 	
 	// Unity 스타일 앵커 시스템
@@ -26,8 +25,7 @@ public:
 	RectTransform(GameObject* owner, float x = 0.0f, float y = 0.0f,
 		float width = 100.0f, float height = 100.0f,
 		float scaleX = 1.0f, float scaleY = 1.0f,
-		float anchorX = 0.0f, float anchorY = 0.0f,
-		float rotation = 0.0f);
+		float anchorX = 0.0f, float anchorY = 0.0f);
 	virtual ~RectTransform();
 
 	// 위치 Getter/Setter
@@ -51,10 +49,6 @@ public:
 	void SetScaleY(float scaleY) { m_scaleY = scaleY; }
 	void SetScale(float scaleX, float scaleY) { m_scaleX = scaleX; m_scaleY = scaleY; }
 	void SetScale(float scale) { m_scaleX = scale; m_scaleY = scale; }
-
-	// 회전 Getter/Setter
-	float GetRotation() const { return m_rotation; }
-	void SetRotation(float rotation) { m_rotation = rotation; }
 
 	// 앵커 Getter/Setter
 	float GetAnchorX() const { return m_anchorX; }

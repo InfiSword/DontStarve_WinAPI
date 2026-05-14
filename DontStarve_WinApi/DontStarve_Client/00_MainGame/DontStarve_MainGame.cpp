@@ -156,16 +156,20 @@ void DontStarve_MainGame::Render()
     }
 
     // SceneManager 렌더링
+#ifdef _DEBUG
     if (g_bEnableOptimizationMode) {
+#endif
         // 최적화 모드: 커맨드 큐 기반 렌더
         RenderManager::GetInstance()->BeginFrame(CameraManager::GetInstance()->GetCameraPos());
         SceneManager::GetInstance()->Render();
+#ifdef _DEBUG
     }
     else {
         // 비최적화 모드: 즉시 렌더 경로 사용
         RenderManager::GetInstance()->Clear();
         SceneManager::GetInstance()->Render();
     }
+#endif
 
 #ifdef _DEBUG
     if (m_showPerfOverlay) {
@@ -173,10 +177,7 @@ void DontStarve_MainGame::Render()
     }
 #endif
 
-    // 커맨드 큐(및 fallback 큐)를 Flush로 소모한다.
     RenderManager::GetInstance()->Flush(pGraphics);
-
-    // 그래픽스 컨텍스트 렌더링
     GraphicsManager::GetInstance()->Render();
 }
 

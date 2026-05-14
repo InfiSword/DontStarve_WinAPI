@@ -12,7 +12,7 @@ DataManager::~DataManager()
 
 void DataManager::Init()
 {
-	// 오브젝트 리소스 등록 (Function.h의 정적 테이블에서 직접 가져와서 캐싱)
+	// 오브젝트 리소스 등록
 	for (size_t i = 0; i < DataTable::ObjectResourceCount; ++i) {
 		const auto& entry = DataTable::ObjectResourceTable[i];
 		ResourcePathUtils::ObjectResourceDef def;
@@ -22,7 +22,7 @@ void DataManager::Init()
 		RegisterObjectResource(entry.id, def);
 	}
 
-	// GameData/object_resource_overrides.txt 로드 후 id별 pivot/콜라이더 덮어쓰기 (Function.h 공통 파서 사용)
+	// GameData/object_resource_overrides.txt 로드 후 id별 pivot/콜라이더 덮어쓰기
 	ResourcePathUtils::ParseObjectResourceOverridesFile(L"GameData/object_resource_overrides.txt",
 		[this](GameObjectID id, const ResourcePathUtils::ObjectResourceDef& overrideDef) {
 			auto it = m_objectResources.find(id);
