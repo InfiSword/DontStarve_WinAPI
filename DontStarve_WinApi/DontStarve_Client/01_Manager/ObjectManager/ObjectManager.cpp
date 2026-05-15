@@ -1,5 +1,6 @@
 #include "99_Default/pch.h"
 #include "ObjectManager.h"
+#include "../../99_Default/ClientOptimatzationOption.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../DataManager/DataManager.h"
 #include "../CameraManager/CameraManager.h"
@@ -122,6 +123,11 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 	auto& targetList = (pObj->GetType() == GO_TYPE_UI) ? m_uiObjects : m_worldObjects;
 	targetList.push_back(pObj);
 
+	// 월드 객체인 경우 그리드에 추가
+	if (pObj->GetType() != GO_TYPE_UI) {
+		AddToGrid(pObj);
+	}
+
 	// 플레이어 캐싱
 	if (pObj->GetType() == GO_TYPE_PLAYER) {
 		m_cachedPlayer = static_cast<Player*>(pObj);
@@ -132,7 +138,7 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 {
 	if (!pObj) return;
 
-	// 현재 매니저가 소유 중인 객체가 아니면(씬 정리 중 이미 분리된 포인터 등) 무시
+	// 현재 매니저가 소유 중인 객체가 아니면 무시
 	if (!IsManagedObject(pObj)) return;
 
 	if (std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj) != m_pendingDeletions.end()) return;
@@ -140,6 +146,11 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 
 	pObj->SetDead(true);
 	pObj->SetActive(false);
+
+	// 그리드에서 즉시 제거
+	if (pObj->GetType() != GO_TYPE_UI) {
+		RemoveFromGrid(pObj);
+	}
 
 	m_pendingDeletions.push_back(pObj);
 }
@@ -154,6 +165,9 @@ void ObjectManager::UnregisterFromWorld(GameObject* pObj)
 
 		*it = m_worldObjects.back();
 		m_worldObjects.pop_back();
+
+		// 그리드에서 제거
+		RemoveFromGrid(pObj);
 
 		m_inactiveObjects.push_back(pObj);
 		pObj->SetActive(false);
@@ -171,6 +185,9 @@ void ObjectManager::RegisterToWorld(GameObject* pObj)
 
 		m_worldObjects.push_back(pObj);
 		pObj->SetActive(true);
+
+		// 그리드에 추가
+		AddToGrid(pObj);
 
 		if (pObj->GetType() == GO_TYPE_PLAYER) {
 			m_cachedPlayer = static_cast<Player*>(pObj);
@@ -199,34 +216,113 @@ void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<G
 	outObjects.clear();
 	if (m_worldObjects.empty()) return;
 
-	// 음수 폭/높이를 허용하는 입력을 정규화해서 교차 판정을 안정화한다.
-	const float rectRight = rect.X + rect.Width;
-	const float rectBottom = rect.Y + rect.Height;
-	const float normLeft = (std::min)(rect.X, rectRight);
-	const float normTop = (std::min)(rect.Y, rectBottom);
-	const float normRight = (std::max)(rect.X, rectRight);
-	const float normBottom = (std::max)(rect.Y, rectBottom);
-	if (normRight <= normLeft || normBottom <= normTop) return;
+#ifdef _DEBUG
+	if (!g_bEnableSpatialPartitioning) {
+		// [비최적화] 브루트포스 전수 조사
+		for (GameObject* obj : m_worldObjects) {
+			if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
 
-	const Gdiplus::RectF normalizedRect(normLeft, normTop, normRight - normLeft, normBottom - normTop);
-
-	const float aMinX = normalizedRect.X;
-	const float aMinY = normalizedRect.Y;
-	const float aMaxX = normalizedRect.X + normalizedRect.Width;
-	const float aMaxY = normalizedRect.Y + normalizedRect.Height;
-
-	for (GameObject* obj : m_worldObjects) {
-		if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
-
-		const Gdiplus::RectF bounds = obj->GetBounds();
-		const float bMinX = bounds.X;
-		const float bMinY = bounds.Y;
-		const float bMaxX = bounds.X + bounds.Width;
-		const float bMaxY = bounds.Y + bounds.Height;
-
-		if ((aMinX < bMaxX) && (aMaxX > bMinX) && (aMinY < bMaxY) && (aMaxY > bMinY)) {
-			outObjects.push_back(obj);
+			const Gdiplus::RectF bounds = obj->GetBounds();
+			if (rect.X < bounds.X + bounds.Width && rect.X + rect.Width > bounds.X &&
+				rect.Y < bounds.Y + bounds.Height && rect.Y + rect.Height > bounds.Y) {
+				outObjects.push_back(obj);
+			}
 		}
+		return;
+	}
+#endif
+
+	// 그리드 기반 쿼리 수행
+	int startX = (int)floor(rect.X / GRID_CELL_SIZE);
+	int startY = (int)floor(rect.Y / GRID_CELL_SIZE);
+	int endX = (int)ceil((rect.X + rect.Width) / GRID_CELL_SIZE) - 1;
+	int endY = (int)ceil((rect.Y + rect.Height) / GRID_CELL_SIZE) - 1;
+
+	// 인덱스 범위 클램핑
+	startX = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, startX));
+	startY = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, startY));
+	endX = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, endX));
+	endY = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, endY));
+
+	// 중복 방지용 스탬프 갱신 (오버플로우 시 리셋)
+	if (++m_spatialQueryStamp == 0) m_spatialQueryStamp = 1;
+
+	for (int y = startY; y <= endY; ++y) {
+		for (int x = startX; x <= endX; ++x) {
+			for (auto* obj : m_spatialGrid[x][y]) {
+				// 이미 확인한 객체는 건너뜀
+				if (obj->GetLastSpatialQueryStamp() == m_spatialQueryStamp) continue;
+				obj->SetLastSpatialQueryStamp(m_spatialQueryStamp);
+
+				if (!obj->IsEnabled() || obj->IsDead()) continue;
+
+				// 최종 AABB 검사
+				const Gdiplus::RectF bounds = obj->GetBounds();
+				if (rect.X < bounds.X + bounds.Width && rect.X + rect.Width > bounds.X &&
+					rect.Y < bounds.Y + bounds.Height && rect.Y + rect.Height > bounds.Y) {
+					outObjects.push_back(obj);
+				}
+			}
+		}
+	}
+}
+
+void ObjectManager::UpdateObjectGridCell(GameObject* pObj)
+{
+	if (!pObj || pObj->GetType() == GO_TYPE_UI) return;
+
+	// 기존 위치 저장
+	int oldX = pObj->GetGridCellX();
+	int oldY = pObj->GetGridCellY();
+
+	// 새 위치 계산 (중심점 기준)
+	Gdiplus::RectF bounds = pObj->GetBounds();
+	int newX = (int)floor((bounds.X + bounds.Width * 0.5f) / GRID_CELL_SIZE);
+	int newY = (int)floor((bounds.Y + bounds.Height * 0.5f) / GRID_CELL_SIZE);
+
+	// 인덱스 범위 제한
+	newX = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, newX));
+	newY = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, newY));
+
+	// 셀이 변경된 경우만 갱신
+	if (oldX == newX && oldY == newY) return;
+
+	// 이전 셀에서 제거
+	if (oldX >= 0 && oldX < GRID_WIDTH && oldY >= 0 && oldY < GRID_HEIGHT) {
+		std::vector<GameObject*>& cell = m_spatialGrid[oldX][oldY];
+		cell.erase(std::remove(cell.begin(), cell.end(), pObj), cell.end());
+	}
+
+	// 새 셀에 추가
+	m_spatialGrid[newX][newY].push_back(pObj);
+	pObj->SetGridCell(newX, newY);
+}
+
+void ObjectManager::AddToGrid(GameObject* pObj)
+{
+	if (!pObj || pObj->GetType() == GO_TYPE_UI) return;
+
+	Gdiplus::RectF bounds = pObj->GetBounds();
+	int x = (int)floor((bounds.X + bounds.Width * 0.5f) / GRID_CELL_SIZE);
+	int y = (int)floor((bounds.Y + bounds.Height * 0.5f) / GRID_CELL_SIZE);
+
+	x = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, x));
+	y = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, y));
+
+	m_spatialGrid[x][y].push_back(pObj);
+	pObj->SetGridCell(x, y);
+}
+
+void ObjectManager::RemoveFromGrid(GameObject* pObj)
+{
+	if (!pObj) return;
+	int x = pObj->GetGridCellX();
+	int y = pObj->GetGridCellY();
+
+	if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+		std::vector<GameObject*>& cell = m_spatialGrid[x][y];
+		cell.erase(std::remove(cell.begin(), cell.end(), pObj), cell.end());
+		pObj->SetGridCell(-1, -1);
 	}
 }
 
@@ -298,6 +394,13 @@ void ObjectManager::ClearAllObjects()
 	m_inactiveObjects.shrink_to_fit();
 	m_pendingDeletions.clear();
 	m_pendingDeletions.shrink_to_fit();
+
+	for (int y = 0; y < GRID_HEIGHT; ++y) {
+		for (int x = 0; x < GRID_WIDTH; ++x) {
+			m_spatialGrid[x][y].clear();
+		}
+	}
+	m_spatialQueryStamp = 0;
 
 	for (GameObject* obj : allObjects) {
 		if (!obj) continue;

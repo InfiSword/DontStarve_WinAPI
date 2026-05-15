@@ -22,6 +22,7 @@ private:
   bool m_showPerfOverlay;
   bool m_prevF1Down;
   bool m_prevF2Down;
+  bool m_prevF3Down;
   std::wstring m_perfOverlayText;
 
   Gdiplus::Font* m_pPerfFont;

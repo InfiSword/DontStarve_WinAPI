@@ -26,6 +26,7 @@ DontStarve_MainGame::DontStarve_MainGame()
     , m_showPerfOverlay(false)
     , m_prevF1Down(false)
     , m_prevF2Down(false)
+    , m_prevF3Down(false)
     , m_pPerfFont(nullptr)
     , m_pPerfBrush(nullptr)
     , m_pPerfStringFormat(nullptr)
@@ -110,6 +111,13 @@ void DontStarve_MainGame::Update()
         ToggleOptimizationMode();
     }
     m_prevF2Down = isF2Down;
+
+    // F3: 공간 분할 토글
+    const bool isF3Down = InputManager::GetInstance()->IsKeyDown(VK_F3);
+    if (isF3Down && !m_prevF3Down) {
+        g_bEnableSpatialPartitioning = !g_bEnableSpatialPartitioning;
+    }
+    m_prevF3Down = isF3Down;
 
     if (m_showPerfOverlay) {
         UpdatePerformanceOverlayText();
@@ -247,6 +255,7 @@ void DontStarve_MainGame::UpdatePerformanceOverlayText()
     stream << L"[성능 디버그 - F1]\n";
     stream << L"===================================\n";
     stream << L"모드: " << (g_bEnableOptimizationMode ? L"최적화 ON" : L"비최적화") << L" [F2]\n";
+    stream << L"공간 분할: " << (g_bEnableSpatialPartitioning ? L"ON" : L"OFF") << L" [F3]\n";
     stream << L"===================================\n";
     stream << L"FPS(현재) : " << currentFps << L"\n";
     stream << L"FPS(목표) : ";

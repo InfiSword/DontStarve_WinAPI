@@ -76,153 +76,30 @@ void CameraManager::FollowTarget()
 	}
 }
 
-bool CameraManager::IsObjectInViewport(GameObject* obj) const {
-
-	if (!obj || !obj->IsEnabled()) return false;
-
-	Gdiplus::RectF viewportRect = GetViewportWorldRect();
-	const float M = -16.f;
-
-	Gdiplus::RectF bounds = obj->GetBounds();
-	const bool overlapsObjectBounds =
-		bounds.X < viewportRect.X + viewportRect.Width + M && bounds.X + bounds.Width > viewportRect.X - M &&
-		bounds.Y < viewportRect.Y + viewportRect.Height + M && bounds.Y + bounds.Height > viewportRect.Y - M;
-	if (!overlapsObjectBounds) {
-		return false;
-	}
-
-	// 2차 정밀 컷: 스프라이트가 있는 경우 실제 렌더 bounds 기준으로 한 번 더 판정.
-	Transform* transform = obj->GetComponent<Transform>();
-	if (!transform) {
-		return true;
-	}
-
-	std::shared_ptr<Sprite> sprite;
-	if (SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>()) {
-		sprite = spriteRenderer->GetSpriteHandle();
-	}
-	if (!sprite) {
-		if (Animator* animator = obj->GetComponent<Animator>()) {
-			sprite = animator->GetCurrentFrame().sprite;
-		}
-	}
-
-	if (!sprite || !sprite->bitmap) {
-		return true;
-	}
-
-	const float width = fabsf(sprite->sourceRect.Width * transform->GetScaleX());
-	const float height = fabsf(sprite->sourceRect.Height * transform->GetScaleY());
-	if (width <= 0.0f || height <= 0.0f) {
-		return false;
-	}
-
-	const float worldX = transform->GetX();
-	const float worldY = transform->GetY();
-	Gdiplus::RectF renderBounds(
-		worldX - width * sprite->pivot.X,
-		worldY - height * sprite->pivot.Y,
-		width,
-		height);
-
-	return renderBounds.X < viewportRect.X + viewportRect.Width + M && renderBounds.X + renderBounds.Width > viewportRect.X - M &&
-		renderBounds.Y < viewportRect.Y + viewportRect.Height + M && renderBounds.Y + renderBounds.Height > viewportRect.Y - M;
-}
-
-GameObject* CameraManager::FindInteractableObjectAtPosition(float x, float y) {
-	GameObject* best = nullptr; float maxY = -1e9f;
-
-	// 마우스 위치 주변의 객체들만 쿼리 (그리드 최적화 활용)
-	float range = 100.0f;
-	Gdiplus::RectF queryRect(x - range, y - range, range * 2, range * 2);
-
-#ifdef _DEBUG
-	if (g_bEnableBufferReuse) {
-#endif
-		m_queryBuffer.clear();
-		ObjectManager::GetInstance()->QueryObjectsInRect(queryRect, m_queryBuffer);
-
-		for (auto* obj : m_queryBuffer) {
-			if (!obj->CanInteract() || !obj->IsEnabled()) continue;
-
-			Collider* mainCol = obj->GetMainCollider();
-			if (mainCol && mainCol->IsEnabled() && mainCol->ContainsPoint(x, y)) {
-				float curY = obj->GetComponent<Transform>()->GetY();
-				if (!best || curY > maxY) { best = obj; maxY = curY; }
-			}
-		}
-#ifdef _DEBUG
-	}
-	else {
-		std::vector<GameObject*> queryBuffer;
-		ObjectManager::GetInstance()->QueryObjectsInRect(queryRect, queryBuffer);
-
-		for (auto* obj : queryBuffer) {
-			if (!obj->CanInteract() || !obj->IsEnabled()) continue;
-
-			Collider* mainCol = obj->GetMainCollider();
-			if (mainCol && mainCol->IsEnabled() && mainCol->ContainsPoint(x, y)) {
-				float curY = obj->GetComponent<Transform>()->GetY();
-				if (!best || curY > maxY) { best = obj; maxY = curY; }
-			}
-		}
-	}
-#endif
-
-	return best;
-}
-
-void CameraManager::FindObjectsIntersectingCollider(Collider* pCol, std::vector<GameObject*>& interactObjects, bool onlyInteraction)
+void CameraManager::QueryObjectsInArea(const Gdiplus::RectF& area, std::vector<GameObject*>& outObjects, bool onlyInteraction)
 {
-	interactObjects.clear();
+	outObjects.clear();
 
-	if (!pCol) return;
+	ObjectManager* objectManager = ObjectManager::GetInstance();
+	if (!objectManager) return;
 
-	GameObject* owner = pCol->GetOwner();
-	Gdiplus::RectF bounds = pCol->GetWorldRect();
-
+	std::vector<GameObject*> localQueryBuffer;
 #ifdef _DEBUG
-	if (g_bEnableBufferReuse)
-	{
+	std::vector<GameObject*>& queryBuffer = g_bEnableBufferReuse ? m_queryBuffer : localQueryBuffer;
+#else
+	std::vector<GameObject*>& queryBuffer = m_queryBuffer;
 #endif
-		m_queryBuffer.clear();
-		ObjectManager::GetInstance()->QueryObjectsInRect(bounds, m_queryBuffer);
 
-		for (auto* obj : m_queryBuffer) {
-			if (!obj->IsEnabled() || obj == owner) continue;
+	queryBuffer.clear();
+	objectManager->QueryObjectsInRect(area, queryBuffer);
 
-			Collider* mainCol = obj->GetMainCollider();
-			if (!mainCol || !mainCol->IsEnabled()) continue;
+	for (auto* obj : queryBuffer) {
+		if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
 
-			if (!onlyInteraction || mainCol->IsInteractionCollider())
-			{
-				if (ColliderManager::GetInstance()->Intersects(pCol, mainCol)) {
-					interactObjects.push_back(obj);
-				}
-			}
+		if (onlyInteraction && !obj->CanInteract()) continue;
 
-		}
-#ifdef _DEBUG
+		outObjects.push_back(obj);
 	}
-	else {
-		// 비최적화 모드: 임시 버퍼 사용
-		std::vector<GameObject*> queryBuffer;
-		ObjectManager::GetInstance()->QueryObjectsInRect(bounds, queryBuffer);
-
-		for (auto* obj : queryBuffer) {
-			if (!obj->IsEnabled() || obj == owner) continue;
-
-			Collider* mainCol = obj->GetMainCollider();
-			if (mainCol && mainCol->IsEnabled()) {
-				if (!onlyInteraction || mainCol->IsInteractionCollider()) {
-					if (ColliderManager::GetInstance()->Intersects(pCol, mainCol)) {
-						interactObjects.push_back(obj);
-					}
-				}
-			}
-		}
-	}
-#endif
 }
 
 void CameraManager::RenderVisibleTiles(const MapData* mapData) {
@@ -359,16 +236,9 @@ void CameraManager::RenderVisibleGameObjects() {
 #endif
 
 		visibleBuffer.clear();
-		for (GameObject* obj : worldObjects) {
-			if (!obj || !obj->IsEnabled() || obj->IsDead()) {
-				continue;
-			}
-			if (!IsObjectInViewport(obj)) {
-				continue;
-			}
-
-			visibleBuffer.push_back(obj);
-		}
+		
+		// [최적화] 전체 순회 대신 그리드 쿼리 사용
+		objectManager->QueryObjectsInRect(GetViewportWorldRect(), visibleBuffer);
 
 #ifdef _DEBUG
 		const auto cullEnd = std::chrono::high_resolution_clock::now();

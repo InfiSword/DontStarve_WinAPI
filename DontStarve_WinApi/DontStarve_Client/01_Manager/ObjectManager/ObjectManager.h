@@ -88,6 +88,11 @@ public:
 	// 데이터 기반 초기화 헬퍼 (콜라이더 등 설정)
 	void ApplyObjectData(GameObject* pObj, const ResourcePathUtils::ObjectResourceDef* data);
 
+	// 공간 분할 관련
+	void UpdateObjectGridCell(GameObject* pObj);
+	void AddToGrid(GameObject* pObj);
+	void RemoveFromGrid(GameObject* pObj);
+
 	// UI 생성 헬퍼
 	UIButton* CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, std::function<void()> onClick);
 	UIImage*  CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y);
@@ -100,6 +105,14 @@ public:
 
 private:
 	bool IsManagedObject(const GameObject* pObj) const;
+
+	// 공간 분할 설정
+	static constexpr int GRID_CELL_SIZE = 256;
+	static constexpr int GRID_WIDTH = (MAP_WIDTH * TILE_SIZE / GRID_CELL_SIZE) + 2;
+	static constexpr int GRID_HEIGHT = (MAP_HEIGHT * TILE_SIZE / GRID_CELL_SIZE) + 2;
+
+	std::vector<GameObject*> m_spatialGrid[GRID_WIDTH][GRID_HEIGHT];
+	uint32_t m_spatialQueryStamp = 1;
 
 	std::vector<GameObject*> m_worldObjects;
 	std::vector<GameObject*> m_uiObjects;

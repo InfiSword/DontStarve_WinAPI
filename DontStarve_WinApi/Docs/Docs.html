@@ -332,6 +332,7 @@
 
         <div class="nav-group">
             <p class="nav-group-title">🚀 발전</p>
+            <a href="#dirtyflag" class="nav-item" onclick="showSection('dirtyflag')"><i class="fas fa-flag"></i> <span>더티 플래그</span></a>
             <a href="#caching" class="nav-item" onclick="showSection('caching')"><i class="fas fa-floppy-disk"></i> <span>캐싱 전략</span></a>
             <a href="#roadmap" class="nav-item" onclick="showSection('roadmap')"><i class="fas fa-map"></i> <span>로드맵</span></a>
             <a href="#guide" class="nav-item" onclick="showSection('guide')"><i class="fas fa-book"></i> <span>문서 가이드</span></a>
@@ -463,19 +464,19 @@
                         <td><code>GetCurrentFPS()</code>, <code>GetFPS()</code></td>
                     </tr>
                     <tr>
-                        <td>CullVisibleGameObjects</td>
+                        <td>가시성 쿼리 및 렌더링</td>
                         <td><code>CameraManager</code></td>
-                        <td><code>RenderVisibleGameObjects()</code>, <code>GetAvgCullVisibleGameObjectsMs()</code></td>
+                        <td><code>RenderVisibleGameObjects()</code></td>
                     </tr>
                     <tr>
-                        <td>RenderVisibleGameObjects</td>
+                        <td>영역 쿼리</td>
                         <td><code>CameraManager</code></td>
-                        <td><code>RenderVisibleGameObjects()</code>, <code>GetAvgRenderVisibleGameObjectsMs()</code></td>
+                        <td><code>QueryObjectsInArea()</code></td>
                     </tr>
                     <tr>
-                        <td>RenderVisibleTiles</td>
+                        <td>타일 렌더링</td>
                         <td><code>CameraManager</code></td>
-                        <td><code>RenderVisibleTiles()</code>, <code>GetAvgRenderVisibleTilesMs()</code></td>
+                        <td><code>RenderVisibleTiles()</code></td>
                     </tr>
                 </tbody>
             </table>
@@ -798,7 +799,56 @@
             <p style="color: var(--text-dim); margin-top: 1rem;"><strong>효과:</strong> 할당 1회 + clear 30회 = 1,000 cycle/초 (6배 감소!)</p>
         </section>
 
-        <!-- Section 7: Caching -->
+        <!-- Section 7: Dirty Flag Architecture -->
+        <section id="dirtyflag">
+            <h1>🚩 더티 플래그(Dirty Flag) 아키텍처</h1>
+            <div class="intro-text">
+                성능 최적화와 시스템 무결성(Grid Desync 방지)을 위해 <strong>캐싱용 플래그</strong>와 <strong>동기화용 플래그</strong>를 분리하여 사용하는 아키텍처입니다.
+            </div>
+
+            <h2>⚠️ 단일 플래그의 문제점 (Grid Desync 버그)</h2>
+            <div class="algorithm-box">
+                <h4>현상: 플레이어와 인벤토리가 갑자기 화면에서 증발함</h4>
+                <p>과거에는 <code>m_isBoundsDirty</code> 하나로 바운딩 박스 갱신과 그리드 갱신을 모두 처리했습니다. 이로 인해 다음과 같은 치명적 오류가 발생했습니다.</p>
+                <pre><code class="language-cpp">// 1. 플레이어 이동 -> m_isBoundsDirty = true
+// 2. [충돌 체크 등] 누군가 GetBounds() 호출 -> 캐시 갱신 후 m_isBoundsDirty = false 로 꺼짐!
+// 3. LateUpdate 도달 -> "어? 플래그 꺼져있네. 안 움직였구나?" -> 그리드 갱신 스킵
+// 4. 결과: 실제 위치와 그리드 지도 상의 위치가 어긋남 (Grid Desync)
+// 5. 카메라가 그리드를 탐색할 때 예전 위치에 갇힌 플레이어를 찾지 못해 렌더링 누락 발생</code></pre>
+            </div>
+
+            <h2>✅ 분리된 플래그 시스템 (현재 아키텍처)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>플래그</th>
+                        <th>역할 및 목적</th>
+                        <th>리셋 시점</th>
+                        <th>성능 최적화 기여</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>m_isBoundsDirty</code></td>
+                        <td>AABB 연산 캐싱 (데이터 최적화)</td>
+                        <td><code>GetBounds()</code>가 호출되어 연산이 수행된 직후</td>
+                        <td>매 프레임 수만 번 일어나는 복잡한 행렬/크기 연산을 이동 직후 1회로 제한</td>
+                    </tr>
+                    <tr>
+                        <td><code>m_isGridDirty</code></td>
+                        <td>공간 분할 그리드 동기화 (시스템 무결성)</td>
+                        <td>오직 <code>LateUpdate</code>에서 그리드 갱신이 완료된 직후</td>
+                        <td>무거운 <code>std::vector</code> 메모리 조작을 실제로 이동한 동적 객체에만 제한 (정적 객체 연산 0)</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p style="margin-top: 1.5rem; padding: 1rem; background: rgba(74, 222, 128, 0.1); border-left: 4px solid var(--accent-green);">
+                <strong>결과:</strong> 프레임 도중 어떤 시스템이 객체의 상태를 물어보더라도, 그리드 갱신 플래그(<code>m_isGridDirty</code>)는 독립적으로 유지되므로 <strong>렌더링 누락(증발) 버그가 원천 차단</strong>됩니다.
+            </p>
+        </section>
+
+        <!-- Section 8: Caching -->
         <section id="caching">
             <h1>🗂️ 캐싱 전략</h1>
             <div class="intro-text">
@@ -893,7 +943,7 @@ for (auto* obj : visibleObjects) {
         <!-- Section 9: Documentation Guide -->
         <section id="guide">
             <h1>📚 전체 문서 가이드</h1>
-            <p>프로젝트에는 5개의 상세 마크다운 문서가 포함되어 있습니다.</p>
+            <p>프로젝트에는 6개의 상세 마크다운 문서가 포함되어 있습니다.</p>
 
             <h2>📄 문서 목록</h2>
             <table>
@@ -909,6 +959,11 @@ for (auto* obj : visibleObjects) {
                         <td><strong>Performance_Optimization.md</strong></td>
                         <td>모든 개발자</td>
                         <td>성능 최적화의 전체 개요 (먼저 읽기!)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dirty_Flag_Architecture_Guide.md</strong></td>
+                        <td>클라이언트 개발자</td>
+                        <td>그리드 캐싱 버그 방지를 위한 더티 플래그 이원화 설계 안내</td>
                     </tr>
                     <tr>
                         <td><strong>Spatial_Partitioning_Detailed.md</strong></td>
@@ -935,12 +990,11 @@ for (auto* obj : visibleObjects) {
 
             <h2>🧩 신규 문서 핵심 요약</h2>
             <div style="background: rgba(56, 189, 248, 0.05); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color);">
-                <p style="margin-top: 0;"><strong>Optimization_Flag_Code_Mapping_Detailed.md</strong>는 "플래그 토글(F2) → 매니저 분기 → 오버레이 지표(F1)"의 연결을 코드 기준으로 추적합니다.</p>
+                <p style="margin-top: 0;"><strong>Dirty_Flag_Architecture_Guide.md</strong>는 객체의 Bounds와 Grid의 동기화 불일치로 발생하던 "증발 현상"의 해결 구조를 설명합니다.</p>
                 <ul class="feature-list" style="margin-bottom: 0;">
-                    <li>플래그 선언/토글 코드와 실제 분기 위치를 1:1 매핑</li>
-                    <li>오버레이 항목별 수집 함수와 측정 지표 출처를 표로 정리</li>
-                    <li>ObjectManager / CameraManager / RenderManager / SceneManager 흐름을 통합 설명</li>
-                    <li>회귀 확인용 테스트 체크리스트 포함</li>
+                    <li>AABB 연산 캐싱 (<code>m_isBoundsDirty</code>)</li>
+                    <li>공간 분할 동기화 (<code>m_isGridDirty</code>)</li>
+                    <li>이 두 목적을 명확히 분리함으로써 성능 최적화와 안정성(버그 방지)을 모두 잡는 아키텍처</li>
                 </ul>
             </div>
 
@@ -950,15 +1004,15 @@ for (auto* obj : visibleObjects) {
                 <ol>
                     <li>이 HTML 페이지 읽기</li>
                     <li>Performance_Optimization.md 읽기</li>
-                    <li>소스 코드 직접 확인</li>
+                    <li>Dirty_Flag_Architecture_Guide.md 읽기</li>
                 </ol>
 
                 <h4 style="margin-top: 2rem;">체계적 학습 (8시간)</h4>
                 <ol>
                     <li>Performance_Documentation_Guide.md (개요)</li>
                     <li>Performance_Optimization.md (핵심)</li>
+                    <li>Dirty_Flag_Architecture_Guide.md (더티 플래그)</li>
                     <li>Optimization_Flag_Code_Mapping_Detailed.md (코드 매핑)</li>
-                    <li>소스 코드 (ObjectManager, CameraManager, RenderManager)</li>
                     <li>Spatial_Partitioning_Detailed.md (심화)</li>
                     <li>Query_and_Rendering_Optimization.md (최적화)</li>
                 </ol>
@@ -967,19 +1021,19 @@ for (auto* obj : visibleObjects) {
             <h2>📊 문서 통계</h2>
             <div class="stats-box">
                 <div class="stat-item">
-                    <div class="stat-value">5</div>
+                    <div class="stat-value">6</div>
                     <div class="stat-label">문서 수</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">3,000+</div>
+                    <div class="stat-value">3,200+</div>
                     <div class="stat-label">총 줄 수</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">115+</div>
+                    <div class="stat-value">120+</div>
                     <div class="stat-label">코드 예제</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">25+</div>
+                    <div class="stat-value">26+</div>
                     <div class="stat-label">분석 테이블</div>
                 </div>
             </div>

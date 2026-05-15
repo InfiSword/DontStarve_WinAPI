@@ -479,7 +479,25 @@ void Player::TryStartInteraction(float worldX, float worldY)
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (!cameraManager) return;
 
-	GameObject* target = cameraManager->FindInteractableObjectAtPosition(worldX, worldY);
+	// 마우스 위치 주변의 객체들만 쿼리 (통합된 QueryObjectsInArea 사용)
+	std::vector<GameObject*> queryResults;
+	float range = 100.0f;
+	Gdiplus::RectF queryRect(worldX - range, worldY - range, range * 2, range * 2);
+	cameraManager->QueryObjectsInArea(queryRect, queryResults, true);
+
+	GameObject* target = nullptr;
+	float maxY = -1e9f;
+
+	for (auto* obj : queryResults) {
+		Collider* mainCol = obj->GetMainCollider();
+		if (mainCol && mainCol->IsEnabled() && mainCol->ContainsPoint(worldX, worldY)) {
+			float curY = obj->GetComponent<Transform>()->GetY();
+			if (!target || curY > maxY) {
+				target = obj;
+				maxY = curY;
+			}
+		}
+	}
 
 	// CHOP/MINE/PICKUP 진행 중인 경우
 	if (m_state == PlayerState::CHOP || m_state == PlayerState::MINE || m_state == PlayerState::PICKUP) {

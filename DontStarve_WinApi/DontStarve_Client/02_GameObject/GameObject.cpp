@@ -28,9 +28,9 @@ void GameObject::Init() {
 		}
 	}
 	// 초기 위치에 따른 그리드 셀 설정
-	// if (m_type != GO_TYPE_UI) {
-	// 	ObjectManager::GetInstance()->UpdateObjectGridCell(this);
-	// }
+	if (m_type != GO_TYPE_UI) {
+		ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+	}
 }
 
 void GameObject::LateInit() {
@@ -53,9 +53,19 @@ void GameObject::Update(float deltaTime) {
 
 void GameObject::LateUpdate() {
 
-	// 위치/크기 변경이 있었다면 바운딩 박스와 그리드 셀 갱신 (LateUpdate 최상단)
+	// 위치/크기 변경이 있었다면 바운딩 박스 캐시 강제 갱신
 	if (m_isBoundsDirty) {
 		GetBounds();
+	}
+
+	// 공간 분할 그리드 셀 갱신은 별도의 플래그(m_isGridDirty)로 관리.
+	// 쿼리 도중 GetBounds()가 호출되어 m_isBoundsDirty가 먼저 리셋되더라도 
+	// LateUpdate에서 그리드 동기화가 누락되지 않도록 보장함.
+	if (m_isGridDirty) {
+		if (m_type != GO_TYPE_UI) {
+			ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+		}
+		m_isGridDirty = false;
 	}
 
 	for (auto& component : m_components) {

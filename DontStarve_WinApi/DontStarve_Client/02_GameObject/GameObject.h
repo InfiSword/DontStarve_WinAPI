@@ -35,6 +35,7 @@ protected:
 	// 캐싱된 바운딩 박스 
 	Gdiplus::RectF m_cachedBounds = { 0, 0, 0, 0 };
 	bool m_isBoundsDirty = true;
+	bool m_isGridDirty = true; // 공간 분할 그리드 갱신용 플래그
 
 	// 공간 분할용 그리드 좌표
 	int m_gridCellX = -1;
@@ -94,7 +95,8 @@ public:
 
 	// 바운딩 박스 관련
 	virtual Gdiplus::RectF GetBounds();
-	void SetBoundsDirty() { m_isBoundsDirty = true; }
+	void SetBoundsDirty() { m_isBoundsDirty = true; m_isGridDirty = true; }
+	void SetGridDirty() { m_isGridDirty = true; }
 
 	static bool g_bRenderDebugOverlay;
 

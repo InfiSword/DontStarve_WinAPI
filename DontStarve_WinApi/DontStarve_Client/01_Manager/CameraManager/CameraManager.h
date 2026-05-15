@@ -30,8 +30,8 @@ public:
 	void FollowTarget();
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 	
-	GameObject* FindInteractableObjectAtPosition(float worldX, float worldY);
-	void FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects, bool onlyInteraction = false);
+	// 통합된 영역 쿼리 함수
+	void QueryObjectsInArea(const Gdiplus::RectF& area, std::vector<GameObject*>& outObjects, bool onlyInteraction = true);
 
 	void RenderVisibleTiles(const MapData* mapData);
 	void RenderVisibleGameObjects();
@@ -88,7 +88,6 @@ private:
 	bool m_followMode = true;
 	bool m_hasWalkableBounds = false;
 
-	bool IsObjectInViewport(GameObject* obj) const;
 	void LoadTileBitmap(const ResourcePathUtils::TileResourceDef& tileData, TileCacheData& cacheData);
 	void CleanupUnusedTileCache(const MapData* mapData, int startX, int endX, int startY, int endY);
 };

@@ -219,10 +219,15 @@ static LRESULT CALLBACK MapSizeDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 		p = (MapSizeDlgParam*)cs->lpCreateParams;
 		SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)p);
 		HINSTANCE hInst = (HINSTANCE)GetWindowLongPtrW(hWnd, GWLP_HINSTANCE);
-		CreateWindowW(L"Static", L"Width (1-50):", WS_CHILD | WS_VISIBLE, 10, 12, 72, 18, hWnd, nullptr, hInst, nullptr);
-		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 88, 10, 50, 18, hWnd, (HMENU)(UINT_PTR)p->idWidth, hInst, nullptr);
-		CreateWindowW(L"Static", L"Height (1-50):", WS_CHILD | WS_VISIBLE, 10, 38, 72, 18, hWnd, nullptr, hInst, nullptr);
-		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 88, 36, 50, 18, hWnd, (HMENU)(UINT_PTR)p->idHeight, hInst, nullptr);
+
+		wchar_t labelW[32], labelH[32];
+		swprintf_s(labelW, L"Width (1-%d):", MAP_WIDTH);
+		swprintf_s(labelH, L"Height (1-%d):", MAP_HEIGHT);
+
+		CreateWindowW(L"Static", labelW, WS_CHILD | WS_VISIBLE, 10, 12, 80, 18, hWnd, nullptr, hInst, nullptr);
+		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 95, 10, 50, 18, hWnd, (HMENU)(UINT_PTR)p->idWidth, hInst, nullptr);
+		CreateWindowW(L"Static", labelH, WS_CHILD | WS_VISIBLE, 10, 38, 80, 18, hWnd, nullptr, hInst, nullptr);
+		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 95, 36, 50, 18, hWnd, (HMENU)(UINT_PTR)p->idHeight, hInst, nullptr);
 		CreateWindowW(L"Button", L"OK", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 45, 62, 50, 22, hWnd, (HMENU)IDOK, hInst, nullptr);
 		CreateWindowW(L"Button", L"Cancel", WS_CHILD | WS_VISIBLE, 105, 62, 50, 22, hWnd, (HMENU)IDCANCEL, hInst, nullptr);
 		WCHAR buf[16];

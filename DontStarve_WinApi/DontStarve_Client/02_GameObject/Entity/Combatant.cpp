@@ -1,6 +1,7 @@
 #include "99_Default/pch.h"
 #include "Combatant.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
+#include "../../01_Manager/ColliderManager/ColliderManager.h"
 #include "../Component/Transform/Transform.h"
 #include "../Component/Collider/BoxCollider.h"
 
@@ -190,7 +191,20 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 	if (!cameraManager) return false;
 
 	std::vector<GameObject*> hits;
-	cameraManager->FindObjectsIntersectingCollider(m_attackCollider, hits);
+	std::vector<GameObject*> queryResults;
+	Gdiplus::RectF attackRect = m_attackCollider->GetWorldRect();
+	cameraManager->QueryObjectsInArea(attackRect, queryResults, false);
+
+	for (auto* obj : queryResults) {
+		if (!obj->IsEnabled() || obj == this) continue;
+
+		Collider* otherCol = obj->GetMainCollider();
+		if (otherCol && otherCol->IsEnabled()) {
+			if (ColliderManager::GetInstance()->Intersects(m_attackCollider, otherCol)) {
+				hits.push_back(obj);
+			}
+		}
+	}
 
 	if (hits.empty()) return false;
 
@@ -215,7 +229,7 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 	for (GameObject* obj : hits) {
 		if (!canApplyDamageTo(obj)) continue;
 		obj->Damaged(damage);
-		return true; // 가장 가까운 대상만 데미지 입힘
+		return true;
 	}
 
 	return false;
