@@ -31,21 +31,17 @@ void Animator::RegisterAnimation(int state, Direction dir,
 	bool flipHorizontal)
 {
 	int key = GetAnimationKey(state, static_cast<int>(dir));
-
 	bool shouldFlip = flipHorizontal ? true : (dir == DIR_LEFT);
-
 	// ResourceManager를 통해 SpriteSheet 로드 (캐싱 지원)
 	std::shared_ptr<SpriteSheet> sheet = ResourceManager::GetInstance()->LoadSpriteSheet(
 		imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, shouldFlip, { pivotX, pivotY });
 	
-	if (!sheet) return;
-
-	// 이미 해당 key로 등록된 클립이 있으면 교체하지 않음 (중복 등록 방지 → 댕글링 원인 제거)
 	if (m_animations.find(key) != m_animations.end()) {
 		return;
 	}
 
-	auto clip = std::make_unique<AnimationClip>(L"", sheet, loop, shouldFlip, frameDuration);
+	std::unique_ptr<AnimationClip> clip = std::make_unique<AnimationClip>
+		(L"", sheet, loop, shouldFlip, frameDuration);
 	if (!clip) return;
 
 	m_animations[key] = std::move(clip);

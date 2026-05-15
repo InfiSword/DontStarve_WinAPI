@@ -252,9 +252,9 @@ void DontStarve_MainGame::UpdatePerformanceOverlayText()
 
     std::wostringstream stream;
     stream << std::fixed << std::setprecision(2);
-    stream << L"[성능 디버그 - F1]\n";
+    stream << L"[활성화 - F1]\n";
     stream << L"===================================\n";
-    stream << L"모드: " << (g_bEnableOptimizationMode ? L"최적화 ON" : L"비최적화") << L" [F2]\n";
+    stream << L"버퍼 모드: " << (g_bEnableOptimizationMode ? L"ON" : L"OFF") << L" [F2]\n";
     stream << L"공간 분할: " << (g_bEnableSpatialPartitioning ? L"ON" : L"OFF") << L" [F3]\n";
     stream << L"===================================\n";
     stream << L"FPS(현재) : " << currentFps << L"\n";

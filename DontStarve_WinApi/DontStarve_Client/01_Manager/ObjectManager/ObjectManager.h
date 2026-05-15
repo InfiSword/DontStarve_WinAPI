@@ -33,10 +33,6 @@ public:
 	void RemoveGameObject(GameObject* pObj);
 	void ClearAllObjects();
 	bool IsScreenPointBlockedByUI(float screenX, float screenY) const;
-
-	// 인벤토리 등 시스템 내부 관리용
-	void UnregisterFromWorld(GameObject* pObj);
-	void RegisterToWorld(GameObject* pObj);
 	
 	// 월드 오브젝트를 Rect 기준으로 1차 수집(최종 판정은 호출부 담당)
 	void QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects);
@@ -107,7 +103,7 @@ private:
 	bool IsManagedObject(const GameObject* pObj) const;
 
 	// 공간 분할 설정
-	static constexpr int GRID_CELL_SIZE = 256;
+	static constexpr int GRID_CELL_SIZE = 128;
 	static constexpr int GRID_WIDTH = (MAP_WIDTH * TILE_SIZE / GRID_CELL_SIZE) + 2;
 	static constexpr int GRID_HEIGHT = (MAP_HEIGHT * TILE_SIZE / GRID_CELL_SIZE) + 2;
 

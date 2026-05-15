@@ -155,46 +155,6 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 	m_pendingDeletions.push_back(pObj);
 }
 
-void ObjectManager::UnregisterFromWorld(GameObject* pObj)
-{
-	if (!pObj || pObj->GetType() == GO_TYPE_UI) return;
-
-	auto it = std::find(m_worldObjects.begin(), m_worldObjects.end(), pObj);
-	if (it != m_worldObjects.end()) {
-		if (pObj == m_cachedPlayer) m_cachedPlayer = nullptr;
-
-		*it = m_worldObjects.back();
-		m_worldObjects.pop_back();
-
-		// 그리드에서 제거
-		RemoveFromGrid(pObj);
-
-		m_inactiveObjects.push_back(pObj);
-		pObj->SetActive(false);
-	}
-}
-
-void ObjectManager::RegisterToWorld(GameObject* pObj)
-{
-	if (!pObj || pObj->GetType() == GO_TYPE_UI) return;
-
-	auto it = std::find(m_inactiveObjects.begin(), m_inactiveObjects.end(), pObj);
-	if (it != m_inactiveObjects.end()) {
-		*it = m_inactiveObjects.back();
-		m_inactiveObjects.pop_back();
-
-		m_worldObjects.push_back(pObj);
-		pObj->SetActive(true);
-
-		// 그리드에 추가
-		AddToGrid(pObj);
-
-		if (pObj->GetType() == GO_TYPE_PLAYER) {
-			m_cachedPlayer = static_cast<Player*>(pObj);
-		}
-	}
-}
-
 bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
 {
 	// 활성화된 UIElement의 RectTransform 바운딩 박스 검사

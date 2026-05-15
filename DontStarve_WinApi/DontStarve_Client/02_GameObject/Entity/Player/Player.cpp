@@ -76,7 +76,7 @@ void Player::Init()
 
 	std::wstring runSidePath = base + L"\\Run\\Wilson_Run_Side.png";
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_LEFT, runSidePath,
-		142, 226, 6, 33, objData->pivotX, objData->pivotY, true, 0.03f);
+		142, 226, 6, 33, objData->pivotX, objData->pivotY, true, 0.03f, true);
 	m_animator->RegisterAnimation((int)PlayerState::WALK, DIR_RIGHT, runSidePath,
 		141, 226, 6, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 
