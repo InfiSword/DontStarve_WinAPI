@@ -7,9 +7,9 @@
 #include "../../Component/Transform/Transform.h"
 #include "Rock.h"
 
-Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true, colliderType)
-	, m_rockState(RockState::INTACT)
+Rock::Rock(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+: Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType, true, true)
+, m_rockState(RockState::INTACT)
 {
 	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
 	if (id == GOID_NORMAL_ROCK) {
@@ -55,8 +55,8 @@ void Rock::Init()
 	m_spriteCracked = pRM->LoadSprite(path1, { objData->pivotX, objData->pivotY });
 	m_spriteBroken = pRM->LoadSprite(path2, { objData->pivotX, objData->pivotY });
 
-	if (spriteRenderer && m_spriteIntact)
-		spriteRenderer->SetSprite(m_spriteIntact);
+	if (m_spriteRenderer && m_spriteIntact)
+		m_spriteRenderer->SetSprite(m_spriteIntact);
 }
 
 void Rock::Release()
@@ -93,20 +93,20 @@ void Rock::Damaged(int damage)
 	else
 		m_rockState = RockState::INTACT;
 
-	if (spriteRenderer) {
+	if (m_spriteRenderer) {
 		if (m_rockState == RockState::INTACT && m_spriteIntact)
-			spriteRenderer->SetSprite(m_spriteIntact);
+			m_spriteRenderer->SetSprite(m_spriteIntact);
 		else if (m_rockState == RockState::CRACKED && m_spriteCracked)
-			spriteRenderer->SetSprite(m_spriteCracked);
+			m_spriteRenderer->SetSprite(m_spriteCracked);
 		else if (m_rockState == RockState::BROKEN && m_spriteBroken)
-			spriteRenderer->SetSprite(m_spriteBroken);
+			m_spriteRenderer->SetSprite(m_spriteBroken);
 	}
 }
 
 void Rock::Die()
 {
-	float tx = transform ? transform->GetX() : 0.0f;
-	float ty = transform ? transform->GetY() : 0.0f;
+	float tx = m_transform ? m_transform->GetX() : 0.0f;
+	float ty = m_transform ? m_transform->GetY() : 0.0f;
 
 	ObjectManager* objMgr = ObjectManager::GetInstance();
 	if (objMgr)
@@ -114,10 +114,10 @@ void Rock::Die()
 		GameObjectID dropItemID = GetDropItemID();
 		int count = GetDropItemCount();
 		
-		if (dropItemID != GOID_NONE && transform)
+		if (dropItemID != GOID_NONE && m_transform)
 		{
-			float tx = transform->GetX();
-			float ty = transform->GetY();
+			float tx = m_transform->GetX();
+			float ty = m_transform->GetY();
 			
 			for (int i = 0; i < count; ++i)
 			{
@@ -125,7 +125,7 @@ void Rock::Die()
 				float spreadRadius = 20.0f + (rand() / (float)RAND_MAX) * 30.0f;
 				float offsetX = cosf(angle) * spreadRadius;
 				float offsetY = sinf(angle) * spreadRadius;
-				objMgr->CreateItem(dropItemID, tx + offsetX, ty + offsetY);
+				objMgr->CreateObject(dropItemID, tx + offsetX, ty + offsetY);
 			}
 		}
 		objMgr->RemoveGameObject(this);

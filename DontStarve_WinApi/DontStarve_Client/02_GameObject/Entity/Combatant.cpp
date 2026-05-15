@@ -9,7 +9,7 @@ bool Combatant::s_bShowAttackGizmo = false;
 Combatant::Combatant(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 	const std::wstring& baseDir, const std::wstring& imageName,
 	bool isActive, bool isInteractive, ColliderType colliderType)
-	: Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, isActive, isInteractive, colliderType)
+	: Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType, isActive, isInteractive)
 	, m_damage(0)
 	, m_attackRange(0.0f)
 	, m_attackCooldown(0.0f)
@@ -114,7 +114,7 @@ void Combatant::RenderDebugOverlay()
 	// 공격 중이고 공격 콜라이더가 있을 때 표시
 	if (IsInAttackState() && m_attackCollider)
 	{
-		UpdateAttackBoxByDirection(transform->GetDirection());
+		UpdateAttackBoxByDirection(m_transform->GetDirection());
 		m_attackCollider->RenderGizmo();
 	}
 }
@@ -150,10 +150,10 @@ void Combatant::UpdateAttackBoxByDirection(Direction dir)
 
 void Combatant::ProcessAttackHit(int damage)
 {
-	if (!m_attackCollider || !transform) return;
+	if (!m_attackCollider || !m_transform) return;
 
 	// 현재 방향에 맞게 공격 박스 업데이트
-	UpdateAttackBoxByDirection(transform->GetDirection());
+	UpdateAttackBoxByDirection(m_transform->GetDirection());
 
 	// 콜라이더 활성화
 	m_attackCollider->SetColliderEnabled(true);
@@ -195,7 +195,7 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 	if (hits.empty()) return false;
 
 	// 나(공격자)와의 거리를 기준으로 정렬 (가장 가까운 적부터 처리)
-	Transform* myTr = transform;
+	Transform* myTr = m_transform;
 	if (!myTr) return false;
 
 	std::sort(hits.begin(), hits.end(), [myTr](GameObject* a, GameObject* b) {

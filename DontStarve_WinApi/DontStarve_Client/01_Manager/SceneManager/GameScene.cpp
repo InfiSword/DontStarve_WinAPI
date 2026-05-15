@@ -117,21 +117,15 @@ void GameScene::CreateGameObjectsFromMapData()
 	for (const ResourcePathUtils::ObjectResourceDef& objData : m_mapData->gameObjects)
 	{
 		GameObjectID id = objData.id;
-		if (id >= 1 && id < 200) {
-			objectManager->CreateEntity(id, objData.x, objData.y);
-		}
-		else if (id >= 200 && id < 300) {
-			objectManager->CreateBuilding(id, objData.x, objData.y);
-		}
-		else if (id >= 300 && id < 500) {
-			objectManager->CreateItem(id, objData.x, objData.y);
-		}
-		else if (id >= 3000) {
+		if (id >= 3000) {
 			if (id == GOID_UI_MENU && !m_craftingUI)
 			{
 				m_craftingUI = objectManager->CreateMenuUI();
+				continue;
 			}
 		}
+
+		objectManager->CreateObject(id, objData.x, objData.y);
 	}
 }
 
@@ -140,7 +134,7 @@ void GameScene::SpawnPlayer()
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!objectManager || !m_mapData) return;
 
-	objectManager->CreateEntity(m_selectedCharacterID, m_mapData->playerSpawn.x, m_mapData->playerSpawn.y);
+	objectManager->CreateObject(m_selectedCharacterID, m_mapData->playerSpawn.x, m_mapData->playerSpawn.y);
 	Player* cachedPlayer = objectManager->GetPlayer();
 
 	if (cachedPlayer)

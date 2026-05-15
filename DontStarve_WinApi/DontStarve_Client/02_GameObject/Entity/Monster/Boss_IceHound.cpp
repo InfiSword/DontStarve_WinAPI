@@ -65,12 +65,12 @@ void Boss_IceHound::Init()
 	m_bHasHowled = false;
 	m_hasHowlStarted = false;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 
 	if (m_animator) {
 		DataManager* pRM = DataManager::GetInstance();
@@ -182,7 +182,7 @@ bool Boss_IceHound::OnInteraction(GameObject* obj) { return Entity::OnInteractio
 
 void Boss_IceHound::UpdateAI(float deltaTime)
 {
-	if (!IsEnabled() || !transform || !m_animator) return;
+	if (!IsEnabled() || !m_transform || !m_animator) return;
 	m_projectileCooldownTimer = (std::max)(0.0f, m_projectileCooldownTimer - deltaTime);
 	if (m_retreatThenShootPending)
 		m_retreatBeforeShotTimer = (std::max)(0.0f, m_retreatBeforeShotTimer - deltaTime);
@@ -405,8 +405,8 @@ void Boss_IceHound::FireIceProjectile()
 	float dx, dy;
 	Transform* targetTr = m_attackTarget->GetComponent<Transform>();
 	if (targetTr) {
-		dx = targetTr->GetX() - transform->GetX();
-		dy = targetTr->GetY() - transform->GetY();
+		dx = targetTr->GetX() - m_transform->GetX();
+		dy = targetTr->GetY() - m_transform->GetY();
 	}
 
 
@@ -426,8 +426,8 @@ void Boss_IceHound::FireIceProjectile()
 	}
 
 	const float spawnOffset = 30.0f;
-	float x = transform->GetX();
-	float y = transform->GetY() - spawnOffset;
+	float x = m_transform->GetX();
+	float y = m_transform->GetY() - spawnOffset;
 
 	projectile->Fire(x, y, dx, dy, m_projectileDamage, m_projectileSpeed, m_projectileRange);
 }
@@ -448,13 +448,13 @@ bool Boss_IceHound::CanStartProjectileAttack() const
 
 void Boss_IceHound::MoveAwayFromPlayer(float deltaTime, float speed)
 {
-	if (!transform) return;
+	if (!m_transform) return;
 
 	// 플레이어 방향 반대로 이동
 	float moveX = -m_dirToPlayer.X;
 	float moveY = -m_dirToPlayer.Y;
 	float moveDist = speed * deltaTime;
-	transform->SetPosition(transform->GetX() + moveX * moveDist, transform->GetY() + moveY * moveDist);
+	m_transform->SetPosition(m_transform->GetX() + moveX * moveDist, m_transform->GetY() + moveY * moveDist);
 	ClampPositionToMapBounds();
 
 	// 바라보는 방향은 플레이어 쪽으로 유지(공격 애니메이션 연결 자연스럽게)

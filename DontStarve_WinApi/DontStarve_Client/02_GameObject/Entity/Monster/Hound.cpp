@@ -48,12 +48,12 @@ void Hound::Init()
 	m_bHasHowled = false;
 	m_hasHowlStarted = false;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 	if (m_animator) {
 		DataManager* pRM = DataManager::GetInstance();
 		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
@@ -163,7 +163,7 @@ void Hound::RenderDebugOverlay()
 
 void Hound::UpdateAI(float deltaTime)
 {
-	if (!IsEnabled() || !transform || !m_animator) return;
+	if (!IsEnabled() || !m_transform || !m_animator) return;
 
 	if (!m_isCombatEnabled)
 	{

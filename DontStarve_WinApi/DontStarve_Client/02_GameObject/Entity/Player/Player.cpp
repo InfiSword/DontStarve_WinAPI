@@ -18,8 +18,8 @@
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/GameProgressManager/GameProgressManager.h"
 
-Player::Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath, const std::wstring& imageName)
-	: Combatant(characterID, x, y, 0.5f, 1.0f, DIR_DOWN, L"", imageName, true, false),
+Player::Player(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath, const std::wstring& imageName, ColliderType colliderType)
+	: Combatant(id, x, y, pivotX, pivotY, dir, resourcePath, imageName, true, false, colliderType),
 	m_playerSpeed(330.f), m_stopThreshold(10),
 	m_equippedSlotIndex(-1), m_equippedItemID(GOID_NONE), m_inventory(nullptr),
 	m_pendingInteractionTarget(nullptr), m_activeInteractionTarget(nullptr),
@@ -42,7 +42,7 @@ void Player::Init()
 
 	// Animator 생성 후 애니메이션 등록
 	if (!m_animator) {
-		m_animator = AddComponent<Animator>(spriteRenderer);
+		m_animator = AddComponent<Animator>(m_spriteRenderer);
 	}
 
 	DataManager* pRM = DataManager::GetInstance();
@@ -103,7 +103,7 @@ void Player::Init()
 					if (m_activeInteractionTarget) {
 						Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 						if (targetT) {
-							transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+							m_transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
 							this->SetBoundsDirty();
 						}
 					}
@@ -139,7 +139,7 @@ void Player::Init()
 				{
 					Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 					if (targetT) {
-						transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+						m_transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
 						this->SetBoundsDirty();
 					}
 				}
@@ -172,7 +172,7 @@ void Player::Init()
 				{
 					Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 					if (targetT) {
-						transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
+						m_transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
 						this->SetBoundsDirty();
 					}
 				}
@@ -305,7 +305,7 @@ void Player::RestoreState(const PlayerStateSnapshot& snapshot)
 	if (m_inventory) {
 		m_inventory->ClearAllItems();
 		for (const auto& item : snapshot.inventoryItems) {
-			m_inventory->AddItemByID(item.first, item.second);
+			m_inventory->AddItem(item.first, item.second);
 		}
 	}
 
@@ -321,8 +321,8 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 	ChangeState((int)PlayerState::WALK);
 	isMoveToGoal = true;
 
-	float dx = worldX - transform->GetX();
-	float dy = worldY - transform->GetY();
+	float dx = worldX - m_transform->GetX();
+	float dy = worldY - m_transform->GetY();
 
 	Direction newDirection;
 	if (std::abs(dx) > std::abs(dy)) {
@@ -332,9 +332,9 @@ void Player::SetTargetPosition(float worldX, float worldY) {
 		newDirection = (dy > 0) ? DIR_DOWN : DIR_UP;
 	}
 
-	if (this->transform->GetDirection() != newDirection)
+	if (this->m_transform->GetDirection() != newDirection)
 	{
-		transform->SetDirection(newDirection);
+		m_transform->SetDirection(newDirection);
 	}
 }
 
@@ -372,23 +372,23 @@ void Player::Update(float deltaTime)
 
 	if (isMoveToGoal)
 	{
-		float dx = m_targetWorldPos.X - transform->GetX();
-		float dy = m_targetWorldPos.Y - transform->GetY();
+		float dx = m_targetWorldPos.X - m_transform->GetX();
+		float dy = m_targetWorldPos.Y - m_transform->GetY();
 		float distance = std::sqrt(dx * dx + dy * dy);
 
 		// 공격 대상으로 이동 중일 때: 사거리 내면 이동 중단 후 ATTACK
 		if (m_attackTarget && m_attackTarget->IsEnabled()) {
 			Transform* targetT = m_attackTarget->GetComponent<Transform>();
 			if (targetT) {
-				float ax = targetT->GetX() - transform->GetX();
-				float ay = targetT->GetY() - transform->GetY();
+				float ax = targetT->GetX() - m_transform->GetX();
+				float ay = targetT->GetY() - m_transform->GetY();
 				float distToTarget = std::sqrt(ax * ax + ay * ay);
 
 				// 공격 사거리 내에 들어오면 즉시 중단 (콜라이더 외곽선 충돌이 아닌 사거리 기준)
 				if (distToTarget <= m_attackRange) {
 					isMoveToGoal = false;
 					Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
-					transform->SetDirection(faceDir);
+					m_transform->SetDirection(faceDir);
 					ChangeState((int)PlayerState::ATTACK);
 					return;
 				}
@@ -409,7 +409,7 @@ void Player::Update(float deltaTime)
 
 		if (isArrived) {
 			// 땅 클릭 이동 시에만 최종 좌표를 클릭 지점으로 보정
-			if (!m_pendingInteractionTarget) transform->SetPosition(m_targetWorldPos.X, m_targetWorldPos.Y);
+			if (!m_pendingInteractionTarget) m_transform->SetPosition(m_targetWorldPos.X, m_targetWorldPos.Y);
 			ClampPositionToMapBounds();
 			isMoveToGoal = false;
 
@@ -420,13 +420,13 @@ void Player::Update(float deltaTime)
 			if (m_attackTarget && m_attackTarget->IsEnabled()) {
 				Transform* targetT = m_attackTarget->GetComponent<Transform>();
 				if (targetT) {
-					float ax = targetT->GetX() - transform->GetX();
-					float ay = targetT->GetY() - transform->GetY();
+					float ax = targetT->GetX() - m_transform->GetX();
+					float ay = targetT->GetY() - m_transform->GetY();
 					float distToTarget = std::sqrt(ax * ax + ay * ay);
 					if (distToTarget <= m_attackRange) {
 
 						Direction faceDir = (std::abs(ax) > std::abs(ay)) ? (ax > 0 ? DIR_RIGHT : DIR_LEFT) : (ay > 0 ? DIR_DOWN : DIR_UP);
-						transform->SetDirection(faceDir);
+						m_transform->SetDirection(faceDir);
 						ChangeState((int)PlayerState::ATTACK);
 						return;
 					}
@@ -447,7 +447,7 @@ void Player::Update(float deltaTime)
 					dir = (dx > 0) ? DIR_RIGHT : DIR_LEFT;
 				else
 					dir = (dy > 0) ? DIR_DOWN : DIR_UP;
-				transform->SetDirection(dir);
+				m_transform->SetDirection(dir);
 
 				if (!OnInteraction(m_activeInteractionTarget)) {
 					ChangeState((int)PlayerState::IDLE);
@@ -461,7 +461,7 @@ void Player::Update(float deltaTime)
 		}
 		else {
 			float moveDist = (std::min)(moveSpeedThisFrame, distance);
-			transform->SetPosition(transform->GetX() + (dx / distance) * moveDist, transform->GetY() + (dy / distance) * moveDist);
+			m_transform->SetPosition(m_transform->GetX() + (dx / distance) * moveDist, m_transform->GetY() + (dy / distance) * moveDist);
 			ClampPositionToMapBounds();  // 맵 경계 체크
 
 			// 이동 중에는 기본적으로 WALK 애니메이션을 사용하지만,
@@ -586,32 +586,21 @@ void Player::FinalizePickup()
 	auto* objMgr = ObjectManager::GetInstance();
 
 	if (objType == GO_TYPE_ITEM) {
-		Item* item = objMgr->CreateItem(objID, 0.0f, 0.0f);
-
-		if (m_inventory->AddItem(item, 1)) {
+		if (m_inventory->AddItem(objID, 1)) {
 			itemAdded = true;
 			objMgr->RemoveGameObject(m_activeInteractionTarget);
 		}
-		else {
-			// 인벤토리 추가 실패 시 생성된 Item 삭제 요청
-			objMgr->RemoveGameObject(item);
-		}
 	}
-	else if (objType == GO_TYPE_NATURAL_ENVIRONMENT) {
+	else if (objType == GO_TYPE_NATURAL_ENVIRONMENT)
+	{
 		Entity* entity = dynamic_cast<Entity*>(m_activeInteractionTarget);
 		GameObjectID itemID = entity ? entity->GetDropItemID() : GOID_NONE;
 		int itemCount = entity ? entity->GetDropItemCount() : 0;
 		if (itemID != GOID_NONE && itemCount > 0) {
-			Item* item = objMgr->CreateItem(itemID, 0.0f, 0.0f);
-			if (m_inventory->AddItem(item, itemCount)) {
+			if (m_inventory->AddItem(itemID, itemCount)) {
 				itemAdded = true;
 				objMgr->RemoveGameObject(m_activeInteractionTarget);
 			}
-			else {
-				// 인벤토리 추가 실패 시 생성된 Item 삭제 요청
-				objMgr->RemoveGameObject(item);
-			}
-
 		}
 	}
 
@@ -625,7 +614,7 @@ void Player::OnPickupEnd()
 	// PICKUP 종료 처리: 아이템 획득 및 상태 전환
 	FinalizePickup();
 
-	transform->SetDirection(DIR_DOWN);
+	m_transform->SetDirection(DIR_DOWN);
 	ChangeState((int)PlayerState::IDLE);
 }
 
@@ -643,7 +632,7 @@ void Player::OnChopEnd()
 {
 	if (m_state != (int)PlayerState::CHOP) return;
 
-	transform->SetDirection(DIR_DOWN);
+	m_transform->SetDirection(DIR_DOWN);
 	m_activeInteractionTarget = nullptr;
 	m_pendingInteractionTarget = nullptr;
 
@@ -667,7 +656,7 @@ void Player::OnMineEnd()
 {
 	if (m_state != (int)PlayerState::MINE) return;
 
-	transform->SetDirection(DIR_DOWN);
+	m_transform->SetDirection(DIR_DOWN);
 	m_activeInteractionTarget = nullptr;
 	m_pendingInteractionTarget = nullptr;
 
@@ -676,7 +665,7 @@ void Player::OnMineEnd()
 
 void Player::OnAttackHit()
 {
-	if (m_state != PlayerState::ATTACK || !m_attackCollider || !transform) return;
+	if (m_state != PlayerState::ATTACK || !m_attackCollider || !m_transform) return;
 
 	// Combatant의 공통 공격 처리 사용
 	ProcessAttackHit(m_damage);
@@ -699,13 +688,13 @@ bool Player::OnInteraction(GameObject* obj)
 	case GO_TYPE_NATURAL_ENVIRONMENT:
 		if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL)
 		{
-			transform->SetDirection(DIR_DOWN);
+			m_transform->SetDirection(DIR_DOWN);
 			ChangeState((int)PlayerState::CHOP);
 			return true;
 		}
 		if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK)
 		{
-			transform->SetDirection(DIR_DOWN);
+			m_transform->SetDirection(DIR_DOWN);
 			ChangeState((int)PlayerState::MINE);
 			return true;
 		}

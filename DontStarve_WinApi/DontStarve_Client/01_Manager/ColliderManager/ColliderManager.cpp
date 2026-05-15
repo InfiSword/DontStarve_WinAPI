@@ -92,21 +92,6 @@ void ColliderManager::RemoveCollider(Collider* pCollider)
 	m_colliders.erase(std::remove(m_colliders.begin(), m_colliders.end(), pCollider), m_colliders.end());
 }
 
-bool ColliderManager::CheckCollision(GameObject* obj1, GameObject* obj2)
-{
-	if (!obj1 || !obj2 || obj1 == obj2) return false;
-	if (!obj1->IsEnabled() || !obj2->IsEnabled()) return false;
-
-	Collider* c1 = obj1->GetMainCollider();
-	Collider* c2 = obj2->GetMainCollider();
-
-	if (c1 && c2 && c1->IsEnabled() && c2->IsEnabled()) {
-		return Intersects(c1, c2);
-	}
-
-	return false;
-}
-
 bool ColliderManager::Intersects(Collider* a, Collider* b)
 {
 	if (!a || !b) return false;

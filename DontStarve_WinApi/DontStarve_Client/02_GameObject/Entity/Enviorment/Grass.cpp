@@ -3,8 +3,8 @@
 #include "../../Component/Sprite/SpriteRenderer.h"
 #include "Grass.h"
 
-Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true, colliderType)
+Grass::Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
+	: Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType, true, true)
 	, m_grassState(GrassState::IDLE)
 	, m_regrowTimer(0.0f)
 {
@@ -29,7 +29,7 @@ void Grass::Update(float deltaTime)
 		if (m_regrowTimer >= 10.0f) // 10초 후 재생성
 		{
 			m_grassState = GrassState::IDLE;
-			spriteRenderer->SetActive(true);
+			if (m_spriteRenderer) m_spriteRenderer->SetActive(true);
 		}
 	}
 }
@@ -45,7 +45,7 @@ bool Grass::OnInteraction(GameObject* obj)
 
 	// 상호작용 시 아이템 드롭 처리 등 가능
 	m_grassState = GrassState::PICKED;
-	if (spriteRenderer) spriteRenderer->SetActive(false);
+	if (m_spriteRenderer) m_spriteRenderer->SetActive(false);
 	m_grassState = GrassState::REGROWING;
 	m_regrowTimer = 0.0f;
 

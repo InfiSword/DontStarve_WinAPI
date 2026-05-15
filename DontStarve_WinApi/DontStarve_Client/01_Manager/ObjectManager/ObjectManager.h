@@ -1,11 +1,10 @@
 #pragma once
 #include "../../../Header/SingleTon.h"
+#include "../DataManager/DataManager.h"
+#include "../../02_GameObject/GameObject.h"
 
-class GameObject;
 class Player;
 class Entity;
-class Building;
-class Item;
 class UIImage;
 class UIButton;
 class UIText;
@@ -14,8 +13,6 @@ class HPUI;
 class GameOverUI;
 class GameClearUI;
 class IntroNoticeUI;
-
-namespace ResourcePathUtils { struct ObjectResourceDef; }  // 전방 선언
 
 class ObjectManager : public CSingleTon<ObjectManager>
 {
@@ -37,7 +34,7 @@ public:
 	void ClearAllObjects();
 	bool IsScreenPointBlockedByUI(float screenX, float screenY) const;
 
-	// 인벤토리 등 시스템 내부 관리용 (Update/Render에서 제외)
+	// 인벤토리 등 시스템 내부 관리용
 	void UnregisterFromWorld(GameObject* pObj);
 	void RegisterToWorld(GameObject* pObj);
 	
@@ -50,8 +47,6 @@ public:
 	T* FindGameObject(GameObjectID id) { 
 		GameObject* obj = FindGameObject(id);
 		if (!obj) return nullptr;
-		// dynamic_cast 대신 static_cast를 쓰기 위해 호출 측에서 타입을 확신할 때 사용하거나, 
-		// 안전을 위해 여기서 간단한 타입 체크를 수행할 수 있습니다.
 		return static_cast<T*>(obj); 
 	}
 
@@ -60,16 +55,43 @@ public:
 	const std::vector<GameObject*>& GetUIObjects() const { return m_uiObjects; }
 
 	// 게임오브젝트 생성 헬퍼
-	Entity*   CreateEntity(GameObjectID id, float x, float y);
-	Item*     CreateItem(GameObjectID id, float x, float y);
-	Building* CreateBuilding(GameObjectID id, float x, float y);
+	GameObject* CreateObject(GameObjectID id, float x, float y);
+
+	// 특정 타입 명시적 생성용 템플릿
+	template <typename T>
+	T* CreateObject(GameObjectID id, float x, float y)
+	{
+		const ResourcePathUtils::ObjectResourceDef* data = DataManager::GetInstance()->GetObjectResourceInfo(id);
+
+		// 데이터가 없는 경우를 대비한 기본값 설정
+		float px = 0.5f, py = 0.5f;
+		std::wstring bd = L"", im = L"";
+		ColliderType ct = COLLIDER_BOX;
+
+		if (data) {
+			px = data->pivotX; py = data->pivotY;
+			bd = data->baseDir; im = data->imageName;
+			ct = data->hasCollider ? data->colliderType : COLLIDER_BOX;
+		}
+
+		T* pObj = new T(id, x, y, px, py, DIR_DOWN, bd, im, ct);
+		if (!pObj) return nullptr;
+
+		if (data) ApplyObjectData(pObj, data);
+
+		AddGameObject(pObj);
+		pObj->Init();
+
+		return pObj;
+	}
+
+	// 데이터 기반 초기화 헬퍼 (콜라이더 등 설정)
+	void ApplyObjectData(GameObject* pObj, const ResourcePathUtils::ObjectResourceDef* data);
 
 	// UI 생성 헬퍼
 	UIButton* CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, std::function<void()> onClick);
 	UIImage*  CreateImage(GameObjectID id, float width, float height, RenderLayer layer, const std::wstring& path, float depth, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y);
 	UIText*   CreateText(GameObjectID id, float width, float height, const std::wstring& text, Gdiplus::Color color, float fontSize, Gdiplus::FontStyle fontStyle, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, float sortKey = 0, Gdiplus::StringAlignment hAlign = Gdiplus::StringAlignmentCenter, Gdiplus::StringAlignment vAlign = Gdiplus::StringAlignmentCenter);
-
-	// 특수 UI 생성 헬퍼
 	MenuUI* CreateMenuUI();
 	HPUI*   CreateHPUI(Entity* pTarget, const std::wstring& name, float width, float height, Gdiplus::Color bgColor, Gdiplus::Color barColor, Gdiplus::Color nameColor, float anchorX, float anchorY, float pivotX, float pivotY, float x, float y, float bgSortKey, float barSortKey, bool usePortrait, bool useName);
 	GameOverUI* CreateGameOverUI();
@@ -77,24 +99,6 @@ public:
 	IntroNoticeUI* CreateIntroNoticeUI();
 
 private:
-
-	// 팩토리 맵 패턴
-	using EntityFactoryFunc   = std::function<Entity*(GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data)>;
-	using ItemFactoryFunc     = std::function<Item*(GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data)>;
-	using BuildingFactoryFunc = std::function<Building*(GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data)>;
-
-	std::map<GameObjectID, EntityFactoryFunc>   m_entityFactories;
-	std::map<GameObjectID, ItemFactoryFunc>     m_itemFactories;
-	std::map<GameObjectID, BuildingFactoryFunc> m_buildingFactories;
-
-	// 팩토리 맵 초기화
-	void InitializeFactories();
-
-	template<typename T>
-	T* PostCreate(T* pObj, const ResourcePathUtils::ObjectResourceDef* data);
-
-	void ForEachObject(std::function<void(GameObject*)> fn);
-	void ForEachEnabledObject(std::function<void(GameObject*)> fn);
 	bool IsManagedObject(const GameObject* pObj) const;
 
 	std::vector<GameObject*> m_worldObjects;

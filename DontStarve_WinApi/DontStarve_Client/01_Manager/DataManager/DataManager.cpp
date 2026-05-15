@@ -19,7 +19,7 @@ void DataManager::Init()
 		def.id = entry.id;
 		def.baseDir = entry.baseDir;
 		def.imageName = entry.imageName;
-		RegisterObjectResource(entry.id, def);
+		m_objectResources[entry.id] = def;
 	}
 
 	// GameData/object_resource_overrides.txt 로드 후 id별 pivot/콜라이더 덮어쓰기
@@ -45,11 +45,6 @@ void DataManager::Init()
 void DataManager::Release()
 {
 	m_objectResources.clear();
-}
-
-void DataManager::RegisterObjectResource(GameObjectID id, const ResourcePathUtils::ObjectResourceDef& data)
-{
-	m_objectResources[id] = data;
 }
 
 const ResourcePathUtils::ObjectResourceDef* DataManager::GetObjectResourceInfo(GameObjectID id) const

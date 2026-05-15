@@ -59,7 +59,7 @@ void Boss_SpiderQueen::Init()
 	m_hasTauntStarted = false;
 	m_bHasTaunted = false;
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 
 	DataManager* pRM = DataManager::GetInstance();
 	const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(GOID_MONSTER_QUEEN_SPIDER);
@@ -230,7 +230,7 @@ void Boss_SpiderQueen::RenderDebugOverlay()
 
 void Boss_SpiderQueen::UpdateAI(float deltaTime)
 {
-	if (!IsEnabled() || !transform || !m_animator) return;
+	if (!IsEnabled() || !m_transform || !m_animator) return;
 
 	// 인트로 연출 중에는 도발(TAUNT)만 허용하고 전투 전환을 막는다.
 	if (!m_isCombatEnabled)
@@ -417,12 +417,12 @@ void Boss_SpiderQueen::OnComboAttackHit()
 	LookAtPlayer();
 
 	// 플레이어 방향으로 전진 (약 40픽셀)
-	if (transform)
+	if (m_transform)
 	{
 		float moveDist = 40.0f;
-		float nx = transform->GetX() + m_dirToPlayer.X * moveDist;
-		float ny = transform->GetY() + m_dirToPlayer.Y * moveDist;
-		transform->SetPosition(nx, ny);
+		float nx = m_transform->GetX() + m_dirToPlayer.X * moveDist;
+		float ny = m_transform->GetY() + m_dirToPlayer.Y * moveDist;
+		m_transform->SetPosition(nx, ny);
 		ClampPositionToMapBounds();
 	}
 
@@ -454,7 +454,7 @@ void Boss_SpiderQueen::OnPoopEgg()
 	m_poopCount++;
 
 	ObjectManager* objectManager = ObjectManager::GetInstance();
-	if (!objectManager || !transform) return;
+	if (!objectManager || !m_transform) return;
 
 	static const GameObjectID eggIDs[] = {
 		GOID_BUILDING_SPIDER_SMALLEGG,
@@ -465,13 +465,13 @@ void Boss_SpiderQueen::OnPoopEgg()
 	// 무작위 3개 알 생성 (이벤트 콜백이 3번 호출됨)
 	const float angle = Utils::Random01() * 6.283185f;
 	const float dist = 100.0f + Utils::Random01() * 100.0f;
-	float ex = transform->GetX() + cosf(angle) * dist;
-	float ey = transform->GetY() + sinf(angle) * dist;
+	float ex = m_transform->GetX() + cosf(angle) * dist;
+	float ey = m_transform->GetY() + sinf(angle) * dist;
 
 	// 알 ID 랜덤 선택 (Small, Normal, Tall 중 하나)
 	const GameObjectID selectedID = eggIDs[rand() % _countof(eggIDs)];
 
-	Building* eggObj = objectManager->CreateBuilding(selectedID, ex, ey);
+	SpiderEgg* eggObj = objectManager->CreateObject<SpiderEgg>(selectedID, ex, ey);
 	if (eggObj)
 	{
 		SpiderEgg* egg = dynamic_cast<SpiderEgg*>(eggObj);
@@ -610,14 +610,14 @@ void Boss_SpiderQueen::EndCocoonPhase()
 void Boss_SpiderQueen::SummonSpider()
 {
 	ObjectManager* objMgr = ObjectManager::GetInstance();
-	if (!objMgr || !transform) return;
+	if (!objMgr || !m_transform) return;
 
 	int spawnCount = 3;
 	PreSpawnCocoonSpiders(spawnCount);
 
 	float spawnRadius = 150.0f;
-	const float baseX = transform->GetX();
-	const float baseY = transform->GetY();
+	const float baseX = m_transform->GetX();
+	const float baseY = m_transform->GetY();
 	Player* player = objMgr->GetPlayer();
 
 	for (int i = 0; i < spawnCount; ++i)
@@ -662,7 +662,7 @@ void Boss_SpiderQueen::PreSpawnCocoonSpiders(int count)
 	while (m_cocoonSpiderPool.size() < static_cast<size_t>(count))
 	{
 		GameObjectID spiderID = (rand() % 2 == 0) ? GOID_MONSTER_SPIDER : GOID_MONSTER_WARRIOR_SPIDER;
-		Entity* spiderObj = objMgr->CreateEntity(spiderID, 0.0f, 0.0f);
+		Spider* spiderObj = objMgr->CreateObject<Spider>(spiderID, 0.0f, 0.0f);
 		if (!spiderObj) continue;
 
 		Spider* spider = dynamic_cast<Spider*>(spiderObj);

@@ -9,9 +9,9 @@
 #include "../../02_GameObject/Component/Collider/CircleCollider.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
-Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
-	const std::wstring& baseDir, const std::wstring& imageName, bool isActive, bool isInteractive, ColliderType colliderType)
-	:GameObject(id, L"", imageName, isActive, isInteractive),
+Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType, bool isActive, bool isInteractive)
+	:GameObject(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType, isActive, isInteractive),
 	m_dropItemID(GOID_NONE),
 	m_dropItemCount(0),
 	m_isDead(false),
@@ -23,13 +23,13 @@ Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Di
 	m_colliderType(colliderType)
 {
 	// Transform 컴포넌트 추가
-	Transform* transform = AddComponent<Transform>();
-	transform->SetPosition(x, y);
-	transform->SetDirection(_dir);
+	this->m_transform = AddComponent<Transform>();
+	m_transform->SetPosition(x, y);
+	m_transform->SetDirection(dir);
 
 	// SpriteRenderer 컴포넌트 추가
-	SpriteRenderer* spriteRenderer = AddComponent<SpriteRenderer>();
-	spriteRenderer->SetLayer(LAYER_WORLD_OBJECT);
+	this->m_spriteRenderer = AddComponent<SpriteRenderer>();
+	m_spriteRenderer->SetLayer(LAYER_WORLD_OBJECT);
 	if (!imageName.empty())
 	{
 		ResourceManager* pRM = ResourceManager::GetInstance();
@@ -37,7 +37,7 @@ Entity::Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Di
 		if (!fullPath.empty()) {
 			// 로드 시점에 전달받은 피벗 적용
 			if (auto sprite = pRM->LoadSprite(fullPath, { pivotX, pivotY })) {
-				spriteRenderer->SetSprite(sprite);
+				m_spriteRenderer->SetSprite(sprite);
 			}
 		}
 	}
@@ -50,10 +50,6 @@ Entity::~Entity()
 void Entity::Init()
 {
 	GameObject::Init();
-
-	// Transform 컴포넌트 캐싱
-	this->transform = GetComponent<Transform>();
-	this->spriteRenderer = GetComponent<SpriteRenderer>();
 
 	// 콜라이더 타입에 따라 생성 및 캐싱
 	if (m_colliderType == COLLIDER_BOX)
@@ -88,11 +84,41 @@ bool Entity::OnInteraction(GameObject* obj)
 	return GameObject::OnInteraction(obj);
 }
 
+Gdiplus::RectF Entity::GetBounds()
+{
+	if (!m_isBoundsDirty) return m_cachedBounds;
+
+	if (!m_transform) {
+		m_cachedBounds = { 0,0,0,0 };
+		m_isBoundsDirty = false;
+		return m_cachedBounds;
+	}
+
+	float w = 32, h = 32, px = 0.5f, py = 0.5f;
+	if (m_animator != nullptr) {
+		if (auto sprite = m_animator->GetCurrentFrame().sprite) {
+			w = sprite->sourceRect.Width; h = sprite->sourceRect.Height;
+			px = sprite->pivot.X; py = sprite->pivot.Y;
+		}
+	}
+	else if (m_spriteRenderer != nullptr) {
+		if (auto sprite = m_spriteRenderer->GetSpriteHandle()) {
+			w = sprite->sourceRect.Width; h = sprite->sourceRect.Height;
+			px = sprite->pivot.X; py = sprite->pivot.Y;
+		}
+	}
+	w *= m_transform->GetScaleX(); h *= m_transform->GetScaleY();
+
+	m_cachedBounds = { m_transform->GetX() - w * px, m_transform->GetY() - h * py, w, h };
+	m_isBoundsDirty = false;
+	return m_cachedBounds;
+}
+
 void Entity::ChangeState(int newState, bool restart)
 {
 	m_state = newState;
-	if (m_animator && transform) {
-		m_animator->SetState(m_state, transform->GetDirection(), restart);
+	if (m_animator && m_transform) {
+		m_animator->SetState(m_state, m_transform->GetDirection(), restart);
 	}
 }
 
@@ -114,11 +140,11 @@ void Entity::Damaged(int damage)
 
 void Entity::Render()
 {
-	if (!IsEnabled() || !transform) return;
+	if (!IsEnabled() || !m_transform) return;
 
-	if (spriteRenderer && spriteRenderer->IsEnabled()) 
+	if (m_spriteRenderer && m_spriteRenderer->IsEnabled()) 
 	{
-		spriteRenderer->Render();
+		m_spriteRenderer->Render();
 	}
 }
 
@@ -131,8 +157,8 @@ void Entity::Update(float deltaTime)
 void Entity::Release()
 {
 	m_animator = nullptr;
-	transform = nullptr;
-	spriteRenderer = nullptr;
+	m_transform = nullptr;
+	m_spriteRenderer = nullptr;
 	m_entityCollider = nullptr;
 
 	GameObject::Release();
@@ -140,10 +166,10 @@ void Entity::Release()
 
 void Entity::ClampPositionToMapBounds()
 {
-	if (!transform) return;
+	if (!m_transform) return;
 
-	float x = transform->GetX();
-	float y = transform->GetY();
+	float x = m_transform->GetX();
+	float y = m_transform->GetY();
 
 	const auto bounds = GetBounds();
 
@@ -170,7 +196,7 @@ void Entity::ClampPositionToMapBounds()
 	}
 
 	if (offsetX != 0.0f || offsetY != 0.0f) {
-		transform->SetPosition(x + offsetX, y + offsetY);
+		m_transform->SetPosition(x + offsetX, y + offsetY);
 	}
 }
 

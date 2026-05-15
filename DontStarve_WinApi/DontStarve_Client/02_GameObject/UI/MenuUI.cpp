@@ -15,7 +15,7 @@
 #include "../../01_Manager/SceneManager/SceneManager.h"
 
 MenuUI::MenuUI()
-    : UIElement(GOID_UI_MENU, L"", L"", true, false)
+    : UIElement(GOID_UI_MENU, L"", L"", NONE, true, false)
 {
     // 데이터 초기화
     for (size_t i = 0; i < CraftingRecipeCount; ++i) {

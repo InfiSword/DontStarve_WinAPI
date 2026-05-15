@@ -135,48 +135,6 @@ void Inventory::UpdateSlotButton(int slotIndex)
 {
 }
 
-bool Inventory::AddItem(Item* itemDef, UINT count) {
-	if (!itemDef || count == 0) return false;
-	GameObjectID id = itemDef->GetID();
-
-	// 트랜잭션: 모든 슬롯의 여유 공간을 합쳐서 요청 수량을 수용할 수 있는지 먼저 확인
-	if (GetAvailableSpace(id) < count) {
-		return false;
-	}
-
-	UINT remaining = count;
-
-	// 1. 기존에 같은 아이템이 있는 스택들에 우선적으로 채움
-	for (auto& slot : m_slots) {
-		if (!slot.IsEmpty() && slot.id == id && slot.count < ITEM_STACK_MAX) {
-			UINT canAdd = ITEM_STACK_MAX - slot.count;
-			UINT actualAdd = (std::min)(remaining, canAdd);
-			slot.UpdateCount(slot.count + actualAdd);
-			remaining -= actualAdd;
-			if (remaining == 0) break;
-		}
-	}
-
-	// 2. 남은 수량이 있다면 빈 슬롯들을 찾아 순차적으로 채움 (Overflow 처리)
-	while (remaining > 0) {
-		int emptySlotIndex = FindFirstEmptySlot();
-		if (emptySlotIndex == -1) break; 
-
-		m_slots[emptySlotIndex].id = id;
-		UINT actualAdd = (std::min)(remaining, ITEM_STACK_MAX);
-		m_slots[emptySlotIndex].UpdateCount(actualAdd);
-		remaining -= actualAdd;
-	}
-
-	// 모든 수량이 인벤토리에 데이터로 들어갔으므로, 월드 객체(itemDef)는 무조건 파괴
-	if (remaining == 0) {
-		ObjectManager::GetInstance()->RemoveGameObject(itemDef);
-		return true;
-	}
-
-	return false;
-}
-
 bool Inventory::RemoveItem(UINT slotIndex, UINT count) {
 	if (slotIndex >= (UINT)m_slots.size() || m_slots[slotIndex].IsEmpty() || m_slots[slotIndex].count < count)
 		return false;
@@ -209,14 +167,39 @@ void Inventory::ClearAllItems() {
 	for (auto& slot : m_slots) slot.Clear();
 }
 
-bool Inventory::AddItemByID(GameObjectID itemID, UINT count) {
-	// 데이터 중심이므로 itemID와 count를 바로 AddItem에 넘길 수 있도록 오버로딩하거나 내부 로직 수정
-	// 여기서는 기존 AddItem이 Item*을 받으므로 임시 객체를 생성해서 넘기고, AddItem 내부에서 삭제되도록 함
-	Item* item = ObjectManager::GetInstance()->CreateItem(itemID, 0.0f, 0.0f);
-	if (!item) return false;
-	
-	// AddItem 내부에서 성공 시 item을 RemoveGameObject 처리하므로 별도 해제 불필요
-	return AddItem(item, count);
+bool Inventory::AddItem(GameObjectID itemID, UINT count) {
+	if (itemID == GOID_NONE || count == 0) return false;
+
+	// 트랜잭션: 모든 슬롯의 여유 공간을 합쳐서 요청 수량을 수용할 수 있는지 먼저 확인
+	if (GetAvailableSpace(itemID) < count) {
+		return false;
+	}
+
+	UINT remaining = count;
+
+	// 기존에 같은 아이템이 있는 스택들에 우선적으로 채움
+	for (auto& slot : m_slots) {
+		if (!slot.IsEmpty() && slot.id == itemID && slot.count < ITEM_STACK_MAX) {
+			UINT canAdd = ITEM_STACK_MAX - slot.count;
+			UINT actualAdd = (std::min)(remaining, canAdd);
+			slot.UpdateCount(slot.count + actualAdd);
+			remaining -= actualAdd;
+			if (remaining == 0) break;
+		}
+	}
+
+	// 남은 수량이 있다면 빈 슬롯들을 찾아 순차적으로 채움
+	while (remaining > 0) {
+		int emptySlotIndex = FindFirstEmptySlot();
+		if (emptySlotIndex == -1) break;
+
+		m_slots[emptySlotIndex].id = itemID;
+		UINT actualAdd = (std::min)(remaining, ITEM_STACK_MAX);
+		m_slots[emptySlotIndex].UpdateCount(actualAdd);
+		remaining -= actualAdd;
+	}
+
+	return remaining == 0;
 }
 
 std::vector<std::pair<GameObjectID, UINT>> Inventory::GetAllItemsSnapshot() const {

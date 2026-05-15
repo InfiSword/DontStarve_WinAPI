@@ -18,8 +18,8 @@ protected:
     int m_state;                 // 엔티티 상태 (각 클래스별 Enum 캐스팅용)
 
     Animator* m_animator;            // 애니메이션을 위한 Animator 컴포넌트
-    Transform* transform;            // Transform 컴포넌트 캐시
-    SpriteRenderer* spriteRenderer;  // SpriteRenderer 컴포넌트 캐시
+    Transform* m_transform;            // Transform 컴포넌트 캐시
+    SpriteRenderer* m_spriteRenderer;  // SpriteRenderer 컴포넌트 캐시
 
     Collider* m_entityCollider;      // 몸통 콜라이더
     ColliderType m_colliderType;     // 콜라이더 타입
@@ -27,11 +27,10 @@ protected:
 	virtual void ChangeState(int newState, bool restart = false);
 
 public:
-    Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction _dir,
+    Entity(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
            const std::wstring& baseDir = L"",
            const std::wstring& imageName = L"",
-           bool isActive = true, bool isInteractive = false,
-           ColliderType colliderType = COLLIDER_BOX);
+           ColliderType colliderType = COLLIDER_BOX, bool isActive = true, bool isInteractive = true);
     virtual ~Entity() override;
 
     // 초기화
@@ -61,9 +60,15 @@ public:
     // Entity 여부 반환
     virtual bool IsEntity() const override { return true; }
 
+	virtual Gdiplus::RectF GetBounds() override;
+
 	// 객체의 메인(몸통) 콜라이더를 반환하도록 오버라이딩
 	virtual Collider* GetMainCollider() const override {
 		return m_entityCollider;
+	}
+
+	virtual void SetMainCollider(Collider* col) override {
+		if (!m_entityCollider) m_entityCollider = col;
 	}
 
     // 맵 경계 체크 및 반환

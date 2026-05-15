@@ -19,9 +19,6 @@ public:
     void AddCollider(Collider* pCollider);
     void RemoveCollider(Collider* pCollider);
 
-      // GameObject 단위 편의 검사: 메인 콜라이더만 사용
-    bool CheckCollision(GameObject* obj1, GameObject* obj2);
-
       // 콜라이더 쌍 전용 검사: Box/ Circle/ 혼합 조합을 단일 진입점으로 처리
 	bool Intersects(Collider* a, Collider* b);
 

@@ -16,7 +16,7 @@ HPUI::HPUI(Entity* target, const std::wstring& name,
 	float barSortKey, float textSortKey,
 	bool showIcon, bool numericValue,
 	float margin, float gap, float iconSize)
-	: UIElement(GOID_UI_HP, L"", L"", true, false)
+	: UIElement(GOID_UI_HP, L"", L"",NONE, true, false)
 	, m_target(target), m_name(name)
 	, m_barWidth(barWidth), m_barHeight(barHeight)
 	, m_bgColor(bgColor), m_fillColor(fillColor), m_nameColor(nameColor)

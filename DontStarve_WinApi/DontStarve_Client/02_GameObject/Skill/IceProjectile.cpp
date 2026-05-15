@@ -14,7 +14,7 @@ IceProjectile::IceProjectile()
 	m_entityCollider = AddComponent<CircleCollider>();
 }
 
-IceProjectile::~IceProjectile() 
+IceProjectile::~IceProjectile()
 {
 	s_slowTintStates.clear();
 }
@@ -23,14 +23,14 @@ void IceProjectile::Init()
 {
 	Projectile::Init();
 
-    if (spriteRenderer) {
-        spriteRenderer->SetLayer(LAYER_WORLD_EFFECT);
-    }
+	if (m_spriteRenderer) {
+		m_spriteRenderer->SetLayer(LAYER_WORLD_EFFECT);
+	}
 
 	CircleCollider* circleCol = dynamic_cast<CircleCollider*>(m_entityCollider);
-    if (circleCol) {
-        circleCol->SetObjectCollider(0, 0, 28.0f);
-    }
+	if (circleCol) {
+		circleCol->SetObjectCollider(0, 0, 28.0f);
+	}
 
 	if (m_animator) {
 		// 아이스 하운드 발사체 애니메이션 (가로 시트 기준)
@@ -68,15 +68,14 @@ void IceProjectile::ApplySlowTint(Player* player, float duration)
 	}
 
 	SpriteRenderer* sr = player->GetComponent<SpriteRenderer>();
-	std::shared_ptr<Sprite> spriteHandle = sr ? sr->GetSpriteHandle() : nullptr;
 
 	SlowTintState state;
 	state.m_isSlowTintApplied = true;
-	state.m_originalTintColor = spriteHandle ? spriteHandle->tintColor : Gdiplus::Color(255, 255, 255, 255);
 	state.remainingTime = duration;
 
-	if (spriteHandle) {
-		spriteHandle->tintColor = Gdiplus::Color(255, 160, 220, 255);
+	if (sr) {
+		state.m_originalTintColor = sr->GetTintColor();
+		sr->SetTintColor(Gdiplus::Color(255, 160, 220, 255));
 	}
 
 	s_slowTintStates[player] = state;
@@ -97,12 +96,14 @@ bool IceProjectile::UpdateSlowTintCoroutine(Player* player, float deltaTime)
 	}
 
 	it->second.remainingTime -= deltaTime;
-	if (it->second.remainingTime > 0.0f) return true;
+	if (it->second.remainingTime > 0.0f) 
+	{
+		return true;
+	}
 
 	SpriteRenderer* sr = player->GetComponent<SpriteRenderer>();
-	std::shared_ptr<Sprite> spriteHandle = sr ? sr->GetSpriteHandle() : nullptr;
-	if (spriteHandle && it->second.m_isSlowTintApplied) {
-		spriteHandle->tintColor = it->second.m_originalTintColor;
+	if (sr && it->second.m_isSlowTintApplied) {
+		sr->SetTintColor(it->second.m_originalTintColor);
 	}
 
 	s_slowTintStates.erase(it);

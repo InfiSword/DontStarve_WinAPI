@@ -60,7 +60,8 @@ public:
 	bool HandleRightClick(float mouseScreenX, float mouseScreenY, Player* player);
 
 	// 인벤토리 아이템 조작 인터페이스
-	bool AddItem(Item* itemDef, UINT count = 1);
+
+	bool AddItem(GameObjectID itemID, UINT count = 1);
 	bool RemoveItem(UINT slotIndex, UINT count = 1);
 	bool ConsumeItems(const std::map<UINT, UINT>& requiredItems);
 	
@@ -72,7 +73,6 @@ public:
 
 	// 상태 저장/복원용 메서드
 	void ClearAllItems();
-	bool AddItemByID(GameObjectID itemID, UINT count = 1);
 	std::vector<std::pair<GameObjectID, UINT>> GetAllItemsSnapshot() const;
 
 private:

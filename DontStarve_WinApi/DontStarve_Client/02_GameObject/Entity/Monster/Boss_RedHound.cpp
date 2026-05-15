@@ -59,12 +59,12 @@ void Boss_RedHound::Init()
 	m_bHasHowled = false;
 	m_hasHowlStarted = false;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 	if (m_animator) {
 		DataManager* pRM = DataManager::GetInstance();
 		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
@@ -191,7 +191,7 @@ bool Boss_RedHound::OnInteraction(GameObject* obj) { return Entity::OnInteractio
 
 void Boss_RedHound::UpdateAI(float deltaTime)
 {
-	if (!IsEnabled() || !transform || !m_animator) return;
+	if (!IsEnabled() || !m_transform || !m_animator) return;
 
 	m_dashCooldownTimer = (std::max)(0.0f, m_dashCooldownTimer - deltaTime);
 
@@ -246,7 +246,7 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 		// 대쉬 중에는 공격 콜라이더 활성화
 		if (m_attackCollider) {
 			// 대쉬 방향에 맞춰 공격 박스 업데이트
-			UpdateAttackBoxByDirection(transform->GetDirection());
+			UpdateAttackBoxByDirection(m_transform->GetDirection());
 			m_attackCollider->SetColliderEnabled(true);
 
 			// 아직 데미지를 입히지 않았다면 충돌 체크 및 데미지 적용
@@ -284,7 +284,7 @@ void Boss_RedHound::UpdateMovement(float deltaTime)
 {
 	if (m_state == (int)BossRedHoundState::DASH) {
 		float moveDist = m_dashSpeed * deltaTime;
-		transform->SetPosition(transform->GetX() + m_dashDir.X * moveDist, transform->GetY() + m_dashDir.Y * moveDist);
+		m_transform->SetPosition(m_transform->GetX() + m_dashDir.X * moveDist, m_transform->GetY() + m_dashDir.Y * moveDist);
 		ClampPositionToMapBounds();
 		return;
 	}

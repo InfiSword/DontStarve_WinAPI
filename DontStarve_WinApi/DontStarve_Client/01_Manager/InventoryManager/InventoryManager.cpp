@@ -47,18 +47,12 @@ bool InventoryManager::TryGainItemFromWorldObject(Player* player, GameObject* wo
 	auto* objMgr = ObjectManager::GetInstance();
 
 	for (const auto& drop : drops) {
-		// ID 기반으로 임시 아이템 객체 생성 (AddItem 내부에서 데이터만 추출 후 파괴됨)
-		Item* tempItem = objMgr->CreateItem(drop.first, 0.0f, 0.0f);
-		if (tempItem) {
-			if (inventory->AddItem(tempItem, drop.second)) {
-				anyItemAdded = true;
-				OutputDebugStringW((L"InventoryManager: 아이템 획득 - ID: " + std::to_wstring(drop.first) + L", 개수: " + std::to_wstring(drop.second) + L"\n").c_str());
-			}
-			else {
-				// 인벤토리에 못 들어갔으면 임시 객체 수동 삭제
-				objMgr->RemoveGameObject(tempItem);
-				OutputDebugStringW((L"InventoryManager: 아이템 획득 실패 (인벤토리 가득 참) - ID: " + std::to_wstring(drop.first) + L"\n").c_str());
-			}
+		if (inventory->AddItem(drop.first, drop.second)) {
+			anyItemAdded = true;
+			OutputDebugStringW((L"InventoryManager: 아이템 획득 - ID: " + std::to_wstring(drop.first) + L", 개수: " + std::to_wstring(drop.second) + L"\n").c_str());
+		}
+		else {
+			OutputDebugStringW((L"InventoryManager: 아이템 획득 실패 (인벤토리 가득 참) - ID: " + std::to_wstring(drop.first) + L"\n").c_str());
 		}
 	}
 	
@@ -130,7 +124,7 @@ bool InventoryManager::TryDropItem(Player* player, int slotIndex, UINT count) {
 		Transform* playerTrans = player->GetComponent<Transform>();
 		if (playerTrans) {
 			// 버리는 위치: 플레이어 좌표에서 y좌표만 0.1f 앞에
-			ObjectManager::GetInstance()->CreateItem(itemID, playerTrans->GetX(), playerTrans->GetY() - 0.1f);
+			ObjectManager::GetInstance()->CreateObject(itemID, playerTrans->GetX(), playerTrans->GetY() - 0.1f);
 		}
 		
 		OutputDebugStringW((L"InventoryManager: 아이템 버림 - 슬롯 " + std::to_wstring(slotIndex) + L", 개수: " + std::to_wstring(count) + L"\n").c_str());
@@ -162,14 +156,9 @@ bool InventoryManager::TryCraftItem(Player* player, GameObjectID targetItemID) {
 	
 	// 재료 소모 후 제작 아이템 생성 및 인벤토리 추가
 	if (inventory->ConsumeItems(*recipe)) {
-		auto* objMgr = ObjectManager::GetInstance();
-		Item* item = objMgr->CreateItem(targetItemID, 0.0f, 0.0f);
-		if (item) {
-			if (inventory->AddItem(item, 1)) {
-				OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
-				return true;
-			}
-			objMgr->RemoveGameObject(item);
+		if (inventory->AddItem(targetItemID, 1)) {
+			OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
+			return true;
 		}
 		OutputDebugStringW((L"InventoryManager: 아이템 제작 완료 실패 (인벤토리 추가 실패) - ID: " + std::to_wstring(targetItemID) + L"\n").c_str());
 		return false;
@@ -193,7 +182,7 @@ bool InventoryManager::TryTradeItem(Player* player, const std::map<UINT, UINT>& 
 	// 아이템 교환 처리
 	if (inventory->ConsumeItems(giveItems)) {
 		for (const auto& receive : receiveItems) {
-			inventory->AddItemByID((GameObjectID)receive.first, receive.second);
+			inventory->AddItem((GameObjectID)receive.first, receive.second);
 		}
 		OutputDebugStringW(L"InventoryManager: 아이템 교환 완료\n");
 		return true;

@@ -30,7 +30,7 @@ enum Debuff
 class Player : public Combatant
 {
 public:
-	Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+	Player(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
 	virtual ~Player() override;
 
 	virtual void Init() override;

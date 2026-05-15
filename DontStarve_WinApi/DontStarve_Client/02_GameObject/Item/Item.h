@@ -13,12 +13,13 @@ protected:
     
     Transform* m_transform;
     SpriteRenderer* m_spriteRenderer;
+	Collider* m_itemCollider;
 
 public:
-    Item(GameObjectID id, const std::wstring& name, const std::wstring& desc,
-         const std::wstring& baseDir = L"", const std::wstring& imageName = L"",
-         float x = 0, float y = 0, float pivotX = 0.5f, float pivotY = 0.5f,
-         Direction _dir = DIR_DOWN, bool isActive = true, bool isInteractive = true);
+    Item(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+           const std::wstring& baseDir = L"",
+           const std::wstring& imageName = L"",
+           ColliderType colliderType = COLLIDER_BOX, bool isActive = true, bool isInteractive = true);
     virtual ~Item();
 
     virtual void Init() override;
@@ -27,13 +28,19 @@ public:
 
     virtual bool OnInteraction(GameObject* obj) override;
 
-    // Item은 데미지를 받지 않으므로 빈 구현
     virtual void Damaged(int damage) override { }
+
+	virtual Gdiplus::RectF GetBounds() override;
+
+	// 객체의 메인(몸통) 콜라이더를 반환하도록 오버라이딩
+	virtual Collider* GetMainCollider() const override {
+		return m_itemCollider;
+	}
+
+	virtual void SetMainCollider(Collider* col) override {
+		if (!m_itemCollider) m_itemCollider = col;
+	}
 
     const std::wstring& GetItemName() const { return m_itemName; }
     const std::wstring& GetDescription() const { return m_description; }
-    
-    // Transform 접근자 
-    Transform* GetTransform() const { return m_transform; }
-    SpriteRenderer* GetSpriteRenderer() const { return m_spriteRenderer; }
 };

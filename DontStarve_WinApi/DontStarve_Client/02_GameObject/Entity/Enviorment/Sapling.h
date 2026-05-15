@@ -6,7 +6,7 @@ class ResourceManager;
 class Sapling : public Entity
 {
 public:
-    Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
+    Sapling(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Sapling();
 
     virtual void Init() override;

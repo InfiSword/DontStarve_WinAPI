@@ -44,12 +44,12 @@ void Spider::Init()
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 	m_bHasTaunted = false;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 	DataManager* pRM = DataManager::GetInstance();
 
 	bool isWarrior = (m_id == GOID_MONSTER_WARRIOR_SPIDER);
@@ -199,11 +199,11 @@ void Spider::SetAggroTarget(GameObject* target)
 		}
 
 		Transform* targetTr = target->GetComponent<Transform>();
-		if (targetTr && transform) {
-			float dx = targetTr->GetX() - transform->GetX();
-			float dy = targetTr->GetY() - transform->GetY();
+		if (targetTr && m_transform) {
+			float dx = targetTr->GetX() - m_transform->GetX();
+			float dy = targetTr->GetY() - m_transform->GetY();
 			Direction newDir = ResolveFacingDirection({ dx, dy });
-			transform->SetDirection(newDir);
+			m_transform->SetDirection(newDir);
 		}
 	}
 }
@@ -229,7 +229,7 @@ void Spider::ResolveWanderCenter(float& outX, float& outY) const
 
 void Spider::UpdateAI(float deltaTime)
 {
-	if (!IsEnabled() || !transform || !m_animator) return;
+	if (!IsEnabled() || !m_transform || !m_animator) return;
 
 	// 거미집 소속에 따른 추격 가능 여부 체크
 	bool canChaseNow = m_bCanChase || !m_homeEgg || !m_homeEgg->IsEnabled();

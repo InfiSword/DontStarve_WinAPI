@@ -33,7 +33,7 @@ struct DataTable
 		{ GOID_TOOL_SWAP_SPEAR,     L"번개 창", L"번개의 힘이 깃든 창입니다.",     45, 160.0f },
 		{ GOID_TOOL_TORCH,          L"횃불",       L"어둠 속에서 빛을 밝힙니다.",     10, 90.0f  },
 		{ GOID_TOOL_RED_AXE,        L"빨간 도끼",   L"나무를 베는 데 사용합니다.",     35, 100.0f },
-		{ GOID_TOOL_SWAP_AXE,       L"도끼",   L"기본 도끼입니다.",  20, 100.0f },
+		{ GOID_TOOL_SWAP_AXE,       L"도끼",   L"기본 도끼입니다.",  200, 100.0f },
 		{ GOID_TOOL_HALBERD,        L"할버드",     L"긴 사거리를 가진 무거운 폴암입니다.", 50, 140.0f },
 		{ GOID_TOOL_HAMMER,         L"망치",       L"구조물을 해체할 때 사용합니다.", 15, 85.0f  }
 	};

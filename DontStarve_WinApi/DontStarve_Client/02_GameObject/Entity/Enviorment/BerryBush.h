@@ -6,7 +6,7 @@ class ResourceManager;
 class BerryBush : public Entity
 {
 public:
-    BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
+    BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~BerryBush();
 
     virtual void Init() override;

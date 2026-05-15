@@ -46,8 +46,5 @@ public:
 	void SetClickedColor(const Gdiplus::Color& color);
 	void SetDisabledColor(const Gdiplus::Color& color);
 
-	// 마우스 이동 시 즉시 hover 상태 업데이트 (반응 속도 개선)
-	void UpdateHoverStateImmediate();
-
 	void SetSortKey(float sortKey);
 };

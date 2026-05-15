@@ -41,12 +41,12 @@ void Pig::Init()
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 	if (m_animator)
 	{
 		DataManager* pRM = DataManager::GetInstance();
@@ -161,7 +161,7 @@ void Pig::Damaged(int damage)
 
 		if (m_state == (int)PigState::HIT)
 		{
-			m_animator->SetState((int)PigState::HIT, transform->GetDirection(), true);
+			m_animator->SetState((int)PigState::HIT, m_transform->GetDirection(), true);
 		}
 		else {
 			ChangeState((int)PigState::HIT);
