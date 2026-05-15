@@ -1,28 +1,27 @@
 #pragma once
 
-class GameObject;    
+class GameObject;
 class Collider;
 
 class ColliderManager : public CSingleTon<ColliderManager>
 {
-    friend class CSingleTon<ColliderManager>;
+	friend class CSingleTon<ColliderManager>;
 public:
-    ColliderManager();
-    ~ColliderManager();
+	ColliderManager();
+	~ColliderManager();
 
-    void Init();
-    void LateInit();                     
-      void Update(float deltaTime);         // 위치 갱신 단계(현재는 개별 콜라이더가 자기 위치를 관리)
-      void LateUpdate();                    // 브로드페이즈(공간 쿼리) + 내로우페이즈(실교차) 처리
-    void Release();                    
+	void Init();
+	void LateInit();
+	void Update(float deltaTime);
+	void LateUpdate();
+	void Release();
 
-    void AddCollider(Collider* pCollider);
-    void RemoveCollider(Collider* pCollider);
+	// 특정 콜라이더와 충돌 중인 객체들을 쿼리 (사용자 요청에 따른 능동형 충돌 검사)
+	void QueryCollidingObjects(Collider* pSrc, std::vector<GameObject*>& outOwners);
 
-      // 콜라이더 쌍 전용 검사: Box/ Circle/ 혼합 조합을 단일 진입점으로 처리
+	// 콜라이더 쌍 전용 검사: Box/ Circle/ 혼합 조합을 단일 진입점으로 처리
 	bool Intersects(Collider* a, Collider* b);
 
 private:
-      std::vector<Collider*> m_colliders; // 등록된 콜라이더들
-      std::vector<GameObject*> m_queryBuffer; // 매 프레임 재사용 버퍼(할당/해제 비용 절감)
+	std::vector<GameObject*> m_queryBuffer; // 매 프레임 재사용 버퍼(할당/해제 비용 절감)
 };

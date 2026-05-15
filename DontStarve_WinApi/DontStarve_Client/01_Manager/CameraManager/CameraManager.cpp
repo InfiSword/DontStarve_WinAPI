@@ -11,7 +11,8 @@
 #include "../RenderManager/RenderManager.h"
 #include "../ColliderManager/ColliderManager.h"
 
-CameraManager::CameraManager() {}
+CameraManager::CameraManager()
+ {}
 
 void CameraManager::Init() {
 	m_cameraPos = { 0,0 };
@@ -76,6 +77,7 @@ void CameraManager::FollowTarget()
 	}
 }
 
+// 그리드 기반 입력 상호작용 처리
 void CameraManager::QueryObjectsInArea(const Gdiplus::RectF& area, std::vector<GameObject*>& outObjects, bool onlyInteraction)
 {
 	outObjects.clear();
@@ -135,18 +137,23 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData) {
 	}
 
 	const float tileSizeF = static_cast<float>(TILE_SIZE);
-	auto* rm = RenderManager::GetInstance();
+	RenderManager* rm = RenderManager::GetInstance();
 	for (int y = sy; y < ey; ++y) 
 	{
 		for (int x = sx; x < ex; ++x) 
 		{
 			auto& tileData = mapData->tiles[x][y];
-			if (tileData.id == TILEID_NONE) continue;
+			if (tileData.id == TILEID_NONE) 
+				continue;
+
 			auto it = m_tileCache.find(tileData.id);
 			if (it == m_tileCache.end()) {
-				TileCacheData cd; LoadTileBitmap(tileData, cd);
-				if (!cd.bitmap) continue;
-				m_tileCache[tileData.id] = cd; it = m_tileCache.find(tileData.id);
+				TileCacheData cd; 
+				LoadTileBitmap(tileData, cd);
+				if (!cd.bitmap) 
+					continue;
+				m_tileCache[tileData.id] = cd;
+				it = m_tileCache.find(tileData.id);
 			}
 			Gdiplus::Bitmap* bm = it->second.bitmap;
 			const float bitmapW = static_cast<float>(bm->GetWidth());
@@ -333,9 +340,70 @@ Gdiplus::PointF CameraManager::ScreenToWorld(float screenX, float screenY) const
 }
 
 
-void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& td, TileCacheData& cd) {
+void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& td, TileCacheData& cd)
+{
 	std::wstring path = ResourcePathUtils::BuildResourcePath(td.baseDir, td.imageName);
 	if (path.empty()) return;
+	
 	cd.bitmap = new Gdiplus::Bitmap(path.c_str());
-	if (cd.bitmap->GetLastStatus() != Gdiplus::Ok) { delete cd.bitmap; cd.bitmap = nullptr; }
+	if (cd.bitmap->GetLastStatus() != Gdiplus::Ok) 
+	{ 
+		delete cd.bitmap; 
+		cd.bitmap = nullptr; 
+	}
+}
+
+
+// 뷰포트 내에 모든 오브젝트 탐색(그리드 기반 탐색 X)
+bool CameraManager::IsObjectInViewport(GameObject* obj) const {
+
+	if (!obj || !obj->IsEnabled()) return false;
+
+	Gdiplus::RectF viewportRect = GetViewportWorldRect();
+	const float M = -16.f;
+
+	Gdiplus::RectF bounds = obj->GetBounds();
+	const bool overlapsObjectBounds =
+		bounds.X < viewportRect.X + viewportRect.Width + M && bounds.X + bounds.Width > viewportRect.X - M &&
+		bounds.Y < viewportRect.Y + viewportRect.Height + M && bounds.Y + bounds.Height > viewportRect.Y - M;
+	if (!overlapsObjectBounds) {
+		return false;
+	}
+
+	// 2차 정밀 컷: 스프라이트가 있는 경우 실제 렌더 bounds 기준으로 한 번 더 판정.
+	Transform* transform = obj->GetComponent<Transform>();
+	if (!transform) {
+		return true;
+	}
+
+	std::shared_ptr<Sprite> sprite;
+	if (SpriteRenderer* spriteRenderer = obj->GetComponent<SpriteRenderer>()) {
+		sprite = spriteRenderer->GetSpriteHandle();
+	}
+	if (!sprite) {
+		if (Animator* animator = obj->GetComponent<Animator>()) {
+			sprite = animator->GetCurrentFrame().sprite;
+		}
+	}
+
+	if (!sprite || !sprite->bitmap) {
+		return true;
+	}
+
+	const float width = fabsf(sprite->sourceRect.Width * transform->GetScaleX());
+	const float height = fabsf(sprite->sourceRect.Height * transform->GetScaleY());
+	if (width <= 0.0f || height <= 0.0f) {
+		return false;
+	}
+
+	const float worldX = transform->GetX();
+	const float worldY = transform->GetY();
+	Gdiplus::RectF renderBounds(
+		worldX - width * sprite->pivot.X,
+		worldY - height * sprite->pivot.Y,
+		width,
+		height);
+
+	return renderBounds.X < viewportRect.X + viewportRect.Width + M && renderBounds.X + renderBounds.Width > viewportRect.X - M &&
+		renderBounds.Y < viewportRect.Y + viewportRect.Height + M && renderBounds.Y + renderBounds.Height > viewportRect.Y - M;
 }

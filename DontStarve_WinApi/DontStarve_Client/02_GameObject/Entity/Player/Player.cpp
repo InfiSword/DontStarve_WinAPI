@@ -104,7 +104,7 @@ void Player::Init()
 						Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 						if (targetT) {
 							m_transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
-							this->SetBoundsDirty();
+							this->SetSpatialDirty();
 						}
 					}
 				}
@@ -140,7 +140,7 @@ void Player::Init()
 					Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 					if (targetT) {
 						m_transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
-						this->SetBoundsDirty();
+						this->SetSpatialDirty();
 					}
 				}
 				});
@@ -173,7 +173,7 @@ void Player::Init()
 					Transform* targetT = m_activeInteractionTarget->GetComponent<Transform>();
 					if (targetT) {
 						m_transform->SetPosition(targetT->GetX(), targetT->GetY() + 0.1f);
-						this->SetBoundsDirty();
+						this->SetSpatialDirty();
 					}
 				}
 				});

@@ -35,6 +35,7 @@ public:
 
 	void RenderVisibleTiles(const MapData* mapData);
 	void RenderVisibleGameObjects();
+	bool IsObjectInViewport(GameObject* pObj) const;
 	void ClearTileCache();
 
 	void SetWalkableBoundsFromMapData(const MapData* mapData);
@@ -70,7 +71,7 @@ public:
 private:
 	GameObject* m_target = nullptr;
 	std::unordered_map<UINT, TileCacheData> m_tileCache;
-	std::vector<GameObject*> m_queryBuffer; // 공간 분할 쿼리용 재사용 버퍼 (성능 최적화용)
+	std::vector<GameObject*> m_queryBuffer; // 공간 분할 쿼리용
 
 	Gdiplus::RectF m_lastViewportRect = { 0, 0, 0, 0 };
 	Gdiplus::PointF m_cameraPos = { 0, 0 };

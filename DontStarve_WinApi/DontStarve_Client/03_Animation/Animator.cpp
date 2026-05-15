@@ -125,7 +125,7 @@ void Animator::Update(float deltaTime)
 		// 프레임 변경 시, 건너뛴 프레임 포함해 지나친 모든 프레임에 대해 이벤트 발생
 		if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame)
 		{
-			if (m_owner) m_owner->SetBoundsDirty();
+			if (m_owner) m_owner->SetSpatialDirty();
 			const std::map<int, std::wstring>& eventFrames = m_currentClip->GetEventFrames();
 			const AnimationEventCallback& callback = m_currentClip->GetEventCallback();
 

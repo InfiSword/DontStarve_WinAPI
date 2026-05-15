@@ -16,27 +16,27 @@ void Transform::SetPosition(float x, float y)
 {
 	m_x = x;
 	m_y = y;
-	if (m_owner) m_owner->SetBoundsDirty();
+	if (m_owner) m_owner->SetSpatialDirty();
 }
 
 void Transform::SetScale(float scaleX, float scaleY)
 {
 	m_scaleX = scaleX;
 	m_scaleY = scaleY;
-	if (m_owner) m_owner->SetBoundsDirty();
+	if (m_owner) m_owner->SetSpatialDirty();
 }
 
 void Transform::SetScale(float scale)
 {
 	m_scaleX = scale;
 	m_scaleY = scale;
-	if (m_owner) m_owner->SetBoundsDirty();
+	if (m_owner) m_owner->SetSpatialDirty();
 }
 
 void Transform::SetRotation(float rotation)
 {
 	m_rotation = rotation;
-	if (m_owner) m_owner->SetBoundsDirty();
+	if (m_owner) m_owner->SetSpatialDirty();
 }
 
 void Transform::SetDirection(Direction dir)

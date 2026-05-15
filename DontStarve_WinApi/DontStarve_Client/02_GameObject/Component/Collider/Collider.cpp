@@ -12,12 +12,10 @@ Collider::Collider(GameObject* owner)
 void Collider::Init()
 {
     Component::Init();
-    ColliderManager::GetInstance()->AddCollider(this);
 }
 
 void Collider::Release()
 {
-    ColliderManager::GetInstance()->RemoveCollider(this);
     Component::Release();
 }
 

@@ -95,8 +95,7 @@ public:
 
 	// 바운딩 박스 관련
 	virtual Gdiplus::RectF GetBounds();
-	void SetBoundsDirty() { m_isBoundsDirty = true; m_isGridDirty = true; }
-	void SetGridDirty() { m_isGridDirty = true; }
+	void SetSpatialDirty() { m_isBoundsDirty = true; m_isGridDirty = true; }
 
 	static bool g_bRenderDebugOverlay;
 

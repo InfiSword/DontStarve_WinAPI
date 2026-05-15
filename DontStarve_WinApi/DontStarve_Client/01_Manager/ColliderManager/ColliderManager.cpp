@@ -18,7 +18,6 @@ ColliderManager::~ColliderManager()
 
 void ColliderManager::Init()
 {
-	m_colliders.clear();
 	m_queryBuffer.clear();
 }
 
@@ -32,64 +31,44 @@ void ColliderManager::Update(float deltaTime)
 
 void ColliderManager::LateUpdate()
 {
+	//  각 객체(Player, Monster 등)가 필요한 시점에 QueryCollidingObjects를 호출하여 
+}
+
+void ColliderManager::QueryCollidingObjects(Collider* pSrc, std::vector<GameObject*>& outOwners)
+{
+	outOwners.clear();
+	if (!pSrc || !pSrc->IsEnabled()) return;
+
+	GameObject* pSrcOwner = pSrc->GetOwner();
+	if (!pSrcOwner || !pSrcOwner->IsEnabled()) return;
+
 	ObjectManager* objMgr = ObjectManager::GetInstance();
 	if (!objMgr) return;
 
-	for (size_t i = 0; i < m_colliders.size(); ++i) {
-		Collider* pSrc = m_colliders[i];
-		if (!pSrc || !pSrc->IsEnabled()) continue;
+	// 그리드 쿼리로 srcRect 주변 객체만 가져온다.
+	Gdiplus::RectF srcRect = pSrc->GetWorldRect();
 
-		GameObject* pSrcOwner = pSrc->GetOwner();
-		if (!pSrcOwner || !pSrcOwner->IsEnabled()) continue;
+	m_queryBuffer.clear();
+	objMgr->QueryObjectsInRect(srcRect, m_queryBuffer);
 
-		// 정적 객체(나무, 돌 등)는 스스로 충돌 검사를 시작하지 않음
-		GameObjectType type = pSrcOwner->GetType();
-		if (type != GO_TYPE_PLAYER && type != GO_TYPE_MONSTER) {
-			continue;
-		}
+	for (GameObject* pDstOwner : m_queryBuffer)
+	{
+		if (!pDstOwner || pDstOwner == pSrcOwner || !pDstOwner->IsEnabled()) continue;
 
-		// 그리드 쿼리로 srcRect 주변 객체만 가져온다.
-		Gdiplus::RectF srcRect = pSrc->GetWorldRect();
+		Collider* pDst = pDstOwner->GetMainCollider();
+		if (!pDst || !pDst->IsEnabled()) continue;
 
-		m_queryBuffer.clear();
-		objMgr->QueryObjectsInRect(srcRect, m_queryBuffer);
-
-		for (GameObject* pDstOwner : m_queryBuffer)
+		if (Intersects(pSrc, pDst))
 		{
-			if (!pDstOwner || pDstOwner == pSrcOwner || !pDstOwner->IsEnabled()) continue;
-
-			Collider* pDst = pDstOwner->GetMainCollider();
-			if (!pDst || !pDst->IsEnabled()) continue;
-
-			if (Intersects(pSrc, pDst))
-			{
-				pSrcOwner->OnCollision(pDstOwner);
-			}
-
+			outOwners.push_back(pDstOwner);
 		}
 	}
 }
 
 void ColliderManager::Release()
 {
-	m_colliders.clear();
-	m_colliders.shrink_to_fit();
 	m_queryBuffer.clear();
 	m_queryBuffer.shrink_to_fit();
-}
-
-void ColliderManager::AddCollider(Collider* pCollider)
-{
-	if (!pCollider) return;
-	if (std::find(m_colliders.begin(), m_colliders.end(), pCollider) == m_colliders.end()) {
-		m_colliders.push_back(pCollider);
-	}
-}
-
-void ColliderManager::RemoveCollider(Collider* pCollider)
-{
-	if (!pCollider) return;
-	m_colliders.erase(std::remove(m_colliders.begin(), m_colliders.end(), pCollider), m_colliders.end());
 }
 
 bool ColliderManager::Intersects(Collider* a, Collider* b)

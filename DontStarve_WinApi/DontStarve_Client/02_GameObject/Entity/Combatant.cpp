@@ -181,30 +181,20 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 	// 클릭/AI로 지정된 타겟이 있으면 최우선으로 판정한다.
 	if (canApplyDamageTo(m_attackTarget)) {
 		Collider* targetCollider = m_attackTarget->GetMainCollider();
-		if (targetCollider && targetCollider->IsEnabled() && m_attackCollider->IntersectsCollider(targetCollider)) {
+		if (targetCollider && targetCollider->IsEnabled() && 
+			ColliderManager::GetInstance()->Intersects(m_attackCollider, targetCollider)) {
 			m_attackTarget->Damaged(damage);
 			return true;
 		}
 	}
 
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	if (!cameraManager) return false;
-
 	std::vector<GameObject*> hits;
-	std::vector<GameObject*> queryResults;
-	Gdiplus::RectF attackRect = m_attackCollider->GetWorldRect();
-	cameraManager->QueryObjectsInArea(attackRect, queryResults, false);
+	ColliderManager::GetInstance()->QueryCollidingObjects(m_attackCollider, hits);
 
-	for (auto* obj : queryResults) {
-		if (!obj->IsEnabled() || obj == this) continue;
-
-		Collider* otherCol = obj->GetMainCollider();
-		if (otherCol && otherCol->IsEnabled()) {
-			if (ColliderManager::GetInstance()->Intersects(m_attackCollider, otherCol)) {
-				hits.push_back(obj);
-			}
-		}
-	}
+	// 필터링: 공격 가능한 대상만 남김
+	hits.erase(std::remove_if(hits.begin(), hits.end(), [&](GameObject* obj) {
+		return !canApplyDamageTo(obj);
+	}), hits.end());
 
 	if (hits.empty()) return false;
 

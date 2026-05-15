@@ -178,13 +178,12 @@ void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<G
 
 #ifdef _DEBUG
 	if (!g_bEnableSpatialPartitioning) {
-		// [비최적화] 브루트포스 전수 조사
+		// [비최적화] 정밀 브루트포스 가시성 체크
+		CameraManager* cameraManager = CameraManager::GetInstance();
 		for (GameObject* obj : m_worldObjects) {
 			if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
-
-			const Gdiplus::RectF bounds = obj->GetBounds();
-			if (rect.X < bounds.X + bounds.Width && rect.X + rect.Width > bounds.X &&
-				rect.Y < bounds.Y + bounds.Height && rect.Y + rect.Height > bounds.Y) {
+			
+			if (cameraManager->IsObjectInViewport(obj)) {
 				outObjects.push_back(obj);
 			}
 		}
@@ -204,7 +203,7 @@ void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<G
 	endX = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, endX));
 	endY = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, endY));
 
-	// 중복 방지용 스탬프 갱신 (오버플로우 시 리셋)
+	// 중복 방지용 스탬프 갱신
 	if (++m_spatialQueryStamp == 0) m_spatialQueryStamp = 1;
 
 	for (int y = startY; y <= endY; ++y) {
