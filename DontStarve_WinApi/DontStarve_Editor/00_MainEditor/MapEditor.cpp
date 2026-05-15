@@ -78,6 +78,11 @@ void MapEditor::Initialize() {
 	m_playerSpawnPoint = Gdiplus::PointF(centerX, centerY);
 	m_hasPlayerSpawn = true;
 
+	// 화면과 맵의 중앙이 맞도록 초기 카메라 오프셋 설정
+	int initialOffsetX = (clientRect.right / 2) - (int)centerX;
+	int initialOffsetY = (clientRect.bottom / 2) - (int)centerY;
+	m_pView->SetMapOffsetClamped(initialOffsetX, initialOffsetY, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
+
 	m_pLayerComposer->ComposeGridLayer();
 	m_pLayerComposer->ComposeTileLayer();
 	m_pLayerComposer->ComposeObjectLayer();
@@ -697,7 +702,9 @@ void MapEditor::NewMap() {
 	m_pView->SetZoomFactor(1.0f);
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
-	m_pView->SetMapOffsetClamped(0, 0, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
+	int initialOffsetX = (clientRect.right / 2) - (int)centerX;
+	int initialOffsetY = (clientRect.bottom / 2) - (int)centerY;
+	m_pView->SetMapOffsetClamped(initialOffsetX, initialOffsetY, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
 	m_pLayerComposer->SetTileLayerDirty(true);
 	m_pLayerComposer->SetObjectLayerDirty(true);
 	m_objectsDirty = true;
@@ -730,7 +737,9 @@ void MapEditor::SetMapSize(int width, int height) {
 	m_pView->SetZoomFactor(1.0f);
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
-	m_pView->SetMapOffsetClamped(0, 0, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
+	int initialOffsetX = (clientRect.right / 2) - (int)centerX;
+	int initialOffsetY = (clientRect.bottom / 2) - (int)centerY;
+	m_pView->SetMapOffsetClamped(initialOffsetX, initialOffsetY, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
 	m_pLayerComposer->SetTileLayerDirty(true);
 	m_pLayerComposer->SetObjectLayerDirty(true);
 	m_objectsDirty = true;

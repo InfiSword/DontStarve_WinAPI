@@ -3,8 +3,8 @@
 namespace GameConstants {
 	constexpr int WINCX = 1200;
 	constexpr int WINCY = 800;
-	constexpr int MAP_WIDTH = 50;
-	constexpr int MAP_HEIGHT = 50;
+	constexpr int MAP_WIDTH = 100;
+	constexpr int MAP_HEIGHT = 100;
 	constexpr int TILE_SIZE = 128;
 	constexpr int INVENTORY_SLOT_COUNT = 8;
 }
