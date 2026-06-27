@@ -17,7 +17,9 @@ protected:
 	ToolState m_toolState;
 
 public:
-    Tool(GameObjectID id, const std::wstring& name, const std::wstring& desc, const std::wstring& baseDir, const std::wstring& imageName, int damage, float attackRange);
+    Tool(GameObjectID id, float x = 0.0f, float y = 0.0f, float pivotX = 0.5f, float pivotY = 0.5f,
+         Direction _dir = DIR_DOWN, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", 
+         ColliderType col = COLLIDER_BOX, bool isActive = true, bool isInteractive = true);
     virtual ~Tool();
 
 	int GetDamage()      const { return m_damage; }

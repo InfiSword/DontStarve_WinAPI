@@ -4,10 +4,13 @@
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../Component/Transform/Transform.h"
+#include "../../Item/Item.h"
 #include "Tree.h"
 
-Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, baseDir, imageName, true, true, colliderType)
+Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
+	const std::wstring& baseDir, const std::wstring& imageName, 
+	ColliderType colliderType, bool isActive, bool isInteractive)
+	: Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType, isActive, isInteractive)
 	, m_treeState(TreeState::IDLE)
 	, m_hp(100), m_baseX(0.0f), m_baseY(0.0f),
 	m_shakeDuration(0.5f), m_shakeAmount(14.0f), m_shakeSpeed(40.0f), m_isShaking(false)
@@ -22,10 +25,10 @@ void Tree::Init()
 {
 	Entity::Init();
 
-	if (transform)
+	if (m_transform)
 	{
-		m_baseX = transform->GetX();
-		m_baseY = transform->GetY();
+		m_baseX = m_transform->GetX();
+		m_baseY = m_transform->GetY();
 	}
 }
 
@@ -50,17 +53,17 @@ void Tree::Damaged(int damage)
 
 	m_hp -= damage;
 
-	if (m_isShaking && transform) {
-		transform->SetPosition(m_baseX, m_baseY);
+	if (m_isShaking && m_transform) {
+		m_transform->SetPosition(m_baseX, m_baseY);
 	}
-	else if (transform) {
-		m_baseX = transform->GetX();
-		m_baseY = transform->GetY();
+	else if (m_transform) {
+		m_baseX = m_transform->GetX();
+		m_baseY = m_transform->GetY();
 	}
 
 	// HP 0 이면 쉐이킹 없이 즉시 제거 및 통나무 드롭
 	if (m_hp <= 0) {
-		if (transform) transform->SetPosition(m_baseX, m_baseY);
+		if (m_transform) m_transform->SetPosition(m_baseX, m_baseY);
 		m_isShaking = false;
 		m_isDead = true;
 		Die();
@@ -76,7 +79,7 @@ void Tree::Damaged(int damage)
 	float duration = m_shakeDuration;
 	float amount = m_shakeAmount;
 	float speed = m_shakeSpeed;
-	Transform* tr = transform;
+	Transform* tr = m_transform;
 
 	StartCoroutine([=](float dt) mutable -> bool {
 		elapsed += dt;
@@ -100,8 +103,8 @@ void Tree::Damaged(int damage)
 void Tree::Die()
 {
 	m_isShaking = false;
-	if (transform)
-		transform->SetPosition(m_baseX, m_baseY);
+	if (m_transform)
+		m_transform->SetPosition(m_baseX, m_baseY);
 
 	ObjectManager* objMgr = ObjectManager::GetInstance();
 	if (objMgr)
@@ -109,10 +112,10 @@ void Tree::Die()
 		GameObjectID dropItemID = GetDropItemID();
 		int count = GetDropItemCount();
 
-		if (dropItemID != GOID_NONE && transform)
+		if (dropItemID != GOID_NONE && m_transform)
 		{
-			float tx = transform->GetX();
-			float ty = transform->GetY();
+			float tx = m_transform->GetX();
+			float ty = m_transform->GetY();
 
 			for (int i = 0; i < count; ++i)
 			{
@@ -120,7 +123,7 @@ void Tree::Die()
 				float spreadRadius = 30.0f + (rand() / (float)RAND_MAX) * 40.0f;
 				float offsetX = cosf(angle) * spreadRadius;
 				float offsetY = sinf(angle) * spreadRadius;
-				objMgr->CreateItem(dropItemID, tx + offsetX, ty + offsetY);
+				objMgr->CreateObject<Item>(dropItemID, tx + offsetX, ty + offsetY);
 			}
 		}
 		objMgr->RemoveGameObject(this);

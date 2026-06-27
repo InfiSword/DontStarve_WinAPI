@@ -11,7 +11,7 @@ enum class GrassState {
 class Grass : public Entity
 {
 public:
-    Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
+    Grass(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& baseDir = L"", const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
     virtual ~Grass();
 
     virtual void Init() override;

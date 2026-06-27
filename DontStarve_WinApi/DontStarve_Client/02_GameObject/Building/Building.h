@@ -19,8 +19,8 @@ protected:
     
 public:
     Building(GameObjectID id, float x, float y, float pivotX, float pivotY, 
-        Direction _dir, const std::wstring& resourcePath = L"",
-             const std::wstring& imageName = L"", int hp = 100);
+        Direction _dir, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", int hp = 100, 
+		ColliderType col = COLLIDER_BOX, bool isActive = true, bool isInteractive = true);
     virtual ~Building();
 
     // GameObject 기본 초기화

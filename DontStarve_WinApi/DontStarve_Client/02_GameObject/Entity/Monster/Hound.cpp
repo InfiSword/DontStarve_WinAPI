@@ -4,6 +4,7 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -29,7 +30,7 @@ Hound::Hound(GameObjectID id, float x, float y, float pivotX, float pivotY, Dire
 	m_attackHitFrame = 4;
 	m_damage = 20;
 	m_attackBoxWidth = 80;
-	m_attackBoxHeight = 50;
+	m_attackBoxHeight = 55;
 }
 
 Hound::~Hound() {}
@@ -38,7 +39,7 @@ void Hound::Init()
 {
 	Monster::Init();
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
-	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight,0,-40.f);
 
 	ChangeState((int)HoundState::IDLE);
 
@@ -47,12 +48,12 @@ void Hound::Init()
 	m_bHasHowled = false;
 	m_hasHowlStarted = false;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 	if (m_animator) {
 		DataManager* pRM = DataManager::GetInstance();
 		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
@@ -134,6 +135,7 @@ void Hound::Init()
 				clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 					if (eventName == L"howl_start")
 					{
+						SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_bark.wav");
 						m_hasHowlStarted = true;
 					}
 					else if (eventName == L"howl_end")
@@ -161,7 +163,7 @@ void Hound::RenderDebugOverlay()
 
 void Hound::UpdateAI(float deltaTime)
 {
-	if (!IsEnabled() || !transform || !m_animator) return;
+	if (!IsEnabled() || !m_transform || !m_animator) return;
 
 	if (!m_isCombatEnabled)
 	{
@@ -263,6 +265,7 @@ void Hound::Damaged(int damage)
 {
 	Monster::Damaged(damage);
 	if (!IsDead()) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_hurt.wav");
 		ChangeState((int)HoundState::HIT);
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 	}
@@ -270,7 +273,10 @@ void Hound::Damaged(int damage)
 
 void Hound::OnAttackHit()
 {
-	if (m_isCombatEnabled && m_state == (int)HoundState::ATTACK) ProcessAttackHit(m_damage);
+	if (m_isCombatEnabled && m_state == (int)HoundState::ATTACK) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_attack.wav");
+		ProcessAttackHit(m_damage);
+	}
 }
 
 void Hound::OnAttackEnd()
@@ -287,7 +293,12 @@ void Hound::OnHitEnd()
 	ChangeState((int)HoundState::IDLE);
 }
 
-void Hound::Die() { ChangeState((int)HoundState::DEATH); }
+void Hound::Die() {
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_death.wav");
+
+	SetDropItem(GOID_ITEM_MONSTER_MEAT, 1);
+	ChangeState((int)HoundState::DEATH);
+}
 
 bool Hound::OnInteraction(GameObject* obj) { return Entity::OnInteraction(obj); }
 

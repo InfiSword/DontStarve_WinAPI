@@ -182,7 +182,6 @@ void BossSpiderQueenScene::UpdatePhase1(float deltaTime)
 	{
 		m_currentPhase = BossPhase::PhaseTransition;
 		m_phaseTimer = 0.0f;
-		OutputDebugStringW(L"BossSpiderQueenScene: Phase 1 Cleared (All Spiders and Eggs destroyed). Transitioning to Boss Intro...\n");
 	}
 }
 

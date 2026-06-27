@@ -74,6 +74,8 @@
     <ClCompile Include="02_GameObject\Skill\Projectile.cpp" />
     <ClCompile Include="02_GameObject\Component\Sprite\SpriteSheet.cpp" />
     <ClCompile Include="01_Manager\DataManager\DataManager.cpp" />
+    <ClCompile Include="01_Manager\SoundManager\SoundManager.cpp" />
+    <ClCompile Include="01_Manager\SceneManager\LoadingScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="99_Default\framework.h" />
@@ -154,6 +156,9 @@
     <ClInclude Include="02_GameObject\Skill\Projectile.h" />
     <ClInclude Include="02_GameObject\Component\Sprite\SpriteSheet.h" />
     <ClInclude Include="01_Manager\DataManager\DataManager.h" />
+    <ClInclude Include="01_Manager\SoundManager\SoundManager.h" />
+    <ClInclude Include="99_Default\ClientOptimatzationOption.h" />
+    <ClInclude Include="01_Manager\SceneManager\LoadingScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="99_Default\DontStarve_Client.rc" />

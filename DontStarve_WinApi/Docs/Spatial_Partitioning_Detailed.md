@@ -753,7 +753,7 @@ void ObjectManager::ValidateGrid() {
     // 3. 월드 객체 검증
     for (auto* obj : m_worldObjects) {
         assert(obj != nullptr);
-        assert(!obj->IsUI());
+        assert(obj->GetType() != GO_TYPE_UI);
         assert(m_objectToGridCells.find(obj) != m_objectToGridCells.end());
     }
     

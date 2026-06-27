@@ -3,6 +3,7 @@
 #include "../../../01_Manager/RenderManager/RenderManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/DataManager/DataManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -24,7 +25,7 @@ Pig::Pig(GameObjectID id, float x, float y, float pivotX, float pivotY, Directio
 	m_attackCooldown = 3.f;
 	m_attackHitFrame = 28;
 	m_damage = 15;
-	m_attackBoxWidth = 80;
+	m_attackBoxWidth = 90;
 	m_attackBoxHeight = 100;
 }
 
@@ -40,12 +41,12 @@ void Pig::Init()
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 	if (m_animator)
 	{
 		DataManager* pRM = DataManager::GetInstance();
@@ -54,31 +55,30 @@ void Pig::Init()
 			std::wstring base = objData->baseDir + L"\\";
 			std::wstring baseAction = base + L"Action\\";
 
-			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_DOWN, baseAction + L"pig_pigman_idle_loop_down.png", 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
-			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_UP, baseAction + L"pig_pigman_idle_loop_up.png", 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_DOWN, baseAction + L"pig_pigman_idle_loop_down.png", 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
+			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_UP, baseAction + L"pig_pigman_idle_loop_up.png", 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 			std::wstring idleSidePath = baseAction + L"pig_pigman_idle_loop_side.png";
 			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_LEFT, idleSidePath, 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f, false);
 			m_animator->RegisterAnimation((int)PigState::IDLE, DIR_RIGHT, idleSidePath, 0, 0, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
 
-			m_animator->RegisterAnimation((int)PigState::WALK, DIR_DOWN, baseAction + L"pig_pigman_walk_loop_down.png", 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.025f);
-			m_animator->RegisterAnimation((int)PigState::WALK, DIR_UP, baseAction + L"pig_pigman_walk_loop_up.png", 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::WALK, DIR_DOWN, baseAction + L"pig_pigman_walk_loop_down.png", 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.03f);
+			m_animator->RegisterAnimation((int)PigState::WALK, DIR_UP, baseAction + L"pig_pigman_walk_loop_up.png", 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.03f);
 			std::wstring walkSidePath = baseAction + L"pig_pigman_walk_loop_side.png";
-			m_animator->RegisterAnimation((int)PigState::WALK, DIR_LEFT, walkSidePath, 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.025f, false);
-			m_animator->RegisterAnimation((int)PigState::WALK, DIR_RIGHT, walkSidePath, 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::WALK, DIR_LEFT, walkSidePath, 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.03f, false);
+			m_animator->RegisterAnimation((int)PigState::WALK, DIR_RIGHT, walkSidePath, 0, 0, 4, 41, objData->pivotX, objData->pivotY, true, 0.03f);
 
-			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_DOWN, baseAction + L"pig_pigman_run_loop_down.png", 225, 198, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
-			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_UP, baseAction + L"pig_pigman_run_loop_up.png", 225, 195, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_DOWN, baseAction + L"pig_pigman_run_loop_down.png", 225, 198, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
+			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_UP, baseAction + L"pig_pigman_run_loop_up.png", 225, 195, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 			std::wstring runSidePath = baseAction + L"pig_pigman_run_loop_side.png";
-			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_LEFT, runSidePath, 222, 200, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f, false);
-			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_RIGHT, runSidePath, 222, 200, 4, 33, objData->pivotX, objData->pivotY, true, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_LEFT, runSidePath, 222, 200, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f, false);
+			m_animator->RegisterAnimation((int)PigState::CHASE, DIR_RIGHT, runSidePath, 222, 200, 4, 33, objData->pivotX, objData->pivotY, true, 0.03f);
 
 			std::wstring baseAttack = base + L"Attack\\";
-			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_DOWN, baseAttack + L"down_pigman_atk_down.png", 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.025f);
-			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_UP, baseAttack + L"up_pigman_atk_up.png", 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.025f);
+			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_DOWN, baseAttack + L"down_pigman_atk_down.png", 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.03f);
+			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_UP, baseAttack + L"up_pigman_atk_up.png", 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.03f);
 			std::wstring atkSidePath = baseAttack + L"side_pigman_atk_side.png";
-			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_LEFT, atkSidePath, 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.025f, false);
-			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_RIGHT, atkSidePath, 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.025f);
-
+			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_LEFT, atkSidePath, 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.03f, false);
+			m_animator->RegisterAnimation((int)PigState::ATTACK, DIR_RIGHT, atkSidePath, 0, 0, 4, 66, objData->pivotX, objData->pivotY, false, 0.03f);
 			for (int dir = DIR_UP; dir <= DIR_RIGHT; dir++) {
 				AnimationClip* clip = m_animator->GetAnimationClip((int)PigState::ATTACK, (Direction)dir);
 				if (clip) {
@@ -139,12 +139,6 @@ void Pig::UpdateMovement(float deltaTime)
 
 int Pig::UpdateIdle(float deltaTime)
 {
-	// IDLE 상태에서도 플레이어를 바라보게 업데이트
-	if (m_attackTarget && m_attackTarget->IsEnabled()) {
-		Direction newDir = (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) ? (m_dirToPlayer.X > 0.0f ? DIR_RIGHT : DIR_LEFT) : (m_dirToPlayer.Y > 0.0f ? DIR_DOWN : DIR_UP);
-		transform->SetDirection(newDir);
-	}
-
 	return Monster::UpdateIdle(deltaTime);
 }
 
@@ -163,9 +157,11 @@ void Pig::Damaged(int damage)
 	Monster::Damaged(damage);
 	if (!IsDead())
 	{
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PigSound/Pig_hurt.wav");
+
 		if (m_state == (int)PigState::HIT)
 		{
-			m_animator->SetState((int)PigState::HIT, transform->GetDirection(), true);
+			m_animator->SetState((int)PigState::HIT, m_transform->GetDirection(), true);
 		}
 		else {
 			ChangeState((int)PigState::HIT);
@@ -174,7 +170,12 @@ void Pig::Damaged(int damage)
 	}
 }
 
-void Pig::OnAttackHit() { if (m_state == (int)PigState::ATTACK) ProcessAttackHit(m_damage); }
+void Pig::OnAttackHit() { 
+	if (m_state == (int)PigState::ATTACK) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PigSound/Pig_Attack.wav");
+		ProcessAttackHit(m_damage);
+	}
+}
 
 void Pig::OnAttackEnd()
 {
@@ -197,6 +198,8 @@ void Pig::OnHitEnd()
 }
 
 void Pig::Die() {
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/PigSound/Pig_death.wav");
+
 	// 0: MEAT, 1: SMALL_MEAT
 	int r = rand() % 2;
 	SetDropItem(r == 0 ? GOID_ITEM_MEAT : GOID_ITEM_SMALL_MEAT, 1);

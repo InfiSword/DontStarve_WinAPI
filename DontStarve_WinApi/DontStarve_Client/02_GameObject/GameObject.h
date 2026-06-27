@@ -2,11 +2,8 @@
 
 #include "Object.h"
 #include "Component/Component.h"
-#include <utility>
-#include <type_traits>
-#include <cstdint>
 
-class Transform;
+
 class SpriteRenderer;
 class Collider;
 
@@ -32,15 +29,13 @@ protected:
 	std::wstring m_name;					// 해당 게임 오브젝트 이름
 	bool m_isInteractive;			// 상호작용 가능 여부
 	GameObjectType m_type;					// 게임 오브젝트 타입
-    // 컴포넌트 관리					
-    std::vector<Component*> m_components;
+	// 컴포넌트 관리					
+	std::vector<std::unique_ptr<Component>> m_components;
 
-	// 메인(몸통) 콜라이더 캐싱 (매 프레임 GetComponents 방지)
-	Collider* m_mainCollider = nullptr;
-
-	// 캐싱된 바운딩 박스 (성능 최적화용)
+	// 캐싱된 바운딩 박스 
 	Gdiplus::RectF m_cachedBounds = { 0, 0, 0, 0 };
 	bool m_isBoundsDirty = true;
+	bool m_isGridDirty = true; // 공간 분할 그리드 갱신용 플래그
 
 	// 공간 분할용 그리드 좌표
 	int m_gridCellX = -1;
@@ -53,16 +48,16 @@ private:
 	std::vector<CoroutineHandle> m_coroutines;
 
 public:
-    
-	GameObject(GameObjectID id, 
-		const std::wstring& resourcePath = L"", const std::wstring& imageName = L"", 
-		bool isActive = true, bool isInteractive = false);
- 
+
+	GameObject(GameObjectID id, float x = 0, float y = 0, float pivotX = 0.5f, float pivotY = 0.5f,
+		Direction dir = DIR_DOWN, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"",
+		ColliderType colliderType = COLLIDER_BOX, bool isActive = true, bool isInteractive = true);
+
 	virtual ~GameObject() override;
 
 	virtual void Init();
 	virtual void LateInit();
-	virtual void Update(float deltaTime); 
+	virtual void Update(float deltaTime);
 	virtual void LateUpdate();
 	virtual void Render();
 	virtual void Release();
@@ -70,9 +65,6 @@ public:
 	// 삭제 관련
 	bool IsDead() const { return m_isDead; }
 	void SetDead(bool dead) { m_isDead = dead; }
-
-	// UI 여부 반환 (dynamic_cast 대체용)
-	virtual bool IsUI() const { return false; }
 
 	// Entity 여부 반환
 	virtual bool IsEntity() const { return false; }
@@ -84,9 +76,8 @@ public:
 	uint32_t GetLastSpatialQueryStamp() const { return m_lastSpatialQueryStamp; }
 	void SetLastSpatialQueryStamp(uint32_t stamp) { m_lastSpatialQueryStamp = stamp; }
 
-	// 메인 콜라이더 접근자
-	virtual Collider* GetMainCollider() const { return m_mainCollider; }
-	void SetMainCollider(Collider* col) { if(!m_mainCollider) m_mainCollider = col; }
+	virtual Collider* GetMainCollider() const { return nullptr; }
+	virtual void SetMainCollider(Collider* col) {};
 
 	// 코루틴 시스템
 	void StartCoroutine(CoroutineHandle coroutine);
@@ -103,43 +94,30 @@ public:
 	virtual void SetInteractive(bool interactive) { m_isInteractive = interactive; }
 
 	// 바운딩 박스 관련
-	Gdiplus::RectF GetBounds();
-	void SetBoundsDirty() { m_isBoundsDirty = true; }
+	virtual Gdiplus::RectF GetBounds();
+	void SetSpatialDirty() { m_isBoundsDirty = true; m_isGridDirty = true; }
 
-	// 디버그/시각화 오버레이 
-	static bool g_bRenderDebugOverlay;	
+	static bool g_bRenderDebugOverlay;
 
-    template <typename T, typename... Args>
-    T* AddComponent(Args&&... args) {
-        T* newComponent = new T(this, std::forward<Args>(args)...);
-        m_components.push_back(newComponent);
-
-        newComponent->Init();
-        return newComponent;
-    }
-
-    template <typename T>
-    T* GetComponent() const 
-	{
-        for (Component* component : m_components) {
-            if (!component) continue; 
-            T* target = dynamic_cast<T*>(component);
-            if (target) {
-                return target;
-            }
-        }
-        return nullptr;
-    }
+	template <typename T, typename... Args>
+	T* AddComponent(Args&&... args) {
+		auto newComponent = std::make_unique<T>(this, std::forward<Args>(args)...);
+		T* componentPtr = newComponent.get();
+		m_components.push_back(std::move(newComponent));
+		return componentPtr;
+	}
 
 	template <typename T>
-	std::vector<T*> GetComponents() const {
-		std::vector<T*> result;
-		for (Component* component : m_components) {
+	T* GetComponent() const
+	{
+		for (const auto& component : m_components) {
 			if (!component) continue;
-			T* target = dynamic_cast<T*>(component);
-			if (target) result.push_back(target);
+			T* target = dynamic_cast<T*>(component.get());
+			if (target) {
+				return target;
+			}
 		}
-		return result;
+		return nullptr;
 	}
 
 	// inline 함수

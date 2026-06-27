@@ -60,34 +60,11 @@ bool EditorMapFileIO::SaveMap(MapEditor* pMain, const WCHAR* filename) {
 	return true;
 }
 
-static bool GetProjectRoot(WCHAR* outPath, DWORD pathSize) {
-	WCHAR modulePath[MAX_PATH];
-	GetModuleFileNameW(NULL, modulePath, MAX_PATH);
-	WCHAR projectRoot[MAX_PATH] = { 0 };
-	WCHAR* winApiPos = wcsstr(modulePath, L"DontStarve_WinApi");
-	if (winApiPos) {
-		size_t len = wcslen(L"DontStarve_WinApi");
-		size_t copyLen = winApiPos - modulePath + len;
-		if (copyLen < MAX_PATH) {
-			wcsncpy_s(projectRoot, MAX_PATH, modulePath, copyLen);
-			projectRoot[copyLen] = L'\0';
-		} else wcscpy_s(projectRoot, MAX_PATH, modulePath);
-	} else {
-		wcscpy_s(projectRoot, MAX_PATH, modulePath);
-		WCHAR* lastSlash = wcsrchr(projectRoot, L'\\');
-		if (lastSlash) { *lastSlash = L'\0'; lastSlash = wcsrchr(projectRoot, L'\\'); if (lastSlash) *lastSlash = L'\0'; }
-	}
-	wcscpy_s(outPath, pathSize, projectRoot);
-	return true;
-}
-
 static bool GetGameDataDialogPath(WCHAR* outPath, DWORD pathSize) {
-	WCHAR projectRoot[MAX_PATH];
-	GetProjectRoot(projectRoot, MAX_PATH);
-	swprintf_s(outPath, pathSize, L"%s\\GameData", projectRoot);
+	wcscpy_s(outPath, pathSize, L"GameData");
 	DWORD attrs = GetFileAttributesW(outPath);
 	if (attrs == INVALID_FILE_ATTRIBUTES || !(attrs & FILE_ATTRIBUTE_DIRECTORY))
-		wcscpy_s(outPath, pathSize, projectRoot);
+		wcscpy_s(outPath, pathSize, L".");
 	return true;
 }
 
@@ -242,10 +219,15 @@ static LRESULT CALLBACK MapSizeDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 		p = (MapSizeDlgParam*)cs->lpCreateParams;
 		SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)p);
 		HINSTANCE hInst = (HINSTANCE)GetWindowLongPtrW(hWnd, GWLP_HINSTANCE);
-		CreateWindowW(L"Static", L"Width (1-50):", WS_CHILD | WS_VISIBLE, 10, 12, 72, 18, hWnd, nullptr, hInst, nullptr);
-		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 88, 10, 50, 18, hWnd, (HMENU)(UINT_PTR)p->idWidth, hInst, nullptr);
-		CreateWindowW(L"Static", L"Height (1-50):", WS_CHILD | WS_VISIBLE, 10, 38, 72, 18, hWnd, nullptr, hInst, nullptr);
-		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 88, 36, 50, 18, hWnd, (HMENU)(UINT_PTR)p->idHeight, hInst, nullptr);
+
+		wchar_t labelW[32], labelH[32];
+		swprintf_s(labelW, L"Width (1-%d):", MAP_WIDTH);
+		swprintf_s(labelH, L"Height (1-%d):", MAP_HEIGHT);
+
+		CreateWindowW(L"Static", labelW, WS_CHILD | WS_VISIBLE, 10, 12, 80, 18, hWnd, nullptr, hInst, nullptr);
+		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 95, 10, 50, 18, hWnd, (HMENU)(UINT_PTR)p->idWidth, hInst, nullptr);
+		CreateWindowW(L"Static", labelH, WS_CHILD | WS_VISIBLE, 10, 38, 80, 18, hWnd, nullptr, hInst, nullptr);
+		CreateWindowExW(WS_EX_CLIENTEDGE, L"Edit", nullptr, WS_CHILD | WS_VISIBLE | ES_NUMBER, 95, 36, 50, 18, hWnd, (HMENU)(UINT_PTR)p->idHeight, hInst, nullptr);
 		CreateWindowW(L"Button", L"OK", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 45, 62, 50, 22, hWnd, (HMENU)IDOK, hInst, nullptr);
 		CreateWindowW(L"Button", L"Cancel", WS_CHILD | WS_VISIBLE, 105, 62, 50, 22, hWnd, (HMENU)IDCANCEL, hInst, nullptr);
 		WCHAR buf[16];

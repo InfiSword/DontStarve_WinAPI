@@ -1,5 +1,6 @@
 #include "99_Default/pch.h"
 #include "ObjectManager.h"
+#include "../../99_Default/ClientOptimatzationOption.h"
 #include "../ResourceManager/ResourceManager.h"
 #include "../DataManager/DataManager.h"
 #include "../CameraManager/CameraManager.h"
@@ -7,6 +8,7 @@
 #include "../../02_GameObject/GameObject.h"
 #include "../../02_GameObject/Entity/Player/Player.h"
 #include "../../02_GameObject/Item/Item.h"
+#include "../../02_GameObject/Item/Tool/Tool.h"
 #include "../../02_GameObject/Entity/Enviorment/Tree.h"
 #include "../../02_GameObject/Entity/Enviorment/Rock.h"
 #include "../../02_GameObject/Entity/Enviorment/Grass.h"
@@ -46,30 +48,13 @@ ObjectManager::~ObjectManager()
 void ObjectManager::Init()
 {
 	ClearAllObjects();
-	InitializeFactories();
-}
-
-void ObjectManager::ForEachObject(std::function<void(GameObject*)> fn)
-{
-	for (GameObject* obj : m_worldObjects)
-		if (obj) fn(obj);
-	for (GameObject* obj : m_uiObjects)
-		if (obj) fn(obj);
-	for (GameObject* obj : m_inactiveObjects)
-		if (obj) fn(obj);
-}
-
-void ObjectManager::ForEachEnabledObject(std::function<void(GameObject*)> fn)
-{
-	for (GameObject* obj : m_worldObjects)
-		if (obj && obj->IsEnabled()) fn(obj);
-	for (GameObject* obj : m_uiObjects)
-		if (obj && obj->IsEnabled()) fn(obj);
 }
 
 void ObjectManager::LateInit()
 {
-	ForEachObject([](GameObject* obj) { obj->LateInit(); });
+	for (GameObject* obj : m_worldObjects) if (obj) obj->LateInit();
+	for (GameObject* obj : m_uiObjects) if (obj) obj->LateInit();
+	for (GameObject* obj : m_inactiveObjects) if (obj) obj->LateInit();
 }
 
 void ObjectManager::Update(float deltaTime)
@@ -86,7 +71,7 @@ void ObjectManager::Update(float deltaTime)
 			obj->Update(deltaTime);
 		}
 	}
-	for(GameObject* obj : m_inactiveObjects) {
+	for (GameObject* obj : m_inactiveObjects) {
 		if (obj) {
 			obj->Update(deltaTime);
 		}
@@ -96,20 +81,21 @@ void ObjectManager::Update(float deltaTime)
 
 void ObjectManager::LateUpdate()
 {
-	ForEachEnabledObject([](GameObject* obj) { obj->LateUpdate(); });
+	for (GameObject* obj : m_worldObjects) if (obj && obj->IsEnabled()) obj->LateUpdate();
+	for (GameObject* obj : m_uiObjects) if (obj && obj->IsEnabled()) obj->LateUpdate();
 
 	ProcessPendingDeletions();
 }
 
 void ObjectManager::Render()
 {
-	// 1. 월드 렌더의 최종 가시 컬링/제출은 CameraManager 단일 경로에서 처리한다.
+	// 월드 렌더의 최종 가시 컬링/제출은 CameraManager 단일 경로에서 처리한다.
 	CameraManager* cameraManager = CameraManager::GetInstance();
 	if (cameraManager) {
 		cameraManager->RenderVisibleGameObjects();
 	}
 
-	// 2. UI 렌더링
+	// UI 렌더링
 	for (GameObject* obj : m_uiObjects) {
 		if (obj->IsEnabled()) {
 			obj->Render();
@@ -130,20 +116,21 @@ void ObjectManager::AddGameObject(GameObject* pObj)
 {
 	if (!pObj) return;
 
-	// 중복 추가 체크
 	if (std::find(m_worldObjects.begin(), m_worldObjects.end(), pObj) != m_worldObjects.end()) return;
 	if (std::find(m_uiObjects.begin(), m_uiObjects.end(), pObj) != m_uiObjects.end()) return;
 	if (std::find(m_inactiveObjects.begin(), m_inactiveObjects.end(), pObj) != m_inactiveObjects.end()) return;
 
-	auto& targetList = pObj->IsUI() ? m_uiObjects : m_worldObjects;
+	auto& targetList = (pObj->GetType() == GO_TYPE_UI) ? m_uiObjects : m_worldObjects;
 	targetList.push_back(pObj);
 
-	// UI는 스크린 공간이므로 카메라 가시 목록에 넣지 않음
-	if (!pObj->IsUI()) {
-		// 플레이어 캐싱
-		if (pObj->GetType() == GO_TYPE_PLAYER) {
-			m_cachedPlayer = static_cast<Player*>(pObj);
-		}
+	// 월드 객체인 경우 그리드에 추가
+	if (pObj->GetType() != GO_TYPE_UI) {
+		AddToGrid(pObj);
+	}
+
+	// 플레이어 캐싱
+	if (pObj->GetType() == GO_TYPE_PLAYER) {
+		m_cachedPlayer = static_cast<Player*>(pObj);
 	}
 }
 
@@ -151,7 +138,7 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 {
 	if (!pObj) return;
 
-	// 현재 매니저가 소유 중인 객체가 아니면(씬 정리 중 이미 분리된 포인터 등) 무시
+	// 현재 매니저가 소유 중인 객체가 아니면 무시
 	if (!IsManagedObject(pObj)) return;
 
 	if (std::find(m_pendingDeletions.begin(), m_pendingDeletions.end(), pObj) != m_pendingDeletions.end()) return;
@@ -160,41 +147,12 @@ void ObjectManager::RemoveGameObject(GameObject* pObj)
 	pObj->SetDead(true);
 	pObj->SetActive(false);
 
+	// 그리드에서 즉시 제거
+	if (pObj->GetType() != GO_TYPE_UI) {
+		RemoveFromGrid(pObj);
+	}
+
 	m_pendingDeletions.push_back(pObj);
-}
-
-void ObjectManager::UnregisterFromWorld(GameObject* pObj)
-{
-	if (!pObj || pObj->IsUI()) return;
-
-	auto it = std::find(m_worldObjects.begin(), m_worldObjects.end(), pObj);
-	if (it != m_worldObjects.end()) {
-		if (pObj == m_cachedPlayer) m_cachedPlayer = nullptr;
-
-		*it = m_worldObjects.back();
-		m_worldObjects.pop_back();
-
-		m_inactiveObjects.push_back(pObj);
-		pObj->SetActive(false);
-	}
-}
-
-void ObjectManager::RegisterToWorld(GameObject* pObj)
-{
-	if (!pObj || pObj->IsUI()) return;
-
-	auto it = std::find(m_inactiveObjects.begin(), m_inactiveObjects.end(), pObj);
-	if (it != m_inactiveObjects.end()) {
-		*it = m_inactiveObjects.back();
-		m_inactiveObjects.pop_back();
-
-		m_worldObjects.push_back(pObj);
-		pObj->SetActive(true);
-
-		if (pObj->GetType() == GO_TYPE_PLAYER) {
-			m_cachedPlayer = static_cast<Player*>(pObj);
-		}
-	}
 }
 
 bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
@@ -218,34 +176,112 @@ void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<G
 	outObjects.clear();
 	if (m_worldObjects.empty()) return;
 
-	// 음수 폭/높이를 허용하는 입력을 정규화해서 교차 판정을 안정화한다.
-	const float rectRight = rect.X + rect.Width;
-	const float rectBottom = rect.Y + rect.Height;
-	const float normLeft = (std::min)(rect.X, rectRight);
-	const float normTop = (std::min)(rect.Y, rectBottom);
-	const float normRight = (std::max)(rect.X, rectRight);
-	const float normBottom = (std::max)(rect.Y, rectBottom);
-	if (normRight <= normLeft || normBottom <= normTop) return;
-
-	const Gdiplus::RectF normalizedRect(normLeft, normTop, normRight - normLeft, normBottom - normTop);
-
-	const float aMinX = normalizedRect.X;
-	const float aMinY = normalizedRect.Y;
-	const float aMaxX = normalizedRect.X + normalizedRect.Width;
-	const float aMaxY = normalizedRect.Y + normalizedRect.Height;
-
-	for (GameObject* obj : m_worldObjects) {
-		if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
-
-		const Gdiplus::RectF bounds = obj->GetBounds();
-		const float bMinX = bounds.X;
-		const float bMinY = bounds.Y;
-		const float bMaxX = bounds.X + bounds.Width;
-		const float bMaxY = bounds.Y + bounds.Height;
-
-		if ((aMinX < bMaxX) && (aMaxX > bMinX) && (aMinY < bMaxY) && (aMaxY > bMinY)) {
-			outObjects.push_back(obj);
+#ifdef _DEBUG
+	if (!g_bEnableSpatialPartitioning) {
+		// [비최적화] 정밀 브루트포스 가시성 체크
+		CameraManager* cameraManager = CameraManager::GetInstance();
+		for (GameObject* obj : m_worldObjects) {
+			if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
+			
+			if (cameraManager->IsObjectInViewport(obj)) {
+				outObjects.push_back(obj);
+			}
 		}
+		return;
+	}
+#endif
+
+	// 그리드 기반 쿼리 수행
+	int startX = (int)floor(rect.X / GRID_CELL_SIZE);
+	int startY = (int)floor(rect.Y / GRID_CELL_SIZE);
+	int endX = (int)ceil((rect.X + rect.Width) / GRID_CELL_SIZE) - 1;
+	int endY = (int)ceil((rect.Y + rect.Height) / GRID_CELL_SIZE) - 1;
+
+	// 인덱스 범위 클램핑
+	startX = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, startX));
+	startY = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, startY));
+	endX = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, endX));
+	endY = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, endY));
+
+	// 중복 방지용 스탬프 갱신
+	if (++m_spatialQueryStamp == 0) m_spatialQueryStamp = 1;
+
+	for (int y = startY; y <= endY; ++y) {
+		for (int x = startX; x <= endX; ++x) {
+			for (auto* obj : m_spatialGrid[x][y]) {
+				// 이미 확인한 객체는 건너뜀
+				if (obj->GetLastSpatialQueryStamp() == m_spatialQueryStamp) continue;
+				obj->SetLastSpatialQueryStamp(m_spatialQueryStamp);
+
+				if (!obj->IsEnabled() || obj->IsDead()) continue;
+
+				// 최종 AABB 검사
+				const Gdiplus::RectF bounds = obj->GetBounds();
+				if (rect.X < bounds.X + bounds.Width && rect.X + rect.Width > bounds.X &&
+					rect.Y < bounds.Y + bounds.Height && rect.Y + rect.Height > bounds.Y) {
+					outObjects.push_back(obj);
+				}
+			}
+		}
+	}
+}
+
+void ObjectManager::UpdateObjectGridCell(GameObject* pObj)
+{
+	if (!pObj || pObj->GetType() == GO_TYPE_UI) return;
+
+	// 기존 위치 저장
+	int oldX = pObj->GetGridCellX();
+	int oldY = pObj->GetGridCellY();
+
+	// 새 위치 계산 (중심점 기준)
+	Gdiplus::RectF bounds = pObj->GetBounds();
+	int newX = (int)floor((bounds.X + bounds.Width * 0.5f) / GRID_CELL_SIZE);
+	int newY = (int)floor((bounds.Y + bounds.Height * 0.5f) / GRID_CELL_SIZE);
+
+	// 인덱스 범위 제한
+	newX = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, newX));
+	newY = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, newY));
+
+	// 셀이 변경된 경우만 갱신
+	if (oldX == newX && oldY == newY) return;
+
+	// 이전 셀에서 제거
+	if (oldX >= 0 && oldX < GRID_WIDTH && oldY >= 0 && oldY < GRID_HEIGHT) {
+		std::vector<GameObject*>& cell = m_spatialGrid[oldX][oldY];
+		cell.erase(std::remove(cell.begin(), cell.end(), pObj), cell.end());
+	}
+
+	// 새 셀에 추가
+	m_spatialGrid[newX][newY].push_back(pObj);
+	pObj->SetGridCell(newX, newY);
+}
+
+void ObjectManager::AddToGrid(GameObject* pObj)
+{
+	if (!pObj || pObj->GetType() == GO_TYPE_UI) return;
+
+	Gdiplus::RectF bounds = pObj->GetBounds();
+	int x = (int)floor((bounds.X + bounds.Width * 0.5f) / GRID_CELL_SIZE);
+	int y = (int)floor((bounds.Y + bounds.Height * 0.5f) / GRID_CELL_SIZE);
+
+	x = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, x));
+	y = (std::max<int>)(0, (std::min<int>)(GRID_HEIGHT - 1, y));
+
+	m_spatialGrid[x][y].push_back(pObj);
+	pObj->SetGridCell(x, y);
+}
+
+void ObjectManager::RemoveFromGrid(GameObject* pObj)
+{
+	if (!pObj) return;
+	int x = pObj->GetGridCellX();
+	int y = pObj->GetGridCellY();
+
+	if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+		std::vector<GameObject*>& cell = m_spatialGrid[x][y];
+		cell.erase(std::remove(cell.begin(), cell.end(), pObj), cell.end());
+		pObj->SetGridCell(-1, -1);
 	}
 }
 
@@ -269,7 +305,7 @@ void ObjectManager::ProcessPendingDeletions()
 {
 	if (m_pendingDeletions.empty()) return;
 
-	// 1. 월드 오브젝트 처리 (역방향 루프)
+	// 월드 오브젝트 처리
 	for (int i = (int)m_worldObjects.size() - 1; i >= 0; --i) {
 		GameObject* obj = m_worldObjects[i];
 		if (obj->IsDead()) {
@@ -282,7 +318,7 @@ void ObjectManager::ProcessPendingDeletions()
 		}
 	}
 
-	// 2. UI 오브젝트 처리 (역방향 루프)
+	// UI 오브젝트 처리 
 	for (int i = (int)m_uiObjects.size() - 1; i >= 0; --i) {
 		GameObject* obj = m_uiObjects[i];
 		if (obj->IsDead()) {
@@ -309,7 +345,6 @@ void ObjectManager::ClearAllObjects()
 
 	m_cachedPlayer = nullptr;
 
-	// 먼저 매니저 컨테이너를 비워서 Release 중 재귀적인 RemoveGameObject 호출을 무해화
 	m_worldObjects.clear();
 	m_worldObjects.shrink_to_fit();
 	m_uiObjects.clear();
@@ -318,6 +353,13 @@ void ObjectManager::ClearAllObjects()
 	m_inactiveObjects.shrink_to_fit();
 	m_pendingDeletions.clear();
 	m_pendingDeletions.shrink_to_fit();
+
+	for (int y = 0; y < GRID_HEIGHT; ++y) {
+		for (int x = 0; x < GRID_WIDTH; ++x) {
+			m_spatialGrid[x][y].clear();
+		}
+	}
+	m_spatialQueryStamp = 0;
 
 	for (GameObject* obj : allObjects) {
 		if (!obj) continue;
@@ -335,186 +377,60 @@ bool ObjectManager::IsManagedObject(const GameObject* pObj) const
 	return false;
 }
 
-
-void ObjectManager::InitializeFactories()
+GameObject* ObjectManager::CreateObject(GameObjectID id, float x, float y)
 {
-	// 동일 팩토리 함수를 여러 ID에 등록하는 헬퍼
-	auto registerEntityIds = [this](const std::vector<GameObjectID>& ids, EntityFactoryFunc fn) {
-		for (GameObjectID id : ids) m_entityFactories[id] = fn;
-		};
+	switch (id)
+	{
+	case GOID_NORMAL_GRASS: return CreateObject<Grass>(id, x, y);
+	case GOID_NORMAL_TREE_SHORT:
+	case GOID_NORMAL_TREE_NORMAL:
+	case GOID_NORMAL_TREE_TALL: return CreateObject<Tree>(id, x, y);
+	case GOID_NORMAL_ROCK:
+	case GOID_GOLD_ROCK: return CreateObject<Rock>(id, x, y);
+	case GOID_NORMAL_SAPLING: return CreateObject<Sapling>(id, x, y);
+	case GOID_BERRY_TREE: return CreateObject<BerryBush>(id, x, y);
 
-	// 플레이어 (동일 람다)
-	registerEntityIds({ GOID_PLAYER_WILSON, GOID_PLAYER_WILLOW, GOID_PLAYER_WOLFGANG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		return new Player(x, y, id, data->baseDir, data->imageName);
-		});
+	case GOID_MONSTER_PIG: return CreateObject<Pig>(id, x, y);
+	case GOID_MONSTER_SPIDER:
+	case GOID_MONSTER_WARRIOR_SPIDER: return CreateObject<Spider>(id, x, y);
+	case GOID_MONSTER_QUEEN_SPIDER: return CreateObject<Boss_SpiderQueen>(id, x, y);
+	case GOID_MONSTER_HOUNDDOG: return CreateObject<Hound>(id, x, y);
+	case GOID_MONSTER_REDHOUNDDOG: return CreateObject<Boss_RedHound>(id, x, y);
+	case GOID_MONSTER_ICEHOUNDDOG: return CreateObject<Boss_IceHound>(id, x, y);
 
-	// 나무 
-	registerEntityIds({ GOID_NORMAL_TREE_SHORT, GOID_NORMAL_TREE_NORMAL, GOID_NORMAL_TREE_TALL }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Tree(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-		});
+	case GOID_BUILDING_PIGHOUSE: return CreateObject<PigHouse>(id, x, y);
+	case GOID_BUILDING_SPIDER_SMALLEGG:
+	case GOID_BUILDING_SPIDER_NORMALEGG:
+	case GOID_BUILDING_SPIDER_TALLEGG:
+	case GOID_BUILDING_SPIDER_SACEGG: return CreateObject<SpiderEgg>(id, x, y);
 
-	// 돌 
-	registerEntityIds({ GOID_NORMAL_ROCK, GOID_GOLD_ROCK }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Rock(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-		});
+	case GOID_PLAYER_WILSON:
+	case GOID_PLAYER_WILLOW:
+	case GOID_PLAYER_WOLFGANG: return CreateObject<Player>(id, x, y);
+	}
 
-	// 환경 오브젝트 
-	m_entityFactories[GOID_NORMAL_GRASS] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Grass(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-		};
-	m_entityFactories[GOID_NORMAL_SAPLING] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Sapling(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-		};
-	m_entityFactories[GOID_BERRY_TREE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new BerryBush(id, x, y, data->pivotX, data->pivotY, data->baseDir, data->imageName, colliderType);
-		};
+	if (id >= 301 && id <= 399) return CreateObject<Item>(id, x, y);
+	if (id >= 401 && id <= 499) return CreateObject<Tool>(id, x, y);
 
-	// 몬스터 
-	m_entityFactories[GOID_MONSTER_PIG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Pig(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-		};
-	registerEntityIds({ GOID_MONSTER_SPIDER, GOID_MONSTER_WARRIOR_SPIDER }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Spider(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-		});
-	m_entityFactories[GOID_MONSTER_QUEEN_SPIDER] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Boss_SpiderQueen(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-		};
-	m_entityFactories[GOID_MONSTER_HOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Hound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-		};
-	m_entityFactories[GOID_MONSTER_REDHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Boss_RedHound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-		};
-	m_entityFactories[GOID_MONSTER_ICEHOUNDDOG] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Entity* {
-		ColliderType colliderType = (data && data->hasCollider) ? data->colliderType : COLLIDER_BOX;
-		return new Boss_IceHound(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName, colliderType);
-		};
-
-	// 건물 
-	m_buildingFactories[GOID_BUILDING_PIGHOUSE] = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Building* {
-		return new PigHouse(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
-		};
-	auto registerBuildingIds = [this](const std::vector<GameObjectID>& ids, BuildingFactoryFunc fn) {
-		for (GameObjectID id : ids) m_buildingFactories[id] = fn;
-		};
-	registerBuildingIds({ GOID_BUILDING_SPIDER_SMALLEGG, GOID_BUILDING_SPIDER_NORMALEGG, GOID_BUILDING_SPIDER_TALLEGG, GOID_BUILDING_SPIDER_SACEGG }, [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Building* {
-		return new SpiderEgg(id, x, y, data->pivotX, data->pivotY, DIR_DOWN, data->baseDir, data->imageName);
-		});
-
-	// 아이템
-	auto itemFactory = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
-		auto* info = DataTable::GetItemInfo(id);
-		const wchar_t* name = info ? info->name : L"아이템";
-		const wchar_t* desc = info ? info->desc : L"";
-		return new Item(id, name, desc, data->baseDir, data->imageName, x, y, data->pivotX, data->pivotY);
-		};
-
-	auto toolFactory = [](GameObjectID id, float x, float y, const ResourcePathUtils::ObjectResourceDef* data) -> Item* {
-		auto* info = DataTable::GetToolInfo(id);
-		if (!info) return nullptr;
-		return new Tool(id, info->name, info->desc, data->baseDir, data->imageName, info->damage, info->attackRange);
-		};
-
-	auto registerItemIds = [this](const std::vector<GameObjectID>& ids, ItemFactoryFunc fn) {
-		for (GameObjectID id : ids) m_itemFactories[id] = fn;
-		};
-
-	registerItemIds({
-		GOID_ITEM_NORMAL_TREE_LOG, GOID_ITEM_NORMAL_TWIGS, GOID_ITEM_NORMAL_ROCK,
-		GOID_ITEM_CUT_NORMAL_GRASS, GOID_ITEM_GOLD_ROCK, GOID_ITEM_ROPE,
-		GOID_ITEM_CUT_NORMAL_STONE, GOID_ITEM_MEAT, GOID_ITEM_BERRY,
-		GOID_ITEM_WOOD_2, GOID_ITEM_SMALL_MEAT, GOID_ITEM_MONSTER_MEAT,
-		GOID_ITEM_COOKED_MONSTER_MEAT, GOID_ITEM_COOKED_SMALL_MEAT, GOID_ITEM_COOKED_MEAT
-		}, itemFactory);
-
-	registerItemIds({
-		GOID_TOOL_GOLDEN_PICKAXE, GOID_TOOL_HAM_BAT, GOID_TOOL_PICKAXE,
-		GOID_TOOL_SPEAR, GOID_TOOL_SWAP_SPEAR, GOID_TOOL_TORCH,
-		GOID_TOOL_RED_AXE, GOID_TOOL_SWAP_AXE, GOID_TOOL_HALBERD,
-		GOID_TOOL_HAMMER
-		}, toolFactory);
+	return CreateObject<GameObject>(id, x, y);
 }
 
-// ========================================
-// 팩토리 패턴: 게임오브젝트 생성 및 관리 (모든 GameObject와 Item 통합)
-// ========================================
-template<typename T>
-T* ObjectManager::PostCreate(T* pObj, const ResourcePathUtils::ObjectResourceDef* data)
+void ObjectManager::ApplyObjectData(GameObject* pObj, const ResourcePathUtils::ObjectResourceDef* data)
 {
-	if (!pObj) return nullptr;
+	if (!pObj || !data) return;
 
-	// 오브젝트 데이터의 콜라이더 정보를 컴포넌트로 첨부 (월드 배치 오브젝트만)
-	if (data && data->hasCollider) {
-		if (data->colliderType == COLLIDER_BOX)
-		{
+	if (data->hasCollider) {
+		if (data->colliderType == COLLIDER_BOX) {
 			BoxCollider* col = pObj->AddComponent<BoxCollider>();
 			pObj->SetMainCollider(col);
-			col->SetObjectCollider(
-				data->colliderOffsetX,
-				data->colliderOffsetY,
-				data->colliderWidth,
-				data->colliderHeight
-			);
+			col->SetObjectCollider(data->colliderOffsetX, data->colliderOffsetY, data->colliderWidth, data->colliderHeight);
 		}
-		else if (data->colliderType == COLLIDER_CIRCLE)
-		{
+		else if (data->colliderType == COLLIDER_CIRCLE) {
 			CircleCollider* col = pObj->AddComponent<CircleCollider>();
-
 			pObj->SetMainCollider(col);
-			col->SetObjectCollider(
-				data->colliderCenterX,
-				data->colliderCenterY,
-				data->colliderRadius
-			);
+			col->SetObjectCollider(data->colliderCenterX, data->colliderCenterY, data->colliderRadius);
 		}
 	}
-	AddGameObject(pObj);
-	pObj->Init();
-
-	return pObj;
-}
-
-Entity* ObjectManager::CreateEntity(GameObjectID id, float x, float y)
-{
-	const ResourcePathUtils::ObjectResourceDef* data = DataManager::GetInstance()->GetObjectResourceInfo(id);
-	auto it = m_entityFactories.find(id);
-	if (it != m_entityFactories.end()) {
-		return PostCreate(it->second(id, x, y, data), data);
-	}
-	OutputDebugStringW((L"ObjectManager: 알 수 없는 Entity ID - ID: " + std::to_wstring(id) + L"\n").c_str());
-	return nullptr;
-}
-
-Item* ObjectManager::CreateItem(GameObjectID id, float x, float y)
-{
-	const ResourcePathUtils::ObjectResourceDef* data = DataManager::GetInstance()->GetObjectResourceInfo(id);
-	auto it = m_itemFactories.find(id);
-	if (it != m_itemFactories.end()) {
-		return PostCreate(it->second(id, x, y, data), data);
-	}
-	OutputDebugStringW((L"ObjectManager: 알 수 없는 Item ID - ID: " + std::to_wstring(id) + L"\n").c_str());
-	return nullptr;
-}
-
-Building* ObjectManager::CreateBuilding(GameObjectID id, float x, float y)
-{
-	const ResourcePathUtils::ObjectResourceDef* data = DataManager::GetInstance()->GetObjectResourceInfo(id);
-	auto it = m_buildingFactories.find(id);
-	if (it != m_buildingFactories.end()) {
-		return PostCreate(it->second(id, x, y, data), data);
-	}
-	OutputDebugStringW((L"ObjectManager: 알 수 없는 Building ID - ID: " + std::to_wstring(id) + L"\n").c_str());
-	return nullptr;
 }
 
 UIButton* ObjectManager::CreateButton(GameObjectID id, float width, float height, const std::wstring& normalPath, const std::wstring& hoverPath, float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, float x, float y, std::function<void()> onClick)

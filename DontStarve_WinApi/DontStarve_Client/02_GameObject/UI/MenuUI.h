@@ -40,7 +40,6 @@ public:
     void TryChallengeBoss();
 
 private:
-    // Lifecycle & Managed Objects
     template<typename T>
     T* AddManaged(T* pObj) {
         if (pObj) {

@@ -30,7 +30,9 @@ enum Debuff
 class Player : public Combatant
 {
 public:
-	Player(float x, float y, GameObjectID characterID, const std::wstring& resourcePath = L"", const std::wstring& imageName = L"");
+	Player(GameObjectID id, float x, float y, float pivotX, float pivotY, 
+		Direction dir, const std::wstring& resourcePath = L"", 
+		const std::wstring& imageName = L"", ColliderType colliderType = COLLIDER_BOX);
 	virtual ~Player() override;
 
 	virtual void Init() override;
@@ -73,7 +75,7 @@ private:
 
 	void TryStartInteraction(float worldX, float worldY);
 	void FinalizePickup();
-	
+
 	// 애니메이션 이벤트 핸들러 함수들
 	void OnPickupEnd();
 	void OnChopHit();
@@ -87,10 +89,16 @@ private:
 	GameObject* m_pendingInteractionTarget;  // 이동 후 상호작용할 대상
 	GameObject* m_activeInteractionTarget;   // 현재 상호작용 중인 대상
 
+	const float CHOP_PIVOT_X = 0.3f;
+	const float CHOP_PIVOT_Y = 0.9f;
+	const float MINE_PIVOT_X = 0.5f;
+	const float MINE_PIVOT_Y = 0.9f;
+
 	bool isMoveToGoal;
 	float m_playerSpeed;
 	float m_speedModifier;
 	float m_slowTimer;
+	float m_walkSoundTimer;
 
 	Gdiplus::PointF m_targetWorldPos;
 	float m_stopThreshold;

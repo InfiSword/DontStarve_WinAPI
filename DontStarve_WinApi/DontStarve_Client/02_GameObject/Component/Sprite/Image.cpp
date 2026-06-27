@@ -47,8 +47,7 @@ void Image::Render()
 		m_layer,
 		m_sortKey,
 		m_tintColor,
-		hasTint,
-		rt->GetRotation()
+		hasTint
 	);
 }
 

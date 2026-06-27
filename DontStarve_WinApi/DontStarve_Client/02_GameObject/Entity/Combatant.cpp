@@ -1,6 +1,7 @@
 #include "99_Default/pch.h"
 #include "Combatant.h"
 #include "../../01_Manager/CameraManager/CameraManager.h"
+#include "../../01_Manager/ColliderManager/ColliderManager.h"
 #include "../Component/Transform/Transform.h"
 #include "../Component/Collider/BoxCollider.h"
 
@@ -9,7 +10,7 @@ bool Combatant::s_bShowAttackGizmo = false;
 Combatant::Combatant(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 	const std::wstring& baseDir, const std::wstring& imageName,
 	bool isActive, bool isInteractive, ColliderType colliderType)
-	: Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, isActive, isInteractive, colliderType)
+	: Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType, isActive, isInteractive)
 	, m_damage(0)
 	, m_attackRange(0.0f)
 	, m_attackCooldown(0.0f)
@@ -114,7 +115,7 @@ void Combatant::RenderDebugOverlay()
 	// 공격 중이고 공격 콜라이더가 있을 때 표시
 	if (IsInAttackState() && m_attackCollider)
 	{
-		UpdateAttackBoxByDirection(transform->GetDirection());
+		UpdateAttackBoxByDirection(m_transform->GetDirection());
 		m_attackCollider->RenderGizmo();
 	}
 }
@@ -150,10 +151,10 @@ void Combatant::UpdateAttackBoxByDirection(Direction dir)
 
 void Combatant::ProcessAttackHit(int damage)
 {
-	if (!m_attackCollider || !transform) return;
+	if (!m_attackCollider || !m_transform) return;
 
 	// 현재 방향에 맞게 공격 박스 업데이트
-	UpdateAttackBoxByDirection(transform->GetDirection());
+	UpdateAttackBoxByDirection(m_transform->GetDirection());
 
 	// 콜라이더 활성화
 	m_attackCollider->SetColliderEnabled(true);
@@ -171,29 +172,34 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 
 	auto canApplyDamageTo = [this](GameObject* target) {
 		if (!target || !target->IsEnabled() || target == this) return false;
-		if (this->GetType() == GO_TYPE_MONSTER && target->GetType() == GO_TYPE_MONSTER) return false;
+		if (this->GetType() == GO_TYPE_MONSTER && target->GetType() != GO_TYPE_PLAYER) {
+			return false;
+		}
 		return true;
 	};
 
 	// 클릭/AI로 지정된 타겟이 있으면 최우선으로 판정한다.
 	if (canApplyDamageTo(m_attackTarget)) {
 		Collider* targetCollider = m_attackTarget->GetMainCollider();
-		if (targetCollider && targetCollider->IsEnabled() && m_attackCollider->IntersectsCollider(targetCollider)) {
+		if (targetCollider && targetCollider->IsEnabled() && 
+			ColliderManager::GetInstance()->Intersects(m_attackCollider, targetCollider)) {
 			m_attackTarget->Damaged(damage);
 			return true;
 		}
 	}
 
-	CameraManager* cameraManager = CameraManager::GetInstance();
-	if (!cameraManager) return false;
-
 	std::vector<GameObject*> hits;
-	cameraManager->FindObjectsIntersectingCollider(m_attackCollider, hits);
+	ColliderManager::GetInstance()->QueryCollidingObjects(m_attackCollider, hits);
+
+	// 필터링: 공격 가능한 대상만 남김
+	hits.erase(std::remove_if(hits.begin(), hits.end(), [&](GameObject* obj) {
+		return !canApplyDamageTo(obj);
+	}), hits.end());
 
 	if (hits.empty()) return false;
 
 	// 나(공격자)와의 거리를 기준으로 정렬 (가장 가까운 적부터 처리)
-	Transform* myTr = transform;
+	Transform* myTr = m_transform;
 	if (!myTr) return false;
 
 	std::sort(hits.begin(), hits.end(), [myTr](GameObject* a, GameObject* b) {
@@ -213,7 +219,7 @@ bool Combatant::ApplyAttackDamageToTarget(int damage)
 	for (GameObject* obj : hits) {
 		if (!canApplyDamageTo(obj)) continue;
 		obj->Damaged(damage);
-		return true; // 첫 번째(가장 가까운) 대상만 데미지 입힘
+		return true;
 	}
 
 	return false;

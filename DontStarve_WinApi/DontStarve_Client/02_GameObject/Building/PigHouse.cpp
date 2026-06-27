@@ -6,7 +6,7 @@
 PigHouse::PigHouse(GameObjectID id, float x, float y, float pivotX, float pivotY,
     Direction _dir, const std::wstring& resourcePath,
     const std::wstring& imageName, int hp)
-    : Building(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, hp)
+    : Building(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, hp, COLLIDER_BOX, true, false)
 {
 }
 

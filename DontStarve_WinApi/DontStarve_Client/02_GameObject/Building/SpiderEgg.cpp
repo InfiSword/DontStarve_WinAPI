@@ -4,6 +4,7 @@
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../01_Manager/DataManager/DataManager.h"
 #include "../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../01_Manager/SoundManager/SoundManager.h"
 #include "../../03_Animation/Animator.h"
 #include "../../03_Animation/AnimationClip.h"
 #include "../../02_GameObject/Component/Sprite/SpriteRenderer.h"
@@ -16,38 +17,48 @@
 SpiderEgg::SpiderEgg(GameObjectID id, float x, float y, float pivotX, float pivotY,
 	Direction _dir, const std::wstring& resourcePath,
 	const std::wstring& imageName, int hp)
-	: Building(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, hp)
+	: Building(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, hp, COLLIDER_BOX, true, true)
 	, m_eggStage(EggStage::Sac)
-	, m_isPlayingGrowth(false)
 	, m_isPlayingHit(false)
 	, m_spawnRadius(200.0f)
-	, m_invincibleTimer(0.0f)
-	,m_amountOfSpidersToSpawn(0)
-	,m_remainingSpiders(0)
-	,m_totalSpawnedCount(0)
-	,m_disappearTimer(2.0f)
-	,m_isDisappearing(false)
-	,m_isPeriodicSpawner(false)
-	,m_periodicSpawnTimer(0.0f)
-	,m_periodicSpawnInterval(5.0f)
+	, m_amountOfSpidersToSpawn(0)
+	, m_remainingSpiders(0)
+	, m_totalSpawnedCount(0)
+	, m_disappearTimer(2.0f)
+	, m_isDisappearing(false)
+	, m_isPeriodicSpawner(false)
+	, m_periodicSpawnTimer(0.0f)
+	, m_periodicSpawnInterval(5.0f)
+	, m_baseX(0.0f)
+	, m_baseY(0.0f)
+	, m_shakeDuration(0.5f)
+	, m_shakeAmount(14.0f)
+	, m_shakeSpeed(40.0f)
+	, m_isShaking(false)
 {
 
 	switch (id)
 	{
 	case GOID_BUILDING_SPIDER_SACEGG:
 		m_eggStage = EggStage::Sac;
-		m_amountOfSpidersToSpawn = 0; 
+		m_amountOfSpidersToSpawn = 0;
 		break;
 	case GOID_BUILDING_SPIDER_SMALLEGG:
 		m_eggStage = EggStage::Small;
+		m_hp = 100;
+		m_maxHp = m_hp;
 		m_amountOfSpidersToSpawn = 1;
 		break;
 	case GOID_BUILDING_SPIDER_NORMALEGG:
 		m_eggStage = EggStage::Medium;
+		m_hp = 200;
+		m_maxHp = m_hp;
 		m_amountOfSpidersToSpawn = 2;
 		break;
 	case GOID_BUILDING_SPIDER_TALLEGG:
 		m_eggStage = EggStage::Large;
+		m_hp = 300;
+		m_maxHp = m_hp;
 		m_amountOfSpidersToSpawn = 3;
 		break;
 	default:
@@ -66,12 +77,11 @@ void SpiderEgg::Init()
 {
 	Building::Init();
 
-	Transform* transform = GetComponent<Transform>();
-	m_animator = AddComponent<Animator>(spriteRenderer);
+	m_animator = AddComponent<Animator>(m_spriteRenderer);
 
 	DataManager* pRM = DataManager::GetInstance();
 	const ResourcePathUtils::ObjectResourceDef* data = pRM->GetObjectResourceInfo(m_id);
-	
+
 
 	if (!data) return;
 
@@ -91,26 +101,6 @@ void SpiderEgg::Init()
 	m_animator->RegisterAnimation(EGG_STATE_IDLE_LARGE, DIR_DOWN, base + L"Egg_spider_cocoon_large_Idle.png",
 		0, 0, 1, 1, px, py, true, 0.04f);
 
-	// Hit (loop=false)
-	m_animator->RegisterAnimation(EGG_STATE_HIT_SMALL, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_small_hit.png",
-		0, 0, 7, 33, px, py, false, 0.04f);
-	m_animator->RegisterAnimation(EGG_STATE_HIT_MEDIUM, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_medium_hit.png",
-		0, 0, 7, 35, px, py, false, 0.04f);
-	m_animator->RegisterAnimation(EGG_STATE_HIT_LARGE, DIR_DOWN, base + L"Hit\\Egg_spider_cocoon_cocoon_large_hit.png",
-		0, 0, 7, 43, px, py, false, 0.04f);
-
-	// Grow (loop=false)
-	m_animator->RegisterAnimation(EGG_STATE_GROW_SAC_TO_SMALL, DIR_DOWN, base + L"Grow\\Egg_spider_cocoon_grow_sac_to_small.png",
-		0, 0, 7, 29, px, py, false, 0.04f);
-	m_animator->RegisterAnimation(EGG_STATE_GROW_SMALL_TO_MEDIUM, DIR_DOWN, base + L"Grow\\Egg_spider_cocoon_grow_small_to_medium.png",
-		0, 0, 7, 43, px, py, false, 0.04f);
-	m_animator->RegisterAnimation(EGG_STATE_GROW_MEDIUM_TO_LARGE, DIR_DOWN, base + L"Grow\\Egg_spider_cocoon_grow_medium_to_large.png",
-		0, 0, 7, 43, px, py, false, 0.04f);
-
-	// Burst (loop=false)
-	m_animator->RegisterAnimation(EGG_STATE_BURST_LARGE, DIR_DOWN, base + L"Burst\\Egg_spider_cocoon_cocoon_large_burst.png",
-		0, 0, 7, 43, px, py, false, 0.04f);
-
 	// 현재 단계에 맞는 Idle로 시작
 	int idleState = EGG_STATE_IDLE_SMALL;
 	if (m_eggStage == EggStage::Medium) idleState = EGG_STATE_IDLE_MEDIUM;
@@ -119,9 +109,15 @@ void SpiderEgg::Init()
 	ChangeState(idleState);
 
 	// Sac 상태: 아무것도 렌더링하지 않음.
-	if (spriteRenderer) {
-		if (m_eggStage == EggStage::Sac) spriteRenderer->SetActive(false);
-		else spriteRenderer->SetActive(true);
+	if (m_spriteRenderer) {
+		if (m_eggStage == EggStage::Sac) m_spriteRenderer->SetActive(false);
+		else m_spriteRenderer->SetActive(true);
+	}
+
+	if (m_transform)
+	{
+		m_baseX = m_transform->GetX();
+		m_baseY = m_transform->GetY();
 	}
 
 	PreSpawnSpiders();
@@ -156,45 +152,13 @@ void SpiderEgg::Update(float deltaTime)
 		}
 	}
 
-	// 무적 타이머 업데이트
-	if (m_invincibleTimer > 0.0f) {
-		m_invincibleTimer -= deltaTime;
-		if (m_invincibleTimer < 0.0f) m_invincibleTimer = 0.0f;
-	}
-
 	// Sac 상태 가시성 처리
-	if (spriteRenderer) {
-		bool visible = (m_eggStage != EggStage::Sac) || m_isPlayingGrowth || m_isPlayingHit;
-		if (spriteRenderer->IsEnabled() != visible) spriteRenderer->SetActive(visible);
+	if (m_spriteRenderer) {
+		bool visible = (m_eggStage != EggStage::Sac) || m_isPlayingHit;
+		if (m_spriteRenderer->IsEnabled() != visible) m_spriteRenderer->SetActive(visible);
 	}
 
-	Transform* transform = GetComponent<Transform>();
-	if (!m_animator || !transform) return;
-
-	// 성장 애니메이션 종료 처리
-	if (m_isPlayingGrowth && m_animator->IsAnimationDone())
-	{
-		if (m_eggStage == EggStage::Sac) m_eggStage = EggStage::Small;
-		else if (m_eggStage == EggStage::Small) m_eggStage = EggStage::Medium;
-		else if (m_eggStage == EggStage::Medium) m_eggStage = EggStage::Large;
-
-		m_isPlayingGrowth = false;
-		m_invincibleTimer = 1.0f; 
-
-		// 성장할 때마다 남은 거미 수 갱신 (Don't Starve 방식)
-		switch (m_eggStage) {
-		case EggStage::Small: m_remainingSpiders = 1; break;
-		case EggStage::Medium: m_remainingSpiders = 2; break;
-		case EggStage::Large: m_remainingSpiders = 3; break;
-		}
-
-		PreSpawnSpiders();
-
-		int idleState = EGG_STATE_IDLE_SMALL;
-		if (m_eggStage == EggStage::Medium) idleState = EGG_STATE_IDLE_MEDIUM;
-		else if (m_eggStage == EggStage::Large) idleState = EGG_STATE_IDLE_LARGE;
-		ChangeState(idleState);
-	}
+	if (!m_animator || !m_transform) return;
 
 	// Hit 애니메이션 종료 처리
 	if (m_isPlayingHit && m_animator->IsAnimationDone())
@@ -232,11 +196,15 @@ bool SpiderEgg::OnInteraction(GameObject* obj)
 
 void SpiderEgg::Damaged(int damage)
 {
-	// 성장 중이거나 무적 시간 중인 경우 무시
-	if (m_isPlayingGrowth || m_invincibleTimer > 0.0f)
-		return;
-
 	OutputDebugStringW((L"SpiderEgg: Damaged - 데미지: " + std::to_wstring(damage) + L"\n").c_str());
+
+	if (m_isShaking && m_transform) {
+		m_transform->SetPosition(m_baseX, m_baseY);
+	}
+	else if (m_transform) {
+		m_baseX = m_transform->GetX();
+		m_baseY = m_transform->GetY();
+	}
 
 	// 거미 스폰 (남아있는 거미가 있을 때만)
 	if (m_remainingSpiders > 0) {
@@ -248,21 +216,51 @@ void SpiderEgg::Damaged(int damage)
 		m_hp = 0;
 		m_buildingState = BuildingState::DESTROYED;
 
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/SpiderEggRemove.wav");
+
 		// 파괴될 때 남은 거미가 있다면 모두 스폰
 		while (m_remainingSpiders > 0) {
 			SpawnSpiders();
 		}
 
+		if (m_transform) m_transform->SetPosition(m_baseX, m_baseY);
+		m_isShaking = false;
+
 		ObjectManager::GetInstance()->RemoveGameObject(this);
 	}
 	else {
-		// Hit 애니메이션 재생
-		if (m_animator && !m_isPlayingHit) {
+		StopAllCoroutines();
+		m_isShaking = true;
+
+		float baseX = m_baseX;
+		float baseY = m_baseY;
+		float elapsed = 0.0f;
+		float duration = m_shakeDuration;
+		float amount = m_shakeAmount;
+		float speed = m_shakeSpeed;
+		Transform* tr = m_transform;
+
+		StartCoroutine([=](float dt) mutable -> bool 
+		{
+			elapsed += dt;
+
+			if (elapsed >= duration) {
+				if (tr) tr->SetPosition(baseX, baseY);
+				m_isShaking = false;
+				return false;
+			}
+
+			if (tr) {
+				float currentAmount = amount * (1.0f - (elapsed / duration));
+				float offsetX = sinf(elapsed * speed) * currentAmount;
+				tr->SetPosition(baseX + offsetX, baseY);
+			}
+			return true;
+			});
+
+		if (m_animator && !m_isPlayingHit)
+		{
 			m_isPlayingHit = true;
-			int hitState = EGG_STATE_HIT_SMALL;
-			if (m_eggStage == EggStage::Medium) hitState = EGG_STATE_HIT_MEDIUM;
-			else if (m_eggStage == EggStage::Large) hitState = EGG_STATE_HIT_LARGE;
-			ChangeState(hitState);
 		}
 	}
 }
@@ -272,13 +270,13 @@ void SpiderEgg::PreSpawnSpiders()
 	ObjectManager* objectManager = ObjectManager::GetInstance();
 	if (!objectManager) return;
 
-	while (m_poolSpiders.size() < m_remainingSpiders) {
+	while (m_poolSpiders.size() < (size_t)m_remainingSpiders) {
 		GameObjectID spiderID = GOID_MONSTER_SPIDER;
 		if (m_eggStage == EggStage::Large && (rand() % 100 < 30)) {
 			spiderID = GOID_MONSTER_WARRIOR_SPIDER;
 		}
 
-		Entity* spiderObj = objectManager->CreateEntity(spiderID, 0.0f, 0.0f);
+		GameObject* spiderObj = objectManager->CreateObject(spiderID, 0.0f, 0.0f);
 		if (spiderObj) {
 			Spider* spider = dynamic_cast<Spider*>(spiderObj);
 			if (spider) {
@@ -297,9 +295,8 @@ void SpiderEgg::SpawnSpiders()
 	// 일반 모드에서는 남은 거미가 없으면 중단
 	if (!m_isPeriodicSpawner && m_remainingSpiders <= 0) return;
 
-	Transform* eggTr = GetComponent<Transform>();
 	ObjectManager* objectManager = ObjectManager::GetInstance();
-	if (!eggTr || !objectManager) return;
+	if (!m_transform || !objectManager) return;
 
 	Spider* spider = nullptr;
 
@@ -314,7 +311,7 @@ void SpiderEgg::SpawnSpiders()
 		if (m_eggStage == EggStage::Large && (rand() % 100 < 30)) spiderID = GOID_MONSTER_WARRIOR_SPIDER;
 		else if (m_eggStage == EggStage::Medium && (rand() % 100 < 15)) spiderID = GOID_MONSTER_WARRIOR_SPIDER;
 
-		Entity* spiderObj = objectManager->CreateEntity(spiderID, eggTr->GetX(), eggTr->GetY());
+		GameObject* spiderObj = objectManager->CreateObject(spiderID, m_transform->GetX(), m_transform->GetY());
 		if (spiderObj) {
 			spider = dynamic_cast<Spider*>(spiderObj);
 		}
@@ -324,13 +321,12 @@ void SpiderEgg::SpawnSpiders()
 
 	float angle = (rand() / (float)RAND_MAX) * 6.283185307f;
 	float dist = 60.0f + (rand() / (float)RAND_MAX) * 60.0f;
-	float sx = eggTr->GetX() + cosf(angle) * dist;
-	float sy = eggTr->GetY() + sinf(angle) * dist;
+	float sx = m_transform->GetX() + cosf(angle) * dist;
+	float sy = m_transform->GetY() + sinf(angle) * dist;
 
 	Transform* spiderTr = spider->GetComponent<Transform>();
 	if (spiderTr) {
 		spiderTr->SetPosition(sx, sy);
-		//objectManager->UpdateObjectGridCell(spider);
 	}
 
 	spider->SetActive(true);
@@ -345,19 +341,6 @@ void SpiderEgg::SpawnSpiders()
 	if (m_totalSpawnedCount >= 4) {
 		m_isDisappearing = true;
 	}
-}
-
-void SpiderEgg::Grow()
-{
-	Transform* transform = GetComponent<Transform>();
-	if (!transform || m_isPlayingGrowth) return;
-
-	m_isPlayingGrowth = true;
-	int growState = EGG_STATE_GROW_SAC_TO_SMALL;
-	if (m_eggStage == EggStage::Small) growState = EGG_STATE_GROW_SMALL_TO_MEDIUM;
-	else if (m_eggStage == EggStage::Medium) growState = EGG_STATE_GROW_MEDIUM_TO_LARGE;
-
-	ChangeState(growState);
 }
 
 void SpiderEgg::SetTimeState(BuildingState buildingState)

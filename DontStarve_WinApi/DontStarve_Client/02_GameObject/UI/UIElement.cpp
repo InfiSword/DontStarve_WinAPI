@@ -4,9 +4,10 @@
 #include "../Component/Sprite/SpriteRenderer.h"
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
-UIElement::UIElement(GameObjectID id, const std::wstring& resourcePath, const std::wstring& imageName, bool isActive, bool isInteractive)
-	: GameObject(id, resourcePath, imageName, isActive, isInteractive)
+UIElement::UIElement(GameObjectID id, const std::wstring& resourcePath, const std::wstring& imageName, ColliderType colliderType, bool isActive, bool isInteractive)
+	: GameObject(id, 0,0,0,0, DIR_NONE, resourcePath, imageName, colliderType, isActive, isInteractive)
 {
+	m_type = GO_TYPE_UI;
 	m_rectTransform = AddComponent<RectTransform>();
 }
 

@@ -16,7 +16,7 @@ const float GameOverUI::SORT_KEY = 100.0f;
 GameOverUI::GameOverUI(float anchorMinX, float anchorMinY,
                        float anchorMaxX, float anchorMaxY,
                        float anchoredPosX, float anchoredPosY)
-    : UIElement(GOID_UI_GAME_OVER, L"", L"", true, false)
+    : UIElement(GOID_UI_GAME_OVER, L"", L"", NONE, true, false)
     , m_gameOverText(nullptr)
     , m_btnToLobby(nullptr)
     , m_btnToLobbyText(nullptr)

@@ -61,7 +61,7 @@ std::shared_ptr<SpriteSheet> ResourceManager::LoadSpriteSheet(
         m_spriteSheetCache.erase(it);
     }
 
-    auto sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, pivot, flipHorizontal);
+    std::shared_ptr<SpriteSheet> sheet = SpriteSheet::CreateFromFile(imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, pivot, flipHorizontal);
     if (!sheet) return nullptr;
 
     m_spriteSheetCache[key] = sheet;

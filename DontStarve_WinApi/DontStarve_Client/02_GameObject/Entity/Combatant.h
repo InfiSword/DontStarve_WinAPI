@@ -78,5 +78,5 @@ public:
 
 protected:
     void UpdateAttackBoxByDirection(Direction dir);
-    bool ApplyAttackDamageToTarget(int damage);
+    virtual bool ApplyAttackDamageToTarget(int damage);
 };

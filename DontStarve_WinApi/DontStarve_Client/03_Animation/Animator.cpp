@@ -31,21 +31,17 @@ void Animator::RegisterAnimation(int state, Direction dir,
 	bool flipHorizontal)
 {
 	int key = GetAnimationKey(state, static_cast<int>(dir));
-
 	bool shouldFlip = flipHorizontal ? true : (dir == DIR_LEFT);
-
 	// ResourceManager를 통해 SpriteSheet 로드 (캐싱 지원)
 	std::shared_ptr<SpriteSheet> sheet = ResourceManager::GetInstance()->LoadSpriteSheet(
 		imagePath, frameWidth, frameHeight, framesPerRow, totalFrames, shouldFlip, { pivotX, pivotY });
 	
-	if (!sheet) return;
-
-	// 이미 해당 key로 등록된 클립이 있으면 교체하지 않음 (중복 등록 방지 → 댕글링 원인 제거)
 	if (m_animations.find(key) != m_animations.end()) {
 		return;
 	}
 
-	auto clip = std::make_unique<AnimationClip>(L"", sheet, loop, shouldFlip, frameDuration);
+	std::unique_ptr<AnimationClip> clip = std::make_unique<AnimationClip>
+		(L"", sheet, loop, shouldFlip, frameDuration);
 	if (!clip) return;
 
 	m_animations[key] = std::move(clip);
@@ -72,14 +68,15 @@ void Animator::SetState(int state, Direction direction, bool restart) {
 	}
 }
 
-void Animator::SelectAndPlayAnimation() {
+void Animator::SelectAndPlayAnimation() 
+{
 	int key = GetAnimationKey(m_currentState, m_currentDirection);
 	auto it = m_animations.find(key);
 
 	if (it != m_animations.end()) {
 		AnimationClip* newClip = it->second.get();
-
 		m_currentClip = newClip;
+
 		m_elapsed = 0.0f;
 		m_isPlaying = true;
 		m_lastTriggeredFrame = -1;
@@ -113,15 +110,22 @@ void Animator::Update(float deltaTime)
 		// 매 프레임 SpriteRenderer(m_renderTarget)에 현재 프레임의 스프라이트를 동기화
 		if (m_renderTarget && currentFrameIndex != -1) {
 			const auto& frames = m_currentClip->GetFrames();
-			if (currentFrameIndex < (int)frames.size()) {							
-				m_renderTarget->SetSprite(frames[currentFrameIndex].sprite);
+
+			// 프레임 건너뛰기
+			int displayIndex = (currentFrameIndex / 5) * 5;
+			if (displayIndex >= (int)frames.size()) {
+				displayIndex = (int)frames.size() - 1;
+			}
+
+			if (displayIndex < (int)frames.size()) {							
+				m_renderTarget->SetSprite(frames[displayIndex].sprite);
 			}
 		}
 
 		// 프레임 변경 시, 건너뛴 프레임 포함해 지나친 모든 프레임에 대해 이벤트 발생
 		if (currentFrameIndex != -1 && currentFrameIndex != m_lastTriggeredFrame)
 		{
-			if (m_owner) m_owner->SetBoundsDirty();
+			if (m_owner) m_owner->SetSpatialDirty();
 			const std::map<int, std::wstring>& eventFrames = m_currentClip->GetEventFrames();
 			const AnimationEventCallback& callback = m_currentClip->GetEventCallback();
 
@@ -131,7 +135,7 @@ void Animator::Update(float deltaTime)
 			// 현재 클립을 로컬에 저장 (콜백 중 m_currentClip이 바뀔 수 있음)
 			AnimationClip* pCurrentClipBeforeCallback = m_currentClip;
 
-			for (int fi = startIdx; fi <= endIdx && callback; ++fi) {
+			for (int fi = startIdx; fi <= endIdx && callback; ++fi ) {
 				auto eventIt = eventFrames.find(fi);
 				if (eventIt != eventFrames.end())
 				{

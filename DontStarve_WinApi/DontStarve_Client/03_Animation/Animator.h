@@ -19,7 +19,7 @@ public:
                           bool loop = true,
                           float frameDuration = 0.03f,
                           bool flipHorizontal = false);  
-	// false(기본값): LEFT 방향일 때만 자동 반전, true: 강제 반전 
+	// false(기본값), true: 강제 반전 
     
     AnimationClip* GetAnimationClip(int state, Direction dir);
 

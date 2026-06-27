@@ -7,8 +7,31 @@
 #include "00_MainEditor/EditorLauncher.h"
 #include "00_MainEditor/MapEditor.h"
 #include "00_MainEditor/ObjectEditor.h"
+#include <shlwapi.h>
+
+#pragma comment(lib, "shlwapi.lib")
 
 #define MAX_LOADSTRING 100
+
+static void EnsureResourceWorkingDirectory()
+{
+    wchar_t exePath[MAX_PATH];
+    if (GetModuleFileNameW(NULL, exePath, MAX_PATH) == 0) return;
+    std::wstring dir = exePath;
+    size_t lastSlash = dir.find_last_of(L"\\/");
+    if (lastSlash != std::wstring::npos) dir.resize(lastSlash + 1);
+    for (int level = 0; level < 5; ++level) {
+        std::wstring resourceDir = dir + L"Resource";
+        if (PathFileExistsW(resourceDir.c_str())) {
+            if (SetCurrentDirectoryW(dir.c_str())) {
+                break;
+            }
+        }
+        size_t prev = dir.find_last_of(L"\\/", dir.length() - 2);
+        if (prev == std::wstring::npos) break;
+        dir.resize(prev + 1);
+    }
+}
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
@@ -37,7 +60,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: 여기에 코드를 입력합니다.
+    // Resource·GameData 등 상대 경로가 맞도록 작업 디렉터리를 프로젝트 루트로 설정
+    EnsureResourceWorkingDirectory();
 
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);

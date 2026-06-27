@@ -6,7 +6,7 @@
 #include "../../01_Manager/InputManager/InputManager.h"
 
 IntroNoticeUI::IntroNoticeUI()
-    : UIElement(static_cast<GameObjectID>(GOID_UI_INTRO), L"", L"", true, true)
+    : UIElement(static_cast<GameObjectID>(GOID_UI_INTRO), L"", L"", NONE, true, true)
 {
 }
 

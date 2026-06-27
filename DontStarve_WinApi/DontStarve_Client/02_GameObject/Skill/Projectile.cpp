@@ -7,8 +7,8 @@
 #include "../../03_Animation/Animator.h"
 
 Projectile::Projectile(GameObjectID id, bool isActive)
-    : Entity(id, 0, 0, 0.5f, 0.5f, DIR_NONE, L"", L"", isActive, false, COLLIDER_CIRCLE),
-    m_speed(0.0f), m_maxDistance(0.0f), m_traveledDistance(0.0f), m_damage(0)
+    : Entity(id, 0, 0, 0.5f, 0.5f, DIR_NONE, L"", L"", COLLIDER_CIRCLE, isActive, false),
+	m_speed(0.0f), m_maxDistance(0.0f), m_traveledDistance(0.0f), m_damage(0), m_fireDirX(0.0f), m_fireDirY(0.0f)
 {
     m_type = GO_TYPE_NONE;
 }
@@ -18,7 +18,7 @@ Projectile::~Projectile() {}
 void Projectile::Init()
 {
     Entity::Init();
-    m_animator = AddComponent<Animator>(spriteRenderer);
+    m_animator = AddComponent<Animator>(m_spriteRenderer);
 }
 
 void Projectile::Update(float deltaTime)
@@ -27,11 +27,11 @@ void Projectile::Update(float deltaTime)
 
     GameObject::Update(deltaTime);
 
-    Transform* trans = GetComponent<Transform>();
-    if (!trans) return;
-
     float moveDist = m_speed * deltaTime;
-    trans->SetPosition(trans->GetX() + m_fireDirX * moveDist, trans->GetY() + m_fireDirY * moveDist);
+    if (m_transform)
+    {
+        m_transform->SetPosition(m_transform->GetX() + m_fireDirX * moveDist, m_transform->GetY() + m_fireDirY * moveDist);
+    }
     m_traveledDistance += moveDist;
 
     if (m_traveledDistance >= m_maxDistance)

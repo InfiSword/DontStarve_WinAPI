@@ -1,6 +1,7 @@
 #include "99_Default/pch.h"
 #include "DontStarve_MainGame.h"
 #include "../99_Default/ClientOptimatzationOption.h"
+#include "../01_Manager/SoundManager/SoundManager.h"
 #include "../01_Manager/TimeManager/TimeManager.h"
 #include "../01_Manager/CameraManager/CameraManager.h"
 #include "../01_Manager/InputManager/InputManager.h"
@@ -25,6 +26,7 @@ DontStarve_MainGame::DontStarve_MainGame()
     , m_showPerfOverlay(false)
     , m_prevF1Down(false)
     , m_prevF2Down(false)
+    , m_prevF3Down(false)
     , m_pPerfFont(nullptr)
     , m_pPerfBrush(nullptr)
     , m_pPerfStringFormat(nullptr)
@@ -51,6 +53,7 @@ void DontStarve_MainGame::Init()
     ResourceManager::GetInstance()->Init(); // 리소스 매니저 초기화 (오브젝트 리소스 등록 포함)
     DataManager::GetInstance()->Init();
     InputManager::GetInstance()->Init();
+    SoundManager::GetInstance()->Init();
 
 #ifdef _DEBUG
     m_pPerfFont = new Gdiplus::Font(L"Consolas", 14.0f, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint);
@@ -109,6 +112,13 @@ void DontStarve_MainGame::Update()
     }
     m_prevF2Down = isF2Down;
 
+    // F3: 공간 분할 토글
+    const bool isF3Down = InputManager::GetInstance()->IsKeyDown(VK_F3);
+    if (isF3Down && !m_prevF3Down) {
+        g_bEnableSpatialPartitioning = !g_bEnableSpatialPartitioning;
+    }
+    m_prevF3Down = isF3Down;
+
     if (m_showPerfOverlay) {
         UpdatePerformanceOverlayText();
     }
@@ -154,16 +164,20 @@ void DontStarve_MainGame::Render()
     }
 
     // SceneManager 렌더링
+#ifdef _DEBUG
     if (g_bEnableOptimizationMode) {
+#endif
         // 최적화 모드: 커맨드 큐 기반 렌더
         RenderManager::GetInstance()->BeginFrame(CameraManager::GetInstance()->GetCameraPos());
         SceneManager::GetInstance()->Render();
+#ifdef _DEBUG
     }
     else {
         // 비최적화 모드: 즉시 렌더 경로 사용
         RenderManager::GetInstance()->Clear();
         SceneManager::GetInstance()->Render();
     }
+#endif
 
 #ifdef _DEBUG
     if (m_showPerfOverlay) {
@@ -171,10 +185,7 @@ void DontStarve_MainGame::Render()
     }
 #endif
 
-    // 커맨드 큐(및 fallback 큐)를 Flush로 소모한다.
     RenderManager::GetInstance()->Flush(pGraphics);
-
-    // 그래픽스 컨텍스트 렌더링
     GraphicsManager::GetInstance()->Render();
 }
 
@@ -185,6 +196,7 @@ void DontStarve_MainGame::Release()
     }
 
 	SceneManager::DestroyInstance();
+	SoundManager::DestroyInstance();
 	ObjectManager::DestroyInstance();
 	InputManager::DestroyInstance();
 	ResourceManager::DestroyInstance();
@@ -240,9 +252,10 @@ void DontStarve_MainGame::UpdatePerformanceOverlayText()
 
     std::wostringstream stream;
     stream << std::fixed << std::setprecision(2);
-    stream << L"[성능 디버그 - F1]\n";
+    stream << L"[활성화 - F1]\n";
     stream << L"===================================\n";
-    stream << L"모드: " << (g_bEnableOptimizationMode ? L"최적화 ON" : L"비최적화") << L" [F2]\n";
+    stream << L"버퍼 모드: " << (g_bEnableOptimizationMode ? L"ON" : L"OFF") << L" [F2]\n";
+    stream << L"공간 분할: " << (g_bEnableSpatialPartitioning ? L"ON" : L"OFF") << L" [F3]\n";
     stream << L"===================================\n";
     stream << L"FPS(현재) : " << currentFps << L"\n";
     stream << L"FPS(목표) : ";

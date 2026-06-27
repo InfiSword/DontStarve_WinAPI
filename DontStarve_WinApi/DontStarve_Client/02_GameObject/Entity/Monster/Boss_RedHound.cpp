@@ -4,6 +4,7 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
 #include "../../../01_Manager/RenderManager/RenderManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -11,17 +12,6 @@
 #include "../../Component/Transform/Transform.h"
 #include "../../Component/Collider/BoxCollider.h"
 #include "Boss_RedHound.h"
-
-namespace
-{
-	inline Direction ResolveFacingFromDirToPlayer(const Gdiplus::PointF& dirToPlayer)
-	{
-		if (std::abs(dirToPlayer.X) > std::abs(dirToPlayer.Y)) {
-			return (dirToPlayer.X >= 0.0f) ? DIR_RIGHT : DIR_LEFT;
-		}
-		return (dirToPlayer.Y >= 0.0f) ? DIR_DOWN : DIR_UP;
-	}
-}
 
 Boss_RedHound::Boss_RedHound(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
 	const std::wstring& baseDir, const std::wstring& imageName, ColliderType colliderType)
@@ -36,9 +26,9 @@ Boss_RedHound::Boss_RedHound(GameObjectID id, float x, float y, float pivotX, fl
 	m_attackRange = 100.0f;
 	m_attackCooldown = 2.0f;
 	m_attackHitFrame = 4;
-	m_damage = 25; 
-	m_attackBoxWidth = 100;
-	m_attackBoxHeight = 60;
+	m_damage = 25;
+	m_attackBoxWidth = 120;
+	m_attackBoxHeight = 70;
 	m_wanderRadius = 300.0f;
 	m_aggroRadius = 400.0f;
 	m_deaggroRadius = 600.0f;
@@ -57,12 +47,11 @@ Boss_RedHound::Boss_RedHound(GameObjectID id, float x, float y, float pivotX, fl
 Boss_RedHound::~Boss_RedHound() {}
 
 void Boss_RedHound::Init()
-// ... (omitting middle part of Init for brevity in this replace call, but I will include it in the actual call)
 {
 	Monster::Init();
 	m_bUseSuperArmor = true;
 	SetupAggro(AggroType::ALWAYS, 0.0f, 0.0f);
-	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight,0,-40.f);
 
 	ChangeState((int)BossRedHoundState::IDLE);
 	m_idleTimer = 0.0f;
@@ -70,12 +59,12 @@ void Boss_RedHound::Init()
 	m_bHasHowled = false;
 	m_hasHowlStarted = false;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 	if (m_animator) {
 		DataManager* pRM = DataManager::GetInstance();
 		const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
@@ -153,6 +142,7 @@ void Boss_RedHound::Init()
 					clip->AddEventFrame(46, L"howl_end");
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"howl_start") {
+							SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_bark.wav");
 							m_hasHowlStarted = true;
 						}
 						else if (eventName == L"howl_end") {
@@ -175,13 +165,7 @@ void Boss_RedHound::Init()
 					clip->SetEventCallback([this](int frameIndex, const std::wstring& eventName) {
 						if (eventName == L"dash_lock") {
 							m_dashDir = m_dirToPlayer;
-
-							if (abs(m_dashDir.X) > abs(m_dashDir.Y)) {
-								transform->SetDirection(m_dashDir.X > 0 ? DIR_RIGHT : DIR_LEFT);
-							}
-							else {
-								transform->SetDirection(m_dashDir.Y > 0 ? DIR_DOWN : DIR_UP);
-							}
+							LookAtPlayer();
 						}
 						});
 				}
@@ -207,7 +191,7 @@ bool Boss_RedHound::OnInteraction(GameObject* obj) { return Entity::OnInteractio
 
 void Boss_RedHound::UpdateAI(float deltaTime)
 {
-	if (!IsEnabled() || !transform || !m_animator) return;
+	if (!IsEnabled() || !m_transform || !m_animator) return;
 
 	m_dashCooldownTimer = (std::max)(0.0f, m_dashCooldownTimer - deltaTime);
 
@@ -249,6 +233,7 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 			// 이미 dash_lock 이벤트에서 m_dashDir와 캐릭터 방향이 설정되었으므로 바로 전환
 			m_dashRemainingTime = m_dashDuration;
 			m_dashHitProcessed = false;
+			SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Redhound_DashSound.wav");
 			ChangeState((int)BossRedHoundState::DASH);
 		}
 		return;
@@ -261,7 +246,7 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 		// 대쉬 중에는 공격 콜라이더 활성화
 		if (m_attackCollider) {
 			// 대쉬 방향에 맞춰 공격 박스 업데이트
-			UpdateAttackBoxByDirection(transform->GetDirection());
+			UpdateAttackBoxByDirection(m_transform->GetDirection());
 			m_attackCollider->SetColliderEnabled(true);
 
 			// 아직 데미지를 입히지 않았다면 충돌 체크 및 데미지 적용
@@ -284,11 +269,7 @@ void Boss_RedHound::UpdateAI(float deltaTime)
 	if (m_state == (int)BossRedHoundState::ATTACK_PRE)
 	{
 		if (m_animator->IsAnimationDone()) {
-			if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-				const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-				transform->SetDirection(faceDir);
-				UpdateAttackBoxByDirection(faceDir);
-			}
+			LookAtPlayer();
 			ChangeState((int)BossRedHoundState::ATTACK);
 		}
 		return;
@@ -303,7 +284,7 @@ void Boss_RedHound::UpdateMovement(float deltaTime)
 {
 	if (m_state == (int)BossRedHoundState::DASH) {
 		float moveDist = m_dashSpeed * deltaTime;
-		transform->SetPosition(transform->GetX() + m_dashDir.X * moveDist, transform->GetY() + m_dashDir.Y * moveDist);
+		m_transform->SetPosition(m_transform->GetX() + m_dashDir.X * moveDist, m_transform->GetY() + m_dashDir.Y * moveDist);
 		ClampPositionToMapBounds();
 		return;
 	}
@@ -329,11 +310,7 @@ int Boss_RedHound::UpdateIdle(float deltaTime)
 
 	if (nextState == (int)BossRedHoundState::ATTACK)
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossRedHoundState::ATTACK_PRE;
 	}
 
@@ -375,11 +352,7 @@ int Boss_RedHound::UpdateChase(float deltaTime)
 	}
 	if (nextState == (int)BossRedHoundState::ATTACK)
 	{
-		if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-			const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-			transform->SetDirection(faceDir);
-			UpdateAttackBoxByDirection(faceDir);
-		}
+		LookAtPlayer();
 		return (int)BossRedHoundState::ATTACK_PRE;
 	}
 
@@ -389,7 +362,12 @@ int Boss_RedHound::UpdateChase(float deltaTime)
 void Boss_RedHound::Damaged(int damage)
 {
 	Monster::Damaged(damage);
-	if (IsDead()) return;
+	if (IsDead()) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_death.wav");
+		return;
+	}
+
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_hurt.wav");
 
 	if (CheckSuperArmorHit()) return;
 
@@ -400,12 +378,9 @@ void Boss_RedHound::OnAttackHit()
 {
 	if (!m_isCombatEnabled || m_state != (int)BossRedHoundState::ATTACK) return;
 
-	if (transform && m_attackTarget && m_attackTarget->IsEnabled()) {
-		const Direction faceDir = ResolveFacingFromDirToPlayer(m_dirToPlayer);
-		transform->SetDirection(faceDir);
-		UpdateAttackBoxByDirection(faceDir);
-	}
+	LookAtPlayer();
 
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_attack.wav");
 	ProcessAttackHit(m_damage);
 }
 
@@ -424,4 +399,7 @@ void Boss_RedHound::OnHitEnd()
 	ChangeState((int)BossRedHoundState::IDLE);
 }
 
-void Boss_RedHound::Die() { ChangeState((int)BossRedHoundState::DEATH); }
+void Boss_RedHound::Die() {
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/HoundSound/Hound_death.wav");
+	ChangeState((int)BossRedHoundState::DEATH);
+}

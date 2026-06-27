@@ -59,11 +59,11 @@ void Monster::Update(float deltaTime)
 	Entity::Update(deltaTime);
 	if (m_isDead) return;
 
-	// 2. 타겟 존재 여부에 따른 연산 분리
+	// 타겟 존재 여부에 따른 연산 분리
 	if (m_attackTarget && m_attackTarget->IsEnabled()) {
 		Transform* tTr = m_attackTarget->GetComponent<Transform>();
-		float dx = tTr->GetX() - transform->GetX();
-		float dy = tTr->GetY() - transform->GetY();
+		float dx = tTr->GetX() - m_transform->GetX();
+		float dy = tTr->GetY() - m_transform->GetY();
 		m_distToPlayerSq = dx * dx + dy * dy;
 
 		// 방향 벡터 정규화 (0 나누기 방지 1e-6f)
@@ -85,7 +85,7 @@ void Monster::Update(float deltaTime)
 		Player* p = ObjectManager::GetInstance()->GetPlayer();
 		if (p && p->IsEnabled() && m_aggroType != AggroType::ALWAYS) {
 			Transform* pTr = p->GetComponent<Transform>();
-			float dSq = powf(pTr->GetX() - transform->GetX(), 2) + powf(pTr->GetY() - transform->GetY(), 2);
+			float dSq = powf(pTr->GetX() - m_transform->GetX(), 2) + powf(pTr->GetY() - m_transform->GetY(), 2);
 
 			// 어그로 획득 조건 판정 (범위 내 또는 피격 후 범위 내)
 			bool canAggro = (m_aggroType == AggroType::ON_RANGE) || (m_aggroType == AggroType::ON_HIT_THEN_RANGE && m_hasBeenHit);
@@ -146,6 +146,8 @@ int Monster::UpdateIdle(float deltaTime)
 {
 	if (m_attackTarget && m_attackTarget->IsEnabled())
 	{
+		LookAtPlayer();
+
 		if (m_distToPlayerSq > (m_attackRange * m_attackRange))
 		{
 			if (m_bCanChase)
@@ -169,6 +171,20 @@ int Monster::UpdateIdle(float deltaTime)
 			float dist = (rand() / (float)RAND_MAX) * m_wanderRadius;
 			m_targetX = centerX + cosf(angle) * dist;
 			m_targetY = centerY + sinf(angle) * dist;
+
+			// 맵 경계 내로 목표 지점 제한 (Entity::ClampPositionToMapBounds와 동일한 로직)
+			float boundHalfWidth = 40.0f;
+			float boundHalfHeight = 40.0f;
+			float mapMaxX = static_cast<float>(MAP_WIDTH * TILE_SIZE) - boundHalfWidth;
+			float mapMaxY = static_cast<float>(MAP_HEIGHT * TILE_SIZE) - boundHalfHeight;
+			float mapMinX = boundHalfWidth;
+			float mapMinY = boundHalfHeight;
+
+			if (m_targetX < mapMinX) m_targetX = mapMinX;
+			if (m_targetX > mapMaxX) m_targetX = mapMaxX;
+			if (m_targetY < mapMinY) m_targetY = mapMinY;
+			if (m_targetY > mapMaxY) m_targetY = mapMaxY;
+
 			m_idleTimer = 0.0f;
 			return (int)CombatantState::WALK;
 		}
@@ -183,10 +199,10 @@ int Monster::UpdateWalk(float deltaTime)
 		return (int)CombatantState::CHASE;
 	}
 
-	if (!transform) return (int)CombatantState::IDLE;
+	if (!m_transform) return (int)CombatantState::IDLE;
 
-	float wdx = m_targetX - transform->GetX();
-	float wdy = m_targetY - transform->GetY();
+	float wdx = m_targetX - m_transform->GetX();
+	float wdy = m_targetY - m_transform->GetY();
 	if (wdx * wdx + wdy * wdy < 4.0f)
 	{
 		m_idleTimer = 0.0f;
@@ -231,15 +247,36 @@ int Monster::UpdateHit(float deltaTime)
 
 void Monster::OnDeathEnd()
 {
-	ObjectManager::GetInstance()->RemoveGameObject(this);
+	ObjectManager* objMgr = ObjectManager::GetInstance();
+	if (objMgr)
+	{
+		GameObjectID dropItemID = GetDropItemID();
+		int count = GetDropItemCount();
+
+		if (dropItemID != GOID_NONE && m_transform)
+		{
+			float tx = m_transform->GetX();
+			float ty = m_transform->GetY();
+
+			for (int i = 0; i < count; ++i)
+			{
+				float angle = (rand() / (float)RAND_MAX) * 6.28f;
+				float spreadRadius = 20.0f + (rand() / (float)RAND_MAX) * 30.0f;
+				float offsetX = cosf(angle) * spreadRadius;
+				float offsetY = sinf(angle) * spreadRadius;
+				objMgr->CreateObject(dropItemID, tx + offsetX, ty + offsetY);
+			}
+		}
+		objMgr->RemoveGameObject(this);
+	}
 }
 
 void Monster::ResolveWanderCenter(float& outX, float& outY) const
 {
-	if (transform)
+	if (m_transform)
 	{
-		outX = transform->GetX();
-		outY = transform->GetY();
+		outX = m_transform->GetX();
+		outY = m_transform->GetY();
 		return;
 	}
 
@@ -249,23 +286,17 @@ void Monster::ResolveWanderCenter(float& outX, float& outY) const
 
 void Monster::MoveTowardPlayer(float deltaTime, float speed)
 {
-	if (!transform || !m_animator) return;
+	if (!m_transform || !m_animator) return;
 
 	// 실시간 방향 업데이트 (플레이어와의 상대적 위치 기준)
-	Direction newDir = DIR_DOWN;
-	if (std::abs(m_dirToPlayer.X) > std::abs(m_dirToPlayer.Y)) {
-		newDir = (m_dirToPlayer.X > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-	}
-	else {
-		newDir = (m_dirToPlayer.Y > 0.0f) ? DIR_DOWN : DIR_UP;
-	}
+	Direction newDir = ResolveFacingDirection(m_dirToPlayer);
 
-	transform->SetDirection(newDir);
+	m_transform->SetDirection(newDir);
 	ChangeState(m_state);
 
 	// 이동
 	float moveDist = speed * deltaTime;
-	transform->SetPosition(transform->GetX() + m_dirToPlayer.X * moveDist, transform->GetY() + m_dirToPlayer.Y * moveDist);
+	m_transform->SetPosition(m_transform->GetX() + m_dirToPlayer.X * moveDist, m_transform->GetY() + m_dirToPlayer.Y * moveDist);
 
 	// 맵 경계 체크
 	ClampPositionToMapBounds();
@@ -273,28 +304,23 @@ void Monster::MoveTowardPlayer(float deltaTime, float speed)
 
 void Monster::MoveTowardLocation(float deltaTime, float speed)
 {
-	if (!transform || !m_animator) return;
+	if (!m_transform || !m_animator) return;
 
-	float wdx = m_targetX - transform->GetX();
-	float wdy = m_targetY - transform->GetY();
+	float wdx = m_targetX - m_transform->GetX();
+	float wdy = m_targetY - m_transform->GetY();
 	float wdistSq = wdx * wdx + wdy * wdy;
 
 	if (wdistSq < 0.0001f) {
-		transform->SetPosition(m_targetX, m_targetY);
+		m_transform->SetPosition(m_targetX, m_targetY);
 		return;
 	}
 
 	float wdist = sqrtf(wdistSq);
 
 	// 실시간 방향 업데이트 (목표 지점 기준)
-	Direction wDir = DIR_DOWN;
-	if (std::abs(wdx) > std::abs(wdy)) {
-		wDir = (wdx > 0.0f) ? DIR_RIGHT : DIR_LEFT;
-	}
-	else {
-		wDir = (wdy > 0.0f) ? DIR_DOWN : DIR_UP;
-	}
-	transform->SetDirection(wDir);
+	Direction wDir = ResolveFacingDirection({ wdx, wdy });
+
+	m_transform->SetDirection(wDir);
 	ChangeState(m_state);
 
 	// 목표 지점을 지나치지 않도록 스텝을 남은 거리로 클램프한다.
@@ -302,12 +328,29 @@ void Monster::MoveTowardLocation(float deltaTime, float speed)
 	if (moveStep <= 0.0f) return;
 
 	if (moveStep >= wdist) {
-		transform->SetPosition(m_targetX, m_targetY);
+		m_transform->SetPosition(m_targetX, m_targetY);
 	}
 	else {
-		transform->SetPosition(transform->GetX() + (wdx / wdist) * moveStep, transform->GetY() + (wdy / wdist) * moveStep);
+		m_transform->SetPosition(m_transform->GetX() + (wdx / wdist) * moveStep, m_transform->GetY() + (wdy / wdist) * moveStep);
 	}
 
 	// 맵 경계 체크
 	ClampPositionToMapBounds();
+}
+
+void Monster::LookAtPlayer()
+{
+	if (!m_transform || !m_attackTarget || !m_attackTarget->IsEnabled()) return;
+
+	Direction newDir = ResolveFacingDirection(m_dirToPlayer);
+	m_transform->SetDirection(newDir);
+	UpdateAttackBoxByDirection(newDir);
+}
+
+Direction Monster::ResolveFacingDirection(const Gdiplus::PointF& dir)
+{
+	if (std::abs(dir.X) > std::abs(dir.Y)) {
+		return (dir.X >= 0.0f) ? DIR_RIGHT : DIR_LEFT;
+	}
+	return (dir.Y >= 0.0f) ? DIR_DOWN : DIR_UP;
 }

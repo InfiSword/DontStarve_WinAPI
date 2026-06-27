@@ -4,9 +4,9 @@
 #include "../../01_Manager/ResourceManager/ResourceManager.h"
 
 Building::Building(GameObjectID id, float x, float y, float pivotX, float pivotY, 
-    Direction _dir, const std::wstring& resourcePath,
-                   const std::wstring& imageName, int hp)
-    : Entity(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, true, true),
+	Direction _dir, const std::wstring& resourcePath, const std::wstring& imageName, int hp, 
+	ColliderType colliderType, bool isActive, bool isInteractive)
+    : Entity(id, x, y, pivotX, pivotY, _dir, resourcePath, imageName, colliderType, isActive, isInteractive),
       m_hp(hp), m_maxHp(hp), m_buildingState(BuildingState::NOON)
 {
 	m_type = GO_TYPE_BUILDING;

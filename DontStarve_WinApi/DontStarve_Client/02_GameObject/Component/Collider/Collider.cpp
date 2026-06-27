@@ -7,18 +7,15 @@ Collider::Collider(GameObject* owner)
     : Component(owner)
 {
     m_isInteractionCollider = true;
-    m_isPhysicalCollider = true;
 }
 
 void Collider::Init()
 {
     Component::Init();
-    ColliderManager::GetInstance()->AddCollider(this);
 }
 
 void Collider::Release()
 {
-    ColliderManager::GetInstance()->RemoveCollider(this);
     Component::Release();
 }
 

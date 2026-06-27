@@ -3,6 +3,7 @@
 #include "../../../01_Manager/DataManager/DataManager.h"
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "../../../01_Manager/ObjectManager/ObjectManager.h"
+#include "../../../01_Manager/SoundManager/SoundManager.h"
 #include "../../../03_Animation/Animator.h"
 #include "../../../03_Animation/AnimationClip.h"
 #include "../Player/Player.h"
@@ -26,8 +27,8 @@ Spider::Spider(GameObjectID id, float x, float y, float pivotX, float pivotY, Di
 	m_attackCooldown = 1.2f;
 	m_attackHitFrame = 45;
 	m_damage = 15;
-	m_attackBoxWidth = 60;
-	m_attackBoxHeight = 40;
+	m_attackBoxWidth = 90;
+	m_attackBoxHeight = 60;
 }
 
 Spider::~Spider() {}
@@ -36,19 +37,19 @@ void Spider::Init()
 {
 	Monster::Init();
 	SetupAggro(AggroType::ON_RANGE, 300.0f, 500.0f);
-	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight);
+	SetupAttackBox(m_attackBoxWidth, m_attackBoxHeight,0, -50.f);
 
 	ChangeState((int)SpiderState::IDLE);
 	m_idleTimer = 0.0f;
 	m_idleDuration = 2.0f + (rand() / (float)RAND_MAX) * 3.0f;
 	m_bHasTaunted = false;
 
-	if (this->transform) {
-		m_targetX = this->transform->GetX();
-		m_targetY = this->transform->GetY();
+	if (this->m_transform) {
+		m_targetX = this->m_transform->GetX();
+		m_targetY = this->m_transform->GetY();
 	}
 
-	if (!m_animator) m_animator = AddComponent<Animator>(spriteRenderer);
+	if (!m_animator) m_animator = AddComponent<Animator>(m_spriteRenderer);
 	DataManager* pRM = DataManager::GetInstance();
 
 	bool isWarrior = (m_id == GOID_MONSTER_WARRIOR_SPIDER);
@@ -57,8 +58,8 @@ void Spider::Init()
 	m_walkSpeed = isWarrior ? 80.0f : 60.0f;
 	m_runSpeed = isWarrior ? 180.0f : 150.0f;
 	m_attackRange = isWarrior ? 100.0f : 80.0f;
-	m_attackBoxWidth = isWarrior ? 72 : 60;
-	m_attackBoxHeight = isWarrior ? 48 : 40;
+	m_attackBoxWidth = isWarrior ? 82 : 70;
+	m_attackBoxHeight = isWarrior ? 92 : 80;
 
 	const ResourcePathUtils::ObjectResourceDef* objData = pRM->GetObjectResourceInfo(m_id);
 	if (objData)
@@ -188,20 +189,21 @@ void Spider::SetAggroTarget(GameObject* target)
 {
 	if (target && target->IsEnabled())
 	{
-		if (!m_homeEgg || !m_homeEgg->IsEnabled()) m_bCanChase = true;
+		m_bCanChase = true;
 		m_attackTarget = target;
 
 		if (!m_bHasTaunted)
 		{
+			SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_scream.wav");
 			ChangeState((int)SpiderState::TAUNT);
 		}
 
 		Transform* targetTr = target->GetComponent<Transform>();
-		if (targetTr && transform) {
-			float dx = targetTr->GetX() - transform->GetX();
-			float dy = targetTr->GetY() - transform->GetY();
-			Direction newDir = (std::abs(dx) > std::abs(dy)) ? (dx > 0.0f ? DIR_RIGHT : DIR_LEFT) : (dy > 0.0f ? DIR_DOWN : DIR_UP);
-			transform->SetDirection(newDir);
+		if (targetTr && m_transform) {
+			float dx = targetTr->GetX() - m_transform->GetX();
+			float dy = targetTr->GetY() - m_transform->GetY();
+			Direction newDir = ResolveFacingDirection({ dx, dy });
+			m_transform->SetDirection(newDir);
 		}
 	}
 }
@@ -227,7 +229,7 @@ void Spider::ResolveWanderCenter(float& outX, float& outY) const
 
 void Spider::UpdateAI(float deltaTime)
 {
-	if (!IsEnabled() || !transform || !m_animator) return;
+	if (!IsEnabled() || !m_transform || !m_animator) return;
 
 	// 거미집 소속에 따른 추격 가능 여부 체크
 	bool canChaseNow = m_bCanChase || !m_homeEgg || !m_homeEgg->IsEnabled();
@@ -253,6 +255,7 @@ int Spider::UpdateIdle(float deltaTime)
 	// CHASE로 전환될 때 도발(TAUNT) 체크
 	if (nextState == (int)SpiderState::CHASE && !m_bHasTaunted)
 	{
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_scream.wav");
 		return (int)SpiderState::TAUNT;
 	}
 
@@ -266,6 +269,7 @@ int Spider::UpdateWalk(float deltaTime)
 	// CHASE로 전환될 때 도발(TAUNT) 체크
 	if (nextState == (int)SpiderState::CHASE && !m_bHasTaunted)
 	{
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_scream.wav");
 		return (int)SpiderState::TAUNT;
 	}
 
@@ -281,14 +285,19 @@ void Spider::Damaged(int damage)
 {
 	Monster::Damaged(damage);
 	if (!IsDead()) {
-		if (!m_homeEgg || !m_homeEgg->IsEnabled())
-			m_bCanChase = true;
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_hurt.wav");
+		m_bCanChase = true;
 		ChangeState((int)SpiderState::HIT);
 		m_attackTarget = ObjectManager::GetInstance()->GetPlayer();
 	}
 }
 
-void Spider::OnAttackHit() { if (m_state == (int)SpiderState::ATTACK) ProcessAttackHit(m_damage); }
+void Spider::OnAttackHit() { 
+	if (m_state == (int)SpiderState::ATTACK) {
+		SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_attack.wav");
+		ProcessAttackHit(m_damage);
+	}
+}
 
 void Spider::OnAttackEnd()
 {
@@ -309,6 +318,7 @@ void Spider::OnHitEnd()
 }
 
 void Spider::Die() {
+	SoundManager::GetInstance()->PlaySFX(L"Resource/Sound/SpiderSound/Spider_death.wav");
 	SetDropItem(GOID_ITEM_MONSTER_MEAT, 1);
 	ChangeState((int)SpiderState::DEATH);
 }

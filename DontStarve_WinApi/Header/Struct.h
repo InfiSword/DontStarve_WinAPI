@@ -1,19 +1,17 @@
 #pragma once
-#include <windows.h>
-#include <gdiplus.h>
 #include "Define.h"
 #include "Enum.h"
 
 // ====================== 데이터 테이블 엔트리 구조체 =======================
 
-// 1. 아이템 정보 (이름, 설명)
+// 아이템 정보 (이름, 설명)
 struct ItemInfo {
 	GameObjectID id;
 	const wchar_t* name;
 	const wchar_t* desc;
 };
 
-// 2. 도구 정보 (이름, 설명, 공격력, 사거리)
+// 도구 정보 (이름, 설명, 공격력, 사거리)
 struct ToolInfo {
 	GameObjectID id;
 	const wchar_t* name;
@@ -140,8 +138,6 @@ struct DrawCommand {
 	RenderLayer layer;
 	float zOrder;
 	Gdiplus::RectF destRect;
-	Gdiplus::PointF rotationPivot; // Rotation center (Screen space)
-	float rotation;
 
 	struct SpriteData {
 		Gdiplus::Bitmap* pBitmap;
@@ -172,10 +168,9 @@ struct DrawCommand {
 		PrimitiveData primitive;
 	};
 
-	DrawCommand() : type(DRAW_COMMAND_ENTITY), layer(LAYER_NONE), zOrder(0.0f), rotation(0.0f)
+	DrawCommand() : type(DRAW_COMMAND_ENTITY), layer(LAYER_NONE), zOrder(0.0f), sprite{}
 	{
 		destRect = Gdiplus::RectF(0, 0, 0, 0);
-		rotationPivot = Gdiplus::PointF(0, 0);
 	}
 };
 

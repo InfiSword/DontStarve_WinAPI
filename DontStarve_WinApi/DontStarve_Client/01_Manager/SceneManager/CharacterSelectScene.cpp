@@ -99,7 +99,7 @@ void CharacterSelectScene::Init(const MapData* mapData)
 		16.0f, Gdiplus::FontStyleBold,
 		1.0f, 0.5f, 
 		1.0f, 0.5f,  
-		-300.0f, 200.0f,
+		-300.0f, 180.0f,
 		6.0f, // sortKey
 		Gdiplus::StringAlignmentNear // hAlign
 	);
@@ -180,7 +180,7 @@ void CharacterSelectScene::InitializeCharacters()
 		L"Wilson",
 		L"Resource/UI/wilson.png",
 		L"Resource/UI/Willson_Character.png",
-		L"기본 캐릭터입니다.\n모든 상황에서 안정적으로 플레이할 수 있는\n 균형잡힌 캐릭터입니다.",
+		L"기본 캐릭터입니다.\n기본 스텟이 안정적으로 분포되어 있는\n균형잡힌 캐릭터입니다.",
 		startX,
 		characterY,
 		GOID_PLAYER_WILSON,
@@ -189,17 +189,12 @@ void CharacterSelectScene::InitializeCharacters()
 	
 	// Willow
 	const ResourcePathUtils::ObjectResourceDef* willowData = DataManager::GetInstance()->GetObjectResourceInfo(GOID_PLAYER_WILLOW);
-	std::wstring willowPortraitPath = L"Resource\\Objects\\Player\\Willow\\willow_portrait.png";
-	std::wstring willowCharacterPath = L"Resource\\Objects\\Player\\Willow\\willow_character.png";
-	if (willowData) {
-		willowPortraitPath = willowData->baseDir + L"\\willow_portrait.png";
-		willowCharacterPath = willowData->baseDir + L"\\willow_character.png";
-	}
+
 	m_characterList.emplace_back(
 		L"Willow",
-		willowPortraitPath,
-		willowCharacterPath,
-		L"불의 마법사입니다.\n불을 두려워하지 않고 활용할 수 있습니다.\n\n해금 조건: 늑대 던전 클리어",
+		L"Resource/UI/willow.png",
+		L"Resource/UI/Willow_Character_1.png",
+		L"체력이 적지만 재빠른 캐릭터입니다.\n\n해금 조건: 늑대 던전 클리어",
 		startX + spacing,
 		characterY,
 		GOID_PLAYER_WILLOW,
@@ -208,17 +203,12 @@ void CharacterSelectScene::InitializeCharacters()
 	
 	// Wolfgang
 	const ResourcePathUtils::ObjectResourceDef* wolfgangData = DataManager::GetInstance()->GetObjectResourceInfo(GOID_PLAYER_WOLFGANG);
-	std::wstring wolfgangPortraitPath = L"Resource\\Objects\\Player\\Wolfgang\\wolfgang_portrait.png";
-	std::wstring wolfgangCharacterPath = L"Resource\\Objects\\Player\\Wolfgang\\wolfgang_character.png";
-	if (wolfgangData) {
-		wolfgangPortraitPath = wolfgangData->baseDir + L"\\wolfgang_portrait.png";
-		wolfgangCharacterPath = wolfgangData->baseDir + L"\\wolfgang_character.png";
-	}
+
 	m_characterList.emplace_back(
 		L"Wolfgang",
-		wolfgangPortraitPath,
-		wolfgangCharacterPath,
-		L"강한 캐릭터입니다.\n체력이 높을수록 더 강해지는 캐릭터입니다.\n\n해금 조건: 거미 던전 클리어",
+		L"Resource/UI/wolfgang.png",
+		L"Resource/UI/Wolfgang_Character.png",
+		L"기본적으로 체력이 높은 캐릭터입니다.\n\n해금 조건: 거미 던전 클리어",
 		startX + spacing * 2,
 		characterY,
 		GOID_PLAYER_WOLFGANG,
@@ -370,13 +360,13 @@ void CharacterSelectScene::OnCancelButtonClicked()
 	m_isLockedCharacterSelected = false;
 	m_currentState = CharacterSelectionState::BROWSING;
 	
-	if (m_pPlayerPortrait) m_pPlayerPortrait->SetActive(false);
-	if (m_pPlayerInfo) m_pPlayerInfo->SetActive(false);
-	if (m_pSelectButton) m_pSelectButton->SetActive(false);
-	if (m_pSelectText) m_pSelectText->SetActive(false);
-	if (m_pCancelButton) m_pCancelButton->SetActive(false);
-	if (m_pCancelText) m_pCancelText->SetActive(false);
-	if (m_pCharacterDescription) m_pCharacterDescription->SetActive(false);
+	m_pPlayerPortrait->SetActive(false);
+	m_pPlayerInfo->SetActive(false);
+	m_pSelectButton->SetActive(false);
+	m_pSelectText->SetActive(false);
+	m_pCancelButton->SetActive(false);
+	m_pCancelText->SetActive(false);
+	m_pCharacterDescription->SetActive(false);
 	
 	UpdateSelectButtonState();
 }
@@ -389,7 +379,7 @@ void CharacterSelectScene::OnBackButtonClicked()
 void CharacterSelectScene::UpdateSelectButtonState()
 {
 	m_isSelectButtonDisabled = m_isLockedCharacterSelected;
-	if (m_pSelectButton) m_pSelectButton->SetDisabled(m_isSelectButtonDisabled);
+	m_pSelectButton->SetDisabled(m_isSelectButtonDisabled);
 }
 
 void CharacterSelectScene::UpdateCharacterUnlockStatus()

@@ -16,7 +16,7 @@ HPUI::HPUI(Entity* target, const std::wstring& name,
 	float barSortKey, float textSortKey,
 	bool showIcon, bool numericValue,
 	float margin, float gap, float iconSize)
-	: UIElement(GOID_UI_HP, L"", L"", true, false)
+	: UIElement(GOID_UI_HP, L"", L"",NONE, true, false)
 	, m_target(target), m_name(name)
 	, m_barWidth(barWidth), m_barHeight(barHeight)
 	, m_bgColor(bgColor), m_fillColor(fillColor), m_nameColor(nameColor)
@@ -52,11 +52,14 @@ void HPUI::Init()
 	float hpTextPosY = anchoredPosY;
 	float nameTextPosY = anchoredPosY;
 	float nameTextPosX = anchoredPosX - (m_barWidth * 0.5f);
+	Gdiplus::StringAlignment nameHAlign = Gdiplus::StringAlignmentNear;
 
-	// 보스용인 경우 텍스트를 바 위로 올림
+	// 보스용인 경우 텍스트 위치 변경
 	if (!m_numericValue) {
 		hpTextPosY -= (m_barHeight * 0.5f + 25.0f);
-		nameTextPosY -= (m_barHeight * 0.5f + 25.0f);
+		nameTextPosX = anchoredPosX - m_barWidth - 10.0f;
+		nameTextPosY = anchoredPosY;
+		nameHAlign = Gdiplus::StringAlignmentFar; 
 	}
 
 	// HP 텍스트: 중앙 정렬
@@ -76,7 +79,7 @@ void HPUI::Init()
 		anchoredPosX, hpTextPosY
 	);
 
-	// 이름 텍스트: 왼쪽 정렬
+	// 이름 텍스트
 	m_nameText = new UIText(
 		GOID_NONE,
 		m_barWidth,
@@ -86,7 +89,7 @@ void HPUI::Init()
 		LAYER_UI_FOREGROUND,
 		m_textSortKey,
 		L"맑은 고딕", 16.0f, Gdiplus::FontStyleBold,
-		Gdiplus::StringAlignmentNear, // 왼쪽 정렬
+		nameHAlign,
 		Gdiplus::StringAlignmentCenter,
 		m_rectTransform->GetAnchorMin().X, m_rectTransform->GetAnchorMin().Y,
 		m_rectTransform->GetAnchorMax().X, m_rectTransform->GetAnchorMax().Y,

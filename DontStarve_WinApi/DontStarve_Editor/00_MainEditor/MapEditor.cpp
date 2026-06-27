@@ -78,6 +78,11 @@ void MapEditor::Initialize() {
 	m_playerSpawnPoint = Gdiplus::PointF(centerX, centerY);
 	m_hasPlayerSpawn = true;
 
+	// 화면과 맵의 중앙이 맞도록 초기 카메라 오프셋 설정
+	int initialOffsetX = (clientRect.right / 2) - (int)centerX;
+	int initialOffsetY = (clientRect.bottom / 2) - (int)centerY;
+	m_pView->SetMapOffsetClamped(initialOffsetX, initialOffsetY, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
+
 	m_pLayerComposer->ComposeGridLayer();
 	m_pLayerComposer->ComposeTileLayer();
 	m_pLayerComposer->ComposeObjectLayer();
@@ -316,7 +321,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			}
 		}
 	}
-	break;
+	return 0;
 
 	case WM_LBUTTONDOWN: {
 		RECT clientRect;
@@ -418,7 +423,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			HandleObjectSelectionClick(clickPoint, hWnd);
 		}
 	}
-	break;
+	return 0;
 
 	case WM_RBUTTONDOWN:
 	{
@@ -454,7 +459,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			SetCapture(hWnd);
 		}
 	}
-	break;
+	return 0;
 
 	case WM_CAPTURECHANGED:
 	{
@@ -465,7 +470,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			m_pWalkableEditor->OnLeftButtonUp();
 		}
 	}
-	break;
+	return 0;
 
 	case WM_RBUTTONUP:
 	{
@@ -484,7 +489,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			return 0;
 		}
 	}
-	break;
+	return 0;
 
 	case WM_MOUSEWHEEL:
 	{
@@ -667,6 +672,7 @@ LRESULT MapEditor::HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
+	return 0;
 }
 
 void MapEditor::NewMap() {
@@ -696,7 +702,9 @@ void MapEditor::NewMap() {
 	m_pView->SetZoomFactor(1.0f);
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
-	m_pView->SetMapOffsetClamped(0, 0, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
+	int initialOffsetX = (clientRect.right / 2) - (int)centerX;
+	int initialOffsetY = (clientRect.bottom / 2) - (int)centerY;
+	m_pView->SetMapOffsetClamped(initialOffsetX, initialOffsetY, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
 	m_pLayerComposer->SetTileLayerDirty(true);
 	m_pLayerComposer->SetObjectLayerDirty(true);
 	m_objectsDirty = true;
@@ -729,7 +737,9 @@ void MapEditor::SetMapSize(int width, int height) {
 	m_pView->SetZoomFactor(1.0f);
 	RECT clientRect;
 	GetClientRect(g_hWnd, &clientRect);
-	m_pView->SetMapOffsetClamped(0, 0, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
+	int initialOffsetX = (clientRect.right / 2) - (int)centerX;
+	int initialOffsetY = (clientRect.bottom / 2) - (int)centerY;
+	m_pView->SetMapOffsetClamped(initialOffsetX, initialOffsetY, clientRect.right, clientRect.bottom, m_mapWidth, m_mapHeight);
 	m_pLayerComposer->SetTileLayerDirty(true);
 	m_pLayerComposer->SetObjectLayerDirty(true);
 	m_objectsDirty = true;

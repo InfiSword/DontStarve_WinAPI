@@ -30,11 +30,12 @@ public:
 	void FollowTarget();
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 	
-	GameObject* FindInteractableObjectAtPosition(float worldX, float worldY);
-	void FindObjectsIntersectingCollider(Collider* pCollider, std::vector<GameObject*>& outObjects, bool onlyInteraction = false);
+	// 통합된 영역 쿼리 함수
+	void QueryObjectsInArea(const Gdiplus::RectF& area, std::vector<GameObject*>& outObjects, bool onlyInteraction = true);
 
 	void RenderVisibleTiles(const MapData* mapData);
 	void RenderVisibleGameObjects();
+	bool IsObjectInViewport(GameObject* pObj) const;
 	void ClearTileCache();
 
 	void SetWalkableBoundsFromMapData(const MapData* mapData);
@@ -70,7 +71,7 @@ public:
 private:
 	GameObject* m_target = nullptr;
 	std::unordered_map<UINT, TileCacheData> m_tileCache;
-	std::vector<GameObject*> m_queryBuffer; // 공간 분할 쿼리용 재사용 버퍼 (성능 최적화용)
+	std::vector<GameObject*> m_queryBuffer; // 공간 분할 쿼리용
 
 	Gdiplus::RectF m_lastViewportRect = { 0, 0, 0, 0 };
 	Gdiplus::PointF m_cameraPos = { 0, 0 };
@@ -88,7 +89,6 @@ private:
 	bool m_followMode = true;
 	bool m_hasWalkableBounds = false;
 
-	bool IsObjectInViewport(GameObject* obj) const;
 	void LoadTileBitmap(const ResourcePathUtils::TileResourceDef& tileData, TileCacheData& cacheData);
 	void CleanupUnusedTileCache(const MapData* mapData, int startX, int endX, int startY, int endY);
 };

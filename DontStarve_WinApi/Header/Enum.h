@@ -36,6 +36,7 @@ enum SceneType
 	SCENE_NONE = 0,
 	SCENE_TITLE,               // 타이틀 씬
 	SCENE_CHARACTER_SELECT,    // 캐릭터 선택 씬
+	SCENE_LOADING,             // 로딩 씬
 	SCENE_GAME_FARMING_AREA,        
 	SCENE_GAME_HOUND_FOREST,        
 	SCENE_GAME_SPIDER_QUEEN_HOUSE,  
@@ -158,7 +159,8 @@ enum DrawCommandType
 
 // 콜라이더 타입 정의
 enum ColliderType {
-	COLLIDER_BOX = 0,      // 사각형 콜라이더
+	NONE = -1,
+	COLLIDER_BOX,      // 사각형 콜라이더
 	COLLIDER_CIRCLE,       // 원형 콜라이더
 	COLLIDER_COUNT
 };

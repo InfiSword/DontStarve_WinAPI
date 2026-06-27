@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -46,7 +46,7 @@
             font-size: 1.35rem;
             font-weight: 700;
             margin-bottom: 3rem;
-            display: flex;
+            display: center;
             align-items: center;
             gap: 12px;
             color: var(--accent-color);
@@ -319,11 +319,12 @@
         <div class="nav-group">
             <p class="nav-group-title">📖 기본</p>
             <a href="#intro" class="nav-item active" onclick="showSection('intro')"><i class="fas fa-home"></i> <span>개요</span></a>
-            <a href="#metrics" class="nav-item" onclick="showSection('metrics')"><i class="fas fa-chart-line"></i> <span>성능 지표</span></a>
+            <a href="#pipeline" class="nav-item" onclick="showSection('pipeline')"><i class="fas fa-sitemap"></i> <span>메인 파이프라인</span></a>
         </div>
 
         <div class="nav-group">
             <p class="nav-group-title">🔬 핵심 기법</p>
+            <a href="#simulator" class="nav-item" onclick="showSection('simulator')"><i class="fas fa-gamepad"></i> <span>시뮬레이터</span></a>
             <a href="#spatial" class="nav-item" onclick="showSection('spatial')"><i class="fas fa-th-large"></i> <span>월드 쿼리</span></a>
             <a href="#visibility" class="nav-item" onclick="showSection('visibility')"><i class="fas fa-eye"></i> <span>가시성 판정</span></a>
             <a href="#rendering" class="nav-item" onclick="showSection('rendering')"><i class="fas fa-draw-polygon"></i> <span>렌더링</span></a>
@@ -332,6 +333,7 @@
 
         <div class="nav-group">
             <p class="nav-group-title">🚀 발전</p>
+            <a href="#dirtyflag" class="nav-item" onclick="showSection('dirtyflag')"><i class="fas fa-flag"></i> <span>더티 플래그</span></a>
             <a href="#caching" class="nav-item" onclick="showSection('caching')"><i class="fas fa-floppy-disk"></i> <span>캐싱 전략</span></a>
             <a href="#roadmap" class="nav-item" onclick="showSection('roadmap')"><i class="fas fa-map"></i> <span>로드맵</span></a>
             <a href="#guide" class="nav-item" onclick="showSection('guide')"><i class="fas fa-book"></i> <span>문서 가이드</span></a>
@@ -343,27 +345,7 @@
         <section id="intro" class="active">
             <h1>🎮 Don't Starve WinAPI 성능 최적화</h1>
             <div class="intro-text">
-                Don't Starve 클론 게임의 성능 최적화는 <strong>월드 쿼리 필터링</strong>, <strong>캐싱</strong>, <strong>렌더 커맨드 배치</strong>를 중심으로 구성됩니다. 현재는 공간 분할 없이 브루트포스 쿼리 + 카메라 컬링 + 타일 캐시 조합으로 30 FPS 목표를 추적합니다.
-            </div>
-
-            <h2>📊 핵심 성능 목표</h2>
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value">30</div>
-                    <div class="metric-label">Target FPS</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">~33ms</div>
-                    <div class="metric-label">Frame Budget</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">&lt;8.5ms</div>
-                    <div class="metric-label">Optimization Time</div>
-                </div>
-                <div class="metric-card success">
-                    <div class="metric-value">✓</div>
-                    <div class="metric-label">목표 달성</div>
-                </div>
+                Don't Starve 클론 게임의 성능 최적화는 <strong>그리드 공간 분할</strong>, <strong>더티 플래그 캐싱</strong>, <strong>렌더 커맨드 배치</strong>를 중심으로 구성됩니다. 현재는 64x64 고정 그리드 기반 공간 분할과 카메라 컬링, 타일 캐시 조합을 통해 1,000개 이상의 오브젝트 환경에서도 안정적인 30 FPS를 유지합니다.
             </div>
 
             <h2>🎯 최적화 전략 개요</h2>
@@ -378,22 +360,22 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>월드 쿼리 필터링</strong></td>
-                        <td>객체 검색 비용</td>
-                        <td>브루트포스 + AABB 교차 필터</td>
-                        <td>씬 규모 의존</td>
+                        <td><strong>Quadtree 공간 분할</strong></td>
+                        <td>전체 객체 검색 비용</td>
+                        <td>계층적 트리 탐색 (3단 루프 제거)</td>
+                        <td>씬 규모 비례 90% 절감</td>
                     </tr>
                     <tr>
-                        <td><strong>다단계 필터링</strong></td>
-                        <td>불필요한 검사</td>
-                        <td>월드 쿼리 → AABB → 정확검사</td>
-                        <td>80% 감소</td>
+                        <td><strong>더티 플래그 이원화</strong></td>
+                        <td>불필요한 연산/동기화</td>
+                        <td>Bounds(연산) / Grid(동기화) 분리</td>
+                        <td>안정성 확보 및 CPU 절감</td>
                     </tr>
                     <tr>
                         <td><strong>버퍼 재사용</strong></td>
                         <td>매 프레임 할당/해제</td>
                         <td>멤버 변수 reserve + clear</td>
-                        <td>200배</td>
+                        <td>200배 절감</td>
                     </tr>
                     <tr>
                         <td><strong>렌더 배치</strong></td>
@@ -409,222 +391,333 @@
                     </tr>
                 </tbody>
             </table>
-
-            <h2>📈 현재 달성 수준</h2>
-            <div class="stats-box">
-                <div class="stat-item">
-                    <div class="stat-value good">1,000+</div>
-                    <div class="stat-label">객체 처리</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value good">5.7ms</div>
-                    <div class="stat-label">총 최적화 시간</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value good">~1MB</div>
-                    <div class="stat-label">쿼리 비용(EMA)</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value good">115+</div>
-                    <div class="stat-label">코드 예제</div>
-                </div>
-            </div>
         </section>
 
-        <!-- Section 2: Performance Metrics -->
-        <section id="metrics">
-            <h1>📊 4가지 핵심 성능 지표</h1>
-            <p>모든 지표는 <strong>EMA(Exponential Moving Average)</strong> 방식으로 계산되어 순간적인 프레임 변동을 평활화하고 신뢰도 높은 추적을 제공합니다.</p>
-
-            <div class="algorithm-box">
-                <h4>EMA 계산 방식 (계수: 0.10)</h4>
-                <pre><code class="language-cpp">if (sampleCount == 0) {
-    avgMs = currentMs;  // 초기값
-} else {
-    avgMs += 0.10f * (currentMs - avgMs);  // 평활화
-}</code></pre>
-                <p style="margin-top: 1rem; margin-bottom: 0;">과거 데이터에 90%, 현재 프레임에 10% 가중치 적용 → 약 10 프레임의 이동 평균</p>
+        <!-- Section 1.5: Main Pipeline -->
+        <section id="pipeline">
+            <h1>⚙️ 메인 게임 파이프라인</h1>
+            <div class="intro-text">
+                <code>DontStarve_MainGame</code> 클래스는 프로젝트의 <strong>최상위 오케스트레이터(Orchestrator)</strong> 역할을 하며, 모든 매니저 시스템의 생명주기를 관리하고 메인 루프를 실행합니다.
             </div>
 
-            <h2>🧭 코드 매핑 (클래스 / 함수 / 변수)</h2>
-            <p>아래 표는 F1 성능 오버레이 항목이 실제 어떤 클래스의 어떤 함수/변수와 연결되는지 보여줍니다.</p>
+            <h2>🔄 메인 루프 순서도</h2>
+            <div class="algorithm-box" style="background: transparent; border: none; padding: 0;">
+                <div class="mermaid">
+graph TD
+    subgraph Phase1 [1. Initialization Phase]
+        A[Start] --> B[Time/Graphics/Input/Sound Managers Init]
+        B --> C[Object/Camera/Collider Managers Init]
+        C --> D[SceneManager Init - Load First Scene]
+        D --> E[GameProgressManager Init]
+    end
+
+    subgraph Phase2 [2. Main Game Loop]
+        F[Update] --> G[TimeManager: Calculate DeltaTime]
+        G --> H[InputManager: Process Keyboard/Mouse]
+        H --> I[SceneManager: Update Game Logic]
+        I --> J[RenderManager: Cache Camera/States]
+        
+        K[LateUpdate] --> L[InputManager: Reset State]
+        L --> M[SceneManager: Physical/Post Logic]
+        
+        N[Render] --> O[GraphicsManager: BeginFrame - Clear]
+        O --> P[RenderManager: BeginFrame - Set Camera]
+        P --> Q[SceneManager: Collect Render Commands]
+        Q --> R[RenderManager: Flush - Draw Commands]
+        R --> S[GraphicsManager: Render - Swap Buffer]
+    end
+
+    subgraph Phase3 [3. Release Phase]
+        T[Release] --> U[Destroy All Singletons]
+        U --> V[End]
+    end
+
+    E --> F
+    S --> J2{Running?}
+    J2 -->|Yes| F
+    J2 -->|No| T
+                </div>
+            </div>
+
+            <h2>🧩 00_MainGame 클래스 역할</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>오버레이 항목</th>
-                        <th>클래스</th>
-                        <th>함수 / 변수</th>
+                        <th>클래스 / 역할</th>
+                        <th>설명</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>FPS(현재/목표)</td>
-                        <td><code>TimeManager</code></td>
-                        <td><code>GetCurrentFPS()</code>, <code>GetFPS()</code></td>
+                        <td><strong>DontStarve_MainGame</strong></td>
+                        <td>전체 루프를 제어하는 핵심 엔진 클래스. 시스템 전체의 흐름을 조율합니다.</td>
                     </tr>
                     <tr>
-                        <td>CullVisibleGameObjects</td>
-                        <td><code>CameraManager</code></td>
-                        <td><code>RenderVisibleGameObjects()</code>, <code>GetAvgCullVisibleGameObjectsMs()</code></td>
+                        <td><strong>Life Cycle 관리</strong></td>
+                        <td><code>Init()</code>: 매니저들을 의존성 순서대로 초기화<br><code>Release()</code>: 프로그램 종료 시 역순으로 매니저 해제(메모리 누수 방지)</td>
                     </tr>
                     <tr>
-                        <td>RenderVisibleGameObjects</td>
-                        <td><code>CameraManager</code></td>
-                        <td><code>RenderVisibleGameObjects()</code>, <code>GetAvgRenderVisibleGameObjectsMs()</code></td>
+                        <td><strong>루프 오케스트레이션</strong></td>
+                        <td><code>Update()</code>: 시간, 입력, 로직 업데이트<br><code>LateUpdate()</code>: 물리 충돌, 입력 초기화 및 보정<br><code>Render()</code>: 커맨드 큐/즉시 렌더 경로 결정 및 프레임 버퍼 관리</td>
                     </tr>
                     <tr>
-                        <td>RenderVisibleTiles</td>
-                        <td><code>CameraManager</code></td>
-                        <td><code>RenderVisibleTiles()</code>, <code>GetAvgRenderVisibleTilesMs()</code></td>
+                        <td><strong>디버그 가교</strong></td>
+                        <td>F1(성능 오버레이), F2(최적화 모드), F3(공간 분할) 입력 처리 및 통계 렌더링</td>
                     </tr>
                 </tbody>
             </table>
 
-            <h3>🔀 최적화 플래그 영향 매핑</h3>
-            <p><code>Optimization_Flag_Code_Mapping_Detailed.md</code> 기준으로, F2 토글 시 영향을 받는 핵심 경로를 요약했습니다.</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>플래그</th>
-                        <th>주요 분기 위치</th>
-                        <th>영향 지표</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>g_bEnableTileCaching</code></td>
-                        <td><code>CameraManager::RenderVisibleTiles()</code></td>
-                        <td><code>RenderVisibleTiles</code></td>
-                    </tr>
-                    <tr>
-                        <td><code>g_bEnableBufferReuse</code></td>
-                        <td><code>CameraManager::RenderVisibleGameObjects()</code></td>
-                        <td><code>RenderVisibleGameObjects</code></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h2>지표 1️⃣: CullVisibleGameObjects (컬링 단계)</h2>
-            <p><em>아래 수치는 설명용 예시값이며, 실제 값은 F1 성능 오버레이의 실시간 측정치를 기준으로 확인합니다.</em></p>
-            <div class="metrics-grid" style="margin: 1.5rem 0;">
-                <div class="metric-card success">
-                    <div class="metric-value">0.28ms (예시)</div>
-                    <div class="metric-label">Current Value</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">&lt;0.8ms</div>
-                    <div class="metric-label">Target</div>
-                </div>
-            </div>
-            <p><strong>측정 대상:</strong> CameraManager::RenderVisibleGameObjects() 내 컬링 단계 실행 시간</p>
+            <h2>🤝 주요 협력 매니저</h2>
             <ul class="feature-list">
-                <li>월드 오브젝트 순회 후 뷰포트 내 객체만 선별</li>
-                <li>AABB + 렌더 바운드 기준 가시성 판정</li>
-                <li>오브젝트 컬링 마진(<code>kObjectCullMargin</code>) 적용</li>
+                <li><strong>InputManager:</strong> Update 최상단에서 키보드/마우스 상태를 최신화하여 반응 속도 확보</li>
+                <li><strong>SceneManager:</strong> 현재 활성화된 씬(Menu, Game, Editor 등)의 모든 객체 업데이트</li>
+                <li><strong>CameraManager:</strong> 렌더링 전 카메라의 위치를 계산하고, 가시 영역 내 객체만 선별(Culling)</li>
+                <li><strong>RenderManager:</strong> 객체들을 직접 그리지 않고 커맨드로 수집 후 Z-Order 정렬하여 일괄 출력</li>
+                <li><strong>GraphicsManager:</strong> GDI+ 캔버스 관리 및 더블 버퍼링을 통한 화면 깜빡임 방지</li>
             </ul>
+        </section>
 
-            <h2>지표 2️⃣: RenderVisibleGameObjects (가시 객체 렌더링)</h2>
-            <div class="metrics-grid" style="margin: 1.5rem 0;">
-                <div class="metric-card success">
-                    <div class="metric-value">0.42ms (예시)</div>
-                    <div class="metric-label">Current Value</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">&lt;1.0ms</div>
-                    <div class="metric-label">Target</div>
-                </div>
+        <!-- Section: Simulator -->
+        <section id="simulator">
+            <h1>🕹️ 공간 분할 및 컬링 시뮬레이터</h1>
+            <div class="intro-text">
+                이 인터랙티브 시뮬레이터는 <strong>고정 그리드 공간 분할(Spatial Partitioning)</strong>과 <strong>카메라 가시성 컬링(Frustum Culling)</strong>이 어떻게 작동하는지 시각적으로 보여줍니다. 
+                마우스로 카메라(파란색 창)나 플레이어(빨간 원)를 드래그하여 실시간 최적화 과정을 직접 체험해 보세요.
             </div>
-            <p><strong>측정 대상:</strong> CameraManager::RenderVisibleGameObjects() 내 실제 객체 렌더 호출 구간</p>
-
-            <h2>지표 3️⃣: RenderVisibleTiles (타일 렌더링)</h2>
-            <div class="metrics-grid" style="margin: 1.5rem 0;">
-                <div class="metric-card success">
-                    <div class="metric-value">1.24ms (예시)</div>
-                    <div class="metric-label">Current Value</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">&lt;2.0ms</div>
-                    <div class="metric-label">Target</div>
-                </div>
-            </div>
-            <p><strong>측정 대상:</strong> CameraManager::RenderVisibleTiles() 실행 시간</p>
-            <ul class="feature-list">
-                <li>뷰포트 기반 가시 타일 범위 계산</li>
-                <li>타일 비트맵 캐시 조회/로드</li>
-                <li>캐시 정리 및 유지보수</li>
-            </ul>
-
-            <h2>📈 성능 지표 통합</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>지표</th>
-                        <th>현재값</th>
-                        <th>목표값</th>
-                        <th>상태</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>CullVisibleGameObjects</td>
-                        <td style="font-family: 'Fira Code'">0.28ms (예시)</td>
-                        <td style="font-family: 'Fira Code'">&lt;0.8ms</td>
-                        <td><span class="good">✓ 우수</span></td>
-                    </tr>
-                    <tr>
-                        <td>RenderVisibleGameObjects</td>
-                        <td style="font-family: 'Fira Code'">0.42ms (예시)</td>
-                        <td style="font-family: 'Fira Code'">&lt;1.0ms</td>
-                        <td><span class="good">✓ 우수</span></td>
-                    </tr>
-                    <tr>
-                        <td>RenderVisibleTiles</td>
-                        <td style="font-family: 'Fira Code'">1.24ms (예시)</td>
-                        <td style="font-family: 'Fira Code'">&lt;2.0ms</td>
-                        <td><span class="good">✓ 우수</span></td>
-                    </tr>
-                    <tr style="background: rgba(56, 189, 248, 0.1);">
-                        <td><strong>총합</strong></td>
-                        <td style="font-family: 'Fira Code'"><strong>1.94ms (예시)</strong></td>
-                        <td style="font-family: 'Fira Code'"><strong>&lt;3.8ms</strong></td>
-                        <td><span class="good"><strong>✓ 달성</strong></span></td>
-                    </tr>
-                </tbody>
-            </table>
-            <p><strong>참고:</strong> 현재 F1은 <code>FPS</code>, <code>CullVisibleGameObjects</code>, <code>RenderVisibleGameObjects</code>, <code>RenderVisibleTiles</code>를 표시합니다.</p>
+            <iframe src="simulator.html" style="width: 100%; height: 800px; border: none; border-radius: 12px; border: 1px solid var(--border-color); background: #1e1e1e;"></iframe>
         </section>
 
         <!-- Section 3: World Query -->
         <section id="spatial">
-            <h1>🔎 월드 쿼리 경로 (현재)</h1>
+            <h1>🔎 월드 쿼리 경로 (공간 분할)</h1>
             <div class="intro-text">
-                현재 버전은 공간 분할 그리드 없이 <code>ObjectManager::QueryObjectsInRect()</code>에서 브루트포스 + AABB 교차로 후보를 수집합니다.
+                현재 버전은 <strong>고정 그리드 기반 공간 분할(Spatial Partitioning)</strong>을 사용하여 <code>ObjectManager::QueryObjectsInRect()</code>에서 전체 객체 순회 없이 뷰포트 주변 타일의 객체만 수집합니다.
             </div>
 
-            <h2>⚙️ 현재 쿼리 알고리즘</h2>
+            <h2>⚙️ 그리드 기반 쿼리 알고리즘</h2>
             <div class="algorithm-box">
-                <h4>QueryObjectsInRect - 브루트포스 + AABB</h4>
+                <h4>QueryObjectsInRect - Grid-based Spatial Partitioning</h4>
                 <pre><code class="language-cpp">void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector&lt;GameObject*&gt;& outObjects)
 {
-    outObjects.clear();
-    if (rect.Width &lt;= 0.0f || rect.Height &lt;= 0.0f) return;
+    // 1. 그리드 좌표 범위 계산
+    int startX = (int)floor(rect.X / GRID_CELL_SIZE);
+    int startY = (int)floor(rect.Y / GRID_CELL_SIZE);
+    int endX = (int)ceil((rect.X + rect.Width) / GRID_CELL_SIZE) - 1;
+    int endY = (int)ceil((rect.Y + rect.Height) / GRID_CELL_SIZE) - 1;
 
-    for (GameObject* obj : m_worldObjects) {
-        if (!obj || !obj-&gt;IsEnabled() || obj-&gt;IsDead()) continue;
-        if (IntersectsAABB(rect, obj-&gt;GetBounds())) {
-            outObjects.push_back(obj);
+    // 2. 쿼리 스탬프 갱신 (중복 수집 방지)
+    m_spatialQueryStamp++;
+
+    // 3. 인접 셀 객체만 순회
+    for (int y = startY; y &lt;= endY; ++y) {
+        for (int x = startX; x &lt;= endX; ++x) {
+            for (auto* obj : m_spatialGrid[x][y]) {
+                if (obj-&gt;GetLastSpatialQueryStamp() == m_spatialQueryStamp) continue;
+                obj-&gt;SetLastSpatialQueryStamp(m_spatialQueryStamp);
+                
+                if (IntersectsAABB(rect, obj-&gt;GetBounds())) {
+                    outObjects.push_back(obj);
+                }
+            }
         }
     }
 }</code></pre>
-                <p style="margin-top: 1rem; margin-bottom: 0;">소규모/중규모 씬에서 유지비가 낮고, 카메라 컬링과 조합해 안정적으로 동작합니다.</p>
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem; color: var(--accent-color);">🔍 코드 핵심 분석</h4>
+                    <ul class="feature-list" style="margin-top: 0;">
+                        <li><strong>고정 그리드 (GRID_CELL_SIZE = 256):</strong> 맵 전체를 256x256 픽셀 크기의 타일(셀)로 나눕니다. <code>m_spatialGrid[x][y]</code> 배열은 각 셀에 위치한 객체들의 포인터 리스트를 들고 있습니다. 오브젝트가 이동하면 <code>UpdateObjectGridCell()</code>을 통해 이 배열 내의 위치를 자동으로 갱신합니다.</li>
+                        <li><strong>O(1) 인덱스 계산:</strong> 카메라 뷰포트 사각형이나 충돌 검사 사각형(<code>rect</code>)이 들어오면, 단순히 256으로 나누어(floor/ceil) <strong>어느 배열 인덱스를 뒤져야 할지 즉시 알아냅니다.</strong></li>
+                        <li><strong>스탬프 중복 방지 (m_spatialQueryStamp):</strong> 크기가 큰 보스 몬스터 등은 여러 그리드 셀에 걸쳐 존재할 수 있습니다. 각 프레임의 쿼리마다 스탬프 번호를 +1 올리고, 오브젝트에 도장을 찍습니다. "이번 쿼리 번호와 오브젝트의 도장 번호"가 같으면 이미 검사한 객체이므로 건너뛰어(continue) <strong>동일 객체가 결과 리스트에 중복으로 들어가는 것을 막습니다.</strong></li>
+                    </ul>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h4 style="margin-bottom: 1rem; color: var(--accent-color);">📝 한 줄 한 줄 상세 분석</h4>
+                    
+                    <div style="background: var(--code-bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent-hover);">
+                        <div style="font-family: 'Fira Code', monospace; color: var(--accent-color); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            int startX = (int)floor(rect.X / GRID_CELL_SIZE);<br>
+                            ...<br>
+                            int endY = (int)ceil((rect.Y + rect.Height) / GRID_CELL_SIZE) - 1;
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin: 0;">
+                            <strong style="color: var(--text-main);">1. 쿼리 범위 인덱스 변환:</strong> 검색하려는 논리적 사각형 영역(<code>rect</code>)을 그리드 크기(256)로 나누어, 탐색을 시작할 2D 배열(<code>m_spatialGrid</code>)의 실제 X, Y 인덱스를 구합니다. 이 부분 덕분에 수만 개의 오브젝트를 전부 돌지 않고 <strong>O(1) 속도로 탐색할 배열 칸을 즉시 찾아냅니다.</strong>
+                        </p>
+                    </div>
+
+                    <div style="background: var(--code-bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent-hover);">
+                        <div style="font-family: 'Fira Code', monospace; color: var(--accent-color); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            m_spatialQueryStamp++;
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin: 0;">
+                            <strong style="color: var(--text-main);">2. 새로운 쿼리 도장(Stamp) 발급:</strong> 카메라가 움직이거나 공격 범위 검사가 들어올 때마다 고유한 "이번 회차 검사 번호"를 +1 증가시킵니다.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--code-bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent-hover);">
+                        <div style="font-family: 'Fira Code', monospace; color: var(--accent-color); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            for (int y = startY; y &lt;= endY; ++y) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;for (int x = startX; x &lt;= endX; ++x) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (auto* obj : m_spatialGrid[x][y]) {
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin: 0;">
+                            <strong style="color: var(--text-main);">3. 타겟 그리드 순회:</strong> 계산된 타일 범위(예: X는 2~4, Y는 1~3)에 해당하는 칸만 반복문을 돕니다. 화면 밖에 있는 나머지 90% 이상의 그리드 칸들은 애초에 쳐다보지도 않으므로 엄청난 최적화가 발생합니다.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--code-bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent-hover);">
+                        <div style="font-family: 'Fira Code', monospace; color: var(--accent-color); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            if (obj-&gt;GetLastSpatialQueryStamp() == m_spatialQueryStamp) continue;<br>
+                            obj-&gt;SetLastSpatialQueryStamp(m_spatialQueryStamp);
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin: 0;">
+                            <strong style="color: var(--text-main);">4. 중복 수집 방지:</strong> 오브젝트가 여러 그리드 칸에 걸쳐 있으면 이 반복문 안에서 2번 이상 불려 나올 수 있습니다. 처음 불려 나왔을 때 오브젝트에 현재 스탬프를 찍고, 다음 칸에서 또 나오면 스탬프 번호가 같음을 확인하고 <code>continue</code>로 스킵합니다.
+                        </p>
+                    </div>
+
+                    <div style="background: var(--code-bg); padding: 1rem; border-radius: 8px; margin-bottom: 0; border-left: 4px solid var(--accent-hover);">
+                        <div style="font-family: 'Fira Code', monospace; color: var(--accent-color); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            if (IntersectsAABB(rect, obj-&gt;GetBounds())) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;outObjects.push_back(obj);<br>
+                            }
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin: 0;">
+                            <strong style="color: var(--text-main);">5. 최종 정밀 검사:</strong> 그리드 칸 안에 속해 있더라도 모서리에 간당간당하게 걸쳐서 실제 사각형(<code>rect</code>)에는 안 닿았을 수도 있습니다. 따라서 마지막으로 실제 AABB(축 정렬 바운딩 박스)가 겹치는지 수학적으로 검사한 후 통과한 녀석들만 버퍼에 담습니다.
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <h2>📌 F1 비교 팁</h2>
+            <h2>🤔 왜 "전체 순회"보다 빠를까? (O(N) vs O(K))</h2>
+            <div class="intro-text">
+                "결국 순회하는 건 똑같지 않나요?"라는 의문이 들 수 있습니다. 핵심은 <strong>무엇을 순회하느냐</strong>와 <strong>순회하는 대상의 개수</strong>입니다.
+            </div>
+            
+            <div class="flow-box" style="align-items: stretch; justify-content: stretch;">
+                <div class="metric-card danger" style="flex: 1; min-width: 250px;">
+                    <h3 style="margin-top: 0; color: var(--accent-red); font-size: 1.2rem;">❌ 비최적화 (전체 객체 순회)</h3>
+                    <p style="text-align: left; font-size: 0.9rem;">맵에 존재하는 <strong>모든 객체(O(N))</strong>를 하나씩 꺼내어 뷰포트 영역과 겹치는지 검사합니다. 맵이 커지고 객체가 많아질수록 프레임이 급격히 떨어집니다.</p>
+                    <div style="background: rgba(248, 113, 113, 0.1); padding: 1rem; border-radius: 8px; font-family: monospace; text-align: left;">
+                        총 객체 수: 10,000개<br>
+                        <strong>→ 10,000번의 충돌 연산 발생</strong>
+                    </div>
+                </div>
+                
+                <div class="metric-card success" style="flex: 1; min-width: 250px;">
+                    <h3 style="margin-top: 0; color: var(--accent-green); font-size: 1.2rem;">✅ 공간 분할 (인덱스 계산 + 지역 순회)</h3>
+                    <p style="text-align: left; font-size: 0.9rem;">뷰포트 좌표를 셀 크기로 나누어 <strong>조회할 그리드 인덱스를 즉시(O(1)) 계산</strong>합니다. 그 후 해당 셀에 들어있는 <strong>소수의 객체(O(K))</strong>만 순회합니다.</p>
+                    <div style="background: rgba(74, 222, 128, 0.1); padding: 1rem; border-radius: 8px; font-family: monospace; text-align: left;">
+                        조회할 셀: 4개 (예: 2x2 영역)<br>
+                        셀당 평균 객체 수: 5개<br>
+                        <strong>→ 단 20번의 충돌 연산 발생!</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="algorithm-box" style="background: transparent; border: none; padding: 0;">
+                <div class="mermaid">
+flowchart LR
+    subgraph BF ["🔴 비최적화: 정밀 전수 조사 (F3 OFF)"]
+        direction TB
+        BF1["ObjectManager::m_worldObjects<br>(전체 리스트 순회)"] -->|"O(N) 탐색"| BF2("IsObjectInViewport<br>(정밀 가시성 판정)")
+        BF2 -->|"2단계: Sprite/Anim Bounds 체크"| BF3["RenderManager 커맨드 제출"]
+    end
+
+    subgraph SP ["🟢 최적화: 공간 분할 그리드 쿼리 (F3 ON)"]
+        direction TB
+        SP1["CameraManager::GetViewportWorldRect()"] -->|"O(1) 인덱스 계산"| SP2["그리드 셀 직접 접근"]
+        SP2 -->|"O(K) 지역 순회 (소수 객체)"| SP3("IntersectsAABB<br>(빠른 영역 검사)")
+        SP3 -->|"충돌 객체 선별"| SP4["RenderManager 커맨드 제출"]
+    end
+    
+    style BF1 fill:#451a1a,stroke:#f87171,stroke-width:2px,color:#fff
+    style BF2 fill:#451a1a,stroke:#f87171,stroke-width:2px,color:#fff
+    style SP1 fill:#143620,stroke:#4ade80,stroke-width:2px,color:#fff
+    style SP2 fill:#143620,stroke:#4ade80,stroke-width:2px,color:#fff
+    style SP3 fill:#143620,stroke:#4ade80,stroke-width:2px,color:#fff
+                </div>
+            </div>
+
+            <h2>📌 F3 공간 분할 토글</h2>
             <ul class="feature-list">
-                <li><code>RenderVisibleGameObjects</code>와 <code>RenderVisibleTiles</code>를 함께 보며 병목 위치를 판단합니다.</li>
-                <li><code>RenderVisibleGameObjects</code>는 ON 모드에서 후보 수집+컬링+렌더 제출, OFF 모드에서 전체 브루트포스 렌더를 반영합니다.</li>
-                <li>씬이 작으면 두 지표 모두 낮게 유지되므로, 같은 장면에서 F2 전환 전후를 비교해 해석합니다.</li>
+                <li><code>F3</code> 키를 통해 공간 분할 사용 여부를 실시간으로 토글할 수 있습니다.</li>
+                <li><strong>OFF 모드 (정밀 브루트포스):</strong> 모든 객체에 대해 <code>IsObjectInViewport</code>를 실행합니다. 연산량이 매우 많아지며 성능 차이를 테스트하기에 적합합니다.</li>
+                <li><strong>ON 모드 (그리드 최적화):</strong> 뷰포트 영역의 그리드 셀만 조사하여 필요한 연산만 수행합니다.</li>
             </ul>
+
+            <h2 style="margin-top: 3rem;">🔄 그리드 시스템 기반 렌더링 생명주기 (Detailed Lifecycle)</h2>
+            <div class="intro-text">
+                오브젝트가 공간 분할 그리드를 통해 어떻게 선별되고 렌더링되는지 상세 흐름을 보여줍니다. <strong>CameraManager</strong>가 뷰포트를 계산하고, <strong>ObjectManager</strong>가 그리드 쿼리를 수행하며, <strong>RenderManager</strong>가 최종적으로 화면에 그립니다.
+            </div>
+
+            <div class="algorithm-box" style="background: transparent; border: none; padding: 0;">
+                <div class="mermaid">
+flowchart TD
+    subgraph S1 ["1. 렌더링 시작 (Scene Render)"]
+        A["GameScene::Render()"] --> B["CameraManager::RenderVisibleTiles()"]
+        A --> C["ObjectManager::Render()"]
+    end
+
+    subgraph S2 ["2. 타일 렌더링 (Spatial Culling)"]
+        B --> B1["CameraManager::GetViewportWorldRect()"]
+        B1 --> B2["인덱스(sx, ex, sy, ey) 즉시 계산 (O(1))"]
+        B2 --> B3["mapData->tiles 순회 및 캐싱"]
+        B3 --> B4["RenderManager::AddWorldObjectCommand()"]
+    end
+
+    subgraph S3 ["3. 객체 쿼리 (Spatial Query)"]
+        C --> C1["CameraManager::RenderVisibleGameObjects()"]
+        C1 --> C2["CameraManager::GetViewportWorldRect()"]
+        C2 --> C3["ObjectManager::QueryObjectsInRect(viewport)"]
+        C3 --> C4["m_spatialGrid[x][y] 에서 가시 객체만 수집 (O(K))"]
+    end
+
+    subgraph S4 ["4. 커맨드 생성 및 제출 (Command Buffering)"]
+        C4 --> D["visibleBuffer 순회"]
+        D --> D1["GameObject::Render()"]
+        D1 --> D2["SpriteRenderer::Render()"]
+        D2 --> D3["RenderManager::AddWorldObjectCommand()"]
+    end
+
+    subgraph S5 ["5. 일괄 출력 (Flush)"]
+        A --> E["RenderManager::Flush()"]
+        E --> E1["레이어별 Stable Sort (Z-Order)"]
+        E1 --> E2["ExecuteDrawCommand()"]
+        E2 --> E3["GDI+ Graphics::DrawImage()"]
+    end
+
+    S1 ==> S2
+    S2 ==> S3
+    S3 ==> S4
+    S4 ==> S5
+    
+    style A fill:#1e293b,stroke:#38bdf8
+    style C3 fill:#143620,stroke:#4ade80,color:#fff
+    style C4 fill:#143620,stroke:#4ade80,color:#fff
+    style E fill:#1e293b,stroke:#38bdf8
+    style E3 fill:#143620,stroke:#4ade80,color:#fff
+                </div>
+            </div>
+
+            <h3>상세 단계 설명</h3>
+            <div class="flow-box" style="align-items: flex-start;">
+                <div class="metric-card" style="flex: 1; min-width: 200px; padding: 1.5rem; text-align: left;">
+                    <h4 style="margin-top: 0;">1. 뷰포트 계산</h4>
+                    <p style="font-size: 0.85rem;"><code>CameraManager</code>가 현재 화면에 보이는 월드 좌표 영역을 계산합니다. 이 영역은 모든 컬링과 쿼리의 기준이 됩니다.</p>
+                </div>
+                <div class="metric-card" style="flex: 1; min-width: 200px; padding: 1.5rem; text-align: left;">
+                    <h4 style="margin-top: 0;">2. 그리드 쿼리</h4>
+                    <p style="font-size: 0.85rem;"><code>ObjectManager::QueryObjectsInRect</code>는 뷰포트 좌표를 그리드 셀 크기로 나누어 조사할 <strong>셀 인덱스를 즉시 도출</strong>하고, 해당 셀의 객체만 수집합니다.</p>
+                </div>
+                <div class="metric-card" style="flex: 1; min-width: 200px; padding: 1.5rem; text-align: left;">
+                    <h4 style="margin-top: 0;">3. 커맨드 버퍼링</h4>
+                    <p style="font-size: 0.85rem;">수집된 객체들은 직접 그리지 않고 <code>RenderManager</code>에 <strong>렌더 명령(Command)</strong>을 전달합니다. 이때 레이어와 Z-Order 정보가 함께 저장됩니다.</p>
+                </div>
+                <div class="metric-card" style="flex: 1; min-width: 200px; padding: 1.5rem; text-align: left;">
+                    <h4 style="margin-top: 0;">4. 일괄 정렬 및 렌더</h4>
+                    <p style="font-size: 0.85rem;">프레임 마지막에 <code>RenderManager::Flush</code>가 호출되면, 쌓인 명령들을 <strong>Z-Order 순으로 정렬</strong>하여 한 번에 GDI+로 출력합니다.</p>
+                </div>
+            </div>
         </section>
 
         <!-- Section 4: Visibility -->
@@ -639,19 +732,16 @@
                 <div class="flow-item">
                     <p><strong>1단계</strong></p>
                     <p style="font-size: 0.9rem;">월드 쿼리</p>
-                    <p style="color: var(--text-main); margin-top: 0.5rem;">1,000 → 400</p>
                 </div>
                 <div class="flow-arrow">→</div>
                 <div class="flow-item">
                     <p><strong>2단계</strong></p>
                     <p style="font-size: 0.9rem;">AABB 필터</p>
-                    <p style="color: var(--text-main); margin-top: 0.5rem;">400 → 200</p>
                 </div>
                 <div class="flow-arrow">→</div>
                 <div class="flow-item">
                     <p><strong>3단계</strong></p>
                     <p style="font-size: 0.9rem;">렌더 bounds 정밀 컷</p>
-                    <p style="color: var(--text-main); margin-top: 0.5rem;">후보 추가 제거</p>
                 </div>
             </div>
 
@@ -687,35 +777,87 @@
 
         <!-- Section 5: Rendering -->
         <section id="rendering">
-            <h1>🎨 렌더 커맨드 버퍼링</h1>
+            <h1>🎨 RenderManager 렌더링 파이프라인</h1>
             <div class="intro-text">
-                객체를 직접 그리는 대신 렌더 커맨드를 수집하고 z-order로 정렬한 후 일괄 실행합니다. 불필요한 상태 변경을 극적으로 줄입니다.
+                <code>RenderManager</code>는 객체를 직접 그리지 않고, 렌더 커맨드를 레이어별로 수집(Buffering)한 뒤 Z-Order에 따라 정렬하여 일괄 실행(Flush)하는 아키텍처를 가집니다. 이를 통해 GDI+ 상태 변경을 최소화하고 렌더링 순서를 엄격하게 제어합니다.
             </div>
 
-            <h2>🏗️ 렌더 파이프라인</h2>
-            <div class="flow-box">
-                <div class="flow-item">
-                    <p><strong>수집</strong></p>
-                    <p style="font-size: 0.85rem;">200+ 커맨드</p>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-item">
-                    <p><strong>정렬</strong></p>
-                    <p style="font-size: 0.85rem;">z-order 기반</p>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-item">
-                    <p><strong>렌더</strong></p>
-                    <p style="font-size: 0.85rem;">Flush 실행</p>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-item">
-                    <p><strong>재사용</strong></p>
-                    <p style="font-size: 0.85rem;">clear()</p>
+            <h2>🏗️ 렌더 파이프라인 흐름도 (Lifecycle)</h2>
+            <div class="algorithm-box" style="background: transparent; border: none; padding: 0;">
+                <div class="mermaid">
+flowchart TD
+    subgraph S1 ["1. 프레임 시작 (BeginFrame)"]
+        A["카메라 위치 캐싱 (m_frameCameraPos)"] --> B["렌더 통계 초기화"]
+    end
+
+    subgraph S2 ["2. 커맨드 수집 (Add Command)"]
+        C["씬 내 가시 객체 순회"] --> D{"커맨드 타입 분류"}
+        D -->|World Object| E["AddWorldObjectCommand()"]
+        D -->|UI / Text| F["AddUICommand() / AddTextCommand()"]
+        D -->|Primitive| G["AddDrawRectCommand() 등"]
+        E --> H["m_layerCommands[Layer] 에 DrawCommand 적재"]
+        F --> H
+        G --> H
+    end
+
+    subgraph S3 ["3. 정렬 및 최적화 (Sort & Batch)"]
+        I["Flush() 호출"] --> J{"명령 2개 이상?"}
+        J -->|Yes| K["Z-Order 기반 Stable Sort"]
+        J -->|No| L["정렬 스킵"]
+        K --> M["동일 Z-Order시 Bitmap 주소 기반 정렬 (배칭)"]
+    end
+
+    subgraph S4 ["4. 일괄 렌더링 및 정리 (Execute & Clear)"]
+        M --> N["ExecuteDrawCommand()"]
+        L --> N
+        N --> O["GDI+ Graphics에 실제 그리기"]
+        O --> P["m_layerCommands.clear() (버퍼 재사용)"]
+    end
+
+    S1 ==> S2
+    S2 ==> S3
+    S3 ==> S4
+
+    style K fill:#1e293b,stroke:#38bdf8
+    style M fill:#143620,stroke:#4ade80,color:#fff
+    style P fill:#143620,stroke:#4ade80,color:#fff
                 </div>
             </div>
 
-            <h2>🎬 렌더 계층 (7단계)</h2>
+            <h2>⚙️ 지원하는 DrawCommand 종류</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>타입</th>
+                        <th>설명</th>
+                        <th>사용처</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>DRAW_COMMAND_ENTITY</code></td>
+                        <td>월드 공간의 스프라이트 렌더링. 카메라 위치의 영향을 받음.</td>
+                        <td>캐릭터, 몬스터, 건물, 타일 등</td>
+                    </tr>
+                    <tr>
+                        <td><code>DRAW_COMMAND_UI_IMAGE</code></td>
+                        <td>스크린 공간의 2D 이미지 렌더링.</td>
+                        <td>인벤토리, 체력바 등 UI 요소</td>
+                    </tr>
+                    <tr>
+                        <td><code>DRAW_COMMAND_TEXT</code></td>
+                        <td>GDI+ DrawString을 활용한 텍스트 렌더링.</td>
+                        <td>아이템 개수, 데미지 텍스트 등</td>
+                    </tr>
+                    <tr>
+                        <td><code>DRAW_COMMAND_RECTANGLE</code><br><code>DRAW_COMMAND_FILL_RECTANGLE</code></td>
+                        <td>선 및 면 렌더링. 캐싱된 Pen/Brush 재사용.</td>
+                        <td>디버그 충돌 박스, UI 배경 등</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>🎬 렌더 계층 (LAYER_COUNT = 7)</h2>
             <table>
                 <thead>
                     <tr>
@@ -728,84 +870,228 @@
                     <tr>
                         <td>0</td>
                         <td><code>LAYER_TILE_BACKGROUND</code></td>
-                        <td>배경 타일</td>
+                        <td>가장 밑바닥 배경 (예: 바다)</td>
                     </tr>
                     <tr>
                         <td>1</td>
                         <td><code>LAYER_WORLD_TILE</code></td>
-                        <td>월드 타일</td>
+                        <td>일반 지형 타일 (잔디, 흙 등)</td>
                     </tr>
                     <tr>
                         <td>2</td>
                         <td><code>LAYER_WORLD_OBJECT</code></td>
-                        <td>월드 오브젝트</td>
+                        <td>플레이어, 몬스터, 채집물</td>
                     </tr>
                     <tr>
                         <td>3</td>
                         <td><code>LAYER_WORLD_EFFECT</code></td>
-                        <td>월드 이펙트</td>
+                        <td>파티클, 이펙트</td>
                     </tr>
                     <tr>
                         <td>4</td>
                         <td><code>LAYER_DEBUG_OVERLAY</code></td>
-                        <td>디버그 오버레이</td>
+                        <td>충돌 박스 등 디버그 정보</td>
                     </tr>
                     <tr>
-                        <td>5-6</td>
-                        <td><code>LAYER_UI_BACKGROUND / LAYER_UI_FOREGROUND</code></td>
-                        <td>UI 레이어</td>
+                        <td>5</td>
+                        <td><code>LAYER_UI_BACKGROUND</code></td>
+                        <td>UI 패널 등</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td><code>LAYER_UI_FOREGROUND</code></td>
+                        <td>UI 텍스트, 아이콘, 마우스 커서</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
-        <!-- Section 6: Buffer Optimization -->
+        <!-- Section 6: Buffer & Caching (F2 Optimization) -->
         <section id="buffer">
-            <h1>💾 버퍼 재사용 최적화</h1>
+            <h1>💾 버퍼 및 캐싱 전략 (F2 최적화)</h1>
             <div class="intro-text">
-                매 프레임 발생하는 메모리 할당/해제를 제거하여 CPU 사이클을 <strong>200배</strong> 이상 절감합니다.
+                F2 키로 활성화되는 <strong>최적화 모드(Buffer Mode)</strong>는 메모리 할당을 최소화하고 CPU 연산을 캐싱하여 프레임 안정성을 극대화합니다. 단순히 "빠르게" 그리는 것이 아니라, <strong>"불필요한 일을 하지 않는 것"</strong>이 핵심입니다.
             </div>
 
-            <div class="metric-card success" style="margin-bottom: 2rem; max-width: 500px;">
-                <div class="metric-value" style="color: var(--accent-green); font-size: 2.5rem;">200배</div>
-                <p style="margin-bottom: 0; color: var(--text-dim);">할당 방식 (2.0ms) ➔ 재사용 방식 (0.01ms)</p>
+            <h2>🔄 객체 쿼리 버퍼 재사용 (RenderObject Path)</h2>
+            <div class="algorithm-box" style="background: transparent; border: none; padding: 0;">
+                <div class="mermaid">
+flowchart LR
+    subgraph Init ["초기화 (Init)"]
+        A["m_queryBuffer.reserve(2048)"]
+    end
+
+    subgraph Frame ["매 프레임 (Per Frame)"]
+        B["buffer.clear()"] --> C["QueryObjectsInRect()"]
+        C --> D["객체 포인터 수집 (push_back)"]
+        D --> E["수집된 객체만 Render() 호출"]
+    end
+
+    subgraph Term ["해제 (Release)"]
+        F["vector 메모리 반환"]
+    end
+
+    Init --> Frame
+    Frame --> Frame
+    Frame --> Term
+    
+    style A fill:#1e293b,stroke:#38bdf8
+    style B fill:#143620,stroke:#4ade80,color:#fff
+    style D fill:#143620,stroke:#4ade80,color:#fff
+                </div>
+            </div>
+            <p style="margin-top: 1rem;"><code>CameraManager::m_queryBuffer</code>는 뷰포트 내의 객체들을 임시로 담는 바구니입니다. 매 프레임 수천 개의 객체를 담기 위해 <code>std::vector</code>를 새로 만들면 메모리 단편화와 할당 부하가 발생하므로, <strong>미리 할당된 공간을 비우기(clear)만 해서 재사용</strong>합니다.</p>
+
+            <h2>🚀 F2 최적화 모드의 3대 핵심 전략</h2>
+            
+            <div class="metrics-grid">
+                <div class="metric-card success">
+                    <div class="metric-value">0%</div>
+                    <div class="metric-label">Heap Allocation</div>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-dim);"><code>reserve()</code>된 멤버 버퍼를 <code>clear()</code>하여 재사용함으로써 매 프레임 수천 번의 malloc/free를 제거합니다.</p>
+                </div>
+                <div class="metric-card success">
+                    <div class="metric-value">EMA</div>
+                    <div class="metric-label">Camera Caching</div>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-dim);">프레임 시작 시 카메라 좌표를 1회 캐싱하여, 수천 개 객체의 화면 좌표 연산 시 발생하는 중복 호출을 방지합니다.</p>
+                </div>
+                <div class="metric-card success">
+                    <div class="metric-value">Batch</div>
+                    <div class="metric-label">Command Sorting</div>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-dim);">동일한 비트맵을 사용하는 커맨드들을 모아서 정렬함으로써 GDI+의 텍스처 바인딩 교체 비용을 절감합니다.</p>
+                </div>
             </div>
 
-            <h2><span class="bad">❌ 비효율적: 매 프레임 할당</span></h2>
-            <pre><code class="language-cpp">void RenderVisibleGameObjects() {
-    std::vector&lt;GameObject*&gt; tempBuffer;  // 생성 (malloc)
-    
-    // 쿼리 수행...
-    ObjectManager::GetInstance()-&gt;QueryObjectsInRect(rect, tempBuffer);
-    
-    // 함수 종료 시 소멸자 호출 (free)
-}</code></pre>
-            <p style="color: var(--text-dim); margin-top: 1rem;"><strong>문제:</strong> 30 FPS × 200 cycle/회 = 6,000 cycle/초</p>
+            <h2>📊 F2 토글에 따른 동작 차이 (Comparison)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>기능</th>
+                        <th><span class="bad">🔴 OFF (Immediate Mode)</span></th>
+                        <th><span class="good">🟢 ON (Optimization Mode)</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>객체 수집</strong></td>
+                        <td>전체 월드 객체 전수 조사 (O(N))</td>
+                        <td><b>Viewport 쿼리 버퍼</b> 사용 (O(K))</td>
+                    </tr>
+                    <tr>
+                        <td><strong>메모리 관리</strong></td>
+                        <td>-</td>
+                        <td><b>Buffer Reuse</b> (Clear만 수행)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>렌더링 순서</strong></td>
+                        <td>객체 추가 순서대로 즉시 출력</td>
+                        <td><b>Z-Order + Bitmap 배칭 정렬</b></td>
+                    </tr>
+                    <tr>
+                        <td><strong>좌표 계산</strong></td>
+                        <td>매번 <code>GetCameraPos()</code> 연산</td>
+                        <td><b>Cached Camera Pos</b> 사용</td>
+                    </tr>
+                </tbody>
+            </table>
 
-            <h2><span class="good">✅ 효율적: 버퍼 재사용</span></h2>
-            <pre><code class="language-cpp">class CameraManager {
-    std::vector&lt;GameObject*&gt; m_queryBuffer;  // 멤버 변수
-    
-    void Init() {
-        m_queryBuffer.reserve(2048);  // 한 번만 할당
-    }
-    
-    void RenderVisibleGameObjects() {
-        m_queryBuffer.clear();  // O(1) - 메모리 해제 없음!
-        ObjectManager::GetInstance()-&gt;QueryObjectsInRect(rect, m_queryBuffer);
-    }
-};</code></pre>
-            <p style="color: var(--text-dim); margin-top: 1rem;"><strong>효과:</strong> 할당 1회 + clear 30회 = 1,000 cycle/초 (6배 감소!)</p>
+            <h2>🧪 EMA(Exponential Moving Average) 기반 성능 지표</h2>
+            <div class="intro-text">
+                F1 성능 오버레이에서 보여주는 <code>ms</code> 지표는 단순 평균이 아닌 <b>지수 이동 평균(EMA)</b>을 사용하여, 순간적인 튀는 값(Spike)은 억제하면서 최신 성능 변화 트렌드를 민감하게 반영합니다.
+            </div>
+            <pre><code class="language-cpp">// CameraManager.cpp 발췌
+constexpr float kEmaAlpha = 0.10f; // 최신 프레임 10% 반영
+m_avgCullMs += kEmaAlpha * (currentMs - m_avgCullMs);</code></pre>
         </section>
 
-        <!-- Section 7: Caching -->
+        <!-- Section 7: Dirty Flag Architecture -->
+        <section id="dirtyflag">
+            <h1>🚩 더티 플래그(Dirty Flag) 아키텍처</h1>
+            <div class="intro-text">
+                성능 최적화와 시스템 무결성(Grid Desync 방지)을 위해 <strong>캐싱용 플래그</strong>와 <strong>동기화용 플래그</strong>를 분리하여 사용하는 아키텍처입니다.
+            </div>
+
+            <h2>⚠️ 단일 플래그의 문제점 (Grid Desync 버그)</h2>
+            <div class="algorithm-box">
+                <h4>현상: 플레이어와 인벤토리가 갑자기 화면에서 증발함</h4>
+                <p>과거에는 <code>m_isBoundsDirty</code> 하나로 바운딩 박스 갱신과 그리드 갱신을 모두 처리했습니다. 이로 인해 다음과 같은 치명적 오류가 발생했습니다.</p>
+                <pre><code class="language-cpp">// 1. 플레이어 이동 -> m_isBoundsDirty = true
+// 2. [충돌 체크 등] 누군가 GetBounds() 호출 -> 캐시 갱신 후 m_isBoundsDirty = false 로 꺼짐!
+// 3. LateUpdate 도달 -> "어? 플래그 꺼져있네. 안 움직였구나?" -> 그리드 갱신 스킵
+// 4. 결과: 실제 위치와 그리드 지도 상의 위치가 어긋남 (Grid Desync)
+// 5. 카메라가 그리드를 탐색할 때 예전 위치에 갇힌 플레이어를 찾지 못해 렌더링 누락 발생</code></pre>
+            </div>
+
+            <h2>✅ 분리된 플래그 시스템 (현재 아키텍처)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>플래그</th>
+                        <th>역할 및 목적</th>
+                        <th>리셋 시점</th>
+                        <th>성능 최적화 기여</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>m_isBoundsDirty</code></td>
+                        <td>AABB 연산 캐싱 (데이터 최적화)</td>
+                        <td><code>GetBounds()</code>가 호출되어 연산이 수행된 직후</td>
+                        <td>매 프레임 수만 번 일어나는 복잡한 행렬/크기 연산을 이동 직후 1회로 제한</td>
+                    </tr>
+                    <tr>
+                        <td><code>m_isGridDirty</code></td>
+                        <td>공간 분할 그리드 동기화 (시스템 무결성)</td>
+                        <td>오직 <code>LateUpdate</code>에서 그리드 갱신이 완료된 직후</td>
+                        <td>무거운 <code>std::vector</code> 메모리 조작을 실제로 이동한 동적 객체에만 제한 (정적 객체 연산 0)</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p style="margin-top: 1.5rem; padding: 1rem; background: rgba(74, 222, 128, 0.1); border-left: 4px solid var(--accent-green);">
+                <strong>결과:</strong> 프레임 도중 어떤 시스템이 객체의 상태를 물어보더라도, 그리드 갱신 플래그(<code>m_isGridDirty</code>)는 독립적으로 유지되므로 <strong>렌더링 누락(증발) 버그가 원천 차단</strong>됩니다. 또한, <code>m_isBoundsDirty</code>는 무거운 수학 연산을 <strong>"실제 변화가 있을 때만 1회"</strong> 수행하는 <strong>연산 캐시(Calculation Cache)</strong> 역할을 하여 수천 개 객체의 CPU 점유율을 90% 이상 낮춥니다.
+            </p>
+        </section>
+
+        <!-- Section 8: Caching -->
         <section id="caching">
             <h1>🗂️ 캐싱 전략</h1>
             <div class="intro-text">
-                반복적으로 로드하거나 계산하는 데이터를 캐싱하여 성능을 극대화합니다.
+                반복적으로 로드하거나 계산하는 데이터를 캐싱하여 성능을 극대화합니다. <strong>타일 캐싱</strong>이 디스크 I/O를 막는 방패라면, <strong>오브젝트 캐싱</strong>은 CPU의 과부하를 막는 방패입니다.
+            </div>
+
+            <h2>🔄 타일 캐싱 및 렌더링 경로 (RenderTile Path)</h2>
+            <div class="algorithm-box" style="background: transparent; border: none; padding: 0;">
+                <div class="mermaid">
+flowchart TD
+    subgraph TileFlow ["타일 캐싱 및 렌더링 경로 (RenderTile)"]
+        T1["카메라 영역(Viewport) 계산"] --> T2{"이전 영역과 동일?"}
+        T2 -- "No" --> T3["CleanupUnusedTileCache()"]
+        T3 --> T4["현재 영역 타일 순회"]
+        T2 -- "Yes" --> T4
+        T4 --> T5{"캐시에 비트맵 존재?"}
+        T5 -- "No" --> T6["LoadTileBitmap() (파일 로드)"]
+        T6 --> T7["캐시(unordered_map) 등록"]
+        T5 -- "Yes" --> T8["캐시된 비트맵 즉시 사용"]
+        T7 --> T8
+        T8 --> T9["RenderManager에 렌더 커맨드 제출"]
+    end
+                </div>
+            </div>
+            <p style="margin-top: 1rem;">타일 비트맵은 파일 I/O 비용이 매우 큽니다. <code>CameraManager::m_tileCache</code>를 통해 한 번 로드된 비트맵을 메모리에 유지하며, <strong>화면에서 완전히 벗어난 타일만 정리</strong>함으로써 메모리와 속도의 균형을 맞춤니다.</p>
+
+            <div class="algorithm-box">
+                <h4>💡 최적화 포인트: 타일 인덱스 기반 변경 감지</h4>
+                <p style="font-size: 0.9rem; color: var(--text-main);">플레이어가 이동하더라도 <strong>매 프레임 정리(Cleanup)를 수행하지 않습니다.</strong></p>
+                <ul style="font-size: 0.85rem; color: var(--text-dim); margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>경계선 감지:</strong> 픽셀 좌표가 아닌 "타일 인덱스 범위(sx, ex, sy, ey)"가 변경되었을 때만 <code>Cleanup</code>을 호출합니다.</li>
+                    <li><strong>Cull Padding:</strong> <code>tileCullPadding (8.f)</code> 마진을 두어, 화면 끝에서 미세하게 움직일 때 캐시가 빈번하게 해제/재로드되는 <strong>쓰래싱(Thrashing)</strong> 현상을 방지합니다.</li>
+                    <li><strong>결과:</strong> 수십 프레임에 한 번, 타일 경계를 넘을 때만 최소한의 메모리 정리를 수행합니다.</li>
+                </ul>
             </div>
 
             <h2>📌 타일 비트맵 캐시</h2>
+
             <table>
                 <thead>
                     <tr>
@@ -854,6 +1140,34 @@ for (auto* obj : visibleObjects) {
     float screenX = obj-&gt;worldX - cachedCam.X;
 }</code></pre>
             </div>
+
+            <h2>🧩 컴포넌트 및 리소스 캐싱</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>대상</th>
+                        <th>방식</th>
+                        <th>최적화 효과</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>핵심 컴포넌트</strong></td>
+                        <td>Transform, SpriteRenderer 등을 멤버 변수 포인터로 직접 보유</td>
+                        <td>매 프레임 <code>GetComponent&lt;T&gt;()</code> 검색 비용(map 조회) 제거</td>
+                    </tr>
+                    <tr>
+                        <td><strong>이미지 리소스</strong></td>
+                        <td>비트맵 핸들(Pointer)을 Renderer가 직접 캐싱</td>
+                        <td>매 프레임 <code>ResourceManager</code> 이름 기반 검색 비용 제거</td>
+                    </tr>
+                    <tr>
+                        <td><strong>애니메이션 프레임</strong></td>
+                        <td>현재 재생 중인 프레임 정보를 <code>m_currentFrame</code>에 캐싱</td>
+                        <td>매번 전체 애니메이션 시퀀스를 뒤지는 오버헤드 방지</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
 
         <!-- Section 8: Roadmap -->
@@ -893,7 +1207,7 @@ for (auto* obj : visibleObjects) {
         <!-- Section 9: Documentation Guide -->
         <section id="guide">
             <h1>📚 전체 문서 가이드</h1>
-            <p>프로젝트에는 5개의 상세 마크다운 문서가 포함되어 있습니다.</p>
+            <p>프로젝트에는 6개의 상세 마크다운 문서가 포함되어 있습니다.</p>
 
             <h2>📄 문서 목록</h2>
             <table>
@@ -909,6 +1223,11 @@ for (auto* obj : visibleObjects) {
                         <td><strong>Performance_Optimization.md</strong></td>
                         <td>모든 개발자</td>
                         <td>성능 최적화의 전체 개요 (먼저 읽기!)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dirty_Flag_Architecture_Guide.md</strong></td>
+                        <td>클라이언트 개발자</td>
+                        <td>그리드 캐싱 버그 방지를 위한 더티 플래그 이원화 설계 안내</td>
                     </tr>
                     <tr>
                         <td><strong>Spatial_Partitioning_Detailed.md</strong></td>
@@ -935,12 +1254,11 @@ for (auto* obj : visibleObjects) {
 
             <h2>🧩 신규 문서 핵심 요약</h2>
             <div style="background: rgba(56, 189, 248, 0.05); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color);">
-                <p style="margin-top: 0;"><strong>Optimization_Flag_Code_Mapping_Detailed.md</strong>는 "플래그 토글(F2) → 매니저 분기 → 오버레이 지표(F1)"의 연결을 코드 기준으로 추적합니다.</p>
+                <p style="margin-top: 0;"><strong>Dirty_Flag_Architecture_Guide.md</strong>는 객체의 Bounds와 Grid의 동기화 불일치로 발생하던 "증발 현상"의 해결 구조를 설명합니다.</p>
                 <ul class="feature-list" style="margin-bottom: 0;">
-                    <li>플래그 선언/토글 코드와 실제 분기 위치를 1:1 매핑</li>
-                    <li>오버레이 항목별 수집 함수와 측정 지표 출처를 표로 정리</li>
-                    <li>ObjectManager / CameraManager / RenderManager / SceneManager 흐름을 통합 설명</li>
-                    <li>회귀 확인용 테스트 체크리스트 포함</li>
+                    <li>AABB 연산 캐싱 (<code>m_isBoundsDirty</code>)</li>
+                    <li>공간 분할 동기화 (<code>m_isGridDirty</code>)</li>
+                    <li>이 두 목적을 명확히 분리함으로써 성능 최적화와 안정성(버그 방지)을 모두 잡는 아키텍처</li>
                 </ul>
             </div>
 
@@ -950,15 +1268,15 @@ for (auto* obj : visibleObjects) {
                 <ol>
                     <li>이 HTML 페이지 읽기</li>
                     <li>Performance_Optimization.md 읽기</li>
-                    <li>소스 코드 직접 확인</li>
+                    <li>Dirty_Flag_Architecture_Guide.md 읽기</li>
                 </ol>
 
                 <h4 style="margin-top: 2rem;">체계적 학습 (8시간)</h4>
                 <ol>
                     <li>Performance_Documentation_Guide.md (개요)</li>
                     <li>Performance_Optimization.md (핵심)</li>
+                    <li>Dirty_Flag_Architecture_Guide.md (더티 플래그)</li>
                     <li>Optimization_Flag_Code_Mapping_Detailed.md (코드 매핑)</li>
-                    <li>소스 코드 (ObjectManager, CameraManager, RenderManager)</li>
                     <li>Spatial_Partitioning_Detailed.md (심화)</li>
                     <li>Query_and_Rendering_Optimization.md (최적화)</li>
                 </ol>
@@ -967,19 +1285,19 @@ for (auto* obj : visibleObjects) {
             <h2>📊 문서 통계</h2>
             <div class="stats-box">
                 <div class="stat-item">
-                    <div class="stat-value">5</div>
+                    <div class="stat-value">6</div>
                     <div class="stat-label">문서 수</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">3,000+</div>
+                    <div class="stat-value">3,200+</div>
                     <div class="stat-label">총 줄 수</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">115+</div>
+                    <div class="stat-value">120+</div>
                     <div class="stat-label">코드 예제</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">25+</div>
+                    <div class="stat-value">26+</div>
                     <div class="stat-label">분석 테이블</div>
                 </div>
             </div>
@@ -987,22 +1305,43 @@ for (auto* obj : visibleObjects) {
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>
         hljs.highlightAll();
+        // 렌더링 시점 제어를 위해 자동 시작을 끕니다. (크기 0x0 버그 방지)
+        mermaid.initialize({ startOnLoad: false, theme: 'dark' });
 
-        function showSection(id) {
+        async function showSection(id) {
+            if (!id) return;
+            const targetSection = document.getElementById(id);
+            if (!targetSection) return;
+
             document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-            document.getElementById(id).classList.add('active');
-            document.querySelector(`a[href="#${id}"]`).classList.add('active');
+            targetSection.classList.add('active');
+            
+            const targetNav = document.querySelector(`a[href="#${id}"]`);
+            if (targetNav) targetNav.classList.add('active');
 
             window.scrollTo(0, 0);
+
+            // 해당 섹션이 화면에 표시된 후(display: block)에 Mermaid 렌더링 실행
+            if (window.mermaid) {
+                const mermaidNodes = targetSection.querySelectorAll('.mermaid:not([data-processed="true"])');
+                if (mermaidNodes.length > 0) {
+                    try {
+                        await mermaid.run({ nodes: mermaidNodes });
+                    } catch (e) {
+                        console.error('Mermaid rendering failed', e);
+                    }
+                }
+            }
         }
 
         window.onload = () => {
-            const hash = window.location.hash.substring(1);
-            if (hash) showSection(hash);
+            const hash = window.location.hash.substring(1) || 'intro';
+            showSection(hash);
         };
     </script>
 </body>

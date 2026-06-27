@@ -16,10 +16,8 @@ GameProgressManager::~GameProgressManager()
 
 void GameProgressManager::Init()
 {
-	// 저장 파일 로드 (캐릭터 해금 정보만 로드)
+	// 저장 파일 로드
 	LoadFromFile(m_saveFilePath);
-	
-	OutputDebugStringW(L"GameProgressManager: 초기화 완료\n");
 }
 
 void GameProgressManager::Update(float deltaTime)
@@ -31,8 +29,6 @@ void GameProgressManager::Release()
 {
 	// 캐릭터 해금 정보 저장
 	SaveToFile(m_saveFilePath);
-	
-	OutputDebugStringW(L"GameProgressManager: 해제 완료\n");
 }
 
 // ====================== 씬 클리어 관련 (런타임) =======================
@@ -47,7 +43,7 @@ void GameProgressManager::ClearScene(SceneType sceneType)
 	// 런타임 씬 클리어 처리
 	m_gameProgress.ClearScene(sceneType);
 	
-	// 저장 (캐릭터 해금 상태가 변경될 수 있으므로)
+	// 저장
 	SaveToFile(m_saveFilePath);
 	
 	std::wstring msg = L"GameProgressManager: 씬 클리어 (런타임) - SceneType: " + std::to_wstring((int)sceneType) + L"\n";
@@ -67,15 +63,12 @@ void GameProgressManager::UpdateCharacterUnlocks()
 	
 	// 저장
 	SaveToFile(m_saveFilePath);
-	
-	OutputDebugStringW(L"GameProgressManager: 캐릭터 해금 업데이트 완료\n");
 }
 
 void GameProgressManager::SavePlayerState(const PlayerStateSnapshot& snapshot)
 {
 	m_playerSnapshot = snapshot;
 	m_hasSavedPlayerState = true;
-	OutputDebugStringW(L"GameProgressManager: 플레이어 상태 저장 완료\n");
 }
 
 // ====================== 저장/로드 =======================
@@ -94,12 +87,8 @@ void GameProgressManager::SaveToFile(const std::wstring& filePath)
 	std::wofstream file(filePath);
 	if (!file.is_open())
 	{
-		OutputDebugStringW(L"GameProgressManager: 파일 저장 실패\n");
 		return;
 	}
-	
-	file << L"[GAME_PROGRESS_V2]\n";
-	file << L"# Character Unlock Info (Only this is persisted)\n";
 	
 	// 캐릭터 해금 정보 저장
 	for (const auto& charInfo : m_gameProgress.characterUnlockInfos)
@@ -118,7 +107,6 @@ void GameProgressManager::LoadFromFile(const std::wstring& filePath)
 	std::wifstream file(filePath);
 	if (!file.is_open())
 	{
-		OutputDebugStringW(L"GameProgressManager: 파일 로드 실패 (기본값 사용)\n");
 		return;
 	}
 	
@@ -183,8 +171,6 @@ void GameProgressManager::ResetRuntimeData()
 	m_playerSnapshot = PlayerStateSnapshot();
 
 	m_totalGameTime = 0.0f;
-
-	OutputDebugStringW(L"GameProgressManager: 런타임 데이터 초기화 완료\n");
 }
 
 void GameProgressManager::ResetAllProgress()
@@ -199,6 +185,4 @@ void GameProgressManager::ResetAllProgress()
 
 	// 초기화된 상태를 파일에 즉시 저장
 	SaveToFile(m_saveFilePath);
-
-	OutputDebugStringW(L"GameProgressManager: 모든 진행 상황 초기화 완료 및 저장됨\n");
 }

@@ -3,8 +3,8 @@
 #include "../../../01_Manager/ResourceManager/ResourceManager.h"
 #include "BerryBush.h"
 
-BerryBush::BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, const std::wstring& resourcePath, const std::wstring& imageName, ColliderType colliderType)
-	: Entity(id, x, y, pivotX, pivotY, DIR_DOWN, resourcePath, imageName, true, true, colliderType)
+BerryBush::BerryBush(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir, const std::wstring& resourcePath, const std::wstring& imageName, ColliderType colliderType)
+	: Entity(id, x, y, pivotX, pivotY, dir, resourcePath, imageName, colliderType, true, true)
 {
 	m_type = GO_TYPE_NATURAL_ENVIRONMENT;
 
@@ -24,7 +24,6 @@ void BerryBush::LateInit()
 
 void BerryBush::Update(float deltaTime)
 {
-	// 부모 클래스의 Update() 호출하여 컴포넌트 업데이트
 	Entity::Update(deltaTime);
 }
 

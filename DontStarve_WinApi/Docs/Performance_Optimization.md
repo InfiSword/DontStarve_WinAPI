@@ -577,11 +577,11 @@ void ObjectManager::Init()
 void ObjectManager::AddGameObject(GameObject* pObj)
 {
     // UI 판정 후 적절한 리스트에 추가
-    auto& targetList = pObj->IsUI() ? m_uiObjects : m_worldObjects;
+    auto& targetList = (pObj->GetType() == GO_TYPE_UI) ? m_uiObjects : m_worldObjects;
     targetList.push_back(pObj);
     
     // 월드 객체면 그리드에 등록
-    if (!pObj->IsUI()) {
+    if (pObj->GetType() != GO_TYPE_UI) {
         AddToGrid(pObj);
     }
 }

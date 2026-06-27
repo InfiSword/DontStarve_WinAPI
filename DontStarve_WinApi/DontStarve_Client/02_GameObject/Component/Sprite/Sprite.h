@@ -7,13 +7,11 @@ public:
 	Gdiplus::RectF sourceRect;
 	Gdiplus::PointF pivot;     
 	std::wstring key;      
-	Gdiplus::Color tintColor; 
 
 	Sprite(std::shared_ptr<Gdiplus::Bitmap> bmp,
 		const Gdiplus::RectF& srcRect,
 		const Gdiplus::PointF& pvt,
-		const std::wstring& k = L"",
-		const Gdiplus::Color& tint = Gdiplus::Color(255, 255, 255, 255));
+		const std::wstring& k = L"");
 	
 	~Sprite();
 

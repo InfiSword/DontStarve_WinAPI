@@ -4,9 +4,8 @@
 Sprite::Sprite(std::shared_ptr<Gdiplus::Bitmap> bmp,
 	const Gdiplus::RectF& srcRect,
 	const Gdiplus::PointF& pvt,
-	const std::wstring& k,
-	const Gdiplus::Color& tint)
-	: bitmap(std::move(bmp)), sourceRect(srcRect), pivot(pvt), key(k), tintColor(tint)
+	const std::wstring& k)
+	: bitmap(std::move(bmp)), sourceRect(srcRect), pivot(pvt), key(k)
 {
 
 }

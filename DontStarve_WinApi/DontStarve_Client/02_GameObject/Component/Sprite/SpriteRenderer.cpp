@@ -7,7 +7,7 @@
 #include "../../../02_GameObject/Component/Transform/Transform.h"
 
 SpriteRenderer::SpriteRenderer(GameObject* owner, RenderLayer layer)
-	: Component(owner), m_sprite(nullptr), m_layer(layer), m_preFlipped(false)
+	: Component(owner), m_sprite(nullptr), m_layer(layer), m_preFlipped(false), m_rendererTintColor(255, 255, 255, 255)
 {
 }
 
@@ -23,7 +23,7 @@ void SpriteRenderer::Init()
 
 void SpriteRenderer::Render()
 {
-	auto pTransform = m_owner->GetComponent<Transform>();
+	Transform* pTransform = m_owner->GetComponent<Transform>();
 	if (!pTransform || !m_sprite || !m_sprite->bitmap) return;
 
 	float worldX = pTransform->GetX();
@@ -33,11 +33,11 @@ void SpriteRenderer::Render()
 	float height = m_sprite->sourceRect.Height * pTransform->GetScaleY();
 	float sortingY = worldY + (1.0f - m_sprite->pivot.Y) * height;
 
-	Gdiplus::Color tintColor = m_sprite->tintColor;
+	Gdiplus::Color tintColor = m_rendererTintColor;
 	bool hasTint = (tintColor.GetValue() != Gdiplus::Color::MakeARGB(255, 255, 255, 255));
 
 	// RenderManager에 월드 좌표와 변환 정보 전달
-	RenderManager::GetInstance()->AddWorldEntityCommand(
+	RenderManager::GetInstance()->AddWorldObjectCommand(
 		m_sprite->bitmap.get(), 
 		m_sprite->sourceRect, 
 		worldX, worldY, 

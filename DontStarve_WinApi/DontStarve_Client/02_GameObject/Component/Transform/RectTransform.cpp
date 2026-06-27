@@ -6,12 +6,10 @@
 
 RectTransform::RectTransform(GameObject* owner, float x, float y,
 	float width, float height,
-	float scaleX, float scaleY, float anchorX, float anchorY,
-	float rotation)
+	float scaleX, float scaleY, float anchorX, float anchorY)
 	: Component(owner), m_x(x), m_y(y), 
 	m_width(width), m_height(height),
 	m_scaleX(scaleX), m_scaleY(scaleY),
-	m_rotation(rotation),
 	m_anchorX(anchorX), m_anchorY(anchorY),
 	m_anchorMin(anchorX, anchorY), m_anchorMax(anchorX, anchorY),
 	m_anchoredPosition(x, y), m_sizeDelta(0.0f, 0.0f),
