@@ -4,9 +4,9 @@
 #include <ole2.h>
 #include <gdiplus.h>
 
-#ifdef _DEBUG
-#include <vld.h>
-#endif
+//#ifdef _DEBUG
+//#include <vld.h>
+//#endif
 
 #pragma comment(lib, "Gdiplus.lib")
 
