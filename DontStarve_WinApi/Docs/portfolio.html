@@ -156,7 +156,7 @@
                     <div class="text-sm text-gray-400 space-y-2.5 font-light leading-relaxed">
                         <p>캔버스 위에 표시된 오브젝트들을 직접 드래그하며 시스템을 시험해 볼 수 있습니다.</p>
                         <ul class="list-disc pl-5 space-y-1.5 text-xs">
-                            <li><span class="text-indigo-400 font-semibold">파란색 점선 창</span>: 드래그 시 카메라 뷰포트($1200 \times 800$) 이동</li>
+                            <li><span class="text-red-400 font-semibold">빨간색 실선 창</span>: 드래그 시 카메라 뷰포트($1200 \times 800$) 이동</li>
                             <li><span class="text-red-400 font-semibold">빨간색 원</span>: 드래그 시 플레이어 좌표 이동</li>
                             <li><span class="text-emerald-400 font-semibold">녹색 원</span>: 활성화(가시/충돌 대상)되어 렌더링 또는 연산되는 오브젝트</li>
                             <li><span class="text-gray-600 font-semibold">어두운 원</span>: 컬링되어 연산에서 배제된 오브젝트</li>
@@ -213,7 +213,7 @@
                             <span id="info-crender" class="text-emerald-400 font-mono font-bold text-sm">0 / 150</span>
                         </div>
                         <div class="flex justify-between items-center text-xs">
-                            <span class="text-gray-400">가시 타일 개수 (128x128):</span>
+                            <span class="text-gray-400">가시 그리드 개수 (256x256):</span>
                             <span id="info-ctile" class="text-yellow-400 font-mono font-bold text-sm">0</span>
                         </div>
                         <div class="pt-2 border-t border-white/5 flex justify-between items-center text-xs">
@@ -752,7 +752,6 @@ bool CameraManager::IsObjectInViewport(GameObject* obj) const {
 
         // 논리적 상수 (C++ Define 수치 적용)
         const GRID_CELL_SIZE = 256;
-        const TILE_SIZE = 128;
         const CAM_W = 1200;
         const CAM_H = 800; // C++ Define.h 매핑에 맞춤
         
@@ -950,11 +949,11 @@ bool CameraManager::IsObjectInViewport(GameObject* obj) const {
             document.getElementById('info-crender').textContent = `${renderedTrees} / ${trees.length}`;
             document.getElementById('info-calc-opt').textContent = `~${checkCount}회 (약 ${Math.round(checkCount/trees.length*100)}%)`;
 
-            // 4. 타일 컬링 범위 계산 (128 타일 기준)
-            const tileStartX = Math.max(0, Math.floor(camera.x / TILE_SIZE));
-            const tileEndX = Math.min(Math.floor((camera.x + camera.w) / TILE_SIZE), Math.floor(WORLD_W/TILE_SIZE)-1);
-            const tileStartY = Math.max(0, Math.floor(camera.y / TILE_SIZE));
-            const tileEndY = Math.min(Math.floor((camera.y + camera.h) / TILE_SIZE), Math.floor(WORLD_H/TILE_SIZE)-1);
+            // 4. 컬링 범위 계산 (GRID_CELL_SIZE 기준)
+            const tileStartX = Math.max(0, Math.floor(camera.x / GRID_CELL_SIZE));
+            const tileEndX = Math.min(Math.floor((camera.x + camera.w) / GRID_CELL_SIZE), Math.floor(WORLD_W/GRID_CELL_SIZE)-1);
+            const tileStartY = Math.max(0, Math.floor(camera.y / GRID_CELL_SIZE));
+            const tileEndY = Math.min(Math.floor((camera.y + camera.h) / GRID_CELL_SIZE), Math.floor(WORLD_H/GRID_CELL_SIZE)-1);
             
             const renderedTilesCount = (tileEndX - tileStartX + 1) * (tileEndY - tileStartY + 1);
             document.getElementById('info-ctile').textContent = renderedTilesCount;
@@ -969,55 +968,27 @@ bool CameraManager::IsObjectInViewport(GameObject* obj) const {
             const camStartY = Math.floor(camera.y / GRID_CELL_SIZE);
             const camEndY = Math.floor((camera.y + camera.h) / GRID_CELL_SIZE);
 
-            // 1. 배경 타일(128x128) 그리기 (체커보드 패턴 - 더 밝고 선명한 톤으로 변경)
-            for (let x = 0; x <= WORLD_W; x += TILE_SIZE) {
-                for (let y = 0; y <= WORLD_H; y += TILE_SIZE) {
-                    const isAlt = ((x / TILE_SIZE) + (y / TILE_SIZE)) % 2 === 0;
-                    ctx.fillStyle = isAlt ? '#242b3d' : '#1b202e'; 
-                    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-                    
-                    ctx.strokeStyle = '#2d354a';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
-                }
-            }
-
-            // 2. 관리용 그리드(256x256) 그리기 및 하이라이트
-            for (let x = 0; x <= WORLD_W; x += GRID_CELL_SIZE) {
-                for (let y = 0; y <= WORLD_H; y += GRID_CELL_SIZE) {
+            // 1. GRID_CELL_SIZE 단위 단색 그리드 표현
+            for (let x = 0; x < WORLD_W; x += GRID_CELL_SIZE) {
+                for (let y = 0; y < WORLD_H; y += GRID_CELL_SIZE) {
                     const cellX = x / GRID_CELL_SIZE;
                     const cellY = y / GRID_CELL_SIZE;
-                    
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'; // 밝기 증가 (0.05 -> 0.15)
+
+                    ctx.fillStyle = '#1b202e';
+                    if (mode === 'camera' && cellX >= camStartX && cellX <= camEndX && cellY >= camStartY && cellY <= camEndY) {
+                        ctx.fillStyle = 'rgba(59, 130, 246, 0.24)';
+                    } else if (mode === 'player' && Math.abs(cellX - player.cellX) <= 1 && Math.abs(cellY - player.cellY) <= 1) {
+                        ctx.fillStyle = (cellX === player.cellX && cellY === player.cellY) ? '#3a2831' : '#2b2430';
+                    }
+
+                    ctx.fillRect(x, y, GRID_CELL_SIZE, GRID_CELL_SIZE);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
                     ctx.lineWidth = 3;
                     ctx.strokeRect(x, y, GRID_CELL_SIZE, GRID_CELL_SIZE);
 
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'; // 텍스트 밝기 증가 (0.15 -> 0.45)
-                    ctx.font = 'bold 28px monospace';
-                    ctx.fillText(`(${cellX},${cellY})`, x + 15, y + 40);
-
-                    // 하이라이트 드로잉 (밝기 및 선명도 대폭 증가)
-                    if (mode === 'camera') {
-                        if (cellX >= camStartX && cellX <= camEndX && cellY >= camStartY && cellY <= camEndY) {
-                            ctx.fillStyle = 'rgba(99, 102, 241, 0.22)'; // 밝기 증가 (0.08 -> 0.22)
-                            ctx.fillRect(x, y, GRID_CELL_SIZE, GRID_CELL_SIZE);
-                            ctx.strokeStyle = 'rgba(129, 140, 248, 0.55)'; // 보더 밝기 증가
-                            ctx.lineWidth = 3;
-                            ctx.strokeRect(x, y, GRID_CELL_SIZE, GRID_CELL_SIZE);
-                        }
-                    } else if (mode === 'player') {
-                        if (Math.abs(cellX - player.cellX) <= 1 && Math.abs(cellY - player.cellY) <= 1) {
-                            if (cellX === player.cellX && cellY === player.cellY) {
-                                ctx.fillStyle = 'rgba(239, 68, 68, 0.32)'; // 밝기 증가 (0.18 -> 0.32)
-                            } else {
-                                ctx.fillStyle = 'rgba(239, 68, 68, 0.15)'; // 밝기 증가 (0.06 -> 0.15)
-                            }
-                            ctx.fillRect(x, y, GRID_CELL_SIZE, GRID_CELL_SIZE);
-                            ctx.strokeStyle = 'rgba(248, 113, 113, 0.55)'; // 보더 밝기 증가
-                            ctx.lineWidth = 3;
-                            ctx.strokeRect(x, y, GRID_CELL_SIZE, GRID_CELL_SIZE);
-                        }
-                    }
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.font = 'bold 24px monospace';
+                    ctx.fillText(`(${cellX},${cellY})`, x + 14, y + 32);
                 }
             }
 
@@ -1039,14 +1010,13 @@ bool CameraManager::IsObjectInViewport(GameObject* obj) const {
                 ctx.stroke();
             });
 
-            // 4. 카메라 영역 (Viewport) 그리기
-            ctx.strokeStyle = '#6366f1'; 
-            ctx.lineWidth = 6;
-            ctx.setLineDash([15, 10]);
-            ctx.strokeRect(camera.x, camera.y, camera.w, camera.h);
+            // 4. 카메라 영역 (Viewport) 그리기 (빨간색 실선)
             ctx.setLineDash([]);
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(camera.x, camera.y, camera.w, camera.h);
             
-            ctx.fillStyle = '#818cf8';
+            ctx.fillStyle = '#f87171';
             ctx.font = 'bold 36px sans-serif';
             ctx.fillText('1200 x 800 Viewport (Camera)', camera.x + 20, camera.y + 50);
 

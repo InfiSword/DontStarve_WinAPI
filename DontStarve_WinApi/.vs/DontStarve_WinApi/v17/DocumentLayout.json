@@ -300,8 +300,7 @@
               "RelativeToolTip": "DontStarve_Client\\01_Manager\\ObjectManager\\ObjectManager.cpp",
               "ViewState": "AgIAAL4AAAAAAAAAAIA2wMgAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-04-01T06:42:57.829Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-01T06:42:57.829Z"
             },
             {
               "$type": "Document",
@@ -313,8 +312,7 @@
               "RelativeToolTip": "DontStarve_Client\\02_GameObject\\GameObject.cpp",
               "ViewState": "AgIAAF4AAAAAAAAAAAAAAGcAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-04-02T07:11:40.871Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-02T07:11:40.871Z"
             },
             {
               "$type": "Document",
@@ -339,8 +337,7 @@
               "RelativeToolTip": "DontStarve_Client\\02_GameObject\\GameObject.h",
               "ViewState": "AgIAAEQAAAAAAAAAAAAAAEwAAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-04-02T07:10:01.519Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-02T07:10:01.519Z"
             },
             {
               "$type": "Document",
@@ -352,8 +349,7 @@
               "RelativeToolTip": "DontStarve_Client\\01_Manager\\ColliderManager\\ColliderManager.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-04-03T02:21:46.26Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-03T02:21:46.26Z"
             },
             {
               "$type": "Document",
@@ -365,8 +361,7 @@
               "RelativeToolTip": "DontStarve_Client\\01_Manager\\CameraManager\\CameraManager.h",
               "ViewState": "AgIAAFgAAAAAAAAAAAAAACkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-04-01T07:05:09.364Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-01T07:05:09.364Z"
             },
             {
               "$type": "Document",
@@ -948,12 +943,8 @@
         },
         {
           "DockedWidth": 166,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 5,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{a80febb4-e7e0-4147-b476-21aaf2453969}"
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
