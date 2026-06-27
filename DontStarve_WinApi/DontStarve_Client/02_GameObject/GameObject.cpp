@@ -27,10 +27,6 @@ void GameObject::Init() {
 			component->Init();
 		}
 	}
-	// 초기 위치에 따른 그리드 셀 설정
-	if (m_type != GO_TYPE_UI) {
-		ObjectManager::GetInstance()->UpdateObjectGridCell(this);
-	}
 }
 
 void GameObject::LateInit() {
