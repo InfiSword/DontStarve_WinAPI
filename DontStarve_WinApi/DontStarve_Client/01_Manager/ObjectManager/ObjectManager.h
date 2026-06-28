@@ -35,7 +35,7 @@ public:
 	bool IsScreenPointBlockedByUI(float screenX, float screenY) const;
 	
 	// 월드 오브젝트를 Rect 기준으로 찾는다.
-	void QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects);
+	void QueryObjectsInRectArea(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects);
 
 	// ID로 오브젝트 찾기 
 	GameObject* FindGameObject(GameObjectID id);
@@ -85,7 +85,7 @@ public:
 	void ApplyObjectData(GameObject* pObj, const ResourcePathUtils::ObjectResourceDef* data);
 
 	// 공간 분할 관련
-	void UpdateObjectGridCell(GameObject* pObj);
+	void UpdateObjectGrid(GameObject* pObj);
 	void AddToGrid(GameObject* pObj);
 	void RemoveFromGrid(GameObject* pObj);
 

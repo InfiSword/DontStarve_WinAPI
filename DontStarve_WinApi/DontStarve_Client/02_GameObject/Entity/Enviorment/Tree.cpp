@@ -8,7 +8,7 @@
 #include "Tree.h"
 
 Tree::Tree(GameObjectID id, float x, float y, float pivotX, float pivotY, Direction dir,
-	const std::wstring& baseDir, const std::wstring& imageName, 
+	const std::wstring& baseDir, const std::wstring& imageName,
 	ColliderType colliderType, bool isActive, bool isInteractive)
 	: Entity(id, x, y, pivotX, pivotY, dir, baseDir, imageName, colliderType, isActive, isInteractive)
 	, m_treeState(TreeState::IDLE)
@@ -83,7 +83,7 @@ void Tree::Damaged(int damage)
 
 	StartCoroutine([=](float dt) mutable -> bool {
 		elapsed += dt;
-		
+
 		if (elapsed >= duration) {
 			if (tr) tr->SetPosition(baseX, baseY);
 			m_isShaking = false;
@@ -97,7 +97,7 @@ void Tree::Damaged(int damage)
 			tr->SetPosition(baseX + offsetX, baseY);
 		}
 		return true;
-	});
+		});
 }
 
 void Tree::Die()

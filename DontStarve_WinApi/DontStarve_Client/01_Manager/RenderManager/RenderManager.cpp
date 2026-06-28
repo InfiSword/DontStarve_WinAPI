@@ -193,14 +193,7 @@ void RenderManager::Flush(Gdiplus::Graphics* pGraphics)
 				if (a.zOrder != b.zOrder) {
 					return a.zOrder < b.zOrder;
 				}
-
-				const bool aSprite = (a.type == DRAW_COMMAND_ENTITY || a.type == DRAW_COMMAND_UI_IMAGE);
-				const bool bSprite = (b.type == DRAW_COMMAND_ENTITY || b.type == DRAW_COMMAND_UI_IMAGE);
-				if (aSprite && bSprite) {
-					return a.sprite.pBitmap < b.sprite.pBitmap;
-				}
-
-				return a.type < b.type;
+				return a.layer < b.layer;
 				});
 		}
 

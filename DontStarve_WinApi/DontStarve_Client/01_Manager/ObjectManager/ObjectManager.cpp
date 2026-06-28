@@ -99,10 +99,6 @@ void ObjectManager::Render()
 	for (GameObject* obj : m_uiObjects) {
 		if (obj->IsEnabled()) {
 			obj->Render();
-
-#ifdef _DEBUG
-			RenderManager::GetInstance()->AddRenderedObject(obj->IsEntity());
-#endif
 		}
 	}
 }
@@ -171,9 +167,8 @@ bool ObjectManager::IsScreenPointBlockedByUI(float screenX, float screenY) const
 	return false;
 }
 
-void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<GameObject*>& outObjects)
+void ObjectManager::QueryObjectsInRectArea(const Gdiplus::RectF& rectArea, std::vector<GameObject*>& targetOutObjects)
 {
-	outObjects.clear();
 	if (m_worldObjects.empty()) return;
 
 #ifdef _DEBUG
@@ -184,7 +179,7 @@ void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<G
 			if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
 			
 			if (cameraManager->IsObjectInViewport(obj)) {
-				outObjects.push_back(obj);
+				targetOutObjects.push_back(obj);
 			}
 		}
 		return;
@@ -192,10 +187,10 @@ void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<G
 #endif
 
 	// 그리드 기반 쿼리 수행
-	int startX = (int)floor(rect.X / GRID_CELL_SIZE);
-	int startY = (int)floor(rect.Y / GRID_CELL_SIZE);
-	int endX = (int)ceil((rect.X + rect.Width) / GRID_CELL_SIZE) - 1;
-	int endY = (int)ceil((rect.Y + rect.Height) / GRID_CELL_SIZE) - 1;
+	int startX = (int)floor(rectArea.X / GRID_CELL_SIZE);
+	int startY = (int)floor(rectArea.Y / GRID_CELL_SIZE);
+	int endX = (int)ceil((rectArea.X + rectArea.Width) / GRID_CELL_SIZE) - 1;
+	int endY = (int)ceil((rectArea.Y + rectArea.Height) / GRID_CELL_SIZE) - 1;
 
 	// 인덱스 범위 클램핑
 	startX = (std::max<int>)(0, (std::min<int>)(GRID_WIDTH - 1, startX));
@@ -217,16 +212,16 @@ void ObjectManager::QueryObjectsInRect(const Gdiplus::RectF& rect, std::vector<G
 
 				// 최종 AABB 검사
 				const Gdiplus::RectF bounds = obj->GetBounds();
-				if (rect.X < bounds.X + bounds.Width && rect.X + rect.Width > bounds.X &&
-					rect.Y < bounds.Y + bounds.Height && rect.Y + rect.Height > bounds.Y) {
-					outObjects.push_back(obj);
+				if (rectArea.X < bounds.X + bounds.Width && rectArea.X + rectArea.Width > bounds.X &&
+					rectArea.Y < bounds.Y + bounds.Height && rectArea.Y + rectArea.Height > bounds.Y) {
+					targetOutObjects.push_back(obj);
 				}
 			}
 		}
 	}
 }
 
-void ObjectManager::UpdateObjectGridCell(GameObject* pObj)
+void ObjectManager::UpdateObjectGrid(GameObject* pObj)
 {
 	if (!pObj || pObj->GetType() == GO_TYPE_UI) return;
 

@@ -243,7 +243,7 @@ void Player::ToggleEquipItem(int slotIndex)
 		m_equippedSlotIndex = -1;
 		m_equippedItemID = GOID_NONE;
 		// 기본 공격력/사거리로 복구 (필요시)
-		m_damage = 10; 
+		m_damage = 10;
 		m_attackRange = 50.0f;
 	}
 	else {
@@ -413,9 +413,6 @@ void Player::Update(float deltaTime)
 			ClampPositionToMapBounds();
 			isMoveToGoal = false;
 
-			// 이동 완료 후 자신의 위치를 그리드 시스템에 동기화 (최적화용)
-			//ObjectManager::GetInstance()->UpdateObjectGridCell(this);
-
 			// 공격 대상(몬스터)으로 이동한 경우: 사거리 안이면 방향 맞추고 ATTACK, 밖이면 몬스터 현재 위치로 다시 이동
 			if (m_attackTarget && m_attackTarget->IsEnabled()) {
 				Transform* targetT = m_attackTarget->GetComponent<Transform>();
@@ -483,12 +480,12 @@ void Player::TryStartInteraction(float worldX, float worldY)
 	std::vector<GameObject*> queryResults;
 	float range = 100.0f;
 	Gdiplus::RectF queryRect(worldX - range, worldY - range, range * 2, range * 2);
-	cameraManager->QueryObjectsInArea(queryRect, queryResults, true);
+	cameraManager->QueryObjectsInteractive(queryRect, queryResults, true);
 
 	GameObject* target = nullptr;
 	float maxY = -1e9f;
 
-	for (auto* obj : queryResults) {
+	for (GameObject* obj : queryResults) {
 		Collider* mainCol = obj->GetMainCollider();
 		if (mainCol && mainCol->IsEnabled() && mainCol->ContainsPoint(worldX, worldY)) {
 			float curY = obj->GetComponent<Transform>()->GetY();
@@ -517,60 +514,59 @@ void Player::TryStartInteraction(float worldX, float worldY)
 
 	// 상호작용 가능 여부 확인
 	bool canInteract = false;
-	if (target && target->IsEnabled()) {
-		GameObjectID objID = target->GetID();
-		GameObjectType objType = target->GetType();
-		switch (objType) {
-		case GO_TYPE_NATURAL_ENVIRONMENT:
-			if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
-				if (m_equippedItemID != GOID_NONE) {
-					GameObjectID equippedID = m_equippedItemID;
-					canInteract = (equippedID == GOID_TOOL_RED_AXE || equippedID == GOID_TOOL_SWAP_AXE);
-				}
+
+	GameObjectID objID = target->GetID();
+	GameObjectType objType = target->GetType();
+	switch (objType) {
+	case GO_TYPE_NATURAL_ENVIRONMENT:
+		if (objID == GOID_NORMAL_TREE_SHORT || objID == GOID_NORMAL_TREE_NORMAL || objID == GOID_NORMAL_TREE_TALL) {
+			if (m_equippedItemID != GOID_NONE) {
+				GameObjectID equippedID = m_equippedItemID;
+				canInteract = (equippedID == GOID_TOOL_RED_AXE || equippedID == GOID_TOOL_SWAP_AXE);
 			}
-			else if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK) {
-				if (m_equippedItemID != GOID_NONE) {
-					GameObjectID equippedID = m_equippedItemID;
-					canInteract = (equippedID == GOID_TOOL_GOLDEN_PICKAXE || equippedID == GOID_TOOL_PICKAXE);
-				}
+		}
+		else if (objID == GOID_NORMAL_ROCK || objID == GOID_GOLD_ROCK) {
+			if (m_equippedItemID != GOID_NONE) {
+				GameObjectID equippedID = m_equippedItemID;
+				canInteract = (equippedID == GOID_TOOL_GOLDEN_PICKAXE || equippedID == GOID_TOOL_PICKAXE);
 			}
-			else {
-				canInteract = true;
-			}
-			break;
-		case GO_TYPE_ITEM:
+		}
+		else {
 			canInteract = true;
-			break;
-		case GO_TYPE_BUILDING:
-			if (objID == GOID_BUILDING_PIGHOUSE)
-			{
-				if (m_equippedItemID != GOID_NONE)
-				{
-					GameObjectID equippedID = m_equippedItemID;
-					canInteract = (equippedID == GOID_TOOL_HAMMER);
-					m_attackTarget = target;
-				}
-			}
-			else if (objID == GOID_BUILDING_SPIDER_NORMALEGG || objID == GOID_BUILDING_SPIDER_SMALLEGG || objID == GOID_BUILDING_SPIDER_TALLEGG)
-			{
-				const ToolInfo* toolInfo = DataTable::GetToolInfo(m_equippedItemID);
-				canInteract = (toolInfo != nullptr && toolInfo->damage > 0);
-				if (canInteract) m_attackTarget = target;
-			}
-			break;
-		case GO_TYPE_MONSTER:
+		}
+		break;
+	case GO_TYPE_ITEM:
+		canInteract = true;
+		break;
+	case GO_TYPE_BUILDING:
+		if (objID == GOID_BUILDING_PIGHOUSE)
 		{
-			// 몬스터 클릭: 장착 도구가 공격 가능할 때만 추격 및 공격
+			if (m_equippedItemID != GOID_NONE)
+			{
+				GameObjectID equippedID = m_equippedItemID;
+				canInteract = (equippedID == GOID_TOOL_HAMMER);
+				m_attackTarget = target;
+			}
+		}
+		else if (objID == GOID_BUILDING_SPIDER_NORMALEGG || objID == GOID_BUILDING_SPIDER_SMALLEGG || objID == GOID_BUILDING_SPIDER_TALLEGG)
+		{
 			const ToolInfo* toolInfo = DataTable::GetToolInfo(m_equippedItemID);
 			canInteract = (toolInfo != nullptr && toolInfo->damage > 0);
-			if (canInteract)
-				m_attackTarget = target;
-			break;
+			if (canInteract) m_attackTarget = target;
 		}
-		default:
-			canInteract = false;
-			break;
-		}
+		break;
+	case GO_TYPE_MONSTER:
+	{
+		// 몬스터 클릭: 장착 도구가 공격 가능할 때만 추격 및 공격
+		const ToolInfo* toolInfo = DataTable::GetToolInfo(m_equippedItemID);
+		canInteract = (toolInfo != nullptr && toolInfo->damage > 0);
+		if (canInteract)
+			m_attackTarget = target;
+		break;
+	}
+	default:
+		canInteract = false;
+		break;
 	}
 
 	if (!target || !canInteract || !target->CanInteract()) {

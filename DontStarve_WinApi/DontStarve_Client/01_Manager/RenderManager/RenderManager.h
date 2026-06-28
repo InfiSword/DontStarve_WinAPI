@@ -1,6 +1,5 @@
 #pragma once
 #include "../../../Header/SingleTon.h"
-#include <windows.h>
 
 class GameObject;
 class Transform;
@@ -42,9 +41,8 @@ public:
 	void Flush(Gdiplus::Graphics* pGraphics);
 
 #ifdef _DEBUG
-	void ResetRenderStats() { m_renderedObjectCount = 0; m_renderedEntityCount = 0; }
-	void AddRenderedObject(bool isEntity) { m_renderedObjectCount++; if (isEntity) m_renderedEntityCount++; }
-	int GetRenderedObjectCount() const { return m_renderedObjectCount; }
+	void ResetRenderStats() { m_renderedEntityCount = 0; }
+	void AddRenderedEntity() { m_renderedEntityCount++; }
 	int GetRenderedEntityCount() const { return m_renderedEntityCount; }
 #endif
 
@@ -54,7 +52,6 @@ private:
 	bool m_hasFrameCameraPos = false;
 
 #ifdef _DEBUG
-	int m_renderedObjectCount = 0;
 	int m_renderedEntityCount = 0;
 #endif
 

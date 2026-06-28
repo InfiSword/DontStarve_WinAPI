@@ -12,7 +12,8 @@
 #include "../ColliderManager/ColliderManager.h"
 
 CameraManager::CameraManager()
- {}
+{
+}
 
 void CameraManager::Init() {
 	m_cameraPos = { 0,0 };
@@ -61,7 +62,7 @@ Gdiplus::RectF CameraManager::GetViewportWorldRect() const {
 	return { m_cameraPos.X - halfW, m_cameraPos.Y - halfH, static_cast<float>(WINCX), static_cast<float>(WINCY) };
 }
 
-void CameraManager::FollowTarget() 
+void CameraManager::FollowTarget()
 {
 	if (Transform* t = m_target->GetComponent<Transform>()) {
 		float targetX = t->GetX();
@@ -78,7 +79,7 @@ void CameraManager::FollowTarget()
 }
 
 // 그리드 기반 입력 상호작용 처리
-void CameraManager::QueryObjectsInArea(const Gdiplus::RectF& area, std::vector<GameObject*>& outObjects, bool onlyInteraction)
+void CameraManager::QueryObjectsInteractive(const Gdiplus::RectF& area, std::vector<GameObject*>& outObjects, bool onlyInteraction)
 {
 	outObjects.clear();
 
@@ -93,7 +94,7 @@ void CameraManager::QueryObjectsInArea(const Gdiplus::RectF& area, std::vector<G
 #endif
 
 	queryBuffer.clear();
-	objectManager->QueryObjectsInRect(area, queryBuffer);
+	objectManager->QueryObjectsInRectArea(area, queryBuffer);
 
 	for (auto* obj : queryBuffer) {
 		if (!obj || !obj->IsEnabled() || obj->IsDead()) continue;
@@ -109,14 +110,28 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData) {
 	const auto profileStart = std::chrono::high_resolution_clock::now();
 #endif
 
-
 	if (!mapData) return;
 	Gdiplus::RectF vp = GetViewportWorldRect();
 	const float tileCullPadding = 8.f;
-	int sx = std::max(0, (int)floor((vp.X - tileCullPadding) / TILE_SIZE));
-	int ex = std::min(MAP_WIDTH, (int)ceil((vp.X + vp.Width + tileCullPadding) / TILE_SIZE));
-	int sy = std::max(0, (int)floor((vp.Y - tileCullPadding) / TILE_SIZE));
-	int ey = std::min(MAP_HEIGHT, (int)ceil((vp.Y + vp.Height + tileCullPadding) / TILE_SIZE));
+
+	// 공간 분할(Grid/Chunk) 기반 가시 범위 계산
+	const int gridCellSize = 256;
+	const int tilesPerGrid = gridCellSize / TILE_SIZE;
+
+	int gsx = std::max(0, (int)floor((vp.X - tileCullPadding) / gridCellSize));
+	int gex = (int)ceil((vp.X + vp.Width + tileCullPadding) / gridCellSize);
+	int gsy = std::max(0, (int)floor((vp.Y - tileCullPadding) / gridCellSize));
+	int gey = (int)ceil((vp.Y + vp.Height + tileCullPadding) / gridCellSize);
+
+	// 그리드 단위로 캐시 관리 및 렌더링을 수행하기 위해 타일 인덱스 계산
+	int sx = gsx * tilesPerGrid;
+	int ex = gex * tilesPerGrid;
+	int sy = gsy * tilesPerGrid;
+	int ey = gey * tilesPerGrid;
+
+	// 맵 범위 클램핑
+	ex = std::min(MAP_WIDTH, ex);
+	ey = std::min(MAP_HEIGHT, ey);
 
 #ifdef _DEBUG
 	if (!g_bEnableTileCaching)
@@ -128,29 +143,30 @@ void CameraManager::RenderVisibleTiles(const MapData* mapData) {
 		m_lastStartTileY = -1;
 		m_lastEndTileY = -1;
 	}
-	else 
+	else
 #endif
-	if (sx != m_lastStartTileX || ex != m_lastEndTileX || sy != m_lastStartTileY || ey != m_lastEndTileY)
-	{
-		CleanupUnusedTileCache(mapData, sx, ex, sy, ey);
-		m_lastStartTileX = sx; m_lastEndTileX = ex; m_lastStartTileY = sy; m_lastEndTileY = ey;
-	}
+		// 그리드 영역이 변경된 경우에만 캐시 정리 수행
+		if (sx != m_lastStartTileX || ex != m_lastEndTileX || sy != m_lastStartTileY || ey != m_lastEndTileY)
+		{
+			CleanupUnusedTileCache(mapData, sx, ex, sy, ey);
+			m_lastStartTileX = sx; m_lastEndTileX = ex; m_lastStartTileY = sy; m_lastEndTileY = ey;
+		}
 
 	const float tileSizeF = static_cast<float>(TILE_SIZE);
 	RenderManager* rm = RenderManager::GetInstance();
-	for (int y = sy; y < ey; ++y) 
+	for (int y = sy; y < ey; ++y)
 	{
-		for (int x = sx; x < ex; ++x) 
+		for (int x = sx; x < ex; ++x)
 		{
 			auto& tileData = mapData->tiles[x][y];
-			if (tileData.id == TILEID_NONE) 
+			if (tileData.id == TILEID_NONE)
 				continue;
 
 			auto it = m_tileCache.find(tileData.id);
 			if (it == m_tileCache.end()) {
-				TileCacheData cd; 
+				TileCacheData cd;
 				LoadTileBitmap(tileData, cd);
-				if (!cd.bitmap) 
+				if (!cd.bitmap)
 					continue;
 				m_tileCache[tileData.id] = cd;
 				it = m_tileCache.find(tileData.id);
@@ -208,7 +224,9 @@ void CameraManager::RenderVisibleGameObjects() {
 			obj->RenderDebugOverlay();
 			++renderedWorldCount;
 
-			RenderManager::GetInstance()->AddRenderedObject(obj->IsEntity());
+			if (obj->IsEntity()) {
+				RenderManager::GetInstance()->AddRenderedEntity();
+			}
 		}
 
 		const auto renderEnd = std::chrono::high_resolution_clock::now();
@@ -231,21 +249,21 @@ void CameraManager::RenderVisibleGameObjects() {
 		}
 		++m_renderVisibleGameObjectsSampleCount;
 	}
-	else 
+	else
 #endif
 	{
-		const auto& worldObjects = objectManager->GetWorldObjects();
+		const vector<GameObject*>& worldObjects = objectManager->GetWorldObjects();
 		std::vector<GameObject*> localVisibleBuffer;
 #ifdef _DEBUG
 		std::vector<GameObject*>& visibleBuffer = g_bEnableBufferReuse ? m_queryBuffer : localVisibleBuffer;
 #else
-		std::vector<GameObject*>& visibleBuffer = m_queryBuffer; 
+		std::vector<GameObject*>& visibleBuffer = m_queryBuffer;
 #endif
 
 		visibleBuffer.clear();
-		
+
 		// [최적화] 전체 순회 대신 그리드 쿼리 사용
-		objectManager->QueryObjectsInRect(GetViewportWorldRect(), visibleBuffer);
+		objectManager->QueryObjectsInRectArea(GetViewportWorldRect(), visibleBuffer);
 
 #ifdef _DEBUG
 		const auto cullEnd = std::chrono::high_resolution_clock::now();
@@ -259,7 +277,9 @@ void CameraManager::RenderVisibleGameObjects() {
 			obj->Render();
 			obj->RenderDebugOverlay();
 #ifdef _DEBUG
-			RenderManager::GetInstance()->AddRenderedObject(obj->IsEntity());
+			if (obj->IsEntity()) {
+				RenderManager::GetInstance()->AddRenderedEntity();
+			}
 #endif
 		}
 
@@ -289,18 +309,28 @@ void CameraManager::RenderVisibleGameObjects() {
 
 void CameraManager::CleanupUnusedTileCache(const MapData* md, int sx, int ex, int sy, int ey) {
 	std::unordered_set<UINT> visible;
+
+	// 현재 뷰포트 내에 존재하는 타일 ID 수집
 	for (int y = sy; y < ey; ++y) for (int x = sx; x < ex; ++x)
-		if (x >= 0 && x < md->mapWidth && y >= 0 && y < md->mapHeight && md->tiles[x][y].id != TILEID_NONE)
+		if (x >= 0 && x < md->mapWidth && y >= 0 &&
+			y < md->mapHeight && md->tiles[x][y].id != TILEID_NONE)
 			visible.insert(md->tiles[x][y].id);
+
+	// 캐시에 존재하지만 현재 뷰포트에 없는 타일은 메모리에서 제거
 	for (auto it = m_tileCache.begin(); it != m_tileCache.end();) {
-		if (visible.find(it->first) == visible.end()) { delete it->second.bitmap; it = m_tileCache.erase(it); }
-		else ++it;
+		if (visible.find(it->first) == visible.end())
+		{ 
+			delete it->second.bitmap; 
+			it = m_tileCache.erase(it);
+		}
+		else
+			++it;
 	}
 }
 
 void CameraManager::ClearTileCache() {
-	if (!m_tileCache.empty()) {
-		OutputDebugStringW((L"CameraManager: 타일 캐시 정리 시작 (Count: " + std::to_wstring(m_tileCache.size()) + L")\n").c_str());
+	if (!m_tileCache.empty())
+	{
 		for (auto& p : m_tileCache) {
 			if (p.second.bitmap) {
 				delete p.second.bitmap;
@@ -344,12 +374,12 @@ void CameraManager::LoadTileBitmap(const ResourcePathUtils::TileResourceDef& td,
 {
 	std::wstring path = ResourcePathUtils::BuildResourcePath(td.baseDir, td.imageName);
 	if (path.empty()) return;
-	
+
 	cd.bitmap = new Gdiplus::Bitmap(path.c_str());
-	if (cd.bitmap->GetLastStatus() != Gdiplus::Ok) 
-	{ 
-		delete cd.bitmap; 
-		cd.bitmap = nullptr; 
+	if (cd.bitmap->GetLastStatus() != Gdiplus::Ok)
+	{
+		delete cd.bitmap;
+		cd.bitmap = nullptr;
 	}
 }
 

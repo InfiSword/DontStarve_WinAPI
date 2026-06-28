@@ -49,7 +49,7 @@ void ColliderManager::QueryCollidingObjects(Collider* pSrc, std::vector<GameObje
 	Gdiplus::RectF srcRect = pSrc->GetWorldRect();
 
 	m_queryBuffer.clear();
-	objMgr->QueryObjectsInRect(srcRect, m_queryBuffer);
+	objMgr->QueryObjectsInRectArea(srcRect, m_queryBuffer);
 
 	for (GameObject* pDstOwner : m_queryBuffer)
 	{

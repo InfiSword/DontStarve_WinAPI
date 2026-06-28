@@ -31,7 +31,7 @@ public:
 	void SetFollowMode(bool enabled) { m_followMode = enabled; }
 	
 	// 통합된 영역 쿼리 함수
-	void QueryObjectsInArea(const Gdiplus::RectF& area, std::vector<GameObject*>& outObjects, bool onlyInteraction = true);
+	void QueryObjectsInteractive(const Gdiplus::RectF& area, std::vector<GameObject*>& outObjects, bool onlyInteraction = true);
 
 	void RenderVisibleTiles(const MapData* mapData);
 	void RenderVisibleGameObjects();

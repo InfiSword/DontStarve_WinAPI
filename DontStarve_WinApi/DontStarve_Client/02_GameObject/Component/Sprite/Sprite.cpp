@@ -12,7 +12,7 @@ Sprite::Sprite(std::shared_ptr<Gdiplus::Bitmap> bmp,
 
 Sprite::~Sprite()
 {
-	std::wstring().swap(key);
+
 }
 
 std::shared_ptr<Sprite> Sprite::CreateFromFile(const std::wstring& path, const Gdiplus::PointF& pvt)

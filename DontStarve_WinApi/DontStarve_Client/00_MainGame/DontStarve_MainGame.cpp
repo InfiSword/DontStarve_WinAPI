@@ -235,7 +235,6 @@ void DontStarve_MainGame::UpdatePerformanceOverlayText()
     const float avgRenderVisibleGameObjectsMs = CameraManager::GetInstance()->GetAvgRenderVisibleGameObjectsMs();
     const float avgRenderVisibleTilesMs = CameraManager::GetInstance()->GetAvgRenderVisibleTilesMs();
 
-    const int renderedObjectCount = RenderManager::GetInstance()->GetRenderedObjectCount();
     const int renderedEntityCount = RenderManager::GetInstance()->GetRenderedEntityCount();
 
     auto formatPerfValue = [](float ms) -> std::wstring {
@@ -249,6 +248,8 @@ void DontStarve_MainGame::UpdatePerformanceOverlayText()
         }
         return value.str();
     };
+
+    const int totalObjectCount = static_cast<int>(ObjectManager::GetInstance()->GetWorldObjects().size());
 
     std::wostringstream stream;
     stream << std::fixed << std::setprecision(2);
@@ -266,7 +267,7 @@ void DontStarve_MainGame::UpdatePerformanceOverlayText()
     stream << L"RenderVisibleGameObjects        : " << formatPerfValue(avgRenderVisibleGameObjectsMs) << L"\n";
     stream << L"RenderVisibleTiles              : " << formatPerfValue(avgRenderVisibleTilesMs) << L"\n";
     stream << L"\n[통계]\n";
-    stream << L"렌더링 오브젝트 수              : " << renderedObjectCount << L"\n";
+    stream << L"전체 월드 오브젝트 수           : " << totalObjectCount << L"\n";
     stream << L"렌더링 엔티티 수                : " << renderedEntityCount << L"\n";
 
     m_perfOverlayText = stream.str();

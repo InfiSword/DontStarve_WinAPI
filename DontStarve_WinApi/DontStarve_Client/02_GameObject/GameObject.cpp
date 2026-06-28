@@ -29,7 +29,7 @@ void GameObject::Init() {
 	}
 	// 초기 위치에 따른 그리드 셀 설정
 	if (m_type != GO_TYPE_UI) {
-		ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+		ObjectManager::GetInstance()->UpdateObjectGrid(this);
 	}
 }
 
@@ -63,7 +63,7 @@ void GameObject::LateUpdate() {
 	// LateUpdate에서 그리드 동기화가 누락되지 않도록 보장함.
 	if (m_isGridDirty) {
 		if (m_type != GO_TYPE_UI) {
-			ObjectManager::GetInstance()->UpdateObjectGridCell(this);
+			ObjectManager::GetInstance()->UpdateObjectGrid(this);
 		}
 		m_isGridDirty = false;
 	}

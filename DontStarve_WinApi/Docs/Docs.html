@@ -332,6 +332,11 @@
         </div>
 
         <div class="nav-group">
+            <p class="nav-group-title">📊 데이터 및 지표</p>
+            <a href="Performance_Report.html" class="nav-item"><i class="fas fa-chart-line"></i> <span>성능 벤치마크</span></a>
+        </div>
+
+        <div class="nav-group">
             <p class="nav-group-title">🚀 발전</p>
             <a href="#dirtyflag" class="nav-item" onclick="showSection('dirtyflag')"><i class="fas fa-flag"></i> <span>더티 플래그</span></a>
             <a href="#caching" class="nav-item" onclick="showSection('caching')"><i class="fas fa-floppy-disk"></i> <span>캐싱 전략</span></a>
@@ -395,86 +400,178 @@
 
         <!-- Section 1.5: Main Pipeline -->
         <section id="pipeline">
-            <h1>⚙️ 메인 게임 파이프라인</h1>
+            <h1>⚙️ 메인 게임 파이프라인 & 아키텍처</h1>
             <div class="intro-text">
-                <code>DontStarve_MainGame</code> 클래스는 프로젝트의 <strong>최상위 오케스트레이터(Orchestrator)</strong> 역할을 하며, 모든 매니저 시스템의 생명주기를 관리하고 메인 루프를 실행합니다.
+                이 프로젝트는 <strong>Manager 기반의 중앙 제어 시스템</strong>과 <strong>Component 기반의 오브젝트 유연성(CBA)</strong>을 결합한 하이브리드 아키텍처를 채택하고 있습니다. <code>DontStarve_MainGame</code> 클래스가 최상위 오케스트레이터 역할을 수행하며, 각 Manager들이 게임의 생명주기를 빈틈없이 관리합니다.
             </div>
 
-            <h2>🔄 메인 루프 순서도</h2>
-            <div class="algorithm-box" style="background: transparent; border: none; padding: 0;">
+            <h2>🏗️ 시스템 아키텍처 (Class & Data Flow)</h2>
+            <div class="algorithm-box" style="background: var(--card-bg); border-left: 4px solid var(--accent-color); padding: 2rem;">
+                <h4 style="margin-top: 0; margin-bottom: 1.5rem; text-align: center;"><i class="fas fa-project-diagram"></i> 코어 아키텍처 다이어그램</h4>
                 <div class="mermaid">
-graph TD
-    subgraph Phase1 [1. Initialization Phase]
-        A[Start] --> B[Time/Graphics/Input/Sound Managers Init]
-        B --> C[Object/Camera/Collider Managers Init]
-        C --> D[SceneManager Init - Load First Scene]
-        D --> E[GameProgressManager Init]
-    end
+classDiagram
+    class DontStarve_MainGame {
+        +Init()
+        +Update()
+        +Render()
+        +Release()
+    }
+    class Singleton {
+        &lt;&lt;interface&gt;&gt;
+        +GetInstance()
+    }
+    
+    class ObjectManager {
+        -vector m_worldObjects
+        +AddObject()
+        +QueryObjectsInRect()
+    }
+    class SceneManager {
+        -ScenePtr m_currentScene
+        +ChangeScene()
+    }
+    class RenderManager {
+        -vector m_layerCommands
+        +AddWorldObjectCommand()
+        +Flush()
+    }
+    class CameraManager {
+        -PointF m_cameraPos
+        +Update()
+        +RenderVisibleGameObjects()
+    }
 
-    subgraph Phase2 [2. Main Game Loop]
-        F[Update] --> G[TimeManager: Calculate DeltaTime]
-        G --> H[InputManager: Process Keyboard/Mouse]
-        H --> I[SceneManager: Update Game Logic]
-        I --> J[RenderManager: Cache Camera/States]
-        
-        K[LateUpdate] --> L[InputManager: Reset State]
-        L --> M[SceneManager: Physical/Post Logic]
-        
-        N[Render] --> O[GraphicsManager: BeginFrame - Clear]
-        O --> P[RenderManager: BeginFrame - Set Camera]
-        P --> Q[SceneManager: Collect Render Commands]
-        Q --> R[RenderManager: Flush - Draw Commands]
-        R --> S[GraphicsManager: Render - Swap Buffer]
-    end
+    class GameObject {
+        -GameObjectID m_id
+        -vector m_components
+        +Update()
+        +Render()
+        +SetSpatialDirty()
+    }
+    class Component {
+        &lt;&lt;interface&gt;&gt;
+        #GameObjectPtr m_owner
+        +Update()
+    }
+    class Transform {
+        -Vector2 m_position
+        +SetPosition()
+    }
+    class SpriteRenderer {
+        -BitmapPtr m_bitmap
+        +Render()
+    }
+    class Collider {
+        -RectF m_bounds
+        +OnCollision()
+    }
 
-    subgraph Phase3 [3. Release Phase]
-        T[Release] --> U[Destroy All Singletons]
-        U --> V[End]
-    end
-
-    E --> F
-    S --> J2{Running?}
-    J2 -->|Yes| F
-    J2 -->|No| T
+    DontStarve_MainGame --> Singleton : Orchestrates
+    Singleton <|-- ObjectManager
+    Singleton <|-- SceneManager
+    Singleton <|-- RenderManager
+    Singleton <|-- CameraManager
+    
+    ObjectManager "1" *-- "*" GameObject : Manages
+    GameObject "1" *-- "*" Component : Composed of
+    Component <|-- Transform
+    Component <|-- SpriteRenderer
+    Component <|-- Collider
                 </div>
             </div>
 
-            <h2>🧩 00_MainGame 클래스 역할</h2>
+            <div class="flow-box" style="align-items: stretch; margin-top: 2rem;">
+                <div class="metric-card" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h3 style="margin-top: 0; color: var(--accent-color);"><i class="fas fa-cubes"></i> Component-Based Architecture</h3>
+                    <p style="font-size: 0.9rem;">전통적인 깊은 상속 구조(Player -> Character -> Entity -> GameObject)를 피하고, <strong>조합(Composition)</strong>을 통해 객체를 생성합니다. 이를 통해 코드의 결합도를 낮추고 유연성을 극대화합니다.</p>
+                    <ul class="feature-list" style="font-size: 0.85rem; margin-top: 1rem;">
+                        <li><strong>데이터와 로직의 분리:</strong> Transform은 위치만, SpriteRenderer는 렌더링만 담당합니다.</li>
+                        <li><strong>동적 조합:</strong> 런타임에 Component를 추가하거나 제거하여 객체의 성질을 즉각적으로 바꿀 수 있습니다.</li>
+                    </ul>
+                </div>
+                <div class="metric-card" style="flex: 1; min-width: 300px; text-align: left;">
+                    <h3 style="margin-top: 0; color: var(--accent-green);"><i class="fas fa-sitemap"></i> Singleton Manager 시스템</h3>
+                    <p style="font-size: 0.9rem;">각 기능 도메인을 전문적으로 관리하는 매니저들이 전역적인 상태를 제어합니다. 데이터의 무결성을 보장하고 파이프라인의 순서를 엄격하게 통제합니다.</p>
+                    <ul class="feature-list" style="font-size: 0.85rem; margin-top: 1rem;">
+                        <li><strong>ObjectManager:</strong> 메모리 풀링 및 공간 분할(Grid) 관리</li>
+                        <li><strong>RenderManager:</strong> Z-Order 기반 배치 렌더링(Batching)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 4rem;">🔄 메인 루프 시퀀스 (Game Loop Sequence)</h2>
+            <div class="intro-text">
+                프레임 단위로 발생하는 핵심 로직의 호출 순서입니다. <strong>Update → LateUpdate → Render</strong>의 3단계 파이프라인을 엄격히 준수하여 상태 불일치(Race Condition)를 방지합니다.
+            </div>
+            
+            <div class="algorithm-box" style="background: var(--code-bg); padding: 2rem;">
+                <div class="mermaid">
+sequenceDiagram
+    participant Main as DontStarve_MainGame
+    participant Input as InputManager
+    participant Scene as SceneManager
+    participant Object as ObjectManager
+    participant Camera as CameraManager
+    participant Render as RenderManager
+
+    note over Main,Object: 1. Update Phase (Logic)
+    Main->>Input: Process Key/Mouse
+    Main->>Scene: Update()
+    Scene->>Object: "Update() (All Objects)"
+
+    note over Main,Object: 2. LateUpdate Phase (Physics/Sync)
+    Main->>Scene: LateUpdate()
+    Scene->>Object: LateUpdate() (Collision)
+    Object-->>Object: "Grid Sync (if Dirty)"
+
+    note over Main,Render: 3. Render Phase (Culling/Draw)
+    Main->>Camera: RenderVisibleTiles()
+    Main->>Camera: RenderVisibleGameObjects()
+    Camera->>Object: "Query (O(K))"
+    Camera->>Render: AddCommand()
+    Main->>Render: Flush()
+    Render->>Render: "Z-Order Sort"
+    Render->>Main: "Finish Frame"
+                </div>
+            </div>
+
+            <h2>🧩 매니저 간 협력 및 데이터 흐름 (Data Flow)</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>클래스 / 역할</th>
-                        <th>설명</th>
+                        <th>단계</th>
+                        <th>책임 매니저</th>
+                        <th>주요 역할 및 데이터 흐름</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>DontStarve_MainGame</strong></td>
-                        <td>전체 루프를 제어하는 핵심 엔진 클래스. 시스템 전체의 흐름을 조율합니다.</td>
+                        <td><strong>1. 입력 (Input)</strong></td>
+                        <td><code>InputManager</code></td>
+                        <td>운영체제로부터 키보드/마우스 이벤트를 수집하여 상태를 캐싱합니다. 이 데이터는 Update 단계에서 Player Component가 소비합니다.</td>
                     </tr>
                     <tr>
-                        <td><strong>Life Cycle 관리</strong></td>
-                        <td><code>Init()</code>: 매니저들을 의존성 순서대로 초기화<br><code>Release()</code>: 프로그램 종료 시 역순으로 매니저 해제(메모리 누수 방지)</td>
+                        <td><strong>2. 로직 (Logic)</strong></td>
+                        <td><code>SceneManager</code> <i class="fas fa-arrow-right"></i> <code>ObjectManager</code></td>
+                        <td>현재 활성화된 씬을 통해 월드의 모든 <code>GameObject</code>들의 Update()를 호출합니다. AI, 애니메이션, 이동 로직이 여기서 계산됩니다.</td>
                     </tr>
                     <tr>
-                        <td><strong>루프 오케스트레이션</strong></td>
-                        <td><code>Update()</code>: 시간, 입력, 로직 업데이트<br><code>LateUpdate()</code>: 물리 충돌, 입력 초기화 및 보정<br><code>Render()</code>: 커맨드 큐/즉시 렌더 경로 결정 및 프레임 버퍼 관리</td>
+                        <td><strong>3. 공간 (Spatial)</strong></td>
+                        <td><code>ObjectManager</code></td>
+                        <td>객체가 이동하여 <code>SetSpatialDirty()</code>가 호출되었다면, LateUpdate에서 해당 객체의 공간 분할 그리드(Cell)를 갱신합니다.</td>
                     </tr>
                     <tr>
-                        <td><strong>디버그 가교</strong></td>
-                        <td>F1(성능 오버레이), F2(최적화 모드), F3(공간 분할) 입력 처리 및 통계 렌더링</td>
+                        <td><strong>4. 컬링 (Culling)</strong></td>
+                        <td><code>CameraManager</code></td>
+                        <td>렌더링 전, 현재 카메라의 Viewport 영역을 계산하고, <code>ObjectManager</code>에 쿼리를 날려 화면에 보이는 객체만 선별합니다.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>5. 렌더 (Render)</strong></td>
+                        <td><code>RenderManager</code></td>
+                        <td>선별된 객체들의 스프라이트를 즉시 그리지 않고 <strong>DrawCommand</strong> 형태로 버퍼에 수집한 뒤, 프레임 마지막에 Z-Order에 맞춰 한 번에 출력합니다.</td>
                     </tr>
                 </tbody>
             </table>
-
-            <h2>🤝 주요 협력 매니저</h2>
-            <ul class="feature-list">
-                <li><strong>InputManager:</strong> Update 최상단에서 키보드/마우스 상태를 최신화하여 반응 속도 확보</li>
-                <li><strong>SceneManager:</strong> 현재 활성화된 씬(Menu, Game, Editor 등)의 모든 객체 업데이트</li>
-                <li><strong>CameraManager:</strong> 렌더링 전 카메라의 위치를 계산하고, 가시 영역 내 객체만 선별(Culling)</li>
-                <li><strong>RenderManager:</strong> 객체들을 직접 그리지 않고 커맨드로 수집 후 Z-Order 정렬하여 일괄 출력</li>
-                <li><strong>GraphicsManager:</strong> GDI+ 캔버스 관리 및 더블 버퍼링을 통한 화면 깜빡임 방지</li>
-            </ul>
         </section>
 
         <!-- Section: Simulator -->
@@ -1023,6 +1120,14 @@ m_avgCullMs += kEmaAlpha * (currentMs - m_avgCullMs);</code></pre>
             </div>
 
             <h2>✅ 분리된 플래그 시스템 (현재 아키텍처)</h2>
+            <div class="algorithm-box">
+                <h4>통합 진입점: <code>SetSpatialDirty()</code></h4>
+                <p>오브젝트의 이동이나 크기 변경이 발생하면 <code>SetSpatialDirty()</code>를 호출합니다. 이 함수는 바운딩 박스 연산 플래그와 그리드 갱신 플래그를 동시에 활성화합니다.</p>
+                <pre><code class="language-cpp">void GameObject::SetSpatialDirty() {
+    m_isBoundsDirty = true; // 차후 GetBounds() 호출 시 재계산
+    m_isGridDirty = true;   // LateUpdate에서 그리드 위치 동기화
+}</code></pre>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -1183,6 +1288,7 @@ for (auto* obj : visibleObjects) {
 
             <h2><span class="tag mid-term">중기</span> (1개월)</h2>
             <ul class="feature-list">
+                <li><strong>통합 청크(Unified Chunk) 시스템 도입:</strong> 현재 256px 그리드(오브젝트)와 128px 타일로 이원화된 관리 체계를 하나로 묶습니다. 그리드 1칸을 4개의 타일을 포함하는 '청크'로 정의하여, 카메라의 청크 경계 이동 시에만 타일과 오브젝트를 동시에 갱신하도록 최적화합니다. (연산 횟수 50% 절감 및 데이터 지역성 향상)</li>
                 <li>GDI+ → Direct2D 전환 - 하드웨어 가속</li>
                 <li>쿼드트리 도입 - 큰 맵 지원</li>
                 <li>오클루더 컬링 - 건물 뒤 객체 생략</li>

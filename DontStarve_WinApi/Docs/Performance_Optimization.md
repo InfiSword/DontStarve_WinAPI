@@ -16,6 +16,9 @@ emaMs(RenderVisibleTiles) - 가시 타일 렌더링 시간
 각 지표는 **EMA(Exponential Moving Average)** 방식으로 계산되어 순간적인 프레임 변동을 평활화합니다.
 - EMA 계수: 0.10 (과거 데이터에 90% 가중치, 현재 프레임에 10% 가중치)
 
+> [!TIP]
+> **[성능 벤치마크 시각화 리포트(HTML)](Performance_Report.html)** 에서 오브젝트 수에 따른 알고리즘 효율성을 그래프로 확인할 수 있습니다.
+
 ---
 
 ## 1. 그리드 기반 공간 분할 (Grid-based Spatial Partitioning)
