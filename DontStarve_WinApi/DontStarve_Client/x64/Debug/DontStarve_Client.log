@@ -1,34 +1,26 @@
 ﻿  pch.cpp
-  DontStarve_MainGame.cpp
-  CameraManager.cpp
-  ColliderManager.cpp
   DataManager.cpp
-  GameProgressManager.cpp
-  GraphicsManager.cpp
-  InputManager.cpp
-  InventoryManager.cpp
-  ObjectManager.cpp
-  RenderManager.cpp
-  ResourceManager.cpp
   BossHoundScene.cpp
   BossSpiderQueenScene.cpp
+  GameProgressManager.cpp
+  InventoryManager.cpp
+  ResourceManager.cpp
   CharacterSelectScene.cpp
   ForestScene.cpp
   GameScene.cpp
+  LoadingScene.cpp
   SceneManager.cpp
   TitleScene.cpp
-  TimeManager.cpp
+  SoundManager.cpp
   Building.cpp
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
-  PigHouse.cpp
-  SpiderEgg.cpp
   Button.cpp
+  Component.cpp
+  Collider.cpp
   BoxCollider.cpp
   CircleCollider.cpp
-  Collider.cpp
-  Component.cpp
   Image.cpp
+  코드를 생성하고 있습니다...
+  컴파일하고 있습니다...
   Sprite.cpp
   SpriteRenderer.cpp
   SpriteSheet.cpp
@@ -37,23 +29,10 @@
   Transform.cpp
   Combatant.cpp
   Entity.cpp
-  BerryBush.cpp
-  Grass.cpp
-  Rock.cpp
-  Sapling.cpp
-  코드를 생성하고 있습니다...
-  컴파일하고 있습니다...
-  Tree.cpp
-  Boss_IceHound.cpp
-  Boss_RedHound.cpp
-  Boss_SpiderQueen.cpp
-  Hound.cpp
   Monster.cpp
-  Pig.cpp
-  Spider.cpp
-  Player.cpp
-  GameObject.cpp
   Item.cpp
+  Rock.cpp
+  Tree.cpp
   Axe.cpp
   Pickaxe.cpp
   Tool.cpp
@@ -62,20 +41,48 @@
   Object.cpp
   IceProjectile.cpp
   Projectile.cpp
-  GameClearUI.cpp
   코드를 생성하고 있습니다...
   컴파일하고 있습니다...
+  MenuUI.cpp
+  GameClearUI.cpp
   GameOverUI.cpp
   HPUI.cpp
-  IntroNoticeUI.cpp
-  Inventory.cpp
-  MenuUI.cpp
-  UIButton.cpp
   UIElement.cpp
   UIImage.cpp
+  UIButton.cpp
   UIText.cpp
   AnimationClip.cpp
   Animator.cpp
   Client.cpp
+  DontStarve_MainGame.cpp
+  TimeManager.cpp
+  InputManager.cpp
+  CameraManager.cpp
+  GameObject.cpp
+  ObjectManager.cpp
+  ColliderManager.cpp
+  GraphicsManager.cpp
+  Player.cpp
   코드를 생성하고 있습니다...
-  DontStarve_Client.vcxproj -> E:\Project\DontStarve_WinAPI\DontStarve_WinApi\Build\DontStarve_Client.exe
+  컴파일하고 있습니다...
+  Grass.cpp
+  RenderManager.cpp
+  PigHouse.cpp
+  Inventory.cpp
+  IntroNoticeUI.cpp
+  BerryBush.cpp
+  Sapling.cpp
+  Boss_RedHound.cpp
+C:\MyProject\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Boss_RedHound.cpp(54,55): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Boss_IceHound.cpp
+C:\MyProject\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Boss_IceHound.cpp(58,55): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Boss_SpiderQueen.cpp
+C:\MyProject\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Boss_SpiderQueen.cpp(54,55): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Hound.cpp
+C:\MyProject\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Hound.cpp(42,55): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Pig.cpp
+  Spider.cpp
+C:\MyProject\DontStarve_WinAPI\DontStarve_WinApi\DontStarve_Client\02_GameObject\Entity\Monster\Spider.cpp(40,56): warning C4244: '인수': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  SpiderEgg.cpp
+  코드를 생성하고 있습니다...
+  DontStarve_Client.vcxproj -> C:\MyProject\DontStarve_WinAPI\DontStarve_WinApi\Build\Debugx64\DontStarve_Client.exe

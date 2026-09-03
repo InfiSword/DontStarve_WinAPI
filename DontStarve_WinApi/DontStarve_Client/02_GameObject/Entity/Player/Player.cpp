@@ -511,6 +511,10 @@ void Player::TryStartInteraction(float worldX, float worldY)
 	// 이동 중 대기 중인 상호작용 초기화
 	m_pendingInteractionTarget = nullptr;
 	m_attackTarget = nullptr;
+	
+	if (!target) {
+		return;
+	}
 
 	// 상호작용 가능 여부 확인
 	bool canInteract = false;

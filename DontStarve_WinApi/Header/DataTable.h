@@ -111,7 +111,7 @@ struct DataTable
 
 	static constexpr SceneTypeByPath SceneTypeTable[] =
 	{
-		{ SCENE_GAME_FARMING_AREA, L"GameData/00_map.dsm" },
+		{ SCENE_GAME_FARMING_AREA, L"GameData/00_map_backup.dsm" },
 		{ SCENE_GAME_HOUND_FOREST, L"GameData/01_BossHound.dsm" },
 		{ SCENE_GAME_SPIDER_QUEEN_HOUSE, L"GameData/02_BossSpiderQueen.dsm"}
 	};
